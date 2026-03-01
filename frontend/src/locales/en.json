@@ -1,0 +1,86 @@
+{
+  "lang": {
+    "en": "English",
+    "km": "Khmer"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "categories": "Categories",
+    "suppliers": "Suppliers",
+    "customers": "Customers",
+    "inventory": "Inventory",
+    "stock_in": "Stock In",
+    "stock_out": "Stock Out",
+    "adjustment": "Adjustments",
+    "purchase_order": "Purchase Orders",
+    "sales": "Sales",
+    "reports": "Reports",
+    "settings": "Settings",
+    "users": "Users",
+    "roles": "Roles & Permissions",
+    "activity_log": "Activity Log"
+  },
+
+  "btn": {
+    "create": "Create",
+    "edit": "Edit",
+    "update": "Update",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "filter": "Filter",
+    "search": "Search",
+    "view": "View",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print",
+    "confirm": "Confirm"
+  },
+
+  "form": {
+    "name": "Name",
+    "description": "Description",
+    "category": "Category",
+    "supplier": "Supplier",
+    "price": "Price",
+    "cost": "Cost",
+    "quantity": "Quantity",
+    "sku": "SKU",
+    "barcode": "Barcode",
+    "stock": "Stock",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "date": "Date"
+  },
+
+  "inventory": {
+    "current_stock": "Current Stock",
+    "min_stock": "Minimum Stock",
+    "max_stock": "Maximum Stock",
+    "stock_level": "Stock Level",
+    "low_stock": "Low Stock",
+    "out_of_stock": "Out of Stock"
+  },
+
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+
+  "messages": {
+    "confirm_delete": "Are you sure you want to delete this?",
+    "saved_success": "Saved successfully",
+    "updated_success": "Updated successfully",
+    "deleted_success": "Deleted successfully",
+    "error_occurred": "An error occurred",
+    "login_sucess": "Login successfully",
+    "logout_sucess": "Logout successfully",
+    "existName": "The name has already been taken."
+  }
+}

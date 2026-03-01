@@ -1,0 +1,85 @@
+{
+  "lang": {
+    "en": "អង់គ្លេស",
+    "km": "ខ្មែរ"
+  },
+  "menu": {
+    "dashboard": "ផ្ទាំងគ្រប់គ្រង",
+    "products": "ផលិតផល",
+    "categories": "ប្រភេទ",
+    "suppliers": "អ្នកផ្គត់ផ្គង់",
+    "customers": "អតិថិជន",
+    "inventory": "ស្តុក",
+    "stock_in": "ទំនិញចូល",
+    "stock_out": "ទំនិញចេញ",
+    "adjustment": "ការកែតម្រូវ",
+    "purchase_order": "បញ្ជាទិញ",
+    "sales": "លក់",
+    "reports": "របាយការណ៍",
+    "settings": "ការកំណត់",
+    "users": "អ្នកប្រើប្រាស់",
+    "roles": "តួនាទី និង សិទ្ធិ",
+    "activity_log": "កំណត់ត្រាសកម្មភាព"
+  },
+
+  "btn": {
+    "create": "បង្កើតថ្មី",
+    "edit": "កែប្រែ",
+    "update": "ធ្វើបច្ចុប្បន្នភាព",
+    "delete": "លុប",
+    "save": "រក្សាទុក",
+    "cancel": "បោះបង់",
+    "filter": "តម្រង",
+    "search": "ស្វែងរក",
+    "view": "មើល",
+    "export": "នាំចេញ",
+    "import": "នាំចូល",
+    "print": "បោះពុម្ព",
+    "confirm": "អះអាង"
+  },
+
+  "form": {
+    "name": "ឈ្មោះ",
+    "description": "ការពិពណ៌នា",
+    "category": "ប្រភេទ",
+    "supplier": "អ្នកផ្គត់ផ្គង់",
+    "price": "តម្លៃ",
+    "cost": "ថ្លៃដើម",
+    "quantity": "ចំនួន",
+    "sku": "លេខសម្គាល់ SKU",
+    "barcode": "បាកូដ",
+    "stock": "ស្តុក",
+    "email": "អ៊ីមែល",
+    "phone": "លេខទូរស័ព្ទ",
+    "address": "អាសយដ្ឋាន",
+    "date": "កាលបរិច្ឆេទ"
+  },
+
+  "inventory": {
+    "current_stock": "ស្តុកបច្ចុប្បន្ន",
+    "min_stock": "ស្តុកអប្បបរមា",
+    "max_stock": "ស្តុកអតិបរមា",
+    "stock_level": "កម្រិតស្តុក",
+    "low_stock": "ស្តុកអាប់",
+    "out_of_stock": "អស់ពីស្តុក"
+  },
+
+  "status": {
+    "active": "សកម្ម",
+    "inactive": "អសកម្ម",
+    "pending": "កំពុងរង់ចាំ",
+    "completed": "បានបញ្ចប់",
+    "cancelled": "បានបោះបង់"
+  },
+
+  "messages": {
+    "confirm_delete": "តើអ្នកប្រាកដថាចង់លុបរឿងនេះឬ?",
+    "saved_success": "រក្សាទុកបានជោគជ័យ",
+    "updated_success": "ធ្វើបច្ចុប្បន្នភាពបានជោគជ័យ",
+    "deleted_success": "លុបបានជោគជ័យ",
+    "error_occurred": "មានបញ្ហាកើតឡើង",
+    "login_sucess": "ចូលប្រព័ន្ធបានជោគជ័យ",
+    "logout_sucess": "ចាកចេញពីប្រព័ន្ធបានជោគជ័យ",
+    "existName": "The name has already been taken."
+  }
+}

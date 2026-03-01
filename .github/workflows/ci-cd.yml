@@ -1,0 +1,172 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ test ]
+  workflow_dispatch:
+
+# =========================
+# 1. Detect changed paths
+# =========================
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      webserver: ${{ steps.filter.outputs.webserver }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changed services
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - backend/**
+            frontend:
+              - frontend/**
+            webserver:
+              - backend/nginx/**
+              - docker-compose.yml
+
+# =========================
+# 2. Build & Push images
+# =========================
+  build-push:
+    runs-on: ubuntu-latest
+    needs: changes
+    env:
+      IMAGE_BACKEND: ${{ secrets.DOCKERHUB_USERNAME }}/inventory-backend
+      IMAGE_FRONTEND: ${{ secrets.DOCKERHUB_USERNAME }}/inventory-frontend
+      IMAGE_WEBSERVER: ${{ secrets.DOCKERHUB_USERNAME }}/inventory-webserver
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ---------- Backend ----------
+      - name: Build & push backend
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          docker build -t $IMAGE_BACKEND:latest -t $IMAGE_BACKEND:$IMAGE_TAG ./backend
+          docker push $IMAGE_BACKEND:latest
+          docker push $IMAGE_BACKEND:$IMAGE_TAG
+
+      # ---------- Frontend ----------
+      - name: Build & push frontend
+        if: needs.changes.outputs.frontend == 'true'
+        run: |
+          docker build \
+            --build-arg VITE_APP_MODE=Production \
+            --build-arg VITE_APP_API_BASE_URL=${{ secrets.API_URL_FR_BU }} \
+            --build-arg VITE_APP_I18N_LOCALE=en \
+            --build-arg VITE_APP_I18N_FALLBACK_LOCALE=en \
+            --build-arg VITE_APP_API_BASE_AI_URL=${{ secrets.AI_API_URL }} \
+            --build-arg VITE_REVERB_APP_KEY=${{ secrets.VITE_REVERB_APP_KEY }} \
+            --build-arg VITE_REVERB_HOST=${{ secrets.VITE_REVERB_HOST }} \
+            --build-arg VITE_REVERB_PORT=${{ secrets.VITE_REVERB_PORT }} \
+            --build-arg VITE_REVERB_SCHEME=https \
+            -t $IMAGE_FRONTEND:latest \
+            -t $IMAGE_FRONTEND:$IMAGE_TAG \
+            ./frontend
+
+          docker push $IMAGE_FRONTEND:latest
+          docker push $IMAGE_FRONTEND:$IMAGE_TAG
+
+      # ---------- Webserver ----------
+      - name: Build & push webserver
+        if: needs.changes.outputs.webserver == 'true'
+        run: |
+          docker build -t $IMAGE_WEBSERVER:latest -t $IMAGE_WEBSERVER:$IMAGE_TAG ./backend/nginx
+          docker push $IMAGE_WEBSERVER:latest
+          docker push $IMAGE_WEBSERVER:$IMAGE_TAG
+
+      # ---------- AI ----------
+      - name: Build & push AI
+        if: needs.changes.outputs.ai == 'true'
+        run: |
+          docker build -t $IMAGE_AI:latest -t $IMAGE_AI:$IMAGE_TAG ./inventory_ai
+          docker push $IMAGE_AI:latest
+          docker push $IMAGE_AI:$IMAGE_TAG
+
+# =========================
+# 3. Deploy
+# =========================
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [changes, build-push]
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── NEW: Copy docker-compose.yml to server ──
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/inventory/"
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/inventory
+
+            echo ">>> Pull only changed images"
+
+            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/inventory-backend:latest
+            fi
+
+            if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/inventory-frontend:latest
+            fi
+
+            if [ "${{ needs.changes.outputs.ai }}" = "true" ]; then
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/inventory-ai:latest
+            fi
+
+            if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
+              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/inventory-webserver:latest
+            fi
+
+            echo ">>> Restart containers"
+            docker compose down --remove-orphans || true
+            docker compose up -d --remove-orphans
+
+            # ✅ Wait for backend to be ready
+            echo ">>> Waiting for backend to start..."
+            sleep 15
+
+            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
+              # ✅ Check container is actually running before exec
+              if docker compose ps app_backend | grep -q "Up"; then
+                echo ">>> Backend post-deploy"
+                docker compose exec -T app_backend php artisan optimize:clear
+                docker compose exec -T app_backend php artisan migrate --force
+
+                echo ">>> Restart Reverb + Queue"
+                docker compose exec -T app_backend supervisorctl restart reverb
+                docker compose exec -T app_backend supervisorctl restart queue
+              else
+                echo ">>> Backend container not running — checking logs"
+                docker logs app_backend --tail=30
+                exit 1
+              fi
+            fi
+
+            echo ">>> Deploy complete ✅"
