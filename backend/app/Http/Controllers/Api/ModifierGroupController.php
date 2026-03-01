@@ -18,7 +18,6 @@ class ModifierGroupController extends Controller
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
-        $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_order', 'desc'));
         $items = $query->paginate($perPage);
 
         return response()->json([
@@ -33,7 +32,7 @@ class ModifierGroupController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return ModifierGroup::store($request);
     }
 
     /**
@@ -49,7 +48,7 @@ class ModifierGroupController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return ModifierGroup::store($request,$id);
     }
 
     /**

@@ -19,7 +19,7 @@ class ProductVariantController extends Controller
             $query->where('name', 'like', "%{$search}%")
                 ->orWhere('sku', 'like', "%{$search}%");
         }
-        $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_order', 'desc'));
+        $query->orderBy($request->get('sort_by', 'sort_order'), $request->get('sort_order', 'desc'));
         $items = $query->paginate($perPage);
 
         return response()->json([

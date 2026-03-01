@@ -4,7 +4,8 @@ import {
   getProductByIdApi,
   createProductApi,
   updateProductApi,
-  deleteProductApi
+  deleteProductApi,
+  attachModifierGroupsApi
 } from '../api/productService'
 
 export const useProductStore = defineStore('product', {
@@ -36,6 +37,13 @@ export const useProductStore = defineStore('product', {
     async deleteProduct(id) {
       await deleteProductApi(id)
       this.products = this.products.filter(item => item.id !== id)
+    },
+    // ✅ Attach modifier groups to a product via pivot
+    async attachModifierGroups({ product_id, modifier_group_ids }) {
+      await attachModifierGroupsApi(product_id, modifier_group_ids)
+
+      // Refresh the product so modifier_groups relation is up to date
+      await this.fetchProductById(product_id)
     }
   }
 })

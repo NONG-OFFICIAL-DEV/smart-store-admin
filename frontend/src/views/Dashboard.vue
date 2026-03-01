@@ -434,69 +434,6 @@
             </v-list-item>
           </v-list>
         </v-card>
-
-        <!-- Inventory Alerts -->
-        <v-card rounded="xl" elevation="0" border>
-          <v-card-title class="pa-5 pb-3">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <div class="text-subtitle-1 font-weight-bold">
-                  Inventory Alerts
-                </div>
-                <div class="text-caption text-medium-emphasis">
-                  Products needing attention
-                </div>
-              </div>
-              <v-chip color="error" variant="flat" size="small" rounded="lg">
-                {{ inventoryAlerts.length }}
-              </v-chip>
-            </div>
-          </v-card-title>
-          <v-divider />
-          <v-list density="compact" class="pa-2">
-            <v-list-item
-              v-for="alert in inventoryAlerts"
-              :key="alert.name"
-              rounded="lg"
-              class="mb-1"
-            >
-              <template #prepend>
-                <v-avatar
-                  :color="alert.severity === 'high' ? 'error' : 'warning'"
-                  size="30"
-                  rounded="lg"
-                  class="mr-2"
-                >
-                  <v-icon
-                    :icon="
-                      alert.severity === 'high'
-                        ? 'mdi-alert'
-                        : 'mdi-alert-outline'
-                    "
-                    size="14"
-                    color="white"
-                  />
-                </v-avatar>
-              </template>
-              <v-list-item-title class="text-body-2 font-weight-medium">
-                {{ alert.name }}
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-caption">
-                {{ alert.branch }}
-              </v-list-item-subtitle>
-              <template #append>
-                <v-chip
-                  :color="alert.severity === 'high' ? 'error' : 'warning'"
-                  variant="tonal"
-                  size="x-small"
-                  rounded="lg"
-                >
-                  {{ alert.status }}
-                </v-chip>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card>
       </v-col>
     </v-row>
 
@@ -869,27 +806,6 @@
     { name: 'Branded Tote Bag', sold: 89, revenue: 890 }
   ])
 
-  // ── Inventory Alerts ──────────────────────────────────────────────────────────
-  const inventoryAlerts = ref([
-    {
-      name: 'Mozzarella Cheese',
-      branch: 'Downtown Central',
-      status: 'Out of stock',
-      severity: 'high'
-    },
-    {
-      name: 'Espresso Beans',
-      branch: 'Siam Square',
-      status: 'Low stock',
-      severity: 'medium'
-    },
-    {
-      name: 'Burger Buns',
-      branch: 'On Nut Branch',
-      status: 'Low stock',
-      severity: 'medium'
-    }
-  ])
 
   // ── Donut Chart ───────────────────────────────────────────────────────────────
   const totalOrdersToday = 859

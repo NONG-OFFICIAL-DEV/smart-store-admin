@@ -6,12 +6,12 @@ import vuetify from "./plugins/vuetify"
 import i18n from "./plugins/i18n"
 import "./style.css"
 import './utils/echo'
-import CustomTitle from "./components/global/CustomTitle.vue";
-import BaseButton from "./components/customs/BaseButton.vue";
-import BaseButtonFilter from "./components/customs/BaseButtonFilter.vue";
-import Notif from '@/components/global/Notification.vue'
-import Confirm from '@/components/global/Confirm.vue'
+import CustomTitle from "./components/global/CustomTitle.vue"
+import BaseButton from "./components/customs/BaseButton.vue"
+import BaseButtonFilter from "./components/customs/BaseButtonFilter.vue"
 import axios from 'axios'
+// import { confirmPlugin, notifPlugin } from '@nong-official-dev/core'
+import {CorePlugin} from '@nong-official-dev/core'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -21,9 +21,7 @@ document.addEventListener(
   'touchend',
   event => {
     const now = new Date().getTime()
-    if (now - lastTouchEnd <= 300) {
-      event.preventDefault()
-    }
+    if (now - lastTouchEnd <= 300) event.preventDefault()
     lastTouchEnd = now
   },
   { passive: false }
@@ -37,10 +35,10 @@ app.use(pinia)
 app.use(vuetify)
 app.use(router)
 app.use(i18n)
-app.component("CustomTitle", CustomTitle);
-app.component("BaseButton", BaseButton);
-app.component("BaseButtonFilter", BaseButtonFilter);
-app.config.globalProperties.$notif = Notif.value?.newAlert
-app.config.globalProperties.$confirm = Confirm.value?.open
+app.use(CorePlugin)
+
+app.component("CustomTitle", CustomTitle)
+app.component("BaseButton", BaseButton)
+app.component("BaseButtonFilter", BaseButtonFilter)
 
 app.mount("#app")

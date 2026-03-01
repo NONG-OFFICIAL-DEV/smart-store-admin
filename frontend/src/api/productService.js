@@ -7,3 +7,8 @@ export const createProductApi = data => http.post('/v1/products', data)
 export const updateProductApi = (id, data) =>
   http.put(`/v1/products/${id}`, data)
 export const deleteProductApi = id => http.delete(`/v1/products/${id}`)
+
+export const attachModifierGroupsApi = (productId, modifierGroupIds) =>
+  http.post(`/v1/products/${productId}/modifier-groups/sync`, {
+    modifier_group_ids: modifierGroupIds
+  })

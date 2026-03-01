@@ -1,5 +1,6 @@
 <template>
   <custom-title
+    icon="mdi-calendar-account-outline"
     title="Staff Assignments"
     subtitle="Assign staff to shifts by date"
   >

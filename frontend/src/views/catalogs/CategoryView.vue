@@ -117,49 +117,6 @@
       :category="dialog.category"
       @saved="onSaved"
     />
-
-    <!-- Delete Confirmation -->
-    <v-dialog v-model="deleteDialog.show" max-width="400" persistent>
-      <v-card rounded="lg">
-        <v-card-text class="pa-6">
-          <div class="d-flex flex-column align-center text-center gap-3">
-            <v-avatar color="error" variant="tonal" size="56" rounded="lg">
-              <v-icon icon="mdi-trash-can-outline" size="28" color="error" />
-            </v-avatar>
-            <div>
-              <p class="text-body-1 font-weight-semibold text-grey-darken-3">
-                Delete Category
-              </p>
-              <p class="text-body-2 text-grey mt-1">
-                Are you sure you want to delete
-                <strong>{{ deleteDialog.category?.name }}</strong>
-                ? This action cannot be undone.
-              </p>
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions class="px-6 pb-5 pt-0 gap-2">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            block
-            @click="deleteDialog.show = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            rounded="lg"
-            block
-            :loading="deleteDialog.loading"
-            @click="confirmDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -167,6 +124,9 @@
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useCategoryStore } from '@/stores/categoryStore'
   import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+
+  const { confirm, notif } = useAppUtils()
 
   // ── Store ──────────────────────────────────────────────────────────────────
   const categoryStore = useCategoryStore()
@@ -246,23 +206,16 @@
     fetchData()
   }
 
-  // ── Delete Dialog ──────────────────────────────────────────────────────────
-  const deleteDialog = reactive({
-    show: false,
-    loading: false,
-    category: null
-  })
-
-  const openDeleteConfirm = item => {
-    deleteDialog.category = item
-    deleteDialog.show = true
-  }
-
-  const confirmDelete = async () => {
-    deleteDialog.loading = true
-    await categoryStore.deleteCategory(deleteDialog.category.id)
-    deleteDialog.loading = false
-    deleteDialog.show = false
+  const openDeleteConfirm = async (item) => {
+    confirm({
+      title: 'Delete Category',
+      message: `Are you sure you want to delete category "${item.name}"?`,
+      options: { type: 'warning', width: 550 },
+      agree: () => {
+        categoryStore.deleteCategory(item.id)
+      },
+      cancel: () => {}
+    })
     fetchData()
   }
 

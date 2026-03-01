@@ -73,6 +73,10 @@
 
 <script setup>
   import { ref, reactive, onMounted } from 'vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+
+  const { confirm, notif } = useAppUtils()
+
   import TenantDialog from '@/components/tenants/TenantDialog.vue'
   import { useTenantStore } from '@/stores/tenantStore'
 
@@ -113,8 +117,10 @@
     try {
       if (tenantData.id) {
         await tenantStore.updateTenant(tenantData.id, tenantData)
+        notif('Tenant saved successfully')
       } else {
         await tenantStore.createTenant(tenantData)
+        notif('Tenant saved successfully')
       }
 
       await fetchTenants()

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 // ── Auth ───────────────────────────────────────────────────────────────────
 use App\Http\Controllers\AuthController;
@@ -189,7 +188,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::prefix('products/{product}')->group(function () {
         Route::apiResource('variants',         ProductVariantController::class)->shallow();
         Route::get('modifier-groups',          [ModifierGroupController::class, 'byProduct']);
-        Route::post('modifier-groups/sync',    [ProductController::class, 'syncModifierGroups']);
+        Route::post('modifier-groups/sync',    [ProductController::class, 'attachModifierGroups']);
         Route::get('allergens',                [AllergenController::class, 'byProduct']);
         Route::post('allergens/sync',          [ProductController::class, 'syncAllergens']);
         Route::get('recipe',                   [ProductRecipeController::class, 'byProduct']);

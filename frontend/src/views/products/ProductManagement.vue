@@ -1,8 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+      icon="mdi-tag-outline"
       title="Products"
-      subtitle="  Manage your product catalog, variants, and availability"
+      subtitle="Manage your product catalog, variants, and availability"
     >
       <template #right>
         <v-btn
@@ -107,7 +108,12 @@
         <!-- Image + Name -->
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-3 py-2">
-            <v-avatar size="44" rounded="lg" color="grey-lighten-2">
+            <v-avatar
+              size="44"
+              rounded="lg"
+              color="grey-lighten-2"
+              class="me-2"
+            >
               <v-img v-if="item.image_url" :src="item.image_url" cover />
               <v-icon v-else icon="mdi-food" size="22" color="grey" />
             </v-avatar>
@@ -180,6 +186,13 @@
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <v-btn
+              icon="mdi-eye-outline"
+              size="small"
+              variant="text"
+              color="primary"
+              :to="`/product-details/${item.id}`"
+            />
+            <v-btn
               icon="mdi-pencil-outline"
               size="small"
               variant="text"
@@ -191,7 +204,7 @@
               size="small"
               variant="text"
               color="error"
-              @click="confirmDelete(item)"
+              @click="doDelete(item)"
             />
           </div>
         </template>
@@ -331,61 +344,6 @@
       :tenants="tenants"
       @saved="onSaved"
     />
-
-    <!-- ── Delete Confirm ─────────────────────────────────────────────────── -->
-    <v-dialog v-model="deleteDialog" max-width="400" persistent>
-      <v-card rounded="xl" elevation="0" border>
-        <v-card-text class="pa-6 text-center">
-          <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-            <v-icon icon="mdi-delete-outline" size="28" />
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Delete Product?</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Are you sure you want to delete
-            <strong>{{ deleteTarget?.name }}</strong>
-            ? This action cannot be undone.
-          </p>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0 gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            @click="deleteDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            block
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleteLoading"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- ── Snackbar ───────────────────────────────────────────────────────── -->
-    <v-snackbar
-      v-model="snack.show"
-      :color="snack.color"
-      rounded="lg"
-      location="bottom right"
-    >
-      {{ snack.text }}
-      <template #actions>
-        <v-btn
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          @click="snack.show = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 
@@ -396,7 +354,10 @@
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
   import { useTenantStore } from '@/stores/tenantStore'
+  import { useAppUtils } from '@nong-official-dev/core'
+  import { useI18n } from 'vue-i18n'
 
+  const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
   const productStore = useProductStore()
   const categoryStore = useCategoryStore()
@@ -534,43 +495,51 @@
       await productStore.updateProduct(item.id, {
         is_available: item.is_available
       })
-      showSnack(`${item.name} ${item.is_available ? 'enabled' : 'disabled'}`)
+      notif(`${item.name} ${item.is_available ? 'enabled' : 'disabled'}`, {
+        type: 'success'
+      })
     } catch (err) {
       // Revert optimistic UI update on failure
       item.is_available = !item.is_available
-      showSnack(`Failed to update ${item.name}`, 'error')
+      notif(`Failed to update ${item.name}`, {
+        type: 'success'
+      })
     }
   }
 
-  const confirmDelete = item => {
-    deleteTarget.value = item
-    deleteDialog.value = true
-  }
+  const doDelete = async product => {
+    confirm({
+      title: 'Delete Product?',
+      message: `Are you sure delete "${product.name}"?`,
+      options: { type: 'warning', color: 'warning', width: 400 },
+      agree: async () => {
+        await productStore.deleteProduct(deleteTarget.value.id)
 
-  const doDelete = async () => {
-    deleteLoading.value = true
-    try {
-      await productStore.deleteProduct(deleteTarget.value.id)
-      showSnack(`${deleteTarget.value.name} deleted`)
-      deleteDialog.value = false
-    } catch (err) {
-      showSnack('Failed to delete product', 'error')
-    } finally {
-      deleteLoading.value = false
-    }
+        notif(t('messages.deleted_success'), {
+          type: 'success'
+        })
+        await productStore.fetchProducts()
+      }
+    })
   }
 
   const onSaved = async payload => {
     try {
       if (payload.id) {
         await productStore.updateProduct(payload.id, payload)
-        showSnack('Product updated successfully')
+        notif('Product updated successfully', {
+          type: 'success'
+        })
       } else {
         await productStore.createProduct(payload)
-        showSnack('Product created successfully')
+        notif('Product created successfully', {
+          type: 'success'
+        })
       }
     } catch (err) {
-      showSnack('Failed to save product', 'error')
+      notif('Failed to save product', {
+        type: 'success'
+      })
     }
   }
 </script>

@@ -1,5 +1,6 @@
 <template>
-  <custom-title title="Shifts" subtitle="Define reusable shift schedules">
+  <custom-title icon="mdi-calendar
+  " title="Shifts" subtitle="Define reusable shift schedules">
     <template #right>
       <v-btn
         color="primary"
@@ -70,13 +71,7 @@
 
     <!-- ── Shift Cards ────────────────────────────────────────────────────────── -->
     <v-row v-if="!loading" dense>
-      <v-col
-        v-for="shift in shiftList"
-        :key="shift.id"
-        cols="12"
-        sm="6"
-        lg="4"
-      >
+      <v-col v-for="shift in shiftList" :key="shift.id" cols="12" sm="6" lg="4">
         <v-card rounded="xl" border elevation="0" class="shift-card">
           <!-- Top color bar by shift type -->
           <div
@@ -267,7 +262,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-{{ shiftList }}
+  {{ shiftList }}
   <!-- ── Snackbar ────────────────────────────────────────────────────────────── -->
   <v-snackbar
     v-model="snackbar.show"
@@ -329,7 +324,6 @@
       color: 'indigo'
     }
   ])
-
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   const openCreate = () => {

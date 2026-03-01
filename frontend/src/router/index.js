@@ -69,33 +69,20 @@ const routes = [
       {
         path: '/products',
         name: 'Products',
-        component: () => import('@/views/catalogs/ProductManagement.vue'),
+        component: () => import('@/views/products/ProductManagement.vue'),
         meta: { requiresAuth: true }
       },
       {
-        path: '/product-group',
-        name: 'productGroup',
-        component: () => import('@/views/products/Modifiergroupspage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: '/product-details',
+        path: '/product-details/:id',
         name: 'productDetails',
-        component: () => import('@/views/products/Productdetailpage.vue'),
-        meta: { requiresAuth: true }
-      },
-
-      {
-        path: '/product-variants',
-        name: 'productVariants',
-        component: () => import('@/views/products/ProductVariant.vue'),
+        component: () => import('@/views/products/ProductDetail.vue'),
         meta: { requiresAuth: true }
       },
       {
         path: '/product-modifier-groups',
         name: 'modifiergroups',
         component: () =>
-          import('@/views/products/Productmodifiergroupspanel.vue'),
+          import('@/views/products/ProductModifierGroup.vue'),
         meta: { requiresAuth: true }
       },
       // {

@@ -110,15 +110,15 @@
           roles: [1]
         },
         {
-          path: '/product-variants',
-          title: 'Product Variants',
+          path: '/products',
+          title: 'Product List',
           icon: 'mdi-package-variant',
           roles: [1, 2]
         },
         {
-          path: '/products',
-          title: 'Product List',
-          icon: 'mdi-package-variant',
+          path: '/product-modifier-groups',
+          title: 'Product Modifier',
+          icon: 'mdi-layers-outline',
           roles: [1, 2]
         }
       ]

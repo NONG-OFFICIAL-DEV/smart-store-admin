@@ -77,6 +77,9 @@
   import { ref, reactive, onMounted } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
   import BranchDialog from '@/components/branches/BranchDialog.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+
+  const { confirm, notif } = useAppUtils()
 
   const branchStore = useBranchStore()
 
@@ -119,9 +122,15 @@
   }
 
   const confirmDelete = branch => {
-    if (confirm(`Are you sure you want to delete branch "${branch.name}"?`)) {
-      branchStore.deleteBranch(branch.id)
-    }
+    confirm({
+      title: 'Delete Branch',
+      message: `Are you sure you want to delete branch "${branch.name}"?`,
+      options: { type: 'warning', width: 550 },
+      agree: () => {
+        branchStore.deleteBranch(branch.id)
+      },
+      cancel: () => {}
+    })
   }
 
   onMounted(fetchBranches)

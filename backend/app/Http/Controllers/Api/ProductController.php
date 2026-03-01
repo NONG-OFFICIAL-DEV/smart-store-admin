@@ -46,7 +46,32 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $product = Product::where('id', $id)
+            ->with([
+                // Category info
+                'category:id,name,icon,color',
+
+                // Variants (ordered)
+                'variants' => fn($q) => $q->orderBy('sort_order')->orderBy('name'),
+
+                // Modifier groups linked via pivot, with their options
+                'modifierGroups' => fn($q) => $q
+                    ->orderBy('product_modifier_groups.sort_order')
+                    ->with([
+                        'options' => fn($q) => $q
+                            ->orderBy('sort_order')
+                            ->orderBy('name'),
+                    ]),
+
+                // Branch overrides (if you want to show per-branch pricing)
+                'branchOverrides' => fn($q) => $q
+                    ->with('branch:id,name'),
+            ])
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => $product,
+        ]);
     }
 
     /**
@@ -63,5 +88,23 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function attachModifierGroups(Request $request, Product $product)
+    {
+        $request->validate([
+            'modifier_group_ids'   => 'required|array|min:1',
+            'modifier_group_ids.*' => 'uuid|exists:modifier_groups,id',
+        ]);
+
+        // syncWithoutDetaching keeps existing links, only adds new ones
+        $product->modifierGroups()->syncWithoutDetaching(
+            $request->modifier_group_ids
+        );
+
+        return response()->json([
+            'data'    => $product->load('modifierGroups.options'),
+            'message' => 'Modifier groups linked successfully',
+        ]);
     }
 }

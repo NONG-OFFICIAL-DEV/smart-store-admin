@@ -33,7 +33,7 @@ class ModifierOptionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return ModifierOption::store($request);
     }
 
     /**
@@ -49,7 +49,7 @@ class ModifierOptionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return ModifierOption::store($request, $id);
     }
 
     /**

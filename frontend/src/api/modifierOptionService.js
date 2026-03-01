@@ -1,12 +1,15 @@
 import http from './api'
 
-export const getAllModifierOptionsApi = filters =>
-  http.get('/modifier-options', { params: filters })
-export const getModifierOptionByIdApi = id =>
-  http.get(`/modifier-options/${id}`)
+// List/Create → need groupId (nested)
+export const getAllModifierOptionsApi = groupId =>
+  http.get(`/v1/modifier-groups/${groupId}/options`)
 export const createModifierOptionApi = data =>
-  http.post('/modifier-options', data)
+  http.post(`/v1/modifier-groups/${data.group_id}/options`, data)
+
+// Show/Update/Delete → shallow (no groupId needed)
+export const getModifierOptionByIdApi = id =>
+  http.get(`/v1/modifier-options/${id}`)
 export const updateModifierOptionApi = (id, data) =>
-  http.put(`/modifier-options/${id}`, data)
+  http.put(`/v1/modifier-options/${id}`, data)
 export const deleteModifierOptionApi = id =>
-  http.delete(`/modifier-options/${id}`)
+  http.delete(`/v1/modifier-options/${id}`)

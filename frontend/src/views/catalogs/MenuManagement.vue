@@ -86,7 +86,7 @@
   import { useCategoryStore } from '@/stores/categoryStore'
   import MenuFormDialog from '@/components/catalogs/MenuFormDialog.vue'
   import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
-  import { useAppUtils } from '@/composables/useAppUtils'
+  import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
 
   const { confirm, notif } = useAppUtils()
@@ -194,7 +194,7 @@
     confirm({
       title: t('Confirm Delete'),
       message: `Are you sure delete "${menu.name}"?`,
-      options: { type: 'error', color: 'error' },
+      options: { type: 'warning', color: 'warning', width: 400 },
       agree: async () => {
         await menuStore.deleteMenu(menu.id)
 

@@ -25,7 +25,7 @@
           <v-col cols="12" md="4">
             <v-select
               v-model="filters.branch_id"
-              :items="branches"
+              :items="branchStore.branches.data"
               item-title="name"
               item-value="id"
               label="Filter by Branch"
@@ -66,19 +66,6 @@
         </v-row>
       </v-card-text>
     </v-card>
-
-    <!-- ── Alert ───────────────────────────────────────────────────────────── -->
-    <v-alert
-      v-if="store.error"
-      type="error"
-      variant="tonal"
-      rounded="lg"
-      closable
-      class="mb-4"
-      @click:close="store.error = null"
-    >
-      {{ store.error }}
-    </v-alert>
 
     <!-- ── Data Table ───────────────────────────────────────────────────────── -->
     <v-card rounded="lg" elevation="0" border>
@@ -239,69 +226,11 @@
     <BranchMenuFormDialog
       v-model="dialog"
       :edit-item="editItem"
-      :branches="branchStore.branches"
+      :branches="branchStore.branches.data"
       :menus="menuStore.menus"
       @saved="onSaved"
     />
 
-    <!-- ── Delete Confirm Dialog ────────────────────────────────────────────── -->
-    <v-dialog v-model="deleteDialog" max-width="420" persistent>
-      <v-card rounded="xl" elevation="0" border>
-        <v-card-text class="pa-6 text-center">
-          <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-            <v-icon icon="mdi-delete-outline" size="28" />
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Remove Assignment?</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Remove
-            <strong>{{ deleteTarget?.menu?.name }}</strong>
-            from
-            <strong>{{ deleteTarget?.branch?.name }}</strong>
-            ? This cannot be undone.
-          </p>
-        </v-card-text>
-        <v-card-actions class="px-6 pb-6 pt-0 gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            @click="deleteDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            block
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="store.loading"
-            @click="handleDelete"
-          >
-            Remove
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- ── Snackbar ─────────────────────────────────────────────────────────── -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      location="bottom right"
-      rounded="lg"
-      :timeout="3000"
-    >
-      <div class="d-flex align-center gap-2">
-        <v-icon
-          :icon="
-            snackbar.color === 'success'
-              ? 'mdi-check-circle'
-              : 'mdi-alert-circle'
-          "
-        />
-        {{ snackbar.message }}
-      </div>
-    </v-snackbar>
   </v-container>
 </template>
 
@@ -311,7 +240,10 @@
   import BranchMenuFormDialog from '@/components/catalogs/BranchMenuFormDialog.vue'
   import { useBranchStore } from '@/stores/branchStore'
   import { useMenuStore } from '@/stores/menuStore'
+  import { useAppUtils } from '@nong-official-dev/core'
+  import { useI18n } from 'vue-i18n'
 
+  const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
   const store = useBranchMenuStore()
   const branchStore = useBranchStore()
@@ -332,21 +264,12 @@
 
   // ── Filters ───────────────────────────────────────────────────────────────────
   const filters = ref({ branch_id: null, menu_id: null })
-  const branches = ref([]) // TODO: load from branch store
   const menus = ref([]) // TODO: load from menu store
 
   // ── Dialog state ──────────────────────────────────────────────────────────────
   const dialog = ref(false)
   const editItem = ref(null)
-  const deleteDialog = ref(false)
   const deleteTarget = ref(null)
-
-  // ── Snackbar ──────────────────────────────────────────────────────────────────
-  const snackbar = ref({ show: false, message: '', color: 'success' })
-
-  const showSnack = (message, color = 'success') => {
-    snackbar.value = { show: true, message, color }
-  }
 
   // ── Load data ─────────────────────────────────────────────────────────────────
   const loadData = () => {
@@ -389,31 +312,36 @@
     if (payload.id) {
       // Existing assignment → update
       res = await store.update(payload.id, payload)
-      showSnack('Assignment updated successfully')
+      notif('Assignment updated successfully', {
+        type: 'success'
+      })
     } else {
       // New assignment → create
       res = await store.create(payload)
-      showSnack('Menu assigned to branch successfully')
+      notif('Menu assigned to branch successfully', {
+        type: 'success'
+      })
     }
 
     if (res.success) loadData()
-    else showSnack(store.error || 'Operation failed', 'error')
+    else notif('Operation failed', {
+      type: 'error'
+    })
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────────────
-  const confirmDelete = item => {
-    deleteTarget.value = item
-    deleteDialog.value = true
-  }
+  const confirmDelete = async menu => {
+    confirm({
+      title: 'Remove Assignment?',
+      message: `Are you sure delete "${menu.menu.name}"?`,
+      options: { type: 'warning', color: 'warning', width: 400 },
+      agree: async () => {
+        store.remove(deleteTarget.value.id)
 
-  const handleDelete = async () => {
-    const res = await store.remove(deleteTarget.value.id)
-    deleteDialog.value = false
-    if (res.success) {
-      showSnack('Menu assignment removed successfully')
-    } else {
-      showSnack(store.error || 'Failed to remove', 'error')
-    }
+        notif(t('messages.deleted_success'), {
+          type: 'success'
+        })
+      }
+    })
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────────
