@@ -90,7 +90,7 @@
 <script setup>
   import { ref, reactive } from 'vue'
   import { useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/auth'
+  import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()

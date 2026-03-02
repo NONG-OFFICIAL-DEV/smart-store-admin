@@ -34,7 +34,7 @@ class ReservationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return Reservation::store($request);
     }
 
     /**
@@ -50,7 +50,7 @@ class ReservationController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return Reservation::store($request,$id);
     }
 
     /**

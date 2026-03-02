@@ -1,1530 +1,778 @@
 <template>
-  <v-container fluid class="pa-0">
-    <custom-title
-      title="Table Management"
-      subtitle="Floor plans · Tables · Reservations"
-    >
-      <template #right>
+  <custom-title title="Tables" subtitle="Floor plan · Status · Capacity">
+    <template #right>
+      <div class="d-flex gap-2">
+        <v-btn-toggle
+          v-model="viewMode"
+          color="primary"
+          mandatory
+          density="compact"
+        >
+          <v-btn value="map" icon="mdi-floor-plan" />
+          <v-btn value="list" icon="mdi-format-list-bulleted" />
+        </v-btn-toggle>
         <v-btn
-          class="bg-primary"
+          color="primary"
           prepend-icon="mdi-plus"
           rounded="lg"
           @click="openCreate"
         >
-          {{
-            tab === 'floor'
-              ? 'New Floor Plan'
-              : tab === 'tables'
-                ? 'New Table'
-                : 'New Reservation'
-          }}
+          Add Table
         </v-btn>
-      </template>
-    </custom-title>
+      </div>
+    </template>
+  </custom-title>
 
-    <!-- ── Tab Bar ─────────────────────────────────────────────────────────── -->
-    <div class="tab-bar mb-6">
-      <button
-        v-for="t in tabs"
-        :key="t.value"
-        class="tab-btn"
-        :class="{ active: tab === t.value }"
-        @click="tab = t.value"
-      >
-        <v-icon :icon="t.icon" size="16" class="mr-2" />
-        {{ t.label }}
-      </button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════
-         FLOOR PLANS TAB
-    ═══════════════════════════════════════════════════════════════════ -->
-    <div v-show="tab === 'floor'">
-      <!-- Floor selector pills -->
-      <div class="d-flex align-center gap-3 mb-5 flex-wrap">
-        <button
-          v-for="fp in floorPlans"
-          :key="fp.id"
-          class="floor-pill"
-          :class="{ active: activeFloor?.id === fp.id }"
-          @click="activeFloor = fp"
+  <v-container fluid class="pa-0">
+    <!-- Stats -->
+    <v-row class="mb-5">
+      <v-col v-for="(stat, i) in stats" :key="i" cols="6" sm="3">
+        <v-card
+          rounded="xl"
+          border
+          elevation="0"
+          class="pa-4 d-flex align-center gap-3"
         >
-          <v-icon icon="mdi-layers-outline" size="14" class="mr-1" />
-          {{ fp.name }}
-        </button>
-        <span
-          v-if="!floorPlans.length"
-          class="text-caption"
-          style="color: #888"
-        >
-          No floor plans yet
-        </span>
-      </div>
-
-      <!-- Canvas -->
-      <div class="canvas-wrap">
-        <div class="canvas-grid" ref="canvasRef" @click.self="deselectTable">
-          <!-- Grid lines decoration -->
-          <svg class="canvas-grid-lines" width="100%" height="100%">
-            <defs>
-              <pattern
-                id="smallGrid"
-                width="30"
-                height="30"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M 30 0 L 0 0 0 30"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.03)"
-                  stroke-width="1"
-                />
-              </pattern>
-              <pattern
-                id="grid"
-                width="150"
-                height="150"
-                patternUnits="userSpaceOnUse"
-              >
-                <rect width="150" height="150" fill="url(#smallGrid)" />
-                <path
-                  d="M 150 0 L 0 0 0 150"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.06)"
-                  stroke-width="1"
-                />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-
-          <!-- Empty state -->
-          <div v-if="!activeFloor" class="canvas-empty">
-            <v-icon
-              icon="mdi-floor-plan"
-              size="52"
-              style="color: #444; margin-bottom: 12px"
-            />
-            <div style="color: #666; font-size: 14px">
-              Select or create a floor plan to begin
-            </div>
-          </div>
-
-          <div v-else-if="!floorTables.length" class="canvas-empty">
-            <v-icon
-              icon="mdi-table-furniture"
-              size="52"
-              style="color: #444; margin-bottom: 12px"
-            />
-            <div style="color: #666; font-size: 14px">
-              No tables on this floor — add tables and assign them here
-            </div>
-          </div>
-
-          <!-- Table nodes -->
-          <div
-            v-for="tbl in floorTables"
-            :key="tbl.id"
-            class="canvas-table"
-            :class="[
-              `shape-${tbl.shape}`,
-              `status-${tbl.status}`,
-              { selected: selectedTable?.id === tbl.id }
-            ]"
-            :style="{
-              left: (tbl.pos_x || 80) + 'px',
-              top: (tbl.pos_y || 80) + 'px'
-            }"
-            @mousedown="startDrag($event, tbl)"
-            @click.stop="selectedTable = tbl"
-          >
-            <span class="table-num">{{ tbl.table_number }}</span>
-            <span class="table-cap">{{ tbl.capacity }}p</span>
-            <div class="status-dot" />
-          </div>
-        </div>
-
-        <!-- Canvas legend -->
-        <div class="canvas-legend">
-          <span v-for="s in tableStatuses" :key="s" class="legend-item">
-            <span class="legend-dot" :class="`dot-${s}`" />
-            {{ s }}
-          </span>
-        </div>
-
-        <!-- Selected table info -->
-        <transition name="slide-up">
-          <div v-if="selectedTable" class="table-info-card">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <div class="info-label">
-                  Table {{ selectedTable.table_number }}
-                </div>
-                <div class="info-sub">
-                  {{ selectedTable.capacity }} seats · {{ selectedTable.shape }}
-                </div>
-              </div>
-              <div class="d-flex gap-2">
-                <v-btn
-                  size="small"
-                  variant="tonal"
-                  icon="mdi-pencil-outline"
-                  @click="openEditTable(selectedTable)"
-                />
-                <v-btn
-                  size="small"
-                  variant="tonal"
-                  icon="mdi-close"
-                  @click="selectedTable = null"
-                />
-              </div>
-            </div>
-            <div class="mt-2">
-              <v-chip
-                :color="statusColor(selectedTable.status)"
-                size="x-small"
-                variant="tonal"
-                rounded="lg"
-              >
-                {{ selectedTable.status }}
-              </v-chip>
-            </div>
-          </div>
-        </transition>
-      </div>
-
-      <!-- Floor plan list cards -->
-      <div class="mt-6 section-label mb-3">All Floor Plans</div>
-      <div class="floor-grid">
-        <div
-          v-for="fp in floorPlans"
-          :key="fp.id"
-          class="floor-card"
-          :class="{ active: activeFloor?.id === fp.id }"
-          @click="activeFloor = fp"
-        >
-          <div class="d-flex align-center justify-space-between">
-            <div class="d-flex align-center gap-3">
-              <div class="floor-icon">
-                <v-icon icon="mdi-layers-outline" size="20" />
-              </div>
-              <div>
-                <div class="floor-card-name">{{ fp.name }}</div>
-                <div class="floor-card-sub">Sort: {{ fp.sort_order }}</div>
-              </div>
-            </div>
-            <div class="d-flex gap-1">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="x-small"
-                variant="text"
-                style="color: #aaa"
-                @click.stop="edit(fp)"
-              />
-              <v-btn
-                icon="mdi-delete-outline"
-                size="x-small"
-                variant="text"
-                color="error"
-                @click.stop
-              />
-            </div>
-          </div>
-        </div>
-        <div v-if="!floorPlans.length" class="empty-card">
-          <v-icon icon="mdi-floor-plan" size="32" style="color: #444" />
-          <p>No floor plans yet</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════
-         TABLES TAB
-    ═══════════════════════════════════════════════════════════════════ -->
-    <div v-show="tab === 'tables'">
-      <!-- Status filter chips -->
-      <div class="d-flex gap-2 mb-4 flex-wrap">
-        <button
-          v-for="s in ['all', ...tableStatuses]"
-          :key="s"
-          class="filter-chip"
-          :class="{ active: tableFilter === s }"
-          @click="tableFilter = s"
-        >
-          {{ s }}
-        </button>
-      </div>
-
-      <div class="table-grid">
-        <div v-for="tbl in filteredTables" :key="tbl.id" class="tbl-card">
-          <!-- Shape badge -->
-          <div class="tbl-shape-badge" :class="`shape-badge-${tbl.shape}`">
-            <v-icon :icon="shapeIcon(tbl.shape)" size="20" />
-          </div>
-
-          <div class="tbl-body">
-            <div class="tbl-number">#{{ tbl.table_number }}</div>
-            <div class="tbl-meta">
-              {{ tbl.capacity }} seats · {{ tbl.shape }}
-            </div>
-          </div>
-
-          <div class="d-flex align-center justify-space-between mt-3">
-            <v-chip
-              :color="statusColor(tbl.status)"
-              size="x-small"
-              variant="tonal"
-              rounded="lg"
-            >
-              <span class="status-dot-inline" :class="`dot-${tbl.status}`" />
-              {{ tbl.status }}
-            </v-chip>
-            <div class="d-flex gap-1">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="x-small"
-                variant="text"
-                style="color: #aaa"
-                @click="edit(tbl)"
-              />
-              <v-btn
-                icon="mdi-delete-outline"
-                size="x-small"
-                variant="text"
-                color="error"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-if="!filteredTables.length"
-          class="empty-card"
-          style="grid-column: 1/-1"
-        >
-          <v-icon icon="mdi-table-furniture" size="32" style="color: #444" />
-          <p>No tables found</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════
-         RESERVATIONS TAB
-    ═══════════════════════════════════════════════════════════════════ -->
-    <div v-show="tab === 'reservations'">
-      <div class="res-list">
-        <div v-for="res in reservations" :key="res.id" class="res-card">
-          <div class="res-time-col">
-            <div class="res-time">{{ formatTime(res.reserved_at) }}</div>
-            <div class="res-date">{{ formatDate(res.reserved_at) }}</div>
-            <div class="res-dur">{{ res.duration_minutes }}min</div>
-          </div>
-          <div class="res-divider" />
-          <div class="res-body">
-            <div class="res-name">{{ res.customer_name }}</div>
-            <div class="res-meta">
-              <v-icon icon="mdi-phone-outline" size="13" class="mr-1" />
-              {{ res.customer_phone }}
-              <span class="mx-2">·</span>
-              <v-icon icon="mdi-account-group-outline" size="13" class="mr-1" />
-              {{ res.party_size }} guests
-            </div>
-            <div v-if="res.notes" class="res-notes">{{ res.notes }}</div>
-          </div>
-          <div class="res-actions">
-            <v-chip
-              :color="reservationColor(res.status)"
-              size="x-small"
-              variant="tonal"
-              rounded="lg"
-              class="mb-2"
-            >
-              {{ res.status }}
-            </v-chip>
-            <div class="d-flex gap-1">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="x-small"
-                variant="text"
-                style="color: #aaa"
-                @click="edit(res)"
-              />
-              <v-btn
-                icon="mdi-delete-outline"
-                size="x-small"
-                variant="text"
-                color="error"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div v-if="!reservations.length" class="empty-card">
-          <v-icon
-            icon="mdi-calendar-blank-outline"
-            size="32"
-            style="color: #444"
-          />
-          <p>No reservations yet</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════════
-         SLIDE-OVER DRAWER
-    ═══════════════════════════════════════════════════════════════════ -->
-    <v-navigation-drawer
-      v-model="drawer"
-      location="right"
-      width="440"
-      temporary
-      class="drawer-panel"
-    >
-      <!-- Drawer Header -->
-      <div class="drawer-header">
-        <div class="d-flex align-center gap-3">
-          <div class="drawer-avatar" :class="isEdit ? 'edit' : 'create'">
-            <v-icon
-              :icon="isEdit ? 'mdi-pencil' : 'mdi-plus'"
-              size="18"
-              color="white"
-            />
-          </div>
+          <v-avatar :color="stat.color" variant="tonal" rounded="lg" size="44">
+            <v-icon :icon="stat.icon" size="20" />
+          </v-avatar>
           <div>
-            <div class="drawer-title">
-              {{ isEdit ? 'Edit' : 'New' }} {{ tabLabel }}
-            </div>
-            <div class="drawer-sub">Fill in the details below</div>
+            <div class="text-h6 font-weight-bold">{{ stat.value }}</div>
+            <div class="text-caption text-grey">{{ stat.label }}</div>
           </div>
-        </div>
-        <v-btn
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          style="color: #888"
-          @click="closeDrawer"
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Filter bar -->
+    <v-row align="center" class="mb-4 px-1" dense>
+      <v-col cols="12" sm="auto">
+        <v-btn-toggle
+          v-model="statusFilter"
+          color="primary"
+          variant="tonal"
+          rounded="lg"
+        >
+          <v-btn value="" size="small" class="text-none px-3">All</v-btn>
+          <v-btn value="available" size="small" class="text-none px-3">
+            <v-icon icon="mdi-circle" size="10" color="success" class="mr-1" />
+            Available
+          </v-btn>
+          <v-btn value="occupied" size="small" class="text-none px-3">
+            <v-icon icon="mdi-circle" size="10" color="error" class="mr-1" />
+            Occupied
+          </v-btn>
+          <v-btn value="reserved" size="small" class="text-none px-3">
+            <v-icon icon="mdi-circle" size="10" color="warning" class="mr-1" />
+            Reserved
+          </v-btn>
+          <v-btn value="cleaning" size="small" class="text-none px-3">
+            <v-icon icon="mdi-circle" size="10" color="blue" class="mr-1" />
+            Cleaning
+          </v-btn>
+        </v-btn-toggle>
+      </v-col>
+      <v-spacer />
+      <v-col cols="12" sm="auto">
+        <v-select
+          v-model="selectedFloorPlan"
+          :items="floorPlanOptions"
+          item-value="id"
+          item-title="name"
+          label="Floor Plan"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          max-width="200"
+          prepend-inner-icon="mdi-floor-plan"
+          clearable
         />
-      </div>
+      </v-col>
+    </v-row>
 
-      <v-divider style="border-color: rgba(255, 255, 255, 0.07)" />
+    <!-- ══ MAP VIEW ══════════════════════════════════════════════════════════ -->
+    <template v-if="viewMode === 'map'">
+      <v-card rounded="xl" border elevation="0" class="floor-map-card">
+        <v-card-text class="pa-4">
+          <!-- Legend -->
+          <div class="d-flex gap-4 mb-4 flex-wrap">
+            <div
+              v-for="s in statusLegend"
+              :key="s.value"
+              class="d-flex align-center gap-1"
+            >
+              <div class="status-dot" :style="{ background: s.color }" />
+              <span class="text-caption text-grey">{{ s.label }}</span>
+            </div>
+          </div>
 
-      <div class="pa-5">
-        <v-form ref="formRef" validate-on="input">
-          <!-- FLOOR PLAN FORM -->
-          <template v-if="tab === 'floor'">
-            <div class="field-label">Floor Plan Name</div>
-            <v-text-field
-              v-model="form.name"
-              placeholder="e.g. Ground Floor, Rooftop..."
-              variant="outlined"
-              density="comfortable"
-              class="dark-field mb-3"
-              :rules="[r.required]"
-            />
-            <div class="field-label">Sort Order</div>
-            <v-text-field
-              v-model.number="form.sort_order"
-              type="number"
-              min="0"
-              variant="outlined"
-              density="comfortable"
-              class="dark-field"
-              :rules="[r.nonNeg]"
-            />
+          <!-- Floor canvas -->
+          <div class="floor-canvas" ref="canvasRef">
+            <div
+              v-for="table in filteredTables"
+              :key="table.id"
+              class="table-token"
+              :class="[
+                `shape-${table.shape || 'square'}`,
+                `status-${table.status}`,
+                { 'table-inactive': !table.is_active }
+              ]"
+              :style="tablePosition(table)"
+              @click="openStatusChange(table)"
+            >
+              <div class="table-number">{{ table.table_number }}</div>
+              <div class="table-capacity">
+                <v-icon icon="mdi-account" size="10" />
+                {{ table.capacity }}
+              </div>
+
+              <!-- Context menu -->
+              <div class="table-actions" @click.stop>
+                <v-menu>
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      icon="mdi-dots-vertical"
+                      size="small"
+                      variant="text"
+                      density="compact"
+                    />
+                  </template>
+                  <v-list density="compact" rounded="lg" min-width="160">
+                    <v-list-item
+                      prepend-icon="mdi-pencil-outline"
+                      @click="openEdit(table)"
+                    >
+                      Edit
+                    </v-list-item>
+                    <v-list-item
+                      prepend-icon="mdi-swap-horizontal"
+                      @click="openStatusChange(table)"
+                    >
+                      Change Status
+                    </v-list-item>
+                    <v-list-item
+                      prepend-icon="mdi-calendar-plus"
+                      @click="openReservation(table)"
+                      color="primary"
+                    >
+                      Reserve
+                    </v-list-item>
+                    <v-divider />
+                    <v-list-item
+                      prepend-icon="mdi-delete-outline"
+                      color="error"
+                      @click="confirmDelete(table)"
+                    >
+                      Delete
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+            </div>
+
+            <!-- Empty floor -->
+            <div v-if="!filteredTables.length" class="floor-empty">
+              <v-icon
+                icon="mdi-floor-plan"
+                size="48"
+                color="grey-lighten-1"
+                class="mb-2"
+              />
+              <p class="text-body-2 text-grey">No tables on this floor</p>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <!-- ══ LIST VIEW ═════════════════════════════════════════════════════════ -->
+    <template v-else>
+      <v-card rounded="xl" border elevation="0">
+        <v-data-table
+          :headers="headers"
+          :items="filteredTables"
+          :loading="loading"
+          item-value="id"
+          rounded="xl"
+          hover
+        >
+          <!-- Table number -->
+          <template #item.table_number="{ item }">
+            <div class="d-flex align-center gap-2">
+              <div
+                class="table-icon"
+                :class="`shape-${item.shape || 'square'} mini`"
+              >
+                {{ item.table_number }}
+              </div>
+              <div>
+                <div class="text-body-2 font-weight-medium">
+                  Table {{ item.table_number }}
+                </div>
+                <div class="text-caption text-grey">{{ item.shape }}</div>
+              </div>
+            </div>
           </template>
 
-          <!-- TABLE FORM -->
-          <template v-if="tab === 'tables'">
-            <div class="form-row">
-              <div>
-                <div class="field-label">Table Number</div>
-                <v-text-field
-                  v-model="form.table_number"
-                  placeholder="e.g. T-01"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                  :rules="[r.required]"
-                />
-              </div>
-              <div>
-                <div class="field-label">Capacity</div>
-                <v-text-field
-                  v-model.number="form.capacity"
-                  type="number"
-                  min="1"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                  :rules="[r.required, r.positive]"
-                />
-              </div>
+          <!-- Capacity -->
+          <template #item.capacity="{ item }">
+            <div class="d-flex align-center gap-1">
+              <v-icon icon="mdi-account-group-outline" size="16" color="grey" />
+              <span class="text-body-2">{{ item.capacity }}</span>
             </div>
-
-            <div class="field-label">Shape</div>
-            <div class="shape-picker mb-4">
-              <button
-                v-for="s in ['round', 'square', 'rectangle', 'bar']"
-                :key="s"
-                type="button"
-                class="shape-option"
-                :class="{ active: form.shape === s }"
-                @click="form.shape = s"
-              >
-                <v-icon :icon="shapeIcon(s)" size="22" />
-                <span>{{ s }}</span>
-              </button>
-            </div>
-
-            <div class="field-label">Status</div>
-            <div class="status-picker mb-4">
-              <button
-                v-for="s in tableStatuses"
-                :key="s"
-                type="button"
-                class="status-option"
-                :class="[{ active: form.status === s }, `status-opt-${s}`]"
-                @click="form.status = s"
-              >
-                {{ s }}
-              </button>
-            </div>
-
-            <v-switch
-              v-model="form.is_active"
-              label="Active"
-              color="amber"
-              density="compact"
-              inset
-              hide-details
-            />
           </template>
 
-          <!-- RESERVATION FORM -->
-          <template v-if="tab === 'reservations'">
-            <div class="form-row">
-              <div>
-                <div class="field-label">Customer Name</div>
-                <v-text-field
-                  v-model="form.customer_name"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                  :rules="[r.required]"
-                />
-              </div>
-              <div>
-                <div class="field-label">Phone</div>
-                <v-text-field
-                  v-model="form.customer_phone"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div>
-                <div class="field-label">Party Size</div>
-                <v-text-field
-                  v-model.number="form.party_size"
-                  type="number"
-                  min="1"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                  :rules="[r.required, r.positive]"
-                />
-              </div>
-              <div>
-                <div class="field-label">Duration (min)</div>
-                <v-text-field
-                  v-model.number="form.duration_minutes"
-                  type="number"
-                  min="15"
-                  variant="outlined"
-                  density="comfortable"
-                  class="dark-field"
-                />
-              </div>
-            </div>
-
-            <div class="field-label">Reserved At</div>
-            <v-text-field
-              v-model="form.reserved_at"
-              type="datetime-local"
-              variant="outlined"
-              density="comfortable"
-              class="dark-field mb-3"
-              :rules="[r.required]"
-            />
-
-            <div class="field-label">Status</div>
-            <div class="status-picker mb-4">
-              <button
-                v-for="s in reservationStatuses"
-                :key="s"
-                type="button"
-                class="status-option"
-                :class="[{ active: form.status === s }, `status-opt-${s}`]"
-                @click="form.status = s"
-              >
-                {{ s }}
-              </button>
-            </div>
-
-            <div class="field-label">Notes</div>
-            <v-textarea
-              v-model="form.notes"
-              variant="outlined"
-              density="comfortable"
-              class="dark-field"
-              rows="3"
-              placeholder="Any special requests..."
-            />
+          <!-- Floor plan -->
+          <template #item.floor_plan="{ item }">
+            <span class="text-body-2 text-grey">
+              {{ item.floor_plan?.name || '—' }}
+            </span>
           </template>
-        </v-form>
-      </div>
 
-      <template #append>
-        <v-divider style="border-color: rgba(255, 255, 255, 0.07)" />
-        <div class="pa-5 d-flex gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            size="large"
-            @click="closeDrawer"
-          >
-            Cancel
-          </v-btn>
-          <v-btn block class="save-btn" rounded="lg" size="large" @click="save">
-            {{ isEdit ? 'Save Changes' : 'Create' }}
-          </v-btn>
-        </div>
-      </template>
-    </v-navigation-drawer>
+          <!-- Status -->
+          <template #item.status="{ item }">
+            <v-chip
+              :color="statusColor(item.status)"
+              size="small"
+              variant="tonal"
+              :prepend-icon="statusIcon(item.status)"
+              class="cursor-pointer"
+              @click="openStatusChange(item)"
+            >
+              {{ item.status }}
+            </v-chip>
+          </template>
+
+          <!-- Active -->
+          <template #item.is_active="{ item }">
+            <v-chip
+              :color="item.is_active ? 'success' : 'grey'"
+              size="x-small"
+              variant="tonal"
+            >
+              {{ item.is_active ? 'Active' : 'Inactive' }}
+            </v-chip>
+          </template>
+
+          <!-- Actions -->
+          <template #item.actions="{ item }">
+            <div class="d-flex gap-1 justify-end">
+              <v-btn
+                icon="mdi-calendar-plus"
+                size="small"
+                variant="text"
+                color="primary"
+                @click="openReservation(item)"
+              />
+              <v-btn
+                icon="mdi-pencil-outline"
+                size="small"
+                variant="text"
+                @click="openEdit(item)"
+              />
+              <v-btn
+                icon="mdi-delete-outline"
+                size="small"
+                variant="text"
+                color="error"
+                @click="confirmDelete(item)"
+              />
+            </div>
+          </template>
+
+          <template #no-data>
+            <div class="text-center py-10">
+              <v-icon
+                icon="mdi-table-chair"
+                size="48"
+                color="grey-lighten-1"
+                class="mb-2"
+              />
+              <p class="text-body-2 text-medium-emphasis">No tables found</p>
+            </div>
+          </template>
+        </v-data-table>
+      </v-card>
+    </template>
   </v-container>
+
+  <!-- Table Form Dialog -->
+  <TableFormDialog
+    v-model="dialog"
+    :item="selectedItem"
+    :floor-plans="floorPlanOptions"
+    :loading="saving"
+    @save="handleSave"
+  />
+
+  <!-- Status Change Dialog -->
+  <v-dialog v-model="statusDialog" max-width="360">
+    <v-card rounded="xl" elevation="0" border>
+      <v-card-title class="pa-5 pb-4">
+        <div class="text-h6 font-weight-bold">
+          Table {{ statusTarget?.table_number }} — Change Status
+        </div>
+      </v-card-title>
+      <v-divider />
+      <v-card-text class="pa-4">
+        <v-row dense>
+          <v-col v-for="s in statusOptions" :key="s.value" cols="6">
+            <v-btn
+              block
+              :color="s.color"
+              :variant="statusTarget?.status === s.value ? 'flat' : 'tonal'"
+              rounded="lg"
+              class="text-none mb-2"
+              :prepend-icon="s.icon"
+              :loading="saving && newStatus === s.value"
+              @click="changeStatus(s.value)"
+            >
+              {{ s.label }}
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <!-- Delete Confirm -->
+  <v-dialog v-model="deleteDialog" max-width="400" persistent>
+    <v-card rounded="xl" elevation="0" border>
+      <v-card-text class="pa-6 text-center">
+        <v-avatar color="error" size="56" rounded="lg" class="mb-4">
+          <v-icon icon="mdi-delete-outline" size="28" />
+        </v-avatar>
+        <h3 class="text-h6 font-weight-bold mb-2">Delete Table?</h3>
+        <p class="text-body-2 text-medium-emphasis">
+          Table
+          <strong>{{ deleteTarget?.table_number }}</strong>
+          will be permanently removed.
+        </p>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-6 pt-0 gap-3">
+        <v-btn block variant="tonal" rounded="lg" @click="deleteDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn
+          block
+          color="error"
+          variant="flat"
+          rounded="lg"
+          :loading="saving"
+          @click="handleDelete"
+        >
+          Delete
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Snackbar -->
+  <v-snackbar
+    v-model="snackbar.show"
+    :color="snackbar.color"
+    location="bottom right"
+    rounded="lg"
+    :timeout="3000"
+  >
+    {{ snackbar.message }}
+  </v-snackbar>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
+  import { storeToRefs } from 'pinia'
+  import { useRouter } from 'vue-router'
+  import { useTableStore } from '@/stores/tableStore'
+  import TableFormDialog from '@/components/tables/TableFormDialog.vue'
 
-  /* ── Tabs ── */
-  const tabs = [
-    { value: 'floor', label: 'Floor Plans', icon: 'mdi-floor-plan' },
-    { value: 'tables', label: 'Tables', icon: 'mdi-table-furniture' },
-    { value: 'reservations', label: 'Reservations', icon: 'mdi-calendar-clock' }
-  ]
-  const tab = ref('floor')
+  const router = useRouter()
+  const tableStore = useTableStore()
 
-  /* ── Drawer ── */
-  const drawer = ref(false)
-  const isEdit = ref(false)
-  const formRef = ref(null)
-  const form = ref({})
+  // ← store.tables, store.pagination
+  const { tables, pagination } = storeToRefs(tableStore)
 
-  /* ── Data ── */
-  const floorPlans = ref([
-    { id: 1, name: 'Ground Floor', sort_order: 1 },
-    { id: 2, name: 'Rooftop', sort_order: 2 }
-  ])
-  const activeFloor = ref(null)
-  const selectedTable = ref(null)
+  const loading = ref(false)
+  const saving = ref(false)
+  const viewMode = ref('map')
+  const statusFilter = ref('')
+  const selectedFloorPlan = ref(null)
+  const dialog = ref(false)
+  const statusDialog = ref(false)
+  const deleteDialog = ref(false)
+  const selectedItem = ref(null)
+  const statusTarget = ref(null)
+  const deleteTarget = ref(null)
+  const newStatus = ref(null)
+  const snackbar = ref({ show: false, message: '', color: 'success' })
 
-  const tables = ref([
+  const showSnack = (m, c = 'success') => {
+    snackbar.value = { show: true, message: m, color: c }
+  }
+
+  // Mock floor plans — replace with store
+  const floorPlanOptions = ref([{ id: null, name: 'All Floors' }])
+
+  // Stats
+  const stats = computed(() => [
     {
-      id: 1,
-      table_number: 'T-01',
-      capacity: 4,
-      shape: 'round',
-      status: 'available',
-      is_active: true,
-      pos_x: 80,
-      pos_y: 80,
-      floor_plan_id: 1
+      label: 'Total Tables',
+      value: tables.value.length,
+      icon: 'mdi-table-chair',
+      color: 'primary'
     },
     {
-      id: 2,
-      table_number: 'T-02',
-      capacity: 6,
-      shape: 'rectangle',
-      status: 'occupied',
-      is_active: true,
-      pos_x: 220,
-      pos_y: 80,
-      floor_plan_id: 1
+      label: 'Available',
+      value: tables.value.filter(t => t.status === 'available').length,
+      icon: 'mdi-check-circle-outline',
+      color: 'success'
     },
     {
-      id: 3,
-      table_number: 'T-03',
-      capacity: 2,
-      shape: 'square',
-      status: 'reserved',
-      is_active: true,
-      pos_x: 380,
-      pos_y: 80,
-      floor_plan_id: 1
+      label: 'Occupied',
+      value: tables.value.filter(t => t.status === 'occupied').length,
+      icon: 'mdi-account-group',
+      color: 'error'
     },
     {
-      id: 4,
-      table_number: 'T-04',
-      capacity: 8,
-      shape: 'bar',
-      status: 'cleaning',
-      is_active: false,
-      pos_x: 80,
-      pos_y: 220,
-      floor_plan_id: 2
+      label: 'Reserved',
+      value: tables.value.filter(t => t.status === 'reserved').length,
+      icon: 'mdi-calendar-clock',
+      color: 'warning'
     }
   ])
 
-  const reservations = ref([
-    {
-      id: 1,
-      customer_name: 'Sopheap Keo',
-      customer_phone: '012 345 678',
-      party_size: 4,
-      reserved_at: '2026-02-27T18:30',
-      duration_minutes: 90,
-      status: 'confirmed',
-      notes: 'Window seat preferred'
-    },
-    {
-      id: 2,
-      customer_name: 'Dara Chea',
-      customer_phone: '089 654 321',
-      party_size: 2,
-      reserved_at: '2026-02-27T20:00',
-      duration_minutes: 60,
-      status: 'pending',
-      notes: ''
-    },
-    {
-      id: 3,
-      customer_name: 'Maly Pich',
-      customer_phone: '077 111 222',
-      party_size: 6,
-      reserved_at: '2026-02-28T19:00',
-      duration_minutes: 120,
-      status: 'completed',
-      notes: 'Birthday celebration'
-    }
-  ])
-
-  /* ── Filter ── */
-  const tableFilter = ref('all')
-  const filteredTables = computed(() =>
-    tableFilter.value === 'all'
-      ? tables.value
-      : tables.value.filter(t => t.status === tableFilter.value)
-  )
-
-  const floorTables = computed(() =>
-    activeFloor.value
-      ? tables.value.filter(t => t.floor_plan_id === activeFloor.value.id)
-      : []
-  )
-
-  /* ── Status / shape lists ── */
-  const tableStatuses = [
-    'available',
-    'occupied',
-    'reserved',
-    'cleaning',
-    'inactive'
-  ]
-  const reservationStatuses = [
-    'pending',
-    'confirmed',
-    'seated',
-    'completed',
-    'no_show',
-    'cancelled'
-  ]
-
-  /* ── Computed label ── */
-  const tabLabel = computed(() => {
-    if (tab.value === 'floor') return 'Floor Plan'
-    if (tab.value === 'tables') return 'Table'
-    return 'Reservation'
+  // Filter
+  const filteredTables = computed(() => {
+    let list = tables.value
+    if (statusFilter.value)
+      list = list.filter(t => t.status === statusFilter.value)
+    if (selectedFloorPlan.value)
+      list = list.filter(t => t.floor_plan_id === selectedFloorPlan.value)
+    return list
   })
 
-  /* ── Validation ── */
-  const r = {
-    required: v => (!!v && String(v).trim() !== '') || 'Required',
-    positive: v => Number(v) > 0 || 'Must be greater than 0',
-    nonNeg: v => Number(v) >= 0 || 'Must be 0 or more'
-  }
+  // Table headers for list view
+  const headers = [
+    { title: 'Table', key: 'table_number', sortable: true },
+    { title: 'Capacity', key: 'capacity', sortable: true },
+    { title: 'Shape', key: 'shape', sortable: false },
+    { title: 'Floor Plan', key: 'floor_plan', sortable: false },
+    { title: 'Status', key: 'status', sortable: true },
+    { title: 'Active', key: 'is_active', sortable: false },
+    { title: '', key: 'actions', sortable: false, align: 'end' }
+  ]
 
-  /* ── Helpers ── */
-  function statusColor(s) {
-    return (
-      {
-        available: 'green',
-        occupied: 'red',
-        reserved: 'orange',
-        cleaning: 'blue',
-        inactive: 'grey'
-      }[s] ?? 'grey'
-    )
-  }
-  function reservationColor(s) {
-    return (
-      {
-        confirmed: 'green',
-        pending: 'orange',
-        cancelled: 'red',
-        completed: 'blue',
-        seated: 'teal',
-        no_show: 'grey'
-      }[s] ?? 'grey'
-    )
-  }
-  function shapeIcon(s) {
-    return (
-      {
-        round: 'mdi-circle-outline',
-        square: 'mdi-square-outline',
-        rectangle: 'mdi-rectangle-outline',
-        bar: 'mdi-minus-box-outline'
-      }[s] ?? 'mdi-square-outline'
-    )
-  }
-  function formatTime(dt) {
-    if (!dt) return '--'
-    return new Date(dt).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-  function formatDate(dt) {
-    if (!dt) return '--'
-    return new Date(dt).toLocaleDateString([], {
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  /* ── Drawer controls ── */
-  function openCreate() {
-    isEdit.value = false
-    form.value = {
-      sort_order: 0,
-      is_active: true,
-      shape: 'round',
-      status: tableStatuses[0]
+  // Status options for quick change
+  const statusOptions = [
+    {
+      value: 'available',
+      label: 'Available',
+      color: 'success',
+      icon: 'mdi-check-circle-outline'
+    },
+    {
+      value: 'occupied',
+      label: 'Occupied',
+      color: 'error',
+      icon: 'mdi-account-group'
+    },
+    {
+      value: 'reserved',
+      label: 'Reserved',
+      color: 'warning',
+      icon: 'mdi-calendar-clock'
+    },
+    { value: 'cleaning', label: 'Cleaning', color: 'blue', icon: 'mdi-broom' },
+    {
+      value: 'inactive',
+      label: 'Inactive',
+      color: 'grey',
+      icon: 'mdi-minus-circle-outline'
     }
-    drawer.value = true
+  ]
+
+  const statusLegend = [
+    { value: 'available', label: 'Available', color: '#4caf50' },
+    { value: 'occupied', label: 'Occupied', color: '#f44336' },
+    { value: 'reserved', label: 'Reserved', color: '#ff9800' },
+    { value: 'cleaning', label: 'Cleaning', color: '#2196f3' },
+    { value: 'inactive', label: 'Inactive', color: '#9e9e9e' }
+  ]
+
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  const openCreate = () => {
+    selectedItem.value = null
+    dialog.value = true
   }
-  function edit(item) {
-    isEdit.value = true
-    form.value = { ...item }
-    drawer.value = true
+  const openEdit = t => {
+    selectedItem.value = { ...t }
+    dialog.value = true
   }
-  function openEditTable(item) {
-    tab.value = 'tables'
-    edit(item)
+  const confirmDelete = t => {
+    deleteTarget.value = t
+    deleteDialog.value = true
   }
-  function closeDrawer() {
-    drawer.value = false
-    setTimeout(() => {
-      form.value = {}
-      formRef.value?.reset()
-    }, 300)
+  const openStatusChange = t => {
+    statusTarget.value = t
+    statusDialog.value = true
   }
-  function save() {
-    // connect to API
-    closeDrawer()
+  const openReservation = t =>
+    router.push({ name: 'Reservations', query: { table_id: t.id } })
+
+  const changeStatus = async status => {
+    newStatus.value = status
+    saving.value = true
+    try {
+      // store.updateTable replaces item in tables array
+      await tableStore.updateTable(statusTarget.value.id, { status })
+      statusDialog.value = false
+      showSnack(`Table ${statusTarget.value.table_number} → ${status}`)
+    } catch {
+      showSnack('Failed to update status', 'error')
+    } finally {
+      saving.value = false
+      newStatus.value = null
+    }
   }
 
-  /* ── Canvas deselect ── */
-  function deselectTable() {
-    selectedTable.value = null
+  const handleDelete = async () => {
+    saving.value = true
+    try {
+      // store.deleteTable filters tables array itself
+      await tableStore.deleteTable(deleteTarget.value.id)
+      deleteDialog.value = false
+      showSnack(`Table ${deleteTarget.value.table_number} deleted`)
+    } catch {
+      showSnack('Failed to delete', 'error')
+    } finally {
+      saving.value = false
+    }
   }
 
-  /* ── Drag-to-move tables on canvas ── */
-  function startDrag(e, tbl) {
-    const startX = e.clientX - (tbl.pos_x || 0)
-    const startY = e.clientY - (tbl.pos_y || 0)
-    function onMove(ev) {
-      tbl.pos_x = Math.max(0, ev.clientX - startX)
-      tbl.pos_y = Math.max(0, ev.clientY - startY)
+  const handleSave = async payload => {
+    saving.value = true
+    try {
+      if (payload.id) {
+        // store.updateTable replaces item in tables array by index
+        await tableStore.updateTable(payload.id, payload)
+        showSnack('Table updated')
+      } else {
+        // store.createTable unshifts into tables array
+        await tableStore.createTable(payload)
+        showSnack('Table created')
+      }
+      dialog.value = false
+    } catch {
+      showSnack('Failed to save', 'error')
+    } finally {
+      saving.value = false
     }
-    function onUp() {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  const statusColor = s =>
+    ({
+      available: 'success',
+      occupied: 'error',
+      reserved: 'warning',
+      cleaning: 'blue',
+      inactive: 'grey'
+    })[s] || 'grey'
+
+  const statusIcon = s =>
+    ({
+      available: 'mdi-check-circle-outline',
+      occupied: 'mdi-account-group',
+      reserved: 'mdi-calendar-clock',
+      cleaning: 'mdi-broom',
+      inactive: 'mdi-minus-circle-outline'
+    })[s] || 'mdi-help'
+
+  // Position table token on canvas
+  // Uses position_x/position_y from DB, falls back to grid layout
+  const tablePosition = table => {
+    if (table.position_x != null && table.position_y != null) {
+      return {
+        position: 'absolute',
+        left: `${table.position_x}px`,
+        top: `${table.position_y}px`
+      }
+    }
+    return {} // grid layout fallback via CSS
+  }
+
+  // store.fetchTables sets store.tables (note: res.data.data.data in your store)
+  onMounted(async () => {
+    loading.value = true
+    try {
+      await tableStore.fetchTables()
+    } finally {
+      loading.value = false
+    }
+  })
 </script>
 
 <style scoped>
-  .page-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #f0ece4;
-    letter-spacing: -0.3px;
+  /* ── Floor canvas ─────────────────────────────────────────────────────────── */
+  .floor-map-card {
+    min-height: 500px;
   }
-  .page-subtitle {
-    font-size: 13px;
-    color: #666;
-    margin-top: 2px;
-  }
-
-  /* ── Tab bar ── */
-  .tab-bar {
-    display: flex;
-    gap: 4px;
-    background: #1a1c1f;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+  .floor-canvas {
+    position: relative;
+    min-height: 460px;
+    background: radial-gradient(circle, #e0e0e0 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-color: #fafafa;
     border-radius: 12px;
-    padding: 5px;
-    width: fit-content;
-  }
-  .tab-btn {
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #666;
-    background: transparent;
-    border: none;
-    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
-    align-items: center;
-    transition: all 0.2s;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 24px;
+    align-content: flex-start;
   }
-  .tab-btn.active {
-    background: #252830;
-    color: #d4a053;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  }
-  .tab-btn:hover:not(.active) {
-    color: #aaa;
-  }
-
-  /* ── Floor pills ── */
-  .floor-pill {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: #1a1c1f;
-    color: #777;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s;
-  }
-  .floor-pill.active {
-    background: rgba(212, 160, 83, 0.15);
-    border-color: #d4a053;
-    color: #d4a053;
-  }
-  .floor-pill:hover:not(.active) {
-    color: #bbb;
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  /* ── Canvas ── */
-  .canvas-wrap {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    background: #13151a;
-  }
-  .canvas-grid {
-    position: relative;
+  .floor-empty {
     width: 100%;
-    height: 520px;
-    overflow: hidden;
-  }
-  .canvas-grid-lines {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .canvas-empty {
-    position: absolute;
-    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 300px;
   }
 
-  /* ── Table nodes ── */
-  .canvas-table {
-    position: absolute;
+  /* ── Table tokens ─────────────────────────────────────────────────────────── */
+  .table-token {
+    position: relative;
+    width: 80px;
+    height: 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    cursor: grab;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
     user-select: none;
-    transition:
-      box-shadow 0.2s,
-      transform 0.15s;
-    border: 2px solid rgba(255, 255, 255, 0.1);
   }
-  .canvas-table:active {
-    cursor: grabbing;
+  .table-token:hover {
+    transform: scale(1.08);
+    z-index: 10;
   }
-  .canvas-table:hover {
-    transform: scale(1.05);
-  }
-  .canvas-table.selected {
-    border-color: #d4a053 !important;
-    box-shadow: 0 0 0 3px rgba(212, 160, 83, 0.25);
+  .table-token:hover .table-actions {
+    opacity: 1;
   }
 
   /* Shapes */
   .shape-round {
-    width: 72px;
-    height: 72px;
     border-radius: 50%;
   }
   .shape-square {
-    width: 72px;
-    height: 72px;
-    border-radius: 10px;
+    border-radius: 8px;
   }
   .shape-rectangle {
+    border-radius: 8px;
     width: 110px;
-    height: 68px;
-    border-radius: 10px;
+    height: 70px;
   }
   .shape-bar {
-    width: 130px;
-    height: 44px;
-    border-radius: 6px;
+    border-radius: 4px;
+    width: 120px;
+    height: 50px;
   }
 
   /* Status colors */
   .status-available {
-    background: rgba(76, 175, 80, 0.18);
-    border-color: rgba(76, 175, 80, 0.5);
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
   }
   .status-occupied {
-    background: rgba(244, 67, 54, 0.18);
-    border-color: rgba(244, 67, 54, 0.5);
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
   }
   .status-reserved {
-    background: rgba(255, 152, 0, 0.18);
-    border-color: rgba(255, 152, 0, 0.5);
+    background: #fff3e0;
+    border-color: #ff9800;
+    color: #e65100;
   }
   .status-cleaning {
-    background: rgba(33, 150, 243, 0.18);
-    border-color: rgba(33, 150, 243, 0.5);
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1565c0;
   }
   .status-inactive {
-    background: rgba(120, 120, 120, 0.15);
-    border-color: rgba(120, 120, 120, 0.4);
+    background: #f5f5f5;
+    border-color: #bdbdbd;
+    color: #757575;
+    opacity: 0.6;
+  }
+  .table-inactive {
+    opacity: 0.4;
   }
 
-  .table-num {
-    font-size: 13px;
-    font-weight: 700;
-    color: #e0dbd0;
-  }
-  .table-cap {
-    font-size: 10px;
-    color: #888;
-    margin-top: 1px;
-  }
-  .status-dot {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-  .status-available .status-dot {
-    background: #4caf50;
-  }
-  .status-occupied .status-dot {
-    background: #f44336;
-  }
-  .status-reserved .status-dot {
-    background: #ff9800;
-  }
-  .status-cleaning .status-dot {
-    background: #2196f3;
-  }
-  .status-inactive .status-dot {
-    background: #777;
-  }
-
-  /* Canvas legend */
-  .canvas-legend {
-    display: flex;
-    gap: 16px;
-    padding: 10px 16px;
-    background: #0e1012;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    font-size: 11px;
-    color: #666;
-    gap: 6px;
-  }
-  .legend-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-  .dot-available {
-    background: #4caf50;
-  }
-  .dot-occupied {
-    background: #f44336;
-  }
-  .dot-reserved {
-    background: #ff9800;
-  }
-  .dot-cleaning {
-    background: #2196f3;
-  }
-  .dot-inactive {
-    background: #555;
-  }
-
-  /* Selected table info card */
-  .table-info-card {
-    position: absolute;
-    bottom: 52px;
-    left: 16px;
-    background: #1e2026;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 14px 16px;
-    min-width: 220px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  }
-  .info-label {
-    font-size: 14px;
-    font-weight: 700;
-    color: #f0ece4;
-  }
-  .info-sub {
-    font-size: 12px;
-    color: #777;
-    margin-top: 1px;
-  }
-
-  .slide-up-enter-active,
-  .slide-up-leave-active {
-    transition: all 0.25s ease;
-  }
-  .slide-up-enter-from,
-  .slide-up-leave-to {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  /* ── Floor card grid ── */
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #555;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-  }
-  .floor-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-  }
-  .floor-card {
-    background: #1a1c1f;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .floor-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-  .floor-card.active {
-    border-color: rgba(212, 160, 83, 0.5);
-    background: rgba(212, 160, 83, 0.06);
-  }
-  .floor-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #d4a053;
-  }
-  .floor-card-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e0dbd0;
-  }
-  .floor-card-sub {
-    font-size: 12px;
-    color: #666;
-    margin-top: 1px;
-  }
-
-  /* ── Table card grid ── */
-  .table-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
-  }
-  .tbl-card {
-    background: #1a1c1f;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 16px;
-    transition: border-color 0.2s;
-  }
-  .tbl-card:hover {
-    border-color: rgba(255, 255, 255, 0.14);
-  }
-  .tbl-shape-badge {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    color: #d4a053;
-    background: rgba(212, 160, 83, 0.1);
-  }
-  .shape-badge-round {
-    border-radius: 50%;
-  }
-  .shape-badge-bar {
-    border-radius: 6px;
-  }
-  .tbl-number {
+  .table-number {
     font-size: 18px;
     font-weight: 700;
-    color: #f0ece4;
+    line-height: 1;
   }
-  .tbl-meta {
-    font-size: 12px;
-    color: #666;
+  .table-capacity {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
     margin-top: 2px;
   }
-  .status-dot-inline {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50;
-    margin-right: 4px;
-    vertical-align: middle;
+
+  .table-actions {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
-  /* ── Filter chips ── */
-  .filter-chip {
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #1a1c1f;
-    color: #666;
-    cursor: pointer;
-    text-transform: capitalize;
-    transition: all 0.2s;
-  }
-  .filter-chip.active {
-    background: rgba(212, 160, 83, 0.15);
-    border-color: #d4a053;
-    color: #d4a053;
-  }
-  .filter-chip:hover:not(.active) {
-    color: #bbb;
-  }
-
-  /* ── Reservation list ── */
-  .res-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .res-card {
-    background: #1a1c1f;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    transition: border-color 0.2s;
-  }
-  .res-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-  .res-time-col {
-    min-width: 56px;
-    text-align: center;
-  }
-  .res-time {
-    font-size: 16px;
-    font-weight: 700;
-    color: #d4a053;
-  }
-  .res-date {
-    font-size: 11px;
-    color: #666;
-    margin-top: 1px;
-  }
-  .res-dur {
-    font-size: 10px;
-    color: #555;
-    margin-top: 3px;
-  }
-  .res-divider {
-    width: 1px;
-    background: rgba(255, 255, 255, 0.07);
-    align-self: stretch;
-    flex-shrink: 0;
-  }
-  .res-body {
-    flex: 1;
-    min-width: 0;
-  }
-  .res-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e0dbd0;
-  }
-  .res-meta {
-    font-size: 12px;
-    color: #666;
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-  }
-  .res-notes {
-    font-size: 12px;
-    color: #888;
-    margin-top: 6px;
-    font-style: italic;
-  }
-  .res-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-  }
-
-  /* ── Empty card ── */
-  .empty-card {
-    background: #1a1c1f;
-    border: 1px dashed rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 40px;
-    text-align: center;
-    color: #555;
-    font-size: 13px;
-  }
-  .empty-card p {
-    margin-top: 10px;
-    margin-bottom: 0;
-  }
-
-  /* ── Drawer panel ── */
-  .drawer-panel {
-    background: #15171b !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.07) !important;
-  }
-  .drawer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-  }
-  .drawer-avatar {
+  /* Mini icon for list view */
+  .table-icon.mini {
     width: 36px;
     height: 36px;
-    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  .drawer-avatar.create {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-  }
-  .drawer-avatar.edit {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-  }
-  .drawer-title {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 700;
-    color: #e0dbd0;
+    border-radius: 6px;
+    background: rgb(var(--v-theme-primary), 0.1);
+    color: rgb(var(--v-theme-primary));
   }
-  .drawer-sub {
-    font-size: 12px;
-    color: #555;
-    margin-top: 1px;
+  .table-icon.mini.shape-round {
+    border-radius: 50%;
   }
 
-  /* ── Form fields ── */
-  .field-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #777;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    text-transform: uppercase;
+  /* Legend */
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
   }
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .gap-1 {
+    gap: 4px;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
+  .gap-3 {
     gap: 12px;
-    margin-bottom: 0;
   }
-
-  .dark-field :deep(.v-field__outline__start),
-  .dark-field :deep(.v-field__outline__notch),
-  .dark-field :deep(.v-field__outline__end) {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+  .gap-4 {
+    gap: 16px;
   }
-  .dark-field :deep(.v-field) {
-    background: #1e2026;
-    color: #e0dbd0;
-    border-radius: 10px;
-  }
-  .dark-field :deep(input),
-  .dark-field :deep(textarea) {
-    color: #e0dbd0 !important;
-  }
-  .dark-field :deep(.v-label) {
-    color: #666 !important;
-  }
-
-  /* ── Shape picker ── */
-  .shape-picker {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-  .shape-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px 6px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #1e2026;
-    color: #666;
-    font-size: 11px;
+  .cursor-pointer {
     cursor: pointer;
-    transition: all 0.2s;
-    text-transform: capitalize;
-  }
-  .shape-option.active {
-    border-color: #d4a053;
-    color: #d4a053;
-    background: rgba(212, 160, 83, 0.1);
-  }
-  .shape-option:hover:not(.active) {
-    color: #bbb;
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  /* ── Status picker ── */
-  .status-picker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .status-option {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #1e2026;
-    color: #666;
-    cursor: pointer;
-    text-transform: capitalize;
-    transition: all 0.2s;
-  }
-  .status-option.active.status-opt-available {
-    background: rgba(76, 175, 80, 0.18);
-    border-color: #4caf50;
-    color: #4caf50;
-  }
-  .status-option.active.status-opt-occupied {
-    background: rgba(244, 67, 54, 0.18);
-    border-color: #f44336;
-    color: #f44336;
-  }
-  .status-option.active.status-opt-reserved {
-    background: rgba(255, 152, 0, 0.18);
-    border-color: #ff9800;
-    color: #ff9800;
-  }
-  .status-option.active.status-opt-cleaning {
-    background: rgba(33, 150, 243, 0.18);
-    border-color: #2196f3;
-    color: #2196f3;
-  }
-  .status-option.active.status-opt-inactive {
-    background: rgba(120, 120, 120, 0.18);
-    border-color: #888;
-    color: #888;
-  }
-  .status-option.active.status-opt-confirmed {
-    background: rgba(76, 175, 80, 0.18);
-    border-color: #4caf50;
-    color: #4caf50;
-  }
-  .status-option.active.status-opt-pending {
-    background: rgba(255, 152, 0, 0.18);
-    border-color: #ff9800;
-    color: #ff9800;
-  }
-  .status-option.active.status-opt-cancelled {
-    background: rgba(244, 67, 54, 0.18);
-    border-color: #f44336;
-    color: #f44336;
-  }
-  .status-option.active.status-opt-completed {
-    background: rgba(33, 150, 243, 0.18);
-    border-color: #2196f3;
-    color: #2196f3;
-  }
-  .status-option.active.status-opt-seated {
-    background: rgba(0, 188, 212, 0.18);
-    border-color: #00bcd4;
-    color: #00bcd4;
-  }
-  .status-option.active.status-opt-no_show {
-    background: rgba(120, 120, 120, 0.18);
-    border-color: #888;
-    color: #888;
-  }
-  .status-option:hover:not(.active) {
-    color: #bbb;
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  /* ── Save button ── */
-  .save-btn {
-    background: linear-gradient(135deg, #d4a053, #b8872e) !important;
-    color: #1a1408 !important;
-    font-weight: 600 !important;
   }
 </style>

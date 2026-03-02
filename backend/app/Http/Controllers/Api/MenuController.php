@@ -49,7 +49,7 @@ class MenuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return Menu::store($request ,$id);
+        return Menu::store($request, $id);
     }
 
     /**
@@ -57,6 +57,17 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Menu::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category removed'
+        ]);
     }
 }

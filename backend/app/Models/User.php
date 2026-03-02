@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
+use Ramsey\Collection\Collection;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -107,9 +109,9 @@ class User extends Authenticatable implements JWTSubject
 
 
     // ── Relationships ─────────────────────────────────────────────────────────
-    public function staffProfiles()
+    public function staff()
     {
-        return $this->hasMany(Staff::class);
+        return $this->HasOne(Staff::class);
     }
 
     public function ownedTenants()
@@ -128,5 +130,29 @@ class User extends Authenticatable implements JWTSubject
         return trim("{$this->first_name} {$this->last_name}");
     }
 
+    // Check single permission
+    public function hasPermission(string $code): bool
+    {
+        return $this->getAllPermissions()->contains($code);
+    }
 
+    // Get all permissions — cached 5 mins so DB isn't hit every request
+    public function getAllPermissions(): \Illuminate\Support\Collection
+    {
+        return Cache::remember("user_perms_{$this->id}", 300, function () {
+            return $this->staff()
+                ->with('role.permissions')
+                ->get()
+                ->flatMap(fn($staff) => $staff->role?->permissions ?? [])
+                ->pluck('code')
+                ->unique()
+                ->values();
+        });
+    }
+
+    // Clear cache when role changes
+    public function clearPermissionCache(): void
+    {
+        Cache::forget("user_perms_{$this->id}");
+    }
 }

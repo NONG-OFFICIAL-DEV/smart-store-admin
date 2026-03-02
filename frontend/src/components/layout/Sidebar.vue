@@ -2,271 +2,300 @@
   import { ref, computed } from 'vue'
   import logo from '/logo.png'
   import { useI18n } from 'vue-i18n'
+  import { useAuthStore } from '@/stores/authStore'
+
   const { t } = useI18n()
+  const authStore = useAuthStore()
 
   const props = defineProps({
-    user: Object, // user will be passed from parent (Layout.vue),
+    user: Object,
     rail: Boolean
   })
 
-  // const rail = ref(false)
   const open = ref(['dashboard'])
 
-  const filteredMenu = computed(() => {
-    // if (!props.user) return []
+  const can = code => authStore.can(code)
 
-    return menu.value
-    // .map(link => {
-    //   const roleOk = !link.roles || link.roles.includes(props.user.role_id)
-
-    //   if (!roleOk) return null
-
-    //   if (link.subLinks) {
-    //     const filteredSubs = link.subLinks.filter(
-    //       s => !s.roles || s.roles.includes(props.user.role_id)
-    //     )
-    //     return { ...link, subLinks: filteredSubs }
-    //   }
-
-    //   return link
-    // })
-    // .filter(Boolean)
-  })
-
+  // ── Menu Definition ───────────────────────────────────────────────────────────
   const menu = computed(() => [
+    // ── 1. DASHBOARD ────────────────────────────────────────────────────────────
     {
       path: '/dashboard',
       title: t('menu.dashboard'),
-      icon: 'mdi-view-dashboard',
-      roles: [1, 2, 3]
+      icon: 'mdi-view-dashboard-outline',
+      // show: can('dashboard.view')
     },
+
+    // ── 2. TENANTS & BRANCHES ───────────────────────────────────────────────────
     {
       path: '/tenants',
       title: 'Tenants',
-      icon: 'mdi-account-tie',
-      roles: [1, 2, 3]
+      icon: 'mdi-office-building-outline',
+      // show: authStore.isOwner
     },
     {
       path: '/branches',
       title: 'Branches',
-      icon: 'mdi-domain',
-      roles: [1, 2, 3]
+      icon: 'mdi-store-outline',
+      // show: can('branches.view')
     },
+
+    // ── 3. OPERATIONS ───────────────────────────────────────────────────────────
     {
       title: 'Operations',
-      icon: 'mdi-silverware-fork-knife',
-      roles: [1, 2],
+      icon: 'mdi-cash-register',
+      // show:  can('pos.access') || can('kitchen.access'),
       subLinks: [
         {
           path: '/pos',
           title: 'Point of Sale',
           icon: 'mdi-cash-register',
-          roles: [1, 2],
+          // show:   can('pos.access'),
           newTab: true
         },
         {
           path: '/kitchen-kds',
           title: 'Kitchen Display',
           icon: 'mdi-chef-hat',
-          roles: [1, 2],
+          // show:   can('kitchen.access'),
           newTab: true
         },
         {
           path: '/mobile-menu',
           title: 'Digital Menu',
           icon: 'mdi-cellphone-play',
-          roles: [1, 2],
+          // show:   can('pos.access'),
           newTab: true
         }
       ]
     },
+
+    // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
-      title: 'Catalog', // Products and Menu management
-      icon: 'mdi-food-apple',
-      roles: [1, 2],
+      title: 'Catalog',
+      icon: 'mdi-book-open-page-variant-outline',
+      // show: can('categories.view') || can('products.view'),
       subLinks: [
         {
           path: '/categories',
           title: 'Categories',
           icon: 'mdi-shape-outline',
-          roles: [1]
-        },
-        {
-          path: '/menu-management',
-          title: 'Menu',
-          icon: 'mdi-book-open-variant',
-          roles: [1]
-        },
-        {
-          path: '/branch-menus',
-          title: 'Branch menus',
-          icon: 'mdi-book-open-variant',
-          roles: [1]
-        },
-        {
-          path: '/dining-table',
-          title: 'Dining table',
-          icon: 'mdi-table-chair',
-          roles: [1]
+          // show: can('categories.view')
         },
         {
           path: '/products',
-          title: 'Product List',
-          icon: 'mdi-package-variant',
-          roles: [1, 2]
+          title: 'Products',
+          icon: 'mdi-tag-outline',
+          // show: can('products.view')
         },
         {
           path: '/product-modifier-groups',
-          title: 'Product Modifier',
-          icon: 'mdi-layers-outline',
-          roles: [1, 2]
+          title: 'Modifiers',
+          icon: 'mdi-tune-variant',
+          // show: can('products.view')
+        },
+        {
+          path: '/menu-management',
+          title: 'Menus',
+          icon: 'mdi-menu',
+          // show: can('products.view')
+        },
+        {
+          path: '/branch-menus',
+          title: 'Branch Menus',
+          icon: 'mdi-book-open-variant',
+          // show: can('products.view')
         }
       ]
     },
+
+    // ── 5. DINING ───────────────────────────────────────────────────────────────
     {
-      title: 'Inventory', // Logistics and Stock
+      title: 'Dining',
+      icon: 'mdi-silverware-fork-knife',
+      // show: can('tables.view') || can('reservations.view'),
+      subLinks: [
+        {
+          path: '/dining-table',
+          title: 'Tables',
+          icon: 'mdi-table-chair',
+          // show: can('tables.view')
+        },
+        {
+          path: '/reservations',
+          title: 'Reservations',
+          icon: 'mdi-calendar-check-outline',
+          // show: can('reservations.view')
+        }
+      ]
+    },
+
+    // ── 6. INVENTORY ────────────────────────────────────────────────────────────
+    {
+      title: 'Inventory',
       icon: 'mdi-warehouse',
-      roles: [1, 2, 3],
+      // show: can('inventory.view'),
       subLinks: [
         {
           path: '/stocks',
           title: 'Current Stock',
-          icon: 'mdi-stack-overflow',
-          roles: [1, 2, 3]
+          icon: 'mdi-layers-triple-outline',
+          // show: can('inventory.view')
         },
         {
           path: '/purchases',
           title: 'Purchases',
           icon: 'mdi-cart-arrow-down',
-          roles: [1, 2, 3]
+          // show: can('inventory.view')
         },
         {
           path: '/suppliers',
           title: 'Suppliers',
-          icon: 'mdi-truck-delivery',
-          roles: [1]
+          icon: 'mdi-truck-delivery-outline',
+          // show: can('inventory.view')
         }
       ]
     },
+
+    // ── 7. ACCOUNTING ───────────────────────────────────────────────────────────
     {
-      title: 'Accounting', // Expenses and Sales Reports
-      icon: 'mdi-calculator',
-      roles: [1, 2, 3],
+      title: 'Accounting',
+      icon: 'mdi-calculator-variant-outline',
+      // show: can('reports.sales') || can('reports.inventory'),
       subLinks: [
         {
           path: '/expense-management',
-          title: 'Expense Tracker',
+          title: 'Expenses',
           icon: 'mdi-cash-minus',
-          roles: [1, 2, 3]
+          // show: can('reports.sales')
         },
         {
           path: '/sales-reports',
           title: 'Sales Analytics',
           icon: 'mdi-chart-bar',
-          roles: [1, 2, 3]
+          // show: can('reports.sales')
         },
         {
           path: '/purchase-reports',
           title: 'Purchase Reports',
           icon: 'mdi-file-document-outline',
-          roles: [1, 2, 3]
+          // show: can('reports.inventory')
         },
         {
           path: '/inventory-reports',
           title: 'Stock Reports',
-          icon: 'mdi-clipboard-list',
-          roles: [1, 2]
+          icon: 'mdi-clipboard-list-outline',
+          // show: can('reports.inventory')
         }
       ]
     },
-    /* --- NEW SECTION: HUMAN RESOURCES --- */
+
+    // ── 8. STAFF & PAYROLL ──────────────────────────────────────────────────────
     {
       title: 'Staff & Payroll',
-      icon: 'mdi-account-tie',
-      roles: [1], // Usually only for Owners/Main Managers
+      icon: 'mdi-account-group-outline',
+      // show: can('staff.view'),
       subLinks: [
         {
           path: '/staff-management',
           title: 'Staff List',
-          icon: 'mdi-account-multiple',
-          roles: [1]
+          icon: 'mdi-account-multiple-outline',
+          // show: can('staff.view')
         },
         {
           path: '/shift-management',
-          title: 'Staff Shifts',
-          icon: 'mdi-calendar-clock',
-          roles: [1]
+          title: 'Shifts',
+          icon: 'mdi-clock-outline',
+          // show: can('staff.view')
         },
         {
+          path: '/shift-assignments',
           title: 'Shift Assignments',
           icon: 'mdi-calendar-account-outline',
-          path: '/shift-assignments'
+          // show: can('staff.view')
         },
         {
           path: '/attendance',
           title: 'Attendance',
           icon: 'mdi-clock-check-outline',
-          roles: [1, 2]
+          // show: can('staff.view')
         },
         {
           path: '/payroll',
-          title: 'Payroll & Salaries',
-          icon: 'mdi-cash',
-          roles: [1]
+          title: 'Payroll',
+          icon: 'mdi-cash-multiple',
+          // show: can('staff.view')
         },
         {
           path: '/staff-performance',
           title: 'Performance',
-          icon: 'mdi-star-face',
-          roles: [1]
+          icon: 'mdi-chart-timeline-variant',
+          // show: can('staff.view')
         }
       ]
     },
+
+    // ── 9. SYSTEM ADMIN ─────────────────────────────────────────────────────────
     {
-      title: 'System Admin',
-      icon: 'mdi-cog-outline',
-      roles: [1],
+      title: 'System',
+      icon: 'mdi-shield-crown-outline',
+      // show: can('settings.view') || can('roles.manage'),
       subLinks: [
         {
           path: '/users-management',
           title: 'User Accounts',
-          icon: 'mdi-account-group',
-          roles: [1]
+          icon: 'mdi-account-cog-outline',
+          // show: can('settings.view')
         },
         {
           path: '/roles-management',
-          title: 'Role Access',
-          icon: 'mdi-shield-lock',
-          roles: [1]
+          title: 'Roles',
+          icon: 'mdi-shield-account-outline',
+          // show: can('roles.manage')
         },
         {
           path: '/role-permissions',
-          title: 'Access Permissions',
-          icon: 'mdi-shield-lock',
-          roles: [1]
+          title: 'Permissions',
+          icon: 'mdi-lock-outline',
+          // show: can('roles.manage')
         },
         {
           path: '/settings/tax',
-          title: 'Tax & Business Info',
-          icon: 'mdi-percent',
-          roles: [1]
+          title: 'Tax & Business',
+          icon: 'mdi-percent-outline',
+          // show: can('settings.edit')
         },
         {
           path: '/settings/invoice-customization',
-          title: 'Invoice Customization',
-          icon: 'mdi-invoice-outline',
-          roles: [1]
+          title: 'Invoice',
+          icon: 'mdi-invoice-text-outline',
+          // show: can('settings.edit')
         },
         {
           path: '/audit-logs',
           title: 'Activity Logs',
           icon: 'mdi-history',
-          roles: [1]
+          // show: can('settings.view')
         }
       ]
     }
   ])
+
+  // ── Filtered Menu — removes hidden items and empty groups ─────────────────────
+  const filteredMenu = computed(() =>
+    menu.value
+      .filter(item => item.show !== false)
+      .map(item => {
+        if (!item.subLinks) return item
+        return {
+          ...item,
+          subLinks: item.subLinks.filter(s => s.show !== false)
+        }
+      })
+      .filter(item => !item.subLinks || item.subLinks.length > 0)
+  )
 </script>
+
 <template>
   <v-navigation-drawer
     :rail="rail"
@@ -290,8 +319,8 @@
 
     <!-- MENU -->
     <v-list v-model:opened="open" density="compact" class="sidebar-list">
-      <div v-for="link in filteredMenu" :key="link.title">
-        <!-- ===== SINGLE ITEM ===== -->
+      <div v-for="link in filteredMenu" :key="link.title || link.path">
+        <!-- ── SINGLE ITEM ───────────────────────────────────────────────── -->
         <template v-if="!link.subLinks">
           <v-tooltip v-if="rail" location="right">
             <template #activator="{ props }">
@@ -322,7 +351,7 @@
           />
         </template>
 
-        <!-- ===== GROUP ===== -->
+        <!-- ── GROUP ────────────────────────────────────────────────────── -->
         <v-list-group v-else :value="link.title">
           <template #activator="{ props }">
             <v-tooltip v-if="rail" location="right">
@@ -348,7 +377,7 @@
           </template>
 
           <!-- SUB ITEMS -->
-          <template v-for="sublink in link.subLinks" :key="sublink.title">
+          <template v-for="sublink in link.subLinks" :key="sublink.path">
             <v-tooltip v-if="rail" location="right">
               <template #activator="{ props }">
                 <v-list-item
@@ -384,7 +413,7 @@
     <!-- FOOTER -->
     <template #append>
       <div class="border-top bg-grey-lighten-5">
-        <div v-if="!rail" class="text-center">
+        <div v-if="!rail" class="text-center pa-3">
           <p class="text-overline text-grey-darken-1 mb-1">POS System v0.0.1</p>
           <v-chip size="x-small" color="primary" variant="tonal">
             Stable Release
@@ -396,7 +425,7 @@
               <v-list-item
                 v-bind="props"
                 prepend-icon="mdi-information-outline"
-              ></v-list-item>
+              />
             </template>
             <span>POS System v0.0.1</span>
           </v-tooltip>
@@ -417,7 +446,6 @@
     opacity: 0.85;
   }
 
-  /* Active State indicator (Vertical bar) */
   .active-item {
     background: rgba(var(--v-theme-primary), 0.1) !important;
     color: rgb(var(--v-theme-primary)) !important;
@@ -433,12 +461,5 @@
     width: 4px;
     background: rgb(var(--v-theme-primary));
     border-radius: 0 4px 4px 0;
-  }
-
-  /* Custom Module Selector Styling */
-  .module-selector :deep(.v-field__input) {
-    font-size: 0.75rem !important;
-    font-weight: 700;
-    text-transform: uppercase;
   }
 </style>

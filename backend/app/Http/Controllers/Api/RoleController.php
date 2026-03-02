@@ -14,11 +14,18 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         $perPage = min((int) $request->get('per_page', 15), 100);
-        $query = Role::query();
+
+        $query = Role::query()
+            ->with([
+                'permissions:id,code,group,description', // ✅ eager load permissions
+            ]);
+
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
-        $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_order', 'desc'));
+
+        $query->orderBy($request->get('sort_by', 'name'), $request->get('sort_order', 'asc'));
+
         $items = $query->paginate($perPage);
 
         return response()->json([
@@ -41,7 +48,14 @@ class RoleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $role = Role::with('permissions:id,code,group,description')
+            ->findOrFail($id);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Role retrieved successfully.',
+            'data'    => $role,
+        ]);
     }
 
     /**

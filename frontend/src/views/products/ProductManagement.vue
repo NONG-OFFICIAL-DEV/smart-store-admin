@@ -356,7 +356,8 @@
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-
+  
+  const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
   const productStore = useProductStore()
@@ -374,10 +375,6 @@
   const viewMode = ref('table')
   const dialog = ref(false)
   const editItem = ref(null)
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
-  const deleteLoading = ref(false)
-  const snack = ref({ show: false, text: '', color: 'success' })
 
   // ── Fetch on mount ────────────────────────────────────────────────────────────
   onMounted(async () => {
@@ -475,10 +472,6 @@
   const capitalize = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '')
   const formatPrice = v => `$${Number(v).toFixed(2)}`
 
-  const showSnack = (text, color = 'success') => {
-    snack.value = { show: true, text, color }
-  }
-
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const openCreate = () => {
     editItem.value = null
@@ -513,7 +506,7 @@
       message: `Are you sure delete "${product.name}"?`,
       options: { type: 'warning', color: 'warning', width: 400 },
       agree: async () => {
-        await productStore.deleteProduct(deleteTarget.value.id)
+        await productStore.deleteProduct(product.id)
 
         notif(t('messages.deleted_success'), {
           type: 'success'

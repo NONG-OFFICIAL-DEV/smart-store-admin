@@ -9,7 +9,10 @@ class Role extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'tenant_id', 'name', 'description', 'is_system',
+        'tenant_id',
+        'name',
+        'description',
+        'is_system',
     ];
 
     protected $casts = [
@@ -58,7 +61,12 @@ class Role extends BaseModel
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'role_permissions');
+        return $this->belongsToMany(
+            Permission::class,
+            'role_permissions',
+            'role_id',
+            'permission_id'
+        );
     }
 
     public function staff()

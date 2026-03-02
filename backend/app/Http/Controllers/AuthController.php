@@ -61,15 +61,18 @@ class AuthController extends Controller
 
             // ── Load relationships ────────────────────────────────────────────
             $user->load([
-                'staffProfiles.role.permissions',
-                'staffProfiles.branch',
+                'staff.role.permissions',
+                'staff.branch',
             ]);
+            $staff = $user->staff()->with('role.permissions')->first();
 
             return response()->json([
                 'status'     => 'success',
                 'token'      => $token,
                 'token_type' => 'bearer',
                 'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'menu_role'   => $staff?->role?->menu_level ?? 4,
+                'permissions' => $staff?->role?->permissions->pluck('code') ?? [],
                 'user'       => [
                     'id'            => $user->id,
                     'email'         => $user->email,
@@ -80,7 +83,7 @@ class AuthController extends Controller
                     'avatar_url'    => $user->avatar_url,
                     'is_active'     => $user->is_active,
                     'last_login_at' => $user->last_login_at,  // ← now updated
-                    'staff'         => $user->staffProfiles,  // roles + branches
+                    'staff'         => $user->staff,  // roles + branches
                 ],
             ]);
         } catch (JWTException $e) {
@@ -93,14 +96,55 @@ class AuthController extends Controller
 
 
     // Get currently authenticated user
-    public function me()
+    // public function me(Request $request)
+    // {
+    //     try {
+    //         $user = JWTAuth::parseToken()->authenticate();
+    //         $permissions = $request->user()->load([
+    //             'staff.role.permissions',
+    //         ]);
+
+    //         // $unreadCount = $user->notifications()->where('is_read', false)->count();
+    //         return response()->json([
+    //             'user' => $user,
+    //             'permissions' => $permissions,
+
+    //         ]);
+    //     } catch (JWTException $e) {
+    //         return response()->json(['error' => 'Token invalid or expired'], 401);
+    //     }
+    // }
+
+    public function me(Request $request)
     {
         try {
+            /** @var \App\Models\User $user */
             $user = JWTAuth::parseToken()->authenticate();
-            // $unreadCount = $user->notifications()->where('is_read', false)->count();
+
+            $user->load(['staff.role.permissions']);
+
+            // Check if user is a tenant owner
+            $ownedTenant = \App\Models\Tenant::where('owner_user_id', $user->id)
+                ->first();
+
+            // Build permissions list
+            $permissions = [];
+
+            if ($ownedTenant) {
+                // Owner gets ALL permissions
+                $permissions = \App\Models\Permission::pluck('code')->toArray();
+            } elseif ($user->staff) {
+                $permissions = $user->staff->role
+                    ?->permissions
+                    ->pluck('code')
+                    ->toArray() ?? [];
+            }
+
             return response()->json([
-                'user' => $user,
-                // 'unread_notifications_count' => $unreadCount,
+                'user'        => $user,
+                'permissions' => $permissions,
+                'is_owner'    => (bool) $ownedTenant,
+                'tenant_id'   => $ownedTenant?->id ?? $user->staff?->tenant_id,
             ]);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Token invalid or expired'], 401);

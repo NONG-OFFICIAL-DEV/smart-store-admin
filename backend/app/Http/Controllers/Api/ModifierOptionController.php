@@ -57,6 +57,17 @@ class ModifierOptionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = ModifierOption::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modifier Option removed'
+        ]);
     }
 }

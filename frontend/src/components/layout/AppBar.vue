@@ -50,7 +50,7 @@
 
 <script setup>
   import { computed } from 'vue'
-  import { useAuthStore } from '@/stores/auth'
+  import { useAuthStore } from '@/stores/authStore'
   import { useRouter } from 'vue-router'
   import { useAppUtils } from '@/composables/useAppUtils'
   import SwitcherLanguage from '../customs/SwitcherLanguage.vue'

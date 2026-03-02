@@ -70,7 +70,7 @@ const routes = [
         path: '/products',
         name: 'Products',
         component: () => import('@/views/products/ProductManagement.vue'),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, permission: 'products.view'   } 
       },
       {
         path: '/product-details/:id',
@@ -222,12 +222,12 @@ const routes = [
       {
         path: '/dining-table',
         component: () => import('@/views/tables/TableManagement.vue')
+      },
+      {
+        path: '/reservations',
+        component: () => import('@/views/reservations/Reservation.vue'),
+        meta: { requiresAuth: true }
       }
-      // {
-      //   path: '/customer-orders',
-      //   component: () => import('@/views/backOffice/CustomerOrders.vue'),
-      //   meta: { requiresAuth: true }
-      // }
     ]
   }
 ]

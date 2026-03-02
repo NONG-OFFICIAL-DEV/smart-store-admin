@@ -48,7 +48,7 @@ class ModifierGroupController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return ModifierGroup::store($request,$id);
+        return ModifierGroup::store($request, $id);
     }
 
     /**
@@ -56,6 +56,17 @@ class ModifierGroupController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = ModifierGroup::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modifier Group removed'
+        ]);
     }
 }

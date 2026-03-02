@@ -177,7 +177,7 @@
   import { useDate } from '@/composables/useDate'
   import { useCategoryStore } from '@/stores/categoryStore'
   import { useUnitStore } from '@/stores/unitStore'
-  import { useAuthStore } from '@/stores/auth'
+  import { useAuthStore } from '@/stores/authStore'
 
   const authStore = useAuthStore()
   // import { useAppUtils } from '@/composables/useAppUtils'

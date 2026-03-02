@@ -33,7 +33,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-       return Category::store($request);
+        return Category::store($request);
     }
 
     /**
@@ -49,7 +49,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-       return Category::store($request, $id);
+        return Category::store($request, $id);
     }
 
     /**
@@ -57,6 +57,17 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Category::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category removed'
+        ]);
     }
 }

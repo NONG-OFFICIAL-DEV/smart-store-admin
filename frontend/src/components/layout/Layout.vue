@@ -12,7 +12,7 @@
   import { ref, onMounted ,computed} from 'vue'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
-  import { useAuthStore } from '@/stores/auth'
+  import { useAuthStore } from '@/stores/authStore'
   import { useRouter } from 'vue-router'
 
   const rail = ref(false)

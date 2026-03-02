@@ -142,7 +142,7 @@
 
 <script setup>
   import { onMounted, computed } from 'vue'
-  import { useAuthStore } from '@/stores/auth'
+  import { useAuthStore } from '@/stores/authStore'
   import { useNotificationStore } from '@/stores/notificationStore'
   const authStore = useAuthStore()
   const notificationStore = useNotificationStore()

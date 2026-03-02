@@ -162,7 +162,9 @@
             size="small"
             variant="tonal"
             :prepend-icon="
-              isAvailableNow(item) ? 'mdi-check-circle' : 'mdi-clock-off'
+              isAvailableNow(item)
+                ? 'mdi-check-circle'
+                : 'mdi-clock-plus-outline'
             "
           >
             {{ isAvailableNow(item) ? 'Available' : 'Unavailable' }}
@@ -230,7 +232,6 @@
       :menus="menuStore.menus"
       @saved="onSaved"
     />
-
   </v-container>
 </template>
 
@@ -242,7 +243,7 @@
   import { useMenuStore } from '@/stores/menuStore'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-
+  const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
   const store = useBranchMenuStore()
@@ -324,9 +325,10 @@
     }
 
     if (res.success) loadData()
-    else notif('Operation failed', {
-      type: 'error'
-    })
+    else
+      notif('Operation failed', {
+        type: 'error'
+      })
   }
 
   const confirmDelete = async menu => {
@@ -335,7 +337,7 @@
       message: `Are you sure delete "${menu.menu.name}"?`,
       options: { type: 'warning', color: 'warning', width: 400 },
       agree: async () => {
-        store.remove(deleteTarget.value.id)
+        store.remove(menu.id)
 
         notif(t('messages.deleted_success'), {
           type: 'success'

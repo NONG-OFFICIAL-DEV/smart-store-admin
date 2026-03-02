@@ -41,8 +41,8 @@ class UserController extends Controller
 
         // ── Eager load staff profiles with role (role lives on Staff not User) ─
         $query->with([
-            'staffProfiles.role',
-            'staffProfiles.branch',
+            'staff.role',
+            'staff.branch',
         ]);
 
         // ── Sorting ───────────────────────────────────────────────────────────

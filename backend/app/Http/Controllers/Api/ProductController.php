@@ -87,7 +87,18 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Product::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product removed'
+        ]);
     }
 
     public function attachModifierGroups(Request $request, Product $product)

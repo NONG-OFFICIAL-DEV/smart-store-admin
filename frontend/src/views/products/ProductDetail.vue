@@ -392,7 +392,8 @@
   import ModifierLinkDialog from '@/components/products/ModifierLinkDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-
+  
+  const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   const route = useRoute()
   const router = useRouter()

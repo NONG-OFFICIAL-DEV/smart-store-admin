@@ -19,7 +19,6 @@ class TableController extends Controller
             $query->where('name', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%");
         }
-        $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_order', 'desc'));
         $items = $query->paginate($perPage);
 
         return response()->json([
@@ -34,7 +33,7 @@ class TableController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return Table::store($request);
     }
 
     /**
@@ -50,7 +49,7 @@ class TableController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return Table::store($request, $id);
     }
 
     /**
@@ -58,6 +57,17 @@ class TableController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Table::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product removed'
+        ]);
     }
 }
