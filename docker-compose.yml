@@ -1,0 +1,87 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: nongdev/smart-store-backend:latest
+    container_name: smart_store_backend
+    restart: always
+    networks:
+      - web
+    env_file:
+      - ./backend/.env
+    volumes:
+      - smart_store_backend_storage:/var/www/html/storage
+      - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "chown -R www-data:www-data storage bootstrap/cache &&
+            chmod -R 775 storage bootstrap/cache &&
+            mkdir -p /var/log/supervisor &&
+            /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+
+  # ── NEW: Redis ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: smart_store_redis
+    restart: always
+    networks:
+      - web
+    volumes:
+      - redis_data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: smart_store_frontend
+    image: nongdev/smart-store-frontend:latest
+    restart: always
+    networks:
+      - web
+
+  db:
+    image: postgres:15
+    container_name: smart_store_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: smart_store_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web
+
+  webserver:
+    # depends_on:
+    #   - backend
+    # build:
+    #   context: ./backend/nginx
+    #   dockerfile: Dockerfile
+    image: nongdev/smart-store-webserver:latest
+    container_name: smart_store_webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "82:82"
+    volumes:
+      - ./backend/public:/var/www/html/public
+      - smart_store_backend_storage:/var/www/html/storage
+    networks:
+      - web
+      - internal_project_network
+
+networks:
+  web:
+    external: true
+  internal_project_network:
+    driver: bridge
+
+volumes:
+  smart_store_backend_storage:
+  postgres_data:
+  redis_data:        # ← NEW
