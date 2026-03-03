@@ -20,8 +20,19 @@ ENV VITE_REVERB_HOST=$VITE_REVERB_HOST
 ENV VITE_REVERB_PORT=$VITE_REVERB_PORT
 ENV VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
 
+# Receive token as build arg
+ARG GITHUB_TOKEN
+
+# Setup registry auth
+RUN echo "@nong-official-dev:registry=https://npm.pkg.github.com" > .npmrc && \
+    echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
+    
 COPY package*.json ./
 RUN npm install
+
+# Remove token after install
+RUN rm -f .npmrc
+
 COPY . .
 RUN npm run build
 

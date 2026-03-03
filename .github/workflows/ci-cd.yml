@@ -65,6 +65,7 @@ jobs:
         if: needs.changes.outputs.frontend == 'true'
         run: |
           docker build \
+            --build-arg GITHUB_TOKEN=${{ secrets.NPM_TOKEN }} \
             --build-arg VITE_APP_MODE=Production \
             --build-arg VITE_APP_API_BASE_URL=${{ secrets.API_URL_FR_SM }} \
             --build-arg VITE_APP_I18N_LOCALE=en \
