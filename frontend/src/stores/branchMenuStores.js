@@ -7,7 +7,7 @@ import {
   deleteBranchMenuApi,
   unassignBranchMenuApi,
   getAvailableMenusNowApi
-} from '@/api/branchMenuService'
+} from '@/api/branchMenuServices'
 
 export const useBranchMenuStore = defineStore('branchMenu', {
   state: () => ({
