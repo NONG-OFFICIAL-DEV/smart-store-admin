@@ -54,7 +54,7 @@ jobs:
 
       # ---------- Backend ----------
       - name: Build & push backend
-        if: needs.changes.outputs.backend == 'true'
+        # if: needs.changes.outputs.backend == 'true'
         run: |
           docker build -t $IMAGE_BACKEND:latest -t $IMAGE_BACKEND:$IMAGE_TAG ./backend
           docker push $IMAGE_BACKEND:latest
@@ -62,7 +62,7 @@ jobs:
 
       # ---------- Frontend ----------
       - name: Build & push frontend
-        if: needs.changes.outputs.frontend == 'true'
+        # if: needs.changes.outputs.frontend == 'true'
         run: |
           docker build \
             --build-arg GITHUB_TOKEN=${{ secrets.NPM_TOKEN }} \
@@ -83,7 +83,7 @@ jobs:
 
       # ---------- Webserver ----------
       - name: Build & push webserver
-        if: needs.changes.outputs.webserver == 'true'
+        # if: needs.changes.outputs.webserver == 'true'
         run: |
           docker build -t $IMAGE_WEBSERVER:latest -t $IMAGE_WEBSERVER:$IMAGE_TAG ./backend/nginx
           docker push $IMAGE_WEBSERVER:latest

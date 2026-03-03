@@ -54,6 +54,9 @@ services:
       - web
 
   webserver:
+    build:
+      context: ./backend/nginx
+      dockerfile: Dockerfile
     image: nongdev/smart-store-webserver:latest
     container_name: smart_store_webserver
     restart: unless-stopped
