@@ -182,7 +182,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useStaffStore } from '@/stores/staffStore'
-import StaffDialogForm from '@/components/staffs/StaffDialogForm.vue'
+import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
 
 const staffStore = useStaffStore()
 const { staffList, loading: staffLoading } = storeToRefs(staffStore)
