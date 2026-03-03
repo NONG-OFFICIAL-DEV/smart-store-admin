@@ -17,8 +17,8 @@
             prepend-icon="mdi-cash-check"
             rounded="lg"
             class="text-none"
-            @click="processPayroll"
-          >
+            >
+            <!-- @click="processPayroll" -->
             Process All
           </v-btn>
         </div>

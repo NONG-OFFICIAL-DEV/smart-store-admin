@@ -36,6 +36,7 @@ return new class extends Migration
             $table->integer('loyalty_points_earned')->nullable();
             $table->integer('loyalty_points_redeemed')->nullable();
             $table->enum('source', ['pos', 'kiosk', 'mobile_app', 'web', 'third_party'])->default('pos');
+            $table->integer('queue_number')->nullable()->comment('Incremental number for branch/day');
             $table->timestampTz('estimated_ready_at')->nullable();
             $table->timestampTz('completed_at')->nullable();
             $table->timestampsTz();
@@ -44,6 +45,7 @@ return new class extends Migration
             $table->index(['customer_id', 'created_at']);
             $table->index('table_id');
             $table->index('order_number');
+            $table->index('queue_number');
         });
 
         // ── Order Items ────────────────────────────────────────────────────────

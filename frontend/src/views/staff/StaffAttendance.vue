@@ -114,18 +114,18 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import CheckInDialog from '@/components/staffs/CheckInDialog.vue'
-  import { useStaffStore } from '../../stores/employeeStore'
+  import CheckInDialog from '@/components/staff/CheckInDialog.vue'
+  import { useStaffStore } from '@/stores/staffStore'
 
   const staffStore = useStaffStore()
 
   const search = ref('')
   const attendanceDialog = ref(false)
 
-  const staffList = computed(() => staffStore.employees)
+  const staffList = computed(() => staffStore.staffList)
 
   onMounted(() => {
-    staffStore.fetchEmployees()
+    staffStore.fetchStaff()
   })
   const headers = [
     { title: 'Employee', key: 'employee' },

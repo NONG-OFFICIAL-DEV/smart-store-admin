@@ -85,12 +85,12 @@ const routes = [
           import('@/views/products/ProductModifierGroup.vue'),
         meta: { requiresAuth: true }
       },
-      // {
-      //   path: '/suppliers',
-      //   name: 'Suppliers',
-      //   component: () => import('@/views/stocks/SupplierManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/suppliers',
+        name: 'Suppliers',
+        component: () => import('@/views/stocks/SupplierManagement.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/stocks',
       //   name: 'Stocks',
@@ -160,12 +160,12 @@ const routes = [
         component: () => import('@/views/catalogs/MenuManagement.vue'),
         meta: { requiresAuth: true }
       },
-      // {
-      //   path: '/notifications',
-      //   name: 'Notifications',
-      //   component: () => import('@/views/Notification.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/notifications',
+        name: 'Notifications',
+        component: () => import('@/views/Notification.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/settings/tax',
       //   name: 'TaxSettings',
@@ -178,12 +178,12 @@ const routes = [
       //   component: () => import('@/views/setting/InvoiceCustomization.vue'),
       //   meta: { requiresAuth: true }
       // },
-      // {
-      //   path: '/expense-management',
-      //   name: 'Expense',
-      //   component: () => import('@/views/expenses/ExpenseManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/expense-management',
+        name: 'Expense',
+        component: () => import('@/views/expenses/ExpenseManagement.vue'),
+        meta: { requiresAuth: true }
+      },
       {
         path: '/staff-management',
         name: 'Staff',
@@ -201,24 +201,24 @@ const routes = [
         name: 'Shifts',
         component: () => import('@/views/staff/ShiftManagement.vue')
       },
-      // {
-      //   path: '/payroll',
-      //   name: 'Payroll',
-      //   component: () => import('@/views/staff/PayrollManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
-      // {
-      //   path: '/attendance',
-      //   name: 'Attendance',
-      //   component: () => import('@/views/staff/StaffAttendance.vue'),
-      //   meta: { requiresAuth: true }
-      // },
-      // {
-      //   path: '/staff-performance',
-      //   name: 'StaffPerformance',
-      //   component: () => import('@/views/staff/StaffPerformance.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/payroll',
+        name: 'Payroll',
+        component: () => import('@/views/staff/PayrollManagement.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/attendance',
+        name: 'Attendance',
+        component: () => import('@/views/staff/StaffAttendance.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/staff-performance',
+        name: 'StaffPerformance',
+        component: () => import('@/views/staff/StaffPerformance.vue'),
+        meta: { requiresAuth: true }
+      },
       {
         path: '/dining-table',
         component: () => import('@/views/tables/TableManagement.vue')

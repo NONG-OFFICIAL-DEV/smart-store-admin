@@ -1,6 +1,9 @@
 <template>
-  <custom-title icon="mdi-truck-delivery">
-    Supplier Management
+  <custom-title
+    icon="mdi-truck-delivery"
+    title="Supplier Management"
+    subtitle="To mange all supplier"
+  >
     <template #right>
       <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
       <BaseButton icon="mdi-plus" @click="openAddDialog">
@@ -236,7 +239,7 @@
     confirm({
       title: 'Are you sure?',
       message: 'Are you sure you want to delete this supplier?',
-      options: { type: 'error',width: 500 },
+      options: { type: 'error', width: 500 },
       agree: async () => {
         await supplierStore.removeSupplier(id)
         notif(t('messages.deleted_success'), { type: 'success' })
