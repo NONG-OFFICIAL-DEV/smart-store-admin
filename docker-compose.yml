@@ -1,8 +1,5 @@
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
     image: nongdev/smart-store-backend:latest
     container_name: smart_store_backend
     restart: always
@@ -48,7 +45,7 @@ services:
     environment:
       POSTGRES_DB: smart_store_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: postgres@12345
     ports:
       - "5433:5432"
     volumes:
