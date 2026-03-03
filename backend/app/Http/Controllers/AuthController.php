@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -115,40 +117,91 @@ class AuthController extends Controller
     //     }
     // }
 
+    // public function me(Request $request)
+    // {
+    //     try {
+    //         /** @var \App\Models\User $user */
+    //         $user = JWTAuth::parseToken()->authenticate();
+
+    //         $user->load(['staff.role.permissions']);
+
+    //         // Check if user is a tenant owner
+    //         $ownedTenant = \App\Models\Tenant::where('owner_user_id', $user->id)
+    //             ->first();
+
+    //         // Build permissions list
+    //         $permissions = [];
+
+    //         if ($ownedTenant) {
+    //             // Owner gets ALL permissions
+    //             $permissions = \App\Models\Permission::pluck('code')->toArray();
+    //         } elseif ($user->staff) {
+    //             $permissions = $user->staff->role
+    //                 ?->permissions
+    //                 ->pluck('code')
+    //                 ->toArray() ?? [];
+    //         }
+
+    //         return response()->json([
+    //             'user'        => $user,
+    //             'permissions' => $permissions,
+    //             'is_owner'    => (bool) $ownedTenant,
+    //             'tenant_id'   => $ownedTenant?->id ?? $user->staff?->tenant_id,
+    //         ]);
+    //     } catch (JWTException $e) {
+    //         return response()->json(['error' => 'Token invalid or expired'], 401);
+    //     }
+    // }
+
     public function me(Request $request)
     {
-        try {
-            /** @var \App\Models\User $user */
-            $user = JWTAuth::parseToken()->authenticate();
+        $user = JWTAuth::parseToken()->authenticate();
 
-            $user->load(['staff.role.permissions']);
-
-            // Check if user is a tenant owner
-            $ownedTenant = \App\Models\Tenant::where('owner_user_id', $user->id)
-                ->first();
-
-            // Build permissions list
-            $permissions = [];
-
-            if ($ownedTenant) {
-                // Owner gets ALL permissions
-                $permissions = \App\Models\Permission::pluck('code')->toArray();
-            } elseif ($user->staff) {
-                $permissions = $user->staff->role
-                    ?->permissions
-                    ->pluck('code')
-                    ->toArray() ?? [];
-            }
-
+        // ── 1. Super Admin ─────────────────────────────────────────
+        // No tenant, no branch, no role — bypasses everything
+        if ($user->is_super_admin) {
             return response()->json([
-                'user'        => $user,
-                'permissions' => $permissions,
-                'is_owner'    => (bool) $ownedTenant,
-                'tenant_id'   => $ownedTenant?->id ?? $user->staff?->tenant_id,
+                'user'           => $user,
+                'is_super_admin' => true,
+                'is_owner'       => false,
+                'tenant_id'      => null,
+                'branch_id'      => null,
+                'permissions'    => Permission::pluck('code')->toArray(),
             ]);
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Token invalid or expired'], 401);
         }
+
+        // ── 2. Tenant Owner ────────────────────────────────────────
+        // Owns a tenant — full access within that tenant
+        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
+        if ($ownedTenant) {
+            return response()->json([
+                'user'           => $user,
+                'is_super_admin' => false,
+                'is_owner'       => true,
+                'tenant_id'      => $ownedTenant->id,
+                'branch_id'      => null,       // access ALL branches
+                'permissions'    => Permission::pluck('code')->toArray(),
+            ]);
+        }
+        // ── 4. Regular Staff ───────────────────────────────────────
+        // Has branch + role — only their role's permissions
+        $staff = $user->staff()
+            ->with('role.permissions')
+            ->where('is_active', true)
+            ->first();
+
+        if (!$staff) {
+            return response()->json(['error' => 'No active staff record'], 403);
+        }
+
+        return response()->json([
+            'user'           => $user,
+            'is_super_admin' => false,
+            'is_owner'       => false,
+            'tenant_id'      => $staff->tenant_id,
+            'branch_id'      => $staff->branch_id,  // scoped to ONE branch
+            'permissions'    => $staff->role->permissions->pluck('code')->toArray(),
+        ]);
     }
 
     // Logout

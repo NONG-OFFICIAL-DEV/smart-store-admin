@@ -170,6 +170,20 @@
           />
         </template>
 
+        <template #item.staff.role.name="{ item }">
+          <v-chip
+            :color="item.is_super_admin ? 'primary' : 'secondary'"
+            :prepend-icon="
+              item.is_super_admin ? 'mdi-shield-check' : 'mdi-account-tie'
+            "
+            size="small"
+            variant="flat"
+            class="text-uppercase"
+          >
+            {{ item.is_super_admin ? 'Super Admin' : item.staff?.role?.name }}
+          </v-chip>
+        </template>
+
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
@@ -288,6 +302,7 @@
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
     { title: 'User', key: 'first_name', sortable: true },
+    { title: 'Role', key: 'staff.role.name', sortable: true },
     { title: 'Phone', key: 'phone', sortable: false },
     { title: 'Email Status', key: 'email_verified_at', sortable: false },
     { title: 'Last Login', key: 'last_login_at', sortable: true },

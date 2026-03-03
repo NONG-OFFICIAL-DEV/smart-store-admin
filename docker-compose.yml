@@ -57,17 +57,12 @@ services:
       - web
 
   webserver:
-    # depends_on:
-    #   - backend
-    # build:
-    #   context: ./backend/nginx
-    #   dockerfile: Dockerfile
     image: nongdev/smart-store-webserver:latest
     container_name: smart_store_webserver
     restart: unless-stopped
     tty: true
     ports:
-      - "82:82"
+      - "84:84"
     volumes:
       - ./backend/public:/var/www/html/public
       - smart_store_backend_storage:/var/www/html/storage

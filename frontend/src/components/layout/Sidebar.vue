@@ -22,7 +22,7 @@
     {
       path: '/dashboard',
       title: t('menu.dashboard'),
-      icon: 'mdi-view-dashboard-outline',
+      icon: 'mdi-view-dashboard-outline'
       // show: can('dashboard.view')
     },
 
@@ -31,12 +31,12 @@
       path: '/tenants',
       title: 'Tenants',
       icon: 'mdi-office-building-outline',
-      // show: authStore.isOwner
+      show: authStore.isSuperAdmin
     },
     {
       path: '/branches',
       title: 'Branches',
-      icon: 'mdi-store-outline',
+      icon: 'mdi-store-outline'
       // show: can('branches.view')
     },
 
@@ -79,31 +79,31 @@
         {
           path: '/categories',
           title: 'Categories',
-          icon: 'mdi-shape-outline',
+          icon: 'mdi-shape-outline'
           // show: can('categories.view')
         },
         {
           path: '/products',
           title: 'Products',
-          icon: 'mdi-tag-outline',
+          icon: 'mdi-tag-outline'
           // show: can('products.view')
         },
         {
           path: '/product-modifier-groups',
           title: 'Modifiers',
-          icon: 'mdi-tune-variant',
+          icon: 'mdi-tune-variant'
           // show: can('products.view')
         },
         {
           path: '/menu-management',
           title: 'Menus',
-          icon: 'mdi-menu',
+          icon: 'mdi-menu'
           // show: can('products.view')
         },
         {
           path: '/branch-menus',
           title: 'Branch Menus',
-          icon: 'mdi-book-open-variant',
+          icon: 'mdi-book-open-variant'
           // show: can('products.view')
         }
       ]
@@ -118,13 +118,13 @@
         {
           path: '/dining-table',
           title: 'Tables',
-          icon: 'mdi-table-chair',
+          icon: 'mdi-table-chair'
           // show: can('tables.view')
         },
         {
           path: '/reservations',
           title: 'Reservations',
-          icon: 'mdi-calendar-check-outline',
+          icon: 'mdi-calendar-check-outline'
           // show: can('reservations.view')
         }
       ]
@@ -139,19 +139,19 @@
         {
           path: '/stocks',
           title: 'Current Stock',
-          icon: 'mdi-layers-triple-outline',
+          icon: 'mdi-layers-triple-outline'
           // show: can('inventory.view')
         },
         {
           path: '/purchases',
           title: 'Purchases',
-          icon: 'mdi-cart-arrow-down',
+          icon: 'mdi-cart-arrow-down'
           // show: can('inventory.view')
         },
         {
           path: '/suppliers',
           title: 'Suppliers',
-          icon: 'mdi-truck-delivery-outline',
+          icon: 'mdi-truck-delivery-outline'
           // show: can('inventory.view')
         }
       ]
@@ -166,25 +166,25 @@
         {
           path: '/expense-management',
           title: 'Expenses',
-          icon: 'mdi-cash-minus',
+          icon: 'mdi-cash-minus'
           // show: can('reports.sales')
         },
         {
           path: '/sales-reports',
           title: 'Sales Analytics',
-          icon: 'mdi-chart-bar',
+          icon: 'mdi-chart-bar'
           // show: can('reports.sales')
         },
         {
           path: '/purchase-reports',
           title: 'Purchase Reports',
-          icon: 'mdi-file-document-outline',
+          icon: 'mdi-file-document-outline'
           // show: can('reports.inventory')
         },
         {
           path: '/inventory-reports',
           title: 'Stock Reports',
-          icon: 'mdi-clipboard-list-outline',
+          icon: 'mdi-clipboard-list-outline'
           // show: can('reports.inventory')
         }
       ]
@@ -199,37 +199,37 @@
         {
           path: '/staff-management',
           title: 'Staff List',
-          icon: 'mdi-account-multiple-outline',
+          icon: 'mdi-account-multiple-outline'
           // show: can('staff.view')
         },
         {
           path: '/shift-management',
           title: 'Shifts',
-          icon: 'mdi-clock-outline',
+          icon: 'mdi-clock-outline'
           // show: can('staff.view')
         },
         {
           path: '/shift-assignments',
           title: 'Shift Assignments',
-          icon: 'mdi-calendar-account-outline',
+          icon: 'mdi-calendar-account-outline'
           // show: can('staff.view')
         },
         {
           path: '/attendance',
           title: 'Attendance',
-          icon: 'mdi-clock-check-outline',
+          icon: 'mdi-clock-check-outline'
           // show: can('staff.view')
         },
         {
           path: '/payroll',
           title: 'Payroll',
-          icon: 'mdi-cash-multiple',
+          icon: 'mdi-cash-multiple'
           // show: can('staff.view')
         },
         {
           path: '/staff-performance',
           title: 'Performance',
-          icon: 'mdi-chart-timeline-variant',
+          icon: 'mdi-chart-timeline-variant'
           // show: can('staff.view')
         }
       ]
@@ -239,42 +239,42 @@
     {
       title: 'System',
       icon: 'mdi-shield-crown-outline',
-      // show: can('settings.view') || can('roles.manage'),
+      show: authStore.isSuperAdmin,
       subLinks: [
         {
           path: '/users-management',
           title: 'User Accounts',
-          icon: 'mdi-account-cog-outline',
+          icon: 'mdi-account-cog-outline'
           // show: can('settings.view')
         },
         {
           path: '/roles-management',
           title: 'Roles',
-          icon: 'mdi-shield-account-outline',
+          icon: 'mdi-shield-account-outline'
           // show: can('roles.manage')
         },
         {
           path: '/role-permissions',
           title: 'Permissions',
-          icon: 'mdi-lock-outline',
+          icon: 'mdi-lock-outline'
           // show: can('roles.manage')
         },
         {
           path: '/settings/tax',
           title: 'Tax & Business',
-          icon: 'mdi-percent-outline',
+          icon: 'mdi-percent-outline'
           // show: can('settings.edit')
         },
         {
           path: '/settings/invoice-customization',
           title: 'Invoice',
-          icon: 'mdi-invoice-text-outline',
+          icon: 'mdi-invoice-text-outline'
           // show: can('settings.edit')
         },
         {
           path: '/audit-logs',
           title: 'Activity Logs',
-          icon: 'mdi-history',
+          icon: 'mdi-history'
           // show: can('settings.view')
         }
       ]

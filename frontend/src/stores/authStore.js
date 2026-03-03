@@ -5,6 +5,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     isOwner: false,
+    isSuperAdmin: false,
     me: {},
     permissions: [],
     unread_notifications_count: 0,
@@ -14,6 +15,7 @@ export const useAuthStore = defineStore('auth', {
     can: state => code => {
       // Owner always has access to everything
       if (state.isOwner) return true
+      if (state.isSuperAdmin) return true
       return state.permissions.includes(code)
     }
   },
@@ -42,6 +44,7 @@ export const useAuthStore = defineStore('auth', {
       this.me = res.data.user
       this.unread_notifications_count = res.data.unread_notifications_count
       this.permissions = res.data.permissions ?? []
+      this.isSuperAdmin = res.data.is_super_admin ?? false
       this.isOwner = res.data.is_owner ?? false
     }
   }

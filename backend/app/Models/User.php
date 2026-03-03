@@ -38,6 +38,8 @@ class User extends Authenticatable implements JWTSubject
         'is_active',
         'last_login_at',
         'email_verified_at',
+        'is_super_admin',
+        'is_admin'
     ];
 
     // ── Hidden ────────────────────────────────────────────────────────────────

@@ -262,7 +262,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  {{ shiftList }}
   <!-- ── Snackbar ────────────────────────────────────────────────────────────── -->
   <v-snackbar
     v-model="snackbar.show"

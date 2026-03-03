@@ -23,7 +23,14 @@ class DatabaseSeeder extends Seeder
         ]);
         \App\Models\User::firstOrCreate(
             ['email' => 'adminstore@example.com'],
-            ['first_name' => 'Admin', 'last_name' => 'Store', 'password_hash' => bcrypt('admin1234')]
+            [
+                'first_name' => 'Admin',
+                'last_name' => 'Store',
+                'password_hash' => bcrypt('admin1234'),
+                'is_super_admin' => true,
+                'is_admin' => true,
+                'is_active'      => true,
+            ]
         );
     }
 }

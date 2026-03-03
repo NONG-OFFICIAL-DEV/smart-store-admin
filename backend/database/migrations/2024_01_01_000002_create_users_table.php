@@ -20,15 +20,17 @@ return new class extends Migration
             $table->timestampTz('last_login_at')->nullable();
             $table->timestampTz('email_verified_at')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_super_admin')->default(false);
+            $table->boolean('is_admin')->default(false);
             $table->timestampsTz();
         });
 
         // Now add the FK from tenants → users
         Schema::table('tenants', function (Blueprint $table) {
             $table->foreign('owner_user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->nullOnDelete();
+                ->references('id')
+                ->on('users')
+                ->nullOnDelete();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

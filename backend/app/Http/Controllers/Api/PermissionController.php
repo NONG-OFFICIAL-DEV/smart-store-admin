@@ -57,6 +57,17 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Permission::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permission removed'
+        ]);
     }
 }
