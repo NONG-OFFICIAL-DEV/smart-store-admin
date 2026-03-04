@@ -11,6 +11,13 @@ npm install
 copy .env.example rename ..env.development.local
 
 
+# install core
+
+npm config set @nong-official-dev:registry https://npm.pkg.github.com
+npm config set //npm.pkg.github.com/:_authToken YOUR_GITHUB_TOKEN
+
+npm install @nong-official-dev/core
+
 VITE_API_URL=http://localhost:8000/api
 
 4. Start the development server
