@@ -11,7 +11,7 @@ services:
       - smart_store_backend_storage:/var/www/html/storage
       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
     depends_on:
-      - db
+      - postgres
       - redis
     command: >
       sh -c "chown -R www-data:www-data storage bootstrap/cache &&
@@ -20,14 +20,14 @@ services:
             /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"
 
   # ── NEW: Redis ──────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: smart_store_redis
-    restart: always
-    networks:
-      - web
-    volumes:
-      - redis_data:/data
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: smart_store_redis
+  #   restart: always
+  #   networks:
+  #     - web
+  #   volumes:
+  #     - redis_data:/data
 
   frontend:
     build:
@@ -38,21 +38,21 @@ services:
     networks:
       - web
 
-  db:
-    image: postgres:15
-    container_name: smart_store_postgres_db
-    restart: always
-    environment:
-      POSTGRES_DB: smart_store_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres@12345
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5434:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - web
+  # db:
+  #   image: postgres:15
+  #   container_name: smart_store_postgres_db
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: smart_store_db
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres@12345
+  #     POSTGRES_HOST_AUTH_METHOD: trust
+  #   ports:
+  #     - "5434:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - web
 
   webserver:
     build:
