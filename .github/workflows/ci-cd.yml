@@ -149,7 +149,7 @@ jobs:
 
                 echo ">>> Restart Reverb + Queue"
                 docker compose exec -T smart_store_backend supervisorctl restart reverb
-                docker compose exec -T smart_store_backend supervisorctl restart queue
+                # docker compose exec -T smart_store_backend supervisorctl restart queue
               else
                 echo ">>> Backend container not running — checking logs"
                 docker logs smart_store_backend --tail=30
