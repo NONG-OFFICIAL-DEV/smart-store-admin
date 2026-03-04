@@ -290,11 +290,11 @@ class DailySalesSummary extends BaseModel
         return response()->json(['success' => true, 'data' => $summary], 200);
     }
 
-    public function store(array|Request $request, ?string $id = null)
-    {
-        // Daily summaries are generated, not manually stored
-        return response()->json(['error' => 'Use DailySalesSummary::generate() instead'], 400);
-    }
+    // public function store(array|Request $request, ?string $id = null)
+    // {
+    //     // Daily summaries are generated, not manually stored
+    //     return response()->json(['error' => 'Use DailySalesSummary::generate() instead'], 400);
+    // }
 
     public function branch()
     {

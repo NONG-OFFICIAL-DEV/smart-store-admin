@@ -1,5 +1,9 @@
 <template>
-  <custom-title title="Tables" subtitle="Floor plan · Status · Capacity">
+  <custom-title
+    icon="mdi-table"
+    title="Tables"
+    subtitle="Floor plan · Status · Capacity"
+  >
     <template #right>
       <div class="d-flex gap-2">
         <v-btn-toggle
@@ -141,6 +145,13 @@
                   </template>
                   <v-list density="compact" rounded="lg" min-width="160">
                     <v-list-item
+                      prepend-icon="mdi-qrcode"
+                      color="primary"
+                      @click="openQR(table)"
+                    >
+                      QR Code
+                    </v-list-item>
+                    <v-list-item
                       prepend-icon="mdi-pencil-outline"
                       @click="openEdit(table)"
                     >
@@ -259,6 +270,13 @@
           <!-- Actions -->
           <template #item.actions="{ item }">
             <div class="d-flex gap-1 justify-end">
+              <v-btn
+                icon="mdi-qrcode"
+                size="small"
+                variant="text"
+                color="primary"
+                @click="openQR(item)"
+              />
               <v-btn
                 icon="mdi-calendar-plus"
                 size="small"
@@ -379,6 +397,12 @@
   >
     {{ snackbar.message }}
   </v-snackbar>
+  <TableQRDialog
+    v-model="qrDialog"
+    :table="qrTarget"
+    :branch-name="'Your Restaurant'"
+  />
+  <!-- :menu-base-url="`${$config?.appUrl || 'https://menu.yourapp.com'}/table/`" -->
 </template>
 
 <script setup>
@@ -387,6 +411,14 @@
   import { useRouter } from 'vue-router'
   import { useTableStore } from '@/stores/tableStore'
   import TableFormDialog from '@/components/tables/TableFormDialog.vue'
+  import TableQRDialog from '@/components/tables/TableQRDialog.vue'
+
+  const qrDialog = ref(false)
+  const qrTarget = ref(null)
+  const openQR = table => {
+    qrTarget.value = table
+    qrDialog.value = true
+  }
 
   const router = useRouter()
   const tableStore = useTableStore()
@@ -660,7 +692,7 @@
     transform: scale(1.08);
     z-index: 10;
   }
-  .table-token:hover .table-actions {
+  .table-token:hover {
     opacity: 1;
   }
 
@@ -730,7 +762,6 @@
     position: absolute;
     top: -8px;
     right: -8px;
-    opacity: 0;
     transition: opacity 0.15s;
     background: white;
     border-radius: 50%;

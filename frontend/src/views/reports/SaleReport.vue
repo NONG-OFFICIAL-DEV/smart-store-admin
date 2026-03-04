@@ -1,447 +1,811 @@
 <template>
-  <v-container fluid class="pa-0">
-    <custom-title icon="mdi-sale">
-      Sales Report
-      <template #right>
-        <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
-        <v-btn color="primary" prepend-icon="mdi-download" @click="exportData">
-          Export CSV
-        </v-btn>
-      </template>
-    </custom-title>
-    <v-card flat class="pa-4 mb-4 rounded-xl border" v-show="showFilterForm">
-      <v-row align="center">
-        <v-col cols="12" md="3">
+  <custom-title
+    icon="mdi-sale"
+    title="Sales Summary"
+    subtitle="Daily revenue · Orders · Profit breakdown"
+  ></custom-title>
+  <div class="sales-page">
+    <!-- ── Page Header ─────────────────────────────────────────────────────── -->
+    <div class="page-header mb-6">
+      <div class="d-flex align-center justify-space-between flex-wrap gap-3">
+        <div class="d-flex gap-2 align-center flex-wrap">
           <v-select
-            v-model="selectedRange"
-            :items="rangeOptions"
-            label="Timeframe"
+            v-model="filters.branch_id"
+            :items="branches.data"
+            item-value="id"
+            item-title="name"
+            label="Branch"
             variant="outlined"
             density="compact"
+            rounded="lg"
             hide-details
-            @update:model-value="handleRangeChange"
-          ></v-select>
-        </v-col>
-
-        <v-fade-transition>
-          <v-col cols="12" md="5" v-if="selectedRange === 'custom'">
-            <div class="d-flex ga-2">
-              <v-date-input
-                v-model="filters.from"
-                label="From"
-                density="compact"
-                hide-details
-                variant="outlined"
-              />
-              <v-date-input
-                v-model="filters.to"
-                label="To"
-                density="compact"
-                hide-details
-                variant="outlined"
-              />
-            </div>
-          </v-col>
-        </v-fade-transition>
-
-        <v-spacer></v-spacer>
-        <v-col
-          cols="12"
-          md="4"
-          v-if="showGranularity"
-          class="d-flex justify-md-end align-center"
-        >
-          <v-fade-transition>
-            <div class="d-flex align-center">
-              <span class="text-caption mr-2 text-grey text-no-wrap">
-                Group by:
-              </span>
-              <v-btn-toggle
-                v-model="granularity"
-                color="#3b828e"
-                density="compact"
-                mandatory
-                variant="outlined"
-              >
-                <v-btn value="day">Day</v-btn>
-                <v-btn value="week" v-if="isRangeLongerThanWeek">Week</v-btn>
-                <v-btn value="month" v-if="isRangeLongerThanMonth">Month</v-btn>
-              </v-btn-toggle>
-            </div>
-          </v-fade-transition>
-        </v-col>
-
-        <v-col cols="12" class="d-flex justify-end pt-4">
+            min-width="180"
+            prepend-inner-icon="mdi-store-outline"
+            clearable
+          />
+          <v-text-field
+            v-model="filters.date_from"
+            type="date"
+            label="From"
+            variant="outlined"
+            density="compact"
+            rounded="lg"
+            hide-details
+            min-width="160"
+          />
+          <v-text-field
+            v-model="filters.date_to"
+            type="date"
+            label="To"
+            variant="outlined"
+            density="compact"
+            rounded="lg"
+            hide-details
+            min-width="160"
+          />
           <v-btn
             color="primary"
-            size="large"
-            rounded="pill"
-            elevation="0"
-            class="text-none"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-magnify"
+            :loading="loading"
+            @click="fetchData"
           >
-            <!-- :loading="loadingStore.isLoading"
-            @click="applyFilters" -->
-            <v-icon start>mdi-filter-check</v-icon>
-            Apply Filters
+            Search
           </v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
-    <v-row>
-      <v-col v-for="kpi in kpiData" :key="kpi.title" cols="12" sm="6" md="3">
-        <v-card border flat class="pa-4">
-          <div class="d-flex justify-space-between align-start mb-2">
-            <div>
-              <span class="text-overline text-grey-darken-1">
-                {{ kpi.title }}
-              </span>
-              <h2 class="text-h4 font-weight-bold">{{ kpi.value }}</h2>
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            prepend-icon="mdi-download-outline"
+            @click="exportCsv"
+          >
+            Export
+          </v-btn>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Period Totals (aggregate of filtered range) ──────────────────────── -->
+    <v-row class="mb-5" dense>
+      <v-col v-for="(kpi, i) in kpis" :key="i" cols="6" sm="4" md="2">
+        <v-card class="kpi-card" rounded="xl" border elevation="0">
+          <v-card-text class="pa-4">
+            <div class="d-flex align-center justify-space-between mb-2">
+              <v-avatar
+                :color="kpi.color"
+                variant="tonal"
+                rounded="lg"
+                size="36"
+              >
+                <v-icon :icon="kpi.icon" size="18" />
+              </v-avatar>
+              <v-chip
+                v-if="kpi.trend !== null"
+                :color="kpi.trend >= 0 ? 'success' : 'error'"
+                size="x-small"
+                variant="tonal"
+              >
+                <v-icon
+                  :icon="
+                    kpi.trend >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'
+                  "
+                  size="12"
+                  class="mr-1"
+                />
+                {{ Math.abs(kpi.trend) }}%
+              </v-chip>
             </div>
-            <v-avatar :color="kpi.color" variant="tonal" rounded="lg">
-              <v-icon :icon="kpi.icon"></v-icon>
-            </v-avatar>
-          </div>
-
-          <div class="d-flex align-center mt-4">
-            <v-icon
-              :color="kpi.trend > 0 ? 'success' : 'error'"
-              size="small"
-              class="mr-1"
-            >
-              {{ kpi.trend > 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
-            </v-icon>
-            <span
-              :class="kpi.trend > 0 ? 'text-success' : 'text-error'"
-              class="text-caption font-weight-bold"
-            >
-              {{ Math.abs(kpi.trend) }}%
-            </span>
-            <span class="text-caption text-grey ml-1">vs last period</span>
-          </div>
-
-          <v-sparkline
-            :model-value="kpi.history"
-            :color="kpi.color"
-            height="40"
-            padding="8"
-            stroke-linecap="round"
-            smooth
-            auto-draw
-          ></v-sparkline>
+            <div class="kpi-value">{{ kpi.value }}</div>
+            <div class="kpi-label">{{ kpi.label }}</div>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
-    <v-row>
+
+    <!-- ── Charts Row ──────────────────────────────────────────────────────── -->
+    <v-row class="mb-5" dense>
+      <!-- Revenue chart -->
       <v-col cols="12" md="8">
-        <v-card border flat class="pa-4">
-          <div class="d-flex justify-space-between align-center mb-4">
-            <div>
-              <v-card-title class="pa-0">Revenue Trend</v-card-title>
-              <v-card-subtitle class="pa-0">
-                Performance over the selected period
-              </v-card-subtitle>
+        <v-card rounded="xl" border elevation="0" height="320">
+          <v-card-text class="pa-4 h-100 d-flex flex-column">
+            <div class="d-flex align-center justify-space-between mb-4">
+              <div class="chart-title">Revenue Trend</div>
+              <v-btn-toggle
+                v-model="chartMetric"
+                color="primary"
+                variant="tonal"
+                rounded="lg"
+                mandatory
+                density="compact"
+              >
+                <v-btn value="total_revenue" size="small" class="text-none">
+                  Revenue
+                </v-btn>
+                <v-btn value="net_revenue" size="small" class="text-none">
+                  Net
+                </v-btn>
+                <v-btn value="gross_profit" size="small" class="text-none">
+                  Profit
+                </v-btn>
+              </v-btn-toggle>
             </div>
-            <v-chip size="small" color="primary" variant="outlined">
-              Live Data
+            <div class="chart-area flex-grow-1" ref="revenueChartRef">
+              <svg
+                v-if="chartData.length"
+                class="sparkline"
+                :viewBox="`0 0 ${svgW} ${svgH}`"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6366f1" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <path :d="areaPath" fill="url(#revGrad)" />
+                <path
+                  :d="linePath"
+                  fill="none"
+                  stroke="#6366f1"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+
+                <!-- Data points -->
+                <circle
+                  v-for="(pt, i) in chartPoints"
+                  :key="i"
+                  :cx="pt.x"
+                  :cy="pt.y"
+                  r="3.5"
+                  fill="#6366f1"
+                  stroke="white"
+                  stroke-width="2"
+                  class="chart-dot"
+                  @mouseenter="hoveredPoint = { ...pt, index: i }"
+                  @mouseleave="hoveredPoint = null"
+                />
+
+                <!-- Tooltip -->
+                <g v-if="hoveredPoint">
+                  <rect
+                    :x="hoveredPoint.x - 50"
+                    :y="hoveredPoint.y - 36"
+                    width="100"
+                    height="28"
+                    rx="6"
+                    fill="#1e1b4b"
+                    opacity="0.9"
+                  />
+                  <text
+                    :x="hoveredPoint.x"
+                    :y="hoveredPoint.y - 17"
+                    text-anchor="middle"
+                    fill="white"
+                    font-size="11"
+                    font-weight="600"
+                  >
+                    {{
+                      formatCurrency(
+                        chartData[hoveredPoint.index]?.[chartMetric]
+                      )
+                    }}
+                  </text>
+                  <text
+                    :x="hoveredPoint.x"
+                    :y="hoveredPoint.y - 6"
+                    text-anchor="middle"
+                    fill="#a5b4fc"
+                    font-size="9"
+                  >
+                    {{ chartData[hoveredPoint.index]?.date }}
+                  </text>
+                </g>
+              </svg>
+              <div v-else class="chart-empty">
+                <v-icon
+                  icon="mdi-chart-line"
+                  size="40"
+                  color="grey-lighten-2"
+                />
+                <p class="text-caption text-grey mt-2">
+                  No data for selected period
+                </p>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Order type breakdown -->
+      <v-col cols="12" md="4">
+        <v-card rounded="xl" border elevation="0" height="320">
+          <v-card-text class="pa-4 h-100 d-flex flex-column">
+            <div class="chart-title mb-4">Order Types</div>
+            <div class="d-flex flex-column gap-3 flex-grow-1 justify-center">
+              <div
+                v-for="type in orderTypes"
+                :key="type.key"
+                class="order-type-row"
+              >
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <div class="d-flex align-center gap-2">
+                    <v-avatar
+                      :color="type.color"
+                      variant="tonal"
+                      size="28"
+                      rounded="lg"
+                    >
+                      <v-icon :icon="type.icon" size="14" />
+                    </v-avatar>
+                    <span class="text-body-2 font-weight-medium">
+                      {{ type.label }}
+                    </span>
+                  </div>
+                  <span class="text-body-2 font-weight-bold">
+                    {{ totals[type.key] || 0 }}
+                  </span>
+                </div>
+                <v-progress-linear
+                  :model-value="orderTypePercent(type.key)"
+                  :color="type.color"
+                  rounded
+                  height="6"
+                  bg-color="grey-lighten-3"
+                />
+                <div class="text-caption text-grey text-right">
+                  {{ orderTypePercent(type.key) }}%
+                </div>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ── Data Table ─────────────────────────────────────────────────────── -->
+    <v-card rounded="xl" border elevation="0">
+      <v-card-title class="pa-5 pb-0">
+        <div class="d-flex align-center justify-space-between">
+          <span class="text-h6 font-weight-bold">Daily Breakdown</span>
+          <v-text-field
+            v-model="search"
+            prepend-inner-icon="mdi-magnify"
+            placeholder="Search by date..."
+            variant="outlined"
+            density="compact"
+            rounded="lg"
+            hide-details
+            max-width="220"
+          />
+        </div>
+      </v-card-title>
+
+      <v-data-table
+        :headers="headers"
+        :items="filteredSummaries"
+        :loading="loading"
+        :search="search"
+        item-value="id"
+        hover
+        rounded="xl"
+        :items-per-page="15"
+      >
+        <!-- Date -->
+        <template #item.date="{ item }">
+          <div class="d-flex align-center gap-2">
+            <v-avatar color="primary" variant="tonal" size="32" rounded="lg">
+              <span class="text-caption font-weight-bold">
+                {{ dayOfMonth(item.date) }}
+              </span>
+            </v-avatar>
+            <div>
+              <div class="text-body-2 font-weight-medium">
+                {{ formatDate(item.date) }}
+              </div>
+              <div class="text-caption text-grey">{{ dayName(item.date) }}</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Branch -->
+        <template #item.branch="{ item }">
+          <v-chip
+            size="small"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-store-outline"
+          >
+            {{ item.branch?.name || '—' }}
+          </v-chip>
+        </template>
+
+        <!-- Orders -->
+        <template #item.total_orders="{ item }">
+          <div class="d-flex align-center gap-1">
+            <v-icon icon="mdi-receipt-outline" size="14" color="grey" />
+            <span class="text-body-2 font-weight-medium">
+              {{ item.total_orders }}
+            </span>
+          </div>
+        </template>
+
+        <!-- Revenue -->
+        <template #item.total_revenue="{ item }">
+          <span class="text-body-2 font-weight-bold text-primary">
+            {{ formatCurrency(item.total_revenue) }}
+          </span>
+        </template>
+
+        <!-- Discount -->
+        <template #item.total_discount="{ item }">
+          <span class="text-body-2 text-error">
+            {{
+              item.total_discount > 0
+                ? '-' + formatCurrency(item.total_discount)
+                : '—'
+            }}
+          </span>
+        </template>
+
+        <!-- Tax -->
+        <template #item.total_tax="{ item }">
+          <span class="text-body-2 text-medium-emphasis">
+            {{ formatCurrency(item.total_tax) }}
+          </span>
+        </template>
+
+        <!-- Net Revenue -->
+        <template #item.net_revenue="{ item }">
+          <span class="text-body-2 font-weight-bold text-success">
+            {{ formatCurrency(item.net_revenue) }}
+          </span>
+        </template>
+
+        <!-- Gross Profit -->
+        <template #item.gross_profit="{ item }">
+          <div
+            v-if="item.gross_profit != null"
+            class="d-flex align-center gap-1"
+          >
+            <span class="text-body-2 font-weight-medium">
+              {{ formatCurrency(item.gross_profit) }}
+            </span>
+            <v-chip
+              :color="
+                profitMargin(item) >= 30
+                  ? 'success'
+                  : profitMargin(item) >= 15
+                    ? 'warning'
+                    : 'error'
+              "
+              size="x-small"
+              variant="tonal"
+            >
+              {{ profitMargin(item) }}%
             </v-chip>
           </div>
+          <span v-else class="text-grey">—</span>
+        </template>
 
-          <div style="height: 350px">
-            <Line :data="lineChartData" :options="lineChartOptions" />
+        <!-- Avg Order -->
+        <template #item.avg_order_value="{ item }">
+          <span class="text-body-2">
+            {{
+              item.avg_order_value ? formatCurrency(item.avg_order_value) : '—'
+            }}
+          </span>
+        </template>
+
+        <!-- Order types mini -->
+        <template #item.order_types="{ item }">
+          <div class="d-flex gap-2">
+            <v-chip
+              v-if="item.dine_in_orders"
+              size="x-small"
+              color="indigo"
+              variant="tonal"
+              prepend-icon="mdi-silverware-fork-knife"
+            >
+              {{ item.dine_in_orders }}
+            </v-chip>
+            <v-chip
+              v-if="item.takeaway_orders"
+              size="x-small"
+              color="orange"
+              variant="tonal"
+              prepend-icon="mdi-bag-personal-outline"
+            >
+              {{ item.takeaway_orders }}
+            </v-chip>
+            <v-chip
+              v-if="item.delivery_orders"
+              size="x-small"
+              color="teal"
+              variant="tonal"
+              prepend-icon="mdi-moped-outline"
+            >
+              {{ item.delivery_orders }}
+            </v-chip>
           </div>
-        </v-card>
-      </v-col>
+        </template>
 
-      <v-col cols="12" md="4">
-        <v-card border flat class="pa-4">
-          <v-card-title class="pa-0">Sales by Category</v-card-title>
-          <v-card-subtitle class="pa-0 mb-4">
-            Top performing areas
-          </v-card-subtitle>
-
-          <div style="height: 350px">
-            <Bar :data="barChartData" :options="barChartOptions" />
+        <!-- New customers -->
+        <template #item.new_customers="{ item }">
+          <div v-if="item.new_customers" class="d-flex align-center gap-1">
+            <v-icon icon="mdi-account-plus-outline" size="14" color="success" />
+            <span class="text-body-2 text-success font-weight-medium">
+              {{ item.new_customers }}
+            </span>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card border flat>
-          <v-card-title class="d-flex align-center pe-2">
-            Recent Transactions
-            <v-spacer></v-spacer>
-            <v-text-field
-              v-model="search"
-              density="compact"
-              label="Search orders..."
-              prepend-inner-icon="mdi-magnify"
-              flat
-              hide-details
-              single-line
-            ></v-text-field>
-          </v-card-title>
-          <v-data-table
-            :headers="headers"
-            :items="tableData.data"
-            :search="search"
-            hover
-            density="compact"
-          >
-            <template v-slot:item.sale_date="{ item }">
-              {{ formatDate(item.sale_date) }}
-            </template>
-            <template v-slot:item.status="{ item }">
-              <v-chip
-                size="small"
-                class="text-capitalize"
-                :color="getStatusColor(item.status)"
-              >
-                {{ item.status }}
-              </v-chip>
-            </template>
-            <template v-slot:item.total_amount="{ item }">
-              {{ formatCurrency(item.total_amount) }}
-            </template>
-          </v-data-table>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card border flat class="pa-4">
-          <div class="d-flex justify-space-between align-center mb-4">
-            <div>
-              <v-card-title class="pa-0">Top Menu Popularity</v-card-title>
-              <v-card-subtitle class="pa-0">
-                Ranked by quantity sold
-              </v-card-subtitle>
-            </div>
-            <v-icon color="secondary">mdi-fire</v-icon>
-          </div>
+          <span v-else class="text-grey">—</span>
+        </template>
 
-          <v-table density="compact">
-            <thead>
-              <tr>
-                <th class="text-left">Item</th>
-                <th class="text-center">Orders</th>
-                <th class="text-right">Trend</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in topOrderedData" :key="item.name">
-                <td>{{ item.name }}</td>
-                <td class="text-center font-weight-bold">{{ item.qty }}</td>
-                <td class="text-right">
-                  <v-chip
-                    :color="item.growth > 0 ? 'success' : 'error'"
-                    size="x-small"
-                    variant="tonal"
-                    label
-                  >
-                    {{ item.growth > 0 ? '+' : '' }}{{ item.growth }}%
-                  </v-chip>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+        <!-- No data -->
+        <template #no-data>
+          <div class="text-center py-12">
+            <v-icon
+              icon="mdi-chart-bar-stacked"
+              size="56"
+              color="grey-lighten-1"
+              class="mb-3"
+            />
+            <p class="text-h6 text-medium-emphasis mb-1">No sales data</p>
+            <p class="text-body-2 text-grey">
+              Try adjusting the date range or branch filter
+            </p>
+          </div>
+        </template>
+
+        <!-- Loading -->
+        <template #loading>
+          <v-skeleton-loader v-for="n in 8" :key="n" type="table-row" />
+        </template>
+      </v-data-table>
+    </v-card>
+  </div>
 </template>
 
 <script setup>
-  import { ref, onMounted, reactive, computed } from 'vue'
-  import { useSaleStore } from '../../stores/saleStore'
-  import { useCurrency } from '@/composables/useCurrency'
-  import { useDate } from '@/composables/useDate'
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { storeToRefs } from 'pinia'
+  import { useReportStore } from '@/stores/reportStore'
+  import { useBranchStore } from '@/stores/branchStore'
 
-  import { Line, Bar } from 'vue-chartjs'
-  import {
-    Chart as ChartJS,
-    Title,
-    Tooltip,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    CategoryScale,
-    BarElement
-  } from 'chart.js'
+  const salesStore = useReportStore()
+  const branchStore = useBranchStore()
 
-  ChartJS.register(
-    Title,
-    Tooltip,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    CategoryScale,
-    BarElement
-  )
-  const { formatCurrency } = useCurrency()
-  const { formatDate } = useDate()
+  const { summaries, loading } = storeToRefs(salesStore)
+  const { branches } = storeToRefs(branchStore)
 
-  // Search logic
+  // ── Filters ───────────────────────────────────────────────────────────────────
+  const today = new Date().toISOString().split('T')[0]
+  const lastMonth = new Date(Date.now() - 30 * 864e5)
+    .toISOString()
+    .split('T')[0]
+
+  const filters = ref({
+    branch_id: null,
+    date_from: lastMonth,
+    date_to: today
+  })
+
   const search = ref('')
-  const saleStore = useSaleStore()
-  const tableData = ref([])
-  const summaryKpi = ref([])
-  const filters = reactive({ search: '', status: null, from: null, to: null })
-  const showFilterForm = ref(false)
-  const selectedRange = ref('thisMonth')
-  const granularity = ref('day')
+  const chartMetric = ref('total_revenue')
+  const hoveredPoint = ref(null)
 
-  const rangeOptions = [
-    { title: 'Today', value: 'today' },
-    { title: 'Yesterday', value: 'yesterday' },
-    { title: 'Last 7 Days', value: '7days' },
-    { title: 'This Month', value: 'thisMonth' },
-    { title: 'This Year', value: 'thisYear' },
-    { title: 'Custom Range', value: 'custom' }
-  ]
+  // ── SVG chart dimensions ──────────────────────────────────────────────────────
+  const svgW = 600
+  const svgH = 160
+  const padX = 20
+  const padY = 16
 
-  // Logic: Hide granularity for "Today" or "Yesterday"
-  const showGranularity = computed(() => {
-    const singleDayRanges = ['today', 'yesterday']
-    return !singleDayRanges.includes(selectedRange.value)
-  })
-
-  // Logic: Show "Week" only if range is > 7 days
-  const isRangeLongerThanWeek = computed(() => {
-    return ['thisMonth', 'thisYear', 'custom'].includes(selectedRange.value)
-  })
-
-  // Logic: Show "Month" only if range is very long
-  const isRangeLongerThanMonth = computed(() => {
-    return ['thisYear', 'custom'].includes(selectedRange.value)
-  })
-
-  // Function to reset granularity when range changes
-  const handleRangeChange = val => {
-    if (val === 'today' || val === 'yesterday') {
-      granularity.value = 'day'
+  // ── Computed: totals across filtered data ─────────────────────────────────────
+  const totals = computed(() => {
+    const list = summaries.value
+    return {
+      total_orders: list.reduce((s, r) => s + (r.total_orders || 0), 0),
+      total_revenue: list.reduce((s, r) => s + Number(r.total_revenue || 0), 0),
+      total_discount: list.reduce(
+        (s, r) => s + Number(r.total_discount || 0),
+        0
+      ),
+      total_tax: list.reduce((s, r) => s + Number(r.total_tax || 0), 0),
+      net_revenue: list.reduce((s, r) => s + Number(r.net_revenue || 0), 0),
+      gross_profit: list.reduce((s, r) => s + Number(r.gross_profit || 0), 0),
+      dine_in_orders: list.reduce((s, r) => s + (r.dine_in_orders || 0), 0),
+      takeaway_orders: list.reduce((s, r) => s + (r.takeaway_orders || 0), 0),
+      delivery_orders: list.reduce((s, r) => s + (r.delivery_orders || 0), 0),
+      new_customers: list.reduce((s, r) => s + (r.new_customers || 0), 0)
     }
-  }
-  const kpiData = computed(() =>[
+  })
+
+  const kpis = computed(() => [
     {
-      title: 'Total Revenue',
-      value: summaryKpi.value.total_revenue ?? 0,
-      icon: 'mdi-currency-usd',
+      label: 'Total Orders',
+      value: totals.value.total_orders,
+      icon: 'mdi-receipt-outline',
       color: 'primary',
-      trend: 15.2,
-      history: [400, 390, 450, 400, 480, 440, 500] // Fake mini-chart data
+      trend: null
     },
     {
-      title: 'Avg. Order Value',
-      value: summaryKpi.value.avg_value ?? 0,
-      icon: 'mdi-cart-percent',
-      color: 'info',
-      trend: -2.4,
-      history: [120, 125, 122, 130, 128, 124, 124]
+      label: 'Gross Revenue',
+      value: formatCurrency(totals.value.total_revenue),
+      icon: 'mdi-cash-multiple',
+      color: 'indigo',
+      trend: null
     },
     {
-      title: 'Orders',
-      value: '345',
-      icon: 'mdi-package-variant-closed',
-      color: 'warning',
-      trend: 8.1,
-      history: [20, 25, 30, 22, 28, 35, 34]
+      label: 'Discounts',
+      value: formatCurrency(totals.value.total_discount),
+      icon: 'mdi-tag-minus-outline',
+      color: 'error',
+      trend: null
     },
     {
-      title: 'Conversion Rate',
-      value: '3.2%',
+      label: 'Tax Collected',
+      value: formatCurrency(totals.value.total_tax),
+      icon: 'mdi-percent-outline',
+      color: 'orange',
+      trend: null
+    },
+    {
+      label: 'Net Revenue',
+      value: formatCurrency(totals.value.net_revenue),
       icon: 'mdi-trending-up',
       color: 'success',
-      trend: 0.5,
-      history: [2.8, 2.9, 3.1, 3.0, 3.3, 3.2, 3.2]
+      trend: null
+    },
+    {
+      label: 'Gross Profit',
+      value: formatCurrency(totals.value.gross_profit),
+      icon: 'mdi-chart-bar',
+      color: 'teal',
+      trend: null
     }
   ])
-  const lineChartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Current Period',
-        backgroundColor: '#1867C0', // Vuetify Primary
-        borderColor: '#1867C0',
-        data: [30, 52, 45, 70, 62, 85, 90],
-        tension: 0.4, // Makes the line smooth
-        fill: true
-      },
-      {
-        label: 'Previous Period',
-        backgroundColor: '#E0E0E0',
-        borderColor: '#BDBDBD',
-        borderDash: [5, 5], // Dashed line
-        data: [25, 40, 38, 55, 50, 60, 65],
-        tension: 0.4
-      }
-    ]
-  }
 
-  const lineChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' }
+  const orderTypes = [
+    {
+      key: 'dine_in_orders',
+      label: 'Dine In',
+      icon: 'mdi-silverware-fork-knife',
+      color: 'indigo'
+    },
+    {
+      key: 'takeaway_orders',
+      label: 'Takeaway',
+      icon: 'mdi-bag-personal-outline',
+      color: 'orange'
+    },
+    {
+      key: 'delivery_orders',
+      label: 'Delivery',
+      icon: 'mdi-moped-outline',
+      color: 'teal'
     }
-  }
-
-  // Bar Chart: Categories
-  const barChartData = {
-    labels: ['Software', 'Hardware', 'Services'],
-    datasets: [
-      {
-        label: 'Revenue',
-        backgroundColor: ['#1867C0', '#5CBBFF', '#009688'],
-        borderColor: '#1867C0',
-        data: [12000, 8500, 4200]
-      }
-    ]
-  }
-
-  const barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y', // Makes it a horizontal bar chart
-    plugins: { legend: { display: false } }
-  }
-  onMounted(async () => {
-    // Fetch sales report data
-    const reportData = await saleStore.saleReport()
-    saleStore.topMenusReport(filters.from, filters.to)
-    tableData.value = reportData.table_data
-    summaryKpi.value = reportData.summary
-  })
-  const toggleFilterForm = () => {
-    showFilterForm.value = !showFilterForm.value
-  }
-  // Table Configuration
-  const headers = [
-    { title: 'Invoice', key: 'invoice_no' },
-    { title: 'Date', key: 'sale_date' },
-    { title: 'Items', key: 'items_count' },
-    { title: 'Total', key: 'total_amount' },
-    { title: 'Status', key: 'status' }
   ]
 
-  // Helper functions
-  const getStatusColor = status => {
-    if (status === 'paid') return 'success'
-    if (status === 'Pending') return 'warning'
-    return 'grey'
+  const orderTypePercent = key => {
+    const total = totals.value.total_orders
+    if (!total) return 0
+    return Math.round((totals.value[key] / total) * 100)
   }
 
+  // ── SVG chart ─────────────────────────────────────────────────────────────────
+  const chartData = computed(() =>
+    [...summaries.value].sort((a, b) => a.date.localeCompare(b.date))
+  )
 
-  // Fake Data for Top Ordered (Quantity)
-  const topOrderedData = ref([
-    { name: 'Basic License', qty: 1450, growth: 12 },
-    { name: 'API Access Token', qty: 980, growth: 24 },
-    { name: 'Security Patch', qty: 820, growth: -5 },
-    { name: 'User Seat Add-on', qty: 650, growth: 8 },
-    { name: 'Storage Bump (1TB)', qty: 420, growth: 15 }
-  ])
+  const chartPoints = computed(() => {
+    const data = chartData.value
+    if (!data.length) return []
 
-  const exportData = () => {
-    alert('Exporting data to CSV...')
+    const values = data.map(d => Number(d[chartMetric.value] || 0))
+    const minV = Math.min(...values)
+    const maxV = Math.max(...values)
+    const range = maxV - minV || 1
+
+    return data.map((d, i) => ({
+      x: padX + (i / Math.max(data.length - 1, 1)) * (svgW - padX * 2),
+      y:
+        padY +
+        (1 - (Number(d[chartMetric.value] || 0) - minV) / range) *
+          (svgH - padY * 2)
+    }))
+  })
+
+  const linePath = computed(() => {
+    const pts = chartPoints.value
+    if (!pts.length) return ''
+    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  })
+
+  const areaPath = computed(() => {
+    const pts = chartPoints.value
+    if (!pts.length) return ''
+    const line = pts
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+      .join(' ')
+    return `${line} L ${pts[pts.length - 1].x} ${svgH} L ${pts[0].x} ${svgH} Z`
+  })
+
+  // ── Table ─────────────────────────────────────────────────────────────────────
+  const headers = [
+    { title: 'Date', key: 'date', sortable: true },
+    { title: 'Branch', key: 'branch', sortable: false },
+    { title: 'Orders', key: 'total_orders', sortable: true },
+    { title: 'Revenue', key: 'total_revenue', sortable: true },
+    { title: 'Discount', key: 'total_discount', sortable: false },
+    { title: 'Tax', key: 'total_tax', sortable: false },
+    { title: 'Net Revenue', key: 'net_revenue', sortable: true },
+    { title: 'Profit', key: 'gross_profit', sortable: true },
+    { title: 'Avg Order', key: 'avg_order_value', sortable: true },
+    { title: 'Types', key: 'order_types', sortable: false },
+    { title: 'New Guests', key: 'new_customers', sortable: true }
+  ]
+
+  const filteredSummaries = computed(() => summaries.value)
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  const formatCurrency = val =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(val || 0)
+
+  const formatDate = d =>
+    new Date(d).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  const dayName = d =>
+    new Date(d).toLocaleDateString('en-US', { weekday: 'long' })
+  const dayOfMonth = d => new Date(d).getDate()
+  const profitMargin = item => {
+    if (!item.gross_profit || !item.total_revenue) return 0
+    return Math.round((item.gross_profit / item.total_revenue) * 100)
   }
+
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  const fetchData = async () => {
+    // salesStore.fetchSummaries sets store.summaries array
+    await salesStore.fetchSummaries(filters.value)
+  }
+
+  const exportCsv = () => {
+    const rows = [
+      [
+        'Date',
+        'Branch',
+        'Orders',
+        'Revenue',
+        'Discount',
+        'Tax',
+        'Net Revenue',
+        'Gross Profit',
+        'Avg Order',
+        'Dine In',
+        'Takeaway',
+        'Delivery',
+        'New Customers'
+      ],
+      ...summaries.value.map(r => [
+        r.date,
+        r.branch?.name,
+        r.total_orders,
+        r.total_revenue,
+        r.total_discount,
+        r.total_tax,
+        r.net_revenue,
+        r.gross_profit ?? '',
+        r.avg_order_value ?? '',
+        r.dine_in_orders,
+        r.takeaway_orders,
+        r.delivery_orders,
+        r.new_customers
+      ])
+    ]
+    const csv = rows.map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `sales-summary-${filters.value.date_from}-to-${filters.value.date_to}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  onMounted(async () => {
+    await Promise.all([branchStore.fetchBranches?.(), fetchData()])
+  })
 </script>
+
+<style scoped>
+  .sales-page {
+    padding: 0;
+  }
+
+  .page-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: rgb(var(--v-theme-on-surface));
+  }
+  .page-subtitle {
+    font-size: 0.85rem;
+    color: rgb(var(--v-theme-on-surface-variant));
+    margin-top: 2px;
+  }
+
+  /* ── KPI cards ──────────────────────────────────────────────────────────────── */
+  .kpi-card {
+    transition: transform 0.2s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .kpi-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    margin-bottom: 2px;
+  }
+  .kpi-label {
+    font-size: 0.72rem;
+    color: rgb(var(--v-theme-on-surface-variant));
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Chart ──────────────────────────────────────────────────────────────────── */
+  .chart-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .chart-area {
+    position: relative;
+    min-height: 140px;
+  }
+  .sparkline {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .chart-dot {
+    cursor: pointer;
+    transition: r 0.15s;
+  }
+  .chart-dot:hover {
+    r: 5;
+  }
+  .chart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 140px;
+  }
+
+  /* ── Order type rows ─────────────────────────────────────────────────────────── */
+  .order-type-row {
+    margin-bottom: 4px;
+  }
+
+  /* ── Gaps ───────────────────────────────────────────────────────────────────── */
+  .gap-2 {
+    gap: 8px;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
+  .h-100 {
+    height: 100%;
+  }
+</style>
