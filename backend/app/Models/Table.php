@@ -14,9 +14,16 @@ class Table extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'branch_id', 'floor_plan_id', 'table_number',
-        'capacity', 'shape', 'position_x', 'position_y',
-        'qr_code', 'status', 'is_active',
+        'branch_id',
+        'floor_plan_id',
+        'table_number',
+        'capacity',
+        'shape',
+        'position_x',
+        'position_y',
+        'qr_code',
+        'status',
+        'is_active',
     ];
 
     protected $casts = [
@@ -35,9 +42,16 @@ class Table extends BaseModel
     {
         $data = $request instanceof Request
             ? $request->only([
-                'branch_id', 'floor_plan_id', 'table_number',
-                'capacity', 'shape', 'position_x', 'position_y',
-                'qr_code', 'status', 'is_active',
+                'branch_id',
+                'floor_plan_id',
+                'table_number',
+                'capacity',
+                'shape',
+                'position_x',
+                'position_y',
+                'qr_code',
+                'status',
+                'is_active',
             ])
             : $request;
 
@@ -74,8 +88,8 @@ class Table extends BaseModel
     public function activeOrder()
     {
         return $this->hasOne(Order::class)
-                    ->whereNotIn('status', ['completed', 'cancelled', 'refunded'])
-                    ->latest();
+            ->whereNotIn('status', ['completed', 'cancelled', 'refunded'])
+            ->latest();
     }
 
     public function reservations()

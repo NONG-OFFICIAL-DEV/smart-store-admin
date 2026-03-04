@@ -142,12 +142,12 @@ const routes = [
       //   component: () => import('@/views/auditLogs/AuditLogDetails.vue'),
       //   props: true
       // },
-      // {
-      //   path: '/sales-reports',
-      //   name: 'Sales',
-      //   component: () => import('@/views/reports/SaleReport.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/sales-reports',
+        name: 'Sales',
+        component: () => import('@/views/reports/SaleReport.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/menu-management',
       //   name: 'MenuManagement',
