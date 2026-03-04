@@ -33,8 +33,8 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN mkdir -p /var/log/supervisor
 
-RUN sed -i 's/listen = 9001/listen = 0.0.0.0:9001/' /usr/local/etc/php-fpm.d/zz-docker.conf
+RUN sed -i 's/listen = 9000/listen = 0.0.0.0:9000/' /usr/local/etc/php-fpm.d/zz-docker.conf
 
-EXPOSE 9001 6001
+EXPOSE 9000 6001
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
