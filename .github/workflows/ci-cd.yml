@@ -137,24 +137,24 @@ jobs:
             docker compose up -d --remove-orphans
 
             # ✅ Wait for backend to be ready
-            echo ">>> Waiting for backend to start..."
-            sleep 15
+            # echo ">>> Waiting for backend to start..."
+            # sleep 15
 
-            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
-              # ✅ Check container is actually running before exec
-              if docker compose ps smart_store_backend | grep -q "Up"; then
-                echo ">>> Backend post-deploy"
-                docker compose exec -T smart_store_backend php artisan optimize:clear
-                docker compose exec -T smart_store_backend php artisan migrate --force
+            # if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
+            #   # ✅ Check container is actually running before exec
+            #   if docker compose ps smart_store_backend | grep -q "Up"; then
+            #     echo ">>> Backend post-deploy"
+            #     docker compose exec -T smart_store_backend php artisan optimize:clear
+            #     docker compose exec -T smart_store_backend php artisan migrate --force
 
-                echo ">>> Restart Reverb + Queue"
-                docker compose exec -T smart_store_backend supervisorctl restart reverb
-                # docker compose exec -T smart_store_backend supervisorctl restart queue
-              else
-                echo ">>> Backend container not running — checking logs"
-                docker logs smart_store_backend --tail=30
-                exit 1
-              fi
-            fi
+            #     echo ">>> Restart Reverb + Queue"
+            #     docker compose exec -T smart_store_backend supervisorctl restart reverb
+            #     # docker compose exec -T smart_store_backend supervisorctl restart queue
+            #   else
+            #     echo ">>> Backend container not running — checking logs"
+            #     docker logs smart_store_backend --tail=30
+            #     exit 1
+            #   fi
+            # fi
 
             echo ">>> Deploy complete ✅"
