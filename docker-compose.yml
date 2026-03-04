@@ -47,7 +47,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres@12345
     ports:
-      - "5435:5434"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -69,6 +69,8 @@ services:
     networks:
       - web
       - internal_project_network
+    depends_on:
+      - backend
 
 networks:
   web:
