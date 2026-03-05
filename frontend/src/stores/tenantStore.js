@@ -4,7 +4,9 @@ import {
   getTenantByIdApi,
   createTenantApi,
   updateTenantApi,
-  deleteTenantApi
+  deleteTenantApi,
+  toggleTenantActiveApi,
+  transferOwnershipApi
 } from '../api/tenantService'
 
 export const useTenantStore = defineStore('tenant', {
@@ -36,6 +38,21 @@ export const useTenantStore = defineStore('tenant', {
     async deleteTenant(id) {
       await deleteTenantApi(id)
       this.tenants = this.tenants.filter(item => item.id !== id)
+    },
+    // Toggle is_active — suspend or activate
+    async toggleActive(id) {
+      const res = await toggleTenantActiveApi(id)
+      const index = this.tenants.findIndex(t => t.id === id)
+      if (index !== -1) this.tenants[index] = res.data.data
+    },
+
+    // Transfer ownership to new owner by email
+    async transferOwnership(id, newOwnerEmail) {
+      const res = await transferOwnershipApi(id, {
+        new_owner_email: newOwnerEmail
+      })
+      const index = this.tenants.findIndex(t => t.id === id)
+      if (index !== -1) this.tenants[index] = res.data.data
     }
   }
 })

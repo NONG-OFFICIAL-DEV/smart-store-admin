@@ -22,8 +22,8 @@
     {
       path: '/dashboard',
       title: t('menu.dashboard'),
-      icon: 'mdi-view-dashboard-outline'
-      // show: can('dashboard.view')
+      icon: 'mdi-view-dashboard-outline',
+      show: can('dashboard.view')
     },
 
     // ── 2. TENANTS & BRANCHES ───────────────────────────────────────────────────
@@ -36,8 +36,8 @@
     {
       path: '/branches',
       title: 'Branches',
-      icon: 'mdi-store-outline'
-      // show: can('branches.view')
+      icon: 'mdi-store-outline',
+      show: can('branches.view')
     },
 
     // ── 3. OPERATIONS ───────────────────────────────────────────────────────────

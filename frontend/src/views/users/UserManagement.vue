@@ -170,18 +170,40 @@
           />
         </template>
 
-        <template #item.staff.role.name="{ item }">
-          <v-chip
-            :color="item.is_super_admin ? 'primary' : 'secondary'"
-            :prepend-icon="
-              item.is_super_admin ? 'mdi-shield-check' : 'mdi-account-tie'
-            "
-            size="small"
-            variant="flat"
-            class="text-uppercase"
-          >
-            {{ item.is_super_admin ? 'Super Admin' : item.staff?.role?.name }}
-          </v-chip>
+        <template #item.resolved_type="{ item }">
+          <div class="d-flex flex-column gap-1">
+            <!-- Has a role — show chip normally -->
+            <template v-if="item.resolved_type?.type !== 'unassigned'">
+              <v-chip
+                :color="typeColor(item.resolved_type?.type)"
+                :prepend-icon="typeIcon(item.resolved_type?.type)"
+                size="small"
+                variant="tonal"
+              >
+                {{ item.resolved_type?.label }}
+              </v-chip>
+              <span
+                v-if="item.resolved_type?.tenant"
+                class="text-caption text-grey"
+              >
+                {{ item.resolved_type.tenant }}
+              </span>
+            </template>
+
+            <!-- Unassigned — show assign button -->
+            <template v-else>
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="warning"
+                rounded="lg"
+                prepend-icon="mdi-account-plus-outline"
+                >
+                <!-- @click="openAssign(item)" -->
+                Assign Role
+              </v-btn>
+            </template>
+          </div>
         </template>
 
         <!-- Actions -->
@@ -284,6 +306,8 @@
   import { ref, computed, onMounted } from 'vue'
   import { useUserStore } from '@/stores/userStore'
   import UserFormDialog from '@/components/users/UserFormDialog.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+  const { confirm, notif } = useAppUtils()
 
   const store = useUserStore()
 
@@ -302,7 +326,7 @@
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
     { title: 'User', key: 'first_name', sortable: true },
-    { title: 'Role', key: 'staff.role.name', sortable: true },
+    { title: 'Role', key: 'resolved_type', sortable: true },
     { title: 'Phone', key: 'phone', sortable: false },
     { title: 'Email Status', key: 'email_verified_at', sortable: false },
     { title: 'Last Login', key: 'last_login_at', sortable: true },
@@ -365,6 +389,21 @@
     })
   })
 
+  const typeColor = type =>
+    ({
+      super_admin: 'error',
+      owner: 'warning',
+      staff: 'success',
+      unassigned: 'grey'
+    })[type] || 'grey'
+
+  const typeIcon = type =>
+    ({
+      super_admin: 'mdi-shield-crown',
+      owner: 'mdi-domain',
+      staff: 'mdi-account-tie',
+      unassigned: 'mdi-account-off-outline'
+    })[type] || 'mdi-account'
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const colors = [
     'primary',
@@ -433,6 +472,18 @@
   const confirmDelete = item => {
     deleteTarget.value = item
     deleteDialog.value = true
+    confirm({
+      title: 'Delete Branch',
+      message: `Are you sure you want to delete branch "${branch.name}"?`,
+      options: { type: 'warning', width: 550 },
+      agree: () => {
+        // branchStore.deleteBranch(branch.id)
+        notif('Removed successully', {
+          type: 'success'
+        })
+      },
+      cancel: () => {}
+    })
   }
 
   const doDelete = async () => {

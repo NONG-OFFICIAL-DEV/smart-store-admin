@@ -121,7 +121,9 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
 
     // ── Tenants ───────────────────────────────────────────────────────────────
     Route::apiResource('tenants', TenantController::class);
-
+    // Extra actions
+    Route::post('tenants/{id}/toggle-active',       [TenantController::class, 'toggleActive']);
+    Route::post('tenants/{id}/transfer-ownership',  [TenantController::class, 'transferOwnership']);
     // ── Branches ──────────────────────────────────────────────────────────────
     Route::apiResource('branches', BranchController::class);
     Route::prefix('branches/{branch}')->group(function () {
@@ -155,7 +157,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::post('clock-in',    [ShiftController::class, 'clockIn']);
         Route::post('clock-out',   [ShiftController::class, 'clockOut']);
     });
-        // ── Shifts (definitions) ──────────────────────────────────────────────────
+    // ── Shifts (definitions) ──────────────────────────────────────────────────
     Route::apiResource('shifts', ShiftController::class);
 
     // ── Shift Assignments (staff_shifts) ──────────────────────────────────────

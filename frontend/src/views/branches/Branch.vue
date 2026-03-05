@@ -59,6 +59,7 @@
             variant="text"
             size="small"
             color="error"
+            v-if="can('products.delete')"
             @click="confirmDelete(item)"
           />
         </template>
@@ -78,7 +79,9 @@
   import { useBranchStore } from '@/stores/branchStore'
   import BranchDialog from '@/components/branches/BranchDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
+  import { usePermission } from '@/composables/usePermission'
 
+  const { can, canAny, isSuperAdmin, isOwner } = usePermission()
   const { confirm, notif } = useAppUtils()
 
   const branchStore = useBranchStore()

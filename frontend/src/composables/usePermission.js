@@ -1,35 +1,39 @@
 // import { computed } from 'vue'
-import { useAuthStore } from '@/stores/authStore'
+// import { useAuthStore } from '@/stores/authStore'
 
 // export function usePermission() {
 //   const authStore = useAuthStore()
 
-//   const hasRole = (...roles) => {
-//     return roles.includes(authStore.me?.role_id)
-//   }
+//   const can = p => authStore.permissions.includes(p)
+//   const canAny = (...ps) => ps.some(p => can(p))
+//   const canAll = (...ps) => ps.every(p => can(p))
 
-//   const isAdmin = computed(() => authStore.me?.role_id === 1)
-//   const isManager = computed(() => authStore.me?.role_id === 2)
-//   const isPurchaser = computed(() => authStore.me?.role_id === 3)
-//   const isCashier = computed(() => authStore.me?.role_id === 4)
-//   const isBarista = computed(() => authStore.me?.role_id === 5)
-
-//   return {
-//     hasRole,
-//     isAdmin,
-//     isManager,
-//     isPurchaser,
-//     isCashier,
-//     isBarista,
-//   }
+//   return { can, canAny, canAll }
 // }
 
+
+import { useAuthStore } from '@/stores/authStore'
+
 export function usePermission() {
-  const authStore = useAuthStore()
+  const auth = useAuthStore()
 
-  const can = p => authStore.permissions.includes(p)
-  const canAny = (...ps) => ps.some(p => can(p))
-  const canAll = (...ps) => ps.every(p => can(p))
+  // These come directly from the store
+  // can/canAny/canAll already handle super_admin + owner bypass
+  const can    = (code)      => auth.can(code)
+  const canAny = (...codes)  => auth.canAny(...codes)
+  const canAll = (...codes)  => auth.canAll(...codes)
 
-  return { can, canAny, canAll }
+  // Role helpers — use these for UI sections, not permission buttons
+  const isSuperAdmin  = () => auth.isSuperAdmin
+  const isOwner       = () => auth.isOwner
+  const isRegularStaff= () => !auth.isSuperAdmin && !auth.isOwner
+
+  return {
+    can,
+    canAny,
+    canAll,
+    isSuperAdmin,
+    isOwner,
+    isRegularStaff,
+  }
 }

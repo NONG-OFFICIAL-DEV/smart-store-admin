@@ -34,7 +34,7 @@ class Tenant extends BaseModel
                 'slug',
                 'plan',
                 'plan_expires_at',
-                'owner_user_id',
+                // 'owner_user_id',
                 'logo_url',
                 'primary_color',
                 'timezone',

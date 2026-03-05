@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
+use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StaffController extends Controller
 {
@@ -96,14 +99,114 @@ class StaffController extends Controller
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        return Staff::store($request);
+        $request->validate([
+            // User fields — required only when creating new staff
+            'first_name'  => 'required|string|max:80',
+            'last_name'   => 'required|string|max:80',
+            'email'       => 'required|email|unique:users,email',
+            'password'    => 'required|string|min:6',
+            'phone'       => 'nullable|string|max:30',
+
+            // Staff fields
+            'branch_id'   => 'required|uuid',
+            'role_id'     => 'required|uuid',
+            'hire_date'   => 'nullable|date',
+            'hourly_rate' => 'nullable|numeric|min:0',
+            'salary'      => 'nullable|numeric|min:0',
+            'pin_code'    => 'nullable|digits_between:4,6',
+            'is_active'   => 'boolean',
+        ]);
+
+        // ── Resolve tenant_id from who is logged in ───────────────────────────
+        $tenantId = $this->resolveTenantId($request);
+
+        if (!$tenantId) {
+            return response()->json([
+                'error' => 'Could not resolve tenant. Are you a tenant owner or admin?'
+            ], 403);
+        }
+
+        return DB::transaction(function () use ($request, $tenantId) {
+
+            // ── Step 1: Create the user account ──────────────────────────────
+            $user = User::create([
+                'first_name'  => $request->first_name,
+                'last_name'   => $request->last_name,
+                'email'       => $request->email,
+                'password'    => $request->password,   // cast: 'hashed' in model
+                'phone'       => $request->phone,
+                'is_active'   => true,
+            ]);
+
+            // ── Step 2: Create the staff record ──────────────────────────────
+            $staffData = [
+                'user_id'     => $user->id,
+                'tenant_id'   => $tenantId,            // ← from auth, not request
+                'branch_id'   => $request->branch_id,
+                'role_id'     => $request->role_id,
+                'hire_date'   => $request->hire_date,
+                'hourly_rate' => $request->hourly_rate,
+                'salary'      => $request->salary,
+                'is_active'   => $request->boolean('is_active', true),
+            ];
+
+            if ($request->filled('pin_code')) {
+                $staffData['pin_code'] = hash('sha256', $request->pin_code);
+            }
+
+            $staff = Staff::store($staffData);   // pass array, not Request
+
+            return response()->json([
+                'success' => true,
+                'data'    => $staff->load(['user', 'role', 'branch']),
+            ], 201);
+        });
     }
 
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'branch_id'    => 'sometimes|uuid',
+            'role_id'      => 'sometimes|uuid',
+            'hire_date'    => 'nullable|date',
+            'hourly_rate'  => 'nullable|numeric|min:0',
+            'salary'       => 'nullable|numeric|min:0',
+            'pin_code'     => 'nullable|digits_between:4,6',
+            'is_active'    => 'boolean',
+            'employee_code' => 'nullable|string|max:30',
+        ]);
+
+        // Staff::store() with $id = UPDATE
+        return Staff::store($request, $id);
+    }
+
+    // ── Resolve tenant from logged in user ────────────────────────────────────
+    // 3 cases:
+    //   1. Super admin → must pass tenant_id in request
+    //   2. Tenant owner → get from tenants.owner_user_id
+    //   3. Tenant admin → get from tenant_admins table
+    private function resolveTenantId(Request $request): ?string
+    {
+        $user = auth()->user();
+
+        // Case 1: Super Admin — they must specify which tenant
+        if ($user->is_super_admin) {
+            $request->validate([
+                'tenant_id' => 'required|uuid|exists:tenants,id',
+            ]);
+            return $request->tenant_id;
+        }
+
+        // Case 2: Tenant Owner
+        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
+        if ($ownedTenant) {
+            return $ownedTenant->id;
+        }
+
+        return null;
+    }
     /**
      * Display the specified resource.
      */
@@ -115,10 +218,10 @@ class StaffController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        return Staff::store($request, $id);
-    }
+    // public function update(Request $request, string $id)
+    // {
+    //     return Staff::store($request, $id);
+    // }
 
     /**
      * Remove the specified resource from storage.

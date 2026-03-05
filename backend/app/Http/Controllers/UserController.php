@@ -41,6 +41,7 @@ class UserController extends Controller
 
         // ── Eager load staff profiles with role (role lives on Staff not User) ─
         $query->with([
+            'ownedTenant',
             'staff.role',
             'staff.branch',
         ]);
@@ -56,6 +57,12 @@ class UserController extends Controller
         // ── Pagination ────────────────────────────────────────────────────────
         $perPage = min((int) $request->get('per_page', 15), 100);
         $users   = $query->paginate($perPage);
+
+        // Append resolved type to each user
+        $users->through(function ($user) {
+            $user->append('resolved_type');
+            return $user;
+        });
 
         return response()->json([
             'success' => true,

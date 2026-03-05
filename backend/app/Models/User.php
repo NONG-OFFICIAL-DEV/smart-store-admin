@@ -116,9 +116,9 @@ class User extends Authenticatable implements JWTSubject
         return $this->HasOne(Staff::class);
     }
 
-    public function ownedTenants()
+    public function ownedTenant()
     {
-        return $this->hasMany(Tenant::class, 'owner_user_id');
+        return $this->hasOne(Tenant::class, 'owner_user_id');
     }
 
     public function notifications()
@@ -156,5 +156,48 @@ class User extends Authenticatable implements JWTSubject
     public function clearPermissionCache(): void
     {
         Cache::forget("user_perms_{$this->id}");
+    }
+
+    // User.php
+    public function getResolvedTypeAttribute(): array
+    {
+        // Super Admin — highest priority
+        if ($this->is_super_admin) {
+            return [
+                'type'   => 'super_admin',
+                'label'  => 'Super Admin',
+                'tenant' => null,
+                'role'   => null,
+            ];
+        }
+
+        // Tenant Owner
+        if ($this->ownedTenant) {
+            return [
+                'type'   => 'owner',
+                'label'  => 'Owner',
+                'tenant' => $this->ownedTenant->name,
+                'role'   => null,
+            ];
+        }
+
+        // Staff — could have multiple staff records (multiple branches)
+        // $staff = $this->staff->first();
+        // if ($staff) {
+        //     return [
+        //         'type'   => 'staff',
+        //         'label'  => $staff->role?->name ?? 'Staff',
+        //         'tenant' => $staff->tenant?->name,
+        //         'role'   => $staff->role?->name,
+        //     ];
+        // }
+
+        // User exists but not assigned anywhere yet
+        return [
+            'type'   => 'unassigned',
+            'label'  => 'Unassigned',
+            'tenant' => null,
+            'role'   => null,
+        ];
     }
 }

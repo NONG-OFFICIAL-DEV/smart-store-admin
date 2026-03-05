@@ -29,61 +29,82 @@ class Staff extends BaseModel
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────
-    public static function store(array|Request $request, ?string $id = null)
+    // public static function store(array|Request $request, ?string $id = null)
+    // {
+    //     $data = $request instanceof Request
+    //         ? $request->only([
+    //             'tenant_id',
+    //             'branch_id',
+    //             'user_id',
+    //             'role_id',
+    //             'employee_code',
+    //             'hire_date',
+    //             'hourly_rate',
+    //             'is_active',
+    //             'salary'
+    //         ])
+    //         : $request;
+
+    //     // ── Hash PIN if provided ──────────────────────────────────────────────────
+    //     if ($request instanceof Request && $request->filled('pin_code')) {
+    //         $data['pin_code'] = hash('sha256', $request->pin_code);
+    //     }
+
+    //     // ══════════════════════════════════════════════════════════════════════════
+    //     // UPDATE
+    //     // ══════════════════════════════════════════════════════════════════════════
+    //     if ($id) {
+    //         $record = static::find($id);
+    //         if (!$record) {
+    //             return response()->json(['error' => 'Staff not found'], 404);
+    //         }
+    //         $record->update($data);
+    //         return response()->json([
+    //             'success' => true,
+    //             'data'    => $record->fresh()->load(['user', 'role', 'branch']),
+    //         ], 200);
+    //     }
+
+    //     // ══════════════════════════════════════════════════════════════════════════
+    //     // CREATE
+    //     // ══════════════════════════════════════════════════════════════════════════
+
+    //     // FIX: employee_code is empty string OR null — both should auto-generate
+    //     if (empty($data['employee_code'])) {
+    //         $data['employee_code'] = static::generateEmployeeCode(
+    //             $data['tenant_id'] ?? null
+    //         );
+    //     }
+
+    //     $record = static::create($data);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data'    => $record->load(['user', 'role', 'branch']),
+    //     ], 201);
+    // }
+
+    public static function store(array|Request $data, ?string $id = null)
     {
-        $data = $request instanceof Request
-            ? $request->only([
-                'tenant_id',
-                'branch_id',
-                'user_id',
-                'role_id',
-                'employee_code',
-                'hire_date',
-                'hourly_rate',
-                'is_active',
-                'salary'
-            ])
-            : $request;
-
-        // ── Hash PIN if provided ──────────────────────────────────────────────────
-        if ($request instanceof Request && $request->filled('pin_code')) {
-            $data['pin_code'] = hash('sha256', $request->pin_code);
-        }
-
-        // ══════════════════════════════════════════════════════════════════════════
         // UPDATE
-        // ══════════════════════════════════════════════════════════════════════════
         if ($id) {
             $record = static::find($id);
             if (!$record) {
                 return response()->json(['error' => 'Staff not found'], 404);
             }
             $record->update($data);
-            return response()->json([
-                'success' => true,
-                'data'    => $record->fresh()->load(['user', 'role', 'branch']),
-            ], 200);
+            return $record->fresh()->load(['user', 'role', 'branch']);
         }
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // CREATE
-        // ══════════════════════════════════════════════════════════════════════════
-
-        // FIX: employee_code is empty string OR null — both should auto-generate
+        // CREATE — auto-generate employee code if empty
         if (empty($data['employee_code'])) {
             $data['employee_code'] = static::generateEmployeeCode(
                 $data['tenant_id'] ?? null
             );
         }
 
-        $record = static::create($data);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $record->load(['user', 'role', 'branch']),
-        ], 201);
+        return static::create($data);
     }
-
     // ── Auto-generate employee code ───────────────────────────────────────────────
     // Format: EMP-{YEAR}-{4-digit sequence per tenant}
     // Example: EMP-2026-0001, EMP-2026-0002
