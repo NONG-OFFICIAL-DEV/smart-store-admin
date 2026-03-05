@@ -132,7 +132,9 @@
     }
   }
 
-  onMounted(fetchTenants)
+  onMounted(async () => {
+    await fetchTenants()
+  })
 
   const planColor = plan => {
     const map = {
