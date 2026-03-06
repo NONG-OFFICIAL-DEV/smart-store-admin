@@ -11,5 +11,6 @@ Route::get('/', function () {
 Route::get('/download', function () {
     return view('sales.invoice');
 });
+// print any recipe
 // routes/web.php
-Route::get('/download/{sale}/invoice', [SaleController::class, 'invoice'])->name('sales.invoice');
+// Route::get('/download/{sale}/invoice', [SaleController::class, 'invoice'])->name('sales.invoice');
