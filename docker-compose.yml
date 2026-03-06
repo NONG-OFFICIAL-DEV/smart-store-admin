@@ -7,8 +7,6 @@ services:
       - web
     env_file:
       - ./backend/.env
-    depends_on:
-      - postgres_db
     volumes:
       - smart_store_backend_storage:/var/www/html/storage
       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
@@ -27,20 +25,6 @@ services:
     restart: always
     networks:
       - web
-  postgres_db:
-      image: postgres:15
-      container_name: smart_store_postgres_db
-      restart: always
-      environment:
-        POSTGRES_DB: smart_store_db
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres@12345
-      ports:
-        - "5434:5432"
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-      networks:
-        - web
 
   webserver:
     build:
@@ -69,4 +53,3 @@ networks:
 
 volumes:
   smart_store_backend_storage:
-  postgres_data:
