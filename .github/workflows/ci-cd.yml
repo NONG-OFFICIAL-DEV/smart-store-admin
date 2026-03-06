@@ -120,17 +120,17 @@ jobs:
 
             echo ">>> Pull only changed images"
 
-            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
+            # if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-backend:latest
-            fi
+            # fi
 
-            if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
+            # if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-frontend:latest
-            fi
+            # fi
 
-            if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
+            # if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver:latest
-            fi
+            # fi
 
             echo ">>> Restart containers"
             docker compose down --remove-orphans || true
