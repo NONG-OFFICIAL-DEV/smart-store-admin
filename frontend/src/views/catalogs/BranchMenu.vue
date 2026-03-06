@@ -3,7 +3,7 @@
     <custom-title
       icon="mdi-book-open-variant"
       title="Branch Menu Assignments"
-      subtitle="  Assign and manage menus for each branch"
+      subtitle=" Assign and manage menus for each branch"
     >
       <template #right>
         <v-btn

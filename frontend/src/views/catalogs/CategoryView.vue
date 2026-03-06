@@ -51,7 +51,7 @@
                 {{ item.name?.charAt(0)?.toUpperCase() }}
               </span>
             </v-avatar>
-            <span class="font-weight-medium text-body-2">{{ item.name }}</span>
+            <span class="font-weight-medium text-body-2 ms-2">{{ item.name }}</span>
           </div>
         </template>
 

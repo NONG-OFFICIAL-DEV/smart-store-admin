@@ -36,49 +36,82 @@ class BranchMenu extends BaseModel
             ])
             : $request;
 
-        // ── Safety check: branch and menu must belong to same tenant ──────────
-        if ($request instanceof Request) {
-            $branch = Branch::find($data['branch_id']);
-            $menu   = Menu::find($data['menu_id']);
-
-            if (!$branch || !$menu) {
-                return response()->json([
-                    'error' => 'Branch or Menu not found'
-                ], 404);
-            }
-
-            if ($branch->tenant_id !== $menu->tenant_id) {
-                return response()->json([
-                    'error' => 'Branch and Menu must belong to the same business'
-                ], 403);
-            }
-        }
-
-        // ── If updating, just find and update ─────────────────────────────────
+        // ── UPDATE — single record ─────────────────────────────────────────────
         if ($id) {
             $record = static::find($id);
             if (!$record) {
                 return response()->json(['error' => 'Record not found'], 404);
             }
             $record->update($data);
-            return response()->json(['success' => true, 'data' => $record->fresh()->load(['branch', 'menu'])], 200);
-        }
-
-        // ── If creating, check not already assigned ───────────────────────────
-        $exists = static::where('branch_id', $data['branch_id'])
-                        ->where('menu_id', $data['menu_id'])
-                        ->exists();
-
-        if ($exists) {
             return response()->json([
-                'error' => 'This menu is already assigned to this branch'
-            ], 422);
+                'success' => true,
+                'data'    => $record->fresh()->load(['branch', 'menu'])
+            ], 200);
         }
 
-        $record = static::create($data);
+        // ── CREATE — handle single branch_id OR array of branch_ids ───────────
+        $branchIds = is_array($data['branch_id'])
+            ? $data['branch_id']        // array → multi assign
+            : [$data['branch_id']];     // string → wrap in array
+
+        $menu = Menu::find($data['menu_id']);
+        if (!$menu) {
+            return response()->json(['error' => 'Menu not found'], 404);
+        }
+
+        $created  = [];
+        $skipped  = [];
+        $errors   = [];
+
+        foreach ($branchIds as $branchId) {
+
+            $branch = Branch::find($branchId);
+
+            // Branch not found
+            if (!$branch) {
+                $errors[] = "Branch {$branchId} not found";
+                continue;
+            }
+
+            // Branch and menu must belong to same tenant
+            if ($branch->tenant_id !== $menu->tenant_id) {
+                $errors[] = "Branch {$branch->name} does not belong to the same business";
+                continue;
+            }
+
+            // Already assigned — skip, don't error
+            $exists = static::where('branch_id', $branchId)
+                            ->where('menu_id', $data['menu_id'])
+                            ->exists();
+
+            if ($exists) {
+                $skipped[] = $branch->name;
+                continue;
+            }
+
+            // Create the assignment
+            $record = static::create([
+                'branch_id'      => $branchId,
+                'menu_id'        => $data['menu_id'],
+                'available_from' => $data['available_from'] ?? null,
+                'available_until'=> $data['available_until'] ?? null,
+                'days_of_week'   => $data['days_of_week'] ?? null,
+                'sort_order'     => $data['sort_order'] ?? 0,
+            ]);
+
+            $created[] = $record->load(['branch', 'menu']);
+        }
+
         return response()->json([
             'success' => true,
-            'data'    => $record->load(['branch', 'menu'])
+            'created' => count($created),
+            'skipped' => count($skipped),
+            'data'    => $created,
+            // Only show messages if something was skipped or errored
+            'messages' => array_filter([
+                count($skipped) ? count($skipped) . ' already assigned: ' . implode(', ', $skipped) : null,
+                count($errors)  ? implode(', ', $errors) : null,
+            ]),
         ], 201);
     }
 

@@ -38,10 +38,13 @@
                 prepend-inner-icon="mdi-store"
                 hint="Which branch location?"
                 persistent-hint
+                multiple
+                chips
+                closable-chips
               >
-                <template #item="{ props, item }">
+                <!-- <template #item="{ props, item }">
                   <v-list-item v-bind="props">
-                    <template #prepend>
+                    <template #append>
                       <v-avatar
                         color="primary"
                         size="32"
@@ -55,7 +58,7 @@
                       {{ item.raw?.city || '' }}
                     </template>
                   </v-list-item>
-                </template>
+                </template> -->
               </v-select>
             </v-col>
 

@@ -28,12 +28,14 @@ export const useTenantStore = defineStore('tenant', {
     },
     async createTenant(data) {
       const res = await createTenantApi(data)
+      this.fetchTenants()
       return res
     },
     async updateTenant(id, data) {
       const res = await updateTenantApi(id, data)
       const index = this.tenants.findIndex(item => item.id === id)
       if (index !== -1) this.tenants[index] = res.data.data
+      this.fetchTenants()
     },
     async deleteTenant(id) {
       await deleteTenantApi(id)
