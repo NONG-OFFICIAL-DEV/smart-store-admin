@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     libxml2-dev \
     supervisor \
+    redis-server \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install pdo_mysql pdo_pgsql gd zip pcntl \
  && rm -rf /var/lib/apt/lists/*
@@ -33,9 +34,6 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor
 
 RUN sed -i 's/listen = 9000/listen = 0.0.0.0:9000/' /usr/local/etc/php-fpm.d/zz-docker.conf
-
-# ✅ Remove baked-in .env so server mount takes priority
-RUN rm -f /var/www/html/.env
 
 EXPOSE 9000 6001
 
