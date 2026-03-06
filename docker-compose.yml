@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
     tty: true
     ports:
-      - "84:84"
+      - "84:80"
     volumes:
       - ./backend/public:/var/www/html/public
       - smart_store_backend_storage:/var/www/html/storage
