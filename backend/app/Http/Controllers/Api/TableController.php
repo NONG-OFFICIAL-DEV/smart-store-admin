@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TableController extends Controller
 {
@@ -68,6 +69,54 @@ class TableController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Product removed'
+        ]);
+    }
+
+    public function qrCode(string $id)
+    {
+        $table = Table::with('branch')->findOrFail($id);
+
+        if (!$table->qr_image_path) {
+            $table->generateQrCode();
+            $table->refresh();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'table_id'     => $table->id,
+                'table_number' => $table->table_number,
+                'branch_name'  => $table->branch?->name,
+                'branch_slug'  => $table->branch?->slug,
+                'url'          => $table->qr_code,       // menu URL for scanning
+                'qr_image_url' => $table->qr_image_url,  // ← accessor, returns full URL
+            ]
+        ]);
+    }
+    public function downloadQrCode(string $id)
+    {
+        $table = Table::with('branch')->findOrFail($id);
+
+        // Regenerate if missing
+        if (!$table->qr_image_path) {
+            $table->generateQrCode();
+            $table->refresh();
+        }
+
+        $path = 'qrcodes/tables/' . $table->id . '.svg';
+
+        if (!Storage::disk('public')->exists($path)) {
+            $table->generateQrCode();
+        }
+
+        $filename = 'QR-Table-' . $table->table_number . '-' . $table->branch->name . '.svg';
+        $filename = preg_replace('/[^A-Za-z0-9\-_.]/', '-', $filename);
+
+        return response()->streamDownload(function () use ($path) {
+            echo Storage::disk('public')->get($path);
+        }, $filename, [
+            'Content-Type'        => 'image/svg',
+            'Content-Disposition' => 'attachment',
         ]);
     }
 }

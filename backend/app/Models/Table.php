@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Table
@@ -22,6 +25,7 @@ class Table extends BaseModel
         'position_x',
         'position_y',
         'qr_code',
+        'qr_image_path',
         'status',
         'is_active',
     ];
@@ -97,14 +101,49 @@ class Table extends BaseModel
         return $this->hasMany(Reservation::class);
     }
 
-    // protected static function booted(): void
-    // {
-    //     static::created(function ($table) {
-    //         $branch  = $table->branch;
-    //         if ($branch?->slug) {
-    //             $url = config('app.frontend_url') . '/menu/' . $branch->slug . '/table/' . $table->id;
-    //             $table->update(['qr_code' => $url]);
-    //         }
-    //     });
-    // }
+    protected function qrImageUrl(): Attribute
+    {
+        return Attribute::get(
+            fn() => $this->qr_image_path
+                ? config('app.url') . '/storage/' . $this->qr_image_path
+                : null
+        );
+    }
+
+    // ─── Auto-generate QR on create ───────────────────────────────────────────
+    protected static function booted(): void
+    {
+        static::created(function ($table) {
+            $table->generateQrCode();
+        });
+    }
+
+    // ─── Generate QR ──────────────────────────────────────────────────────────
+    public function generateQrCode(): void
+    {
+        // Load branch if not loaded
+        $branch = $this->relationLoaded('branch')
+            ? $this->branch
+            : $this->load('branch')->branch;
+
+        if (!$branch?->slug) return;
+
+        $url = config('app.frontend_url')
+            . '/menu/' . $branch->slug
+            . '/table/' . $this->id;
+
+        $qrImage = QrCode::format('svg')
+            ->size(400)
+            ->margin(2)
+            ->errorCorrection('H')
+            ->generate($url);
+
+        $path = 'qrcodes/tables/' . $this->id . '.svg';
+        Storage::disk('public')->put($path, $qrImage);
+
+        $this->updateQuietly([
+            'qr_code'       => $url,
+            'qr_image_path' => 'qrcodes/tables/' . $this->id . '.svg'
+        ]);
+    }
 }

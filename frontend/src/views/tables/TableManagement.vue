@@ -398,6 +398,7 @@
     {{ snackbar.message }}
   </v-snackbar>
   <TableQRDialog
+    v-if="qrDialog"
     v-model="qrDialog"
     :table="qrTarget"
     :branch-name="'Your Restaurant'"

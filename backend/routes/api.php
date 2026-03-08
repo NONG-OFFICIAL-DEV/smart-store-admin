@@ -216,6 +216,9 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
 
     // ── Tables ────────────────────────────────────────────────────────────────
     Route::apiResource('tables', TableController::class);
+    Route::get('tables/{id}/qr-code/download', [TableController::class, 'downloadQrCode']);
+    Route::get('tables/{id}/qr-code',          [TableController::class, 'qrCode']);
+
     Route::prefix('tables/{table}')->group(function () {
         Route::patch('status',       [TableController::class, 'updateStatus']);
         Route::get('active-order',   [OrderController::class, 'activeByTable']);

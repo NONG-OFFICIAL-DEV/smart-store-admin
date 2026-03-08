@@ -4,14 +4,16 @@ import {
   getTableByIdApi,
   createTableApi,
   updateTableApi,
-  deleteTableApi
+  deleteTableApi,
+  getQrCode
 } from '../api/tableService'
 
 export const useTableStore = defineStore('table', {
   state: () => ({
     tables: [],
     table: null,
-    pagination: {}
+    pagination: {},
+    qrData: {}
   }),
 
   actions: {
@@ -36,6 +38,13 @@ export const useTableStore = defineStore('table', {
     async deleteTable(id) {
       await deleteTableApi(id)
       this.tables = this.tables.filter(item => item.id !== id)
+    },
+    // ── Open QR dialog ─────────────────────────────────────────────────────────
+    async fetchQrCodeTable(tableId) {
+      const res = await getQrCode(tableId)
+      console.log(res.data.data);
+    
+      this.qrData = res.data.data
     }
   }
 })
