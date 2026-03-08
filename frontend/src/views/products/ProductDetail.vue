@@ -370,7 +370,6 @@
     v-model="variantDialog"
     :variant="selectedVariant"
     :product-id="product?.id"
-    :loading="variantSaving"
     @saved="handleVariantSaved"
   />
   <ModifierLinkDialog
@@ -392,7 +391,7 @@
   import ModifierLinkDialog from '@/components/products/ModifierLinkDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-  
+
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   const route = useRoute()
@@ -406,17 +405,10 @@
     storeToRefs(variantStore)
 
   const saving = ref(false)
-  const variantSaving = ref(false)
   const productDialog = ref(false)
   const variantDialog = ref(false)
-  const deleteProductDialog = ref(false)
   const modifierLinkDialog = ref(false)
   const selectedVariant = ref(null)
-  const snackbar = ref({ show: false, message: '', color: 'success' })
-
-  const showSnack = (message, color = 'success') => {
-    snackbar.value = { show: true, message, color }
-  }
 
   // ── Computed ─────────────────────────────────────────────────────────────────
   const margin = computed(() => {
@@ -490,26 +482,25 @@
     variantDialog.value = true
   }
 
-  const handleVariantSaved = async (payload, callbacks) => {
-    variantSaving.value = true
+  const handleVariantSaved = async (payload) => {
     try {
-      payload.id
-        ? await variantStore.updateProductVariant(payload.id, payload)
-        : await variantStore.createProductVariant({
-            ...payload,
-            product_id: product.value.id
-          })
+      if (payload.id) {
+        await variantStore.updateProductVariant(payload.id, payload)
+      } else {
+        await variantStore.createProductVariant({
+          ...payload,
+          product_id: product.value.id
+        })
+      }
+
+      // callbacks?.resolve?.() // ← resolve first
       notif(payload.id ? 'Variant updated' : 'Variant added', {
         type: 'success'
       })
-      callbacks?.resolve?.()
+      await productStore.fetchProductById(route.params.id)
     } catch (err) {
-      callbacks?.reject?.(err)
-      notif('Failed to save variant', {
-        type: 'error'
-      })
-    } finally {
-      variantSaving.value = false
+      // callbacks?.reject?.(err) // ← only on real error
+      notif('Failed to save variant', { type: 'error' })
     }
   }
 
@@ -523,6 +514,7 @@
         notif(t('messages.deleted_success'), {
           type: 'success'
         })
+        await productStore.fetchProductById(route.params.id)
       }
     })
   }

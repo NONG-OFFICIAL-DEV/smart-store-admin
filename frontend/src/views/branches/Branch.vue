@@ -17,22 +17,6 @@
         </v-btn>
       </template>
     </custom-title>
-
-    <!-- ── Stats ──────────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-5">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-        <v-card rounded="xl" border elevation="0" class="pa-4 d-flex align-center gap-3">
-          <v-avatar :color="stat.color" variant="tonal" rounded="lg" size="44">
-            <v-icon :icon="stat.icon" size="20" />
-          </v-avatar>
-          <div>
-            <div class="text-h6 font-weight-bold">{{ stat.value }}</div>
-            <div class="text-caption text-grey">{{ stat.label }}</div>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
     <!-- ── Filters ─────────────────────────────────────────────────────────────── -->
     <v-row dense align="center" class="mb-4">
       <v-col cols="12" sm="4">
@@ -257,25 +241,6 @@ const allBranches = computed(() => {
   return Array.isArray(b) ? b : (b?.data ?? [])
 })
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
-const stats = computed(() => [
-  {
-    label: 'Total',        icon: 'mdi-store-outline',
-    color: 'primary',  value: allBranches.value.length,
-  },
-  {
-    label: 'Active',       icon: 'mdi-check-circle-outline',
-    color: 'success',  value: allBranches.value.filter(b => b.is_active).length,
-  },
-  {
-    label: 'Open Now',     icon: 'mdi-door-open',
-    color: 'teal',     value: allBranches.value.filter(b => b.is_open).length,
-  },
-  {
-    label: 'Inactive',     icon: 'mdi-minus-circle-outline',
-    color: 'error',    value: allBranches.value.filter(b => !b.is_active).length,
-  },
-])
 
 // ── Headers — tenant column only for super admin ──────────────────────────────
 const headers = computed(() => [

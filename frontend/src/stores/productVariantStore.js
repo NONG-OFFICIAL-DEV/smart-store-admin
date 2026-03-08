@@ -30,12 +30,11 @@ export const useProductVariantStore = defineStore('productVariant', {
     },
     async updateProductVariant(id, data) {
       const res = await updateProductVariantApi(id, data)
-      const index = this.productVariants.findIndex(item => item.id === id)
-      if (index !== -1) this.productVariants[index] = res.data.data
+      return res
     },
     async deleteProductVariant(id) {
       await deleteProductVariantApi(id)
-      this.productVariants = this.productVariants.filter(item => item.id !== id)
+      await this.fetchProductVariants()
     }
   }
 })

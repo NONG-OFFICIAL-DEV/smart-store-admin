@@ -8,13 +8,29 @@ use Illuminate\Support\Str;
 class Order extends BaseModel
 {
     protected $fillable = [
-        'branch_id', 'order_number', 'order_type', 'status',
-        'table_id', 'customer_id', 'staff_id', 'cashier_id',
-        'delivery_address_id', 'subtotal', 'discount_amount',
-        'tax_amount', 'service_charge_amount', 'delivery_fee',
-        'tips_amount', 'total_amount', 'notes', 'coupon_code',
-        'loyalty_points_earned', 'loyalty_points_redeemed', 'source',
-        'estimated_ready_at', 'completed_at',
+        'branch_id',
+        'order_number',
+        'order_type',
+        'status',
+        'table_id',
+        'customer_id',
+        'staff_id',
+        'cashier_id',
+        'delivery_address_id',
+        'subtotal',
+        'discount_amount',
+        'tax_amount',
+        'service_charge_amount',
+        'delivery_fee',
+        'tips_amount',
+        'total_amount',
+        'notes',
+        'coupon_code',
+        'loyalty_points_earned',
+        'loyalty_points_redeemed',
+        'source',
+        'estimated_ready_at',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -26,7 +42,7 @@ class Order extends BaseModel
         'tips_amount'            => 'decimal:2',
         'total_amount'           => 'decimal:2',
         'loyalty_points_earned'  => 'integer',
-        'loyalty_points_redeemed'=> 'integer',
+        'loyalty_points_redeemed' => 'integer',
         'estimated_ready_at'     => 'datetime',
         'completed_at'           => 'datetime',
     ];
@@ -36,8 +52,15 @@ class Order extends BaseModel
     {
         $data = $request instanceof Request
             ? $request->only([
-                'branch_id', 'order_type', 'table_id', 'customer_id',
-                'staff_id', 'delivery_address_id', 'notes', 'coupon_code', 'source',
+                'branch_id',
+                'order_type',
+                'table_id',
+                'customer_id',
+                'staff_id',
+                'delivery_address_id',
+                'notes',
+                'coupon_code',
+                'source',
             ])
             : $request;
 
@@ -151,9 +174,9 @@ class Order extends BaseModel
         return $this->belongsTo(Branch::class);
     }
 
-    public function table()
+    public function diningTable()
     {
-        return $this->belongsTo(Table::class);
+        return $this->belongsTo(Table::class, 'table_id');
     }
 
     public function customer()
@@ -196,8 +219,8 @@ class Order extends BaseModel
     {
         $prefix = 'ORD-' . now()->format('Ymd') . '-';
         $last   = static::where('order_number', 'like', $prefix . '%')
-                        ->orderByDesc('order_number')
-                        ->value('order_number');
+            ->orderByDesc('order_number')
+            ->value('order_number');
 
         $next = $last ? ((int) substr($last, -4)) + 1 : 1;
         return $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);

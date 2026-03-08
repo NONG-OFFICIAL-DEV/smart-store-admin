@@ -84,7 +84,12 @@ class Branch extends BaseModel
     public function menus()
     {
         return $this->belongsToMany(Menu::class, 'branch_menus')
-            ->withPivot('available_from', 'available_until', 'days_of_week', 'sort_order');
+            ->withPivot(['available_from', 'available_until', 'days_of_week', 'sort_order'])
+            ->withTimestamps();
+    }
+    public function branchMenus()
+    {
+        return $this->hasMany(BranchMenu::class);
     }
 
     public function floorPlans()
@@ -127,5 +132,34 @@ class Branch extends BaseModel
             $this->state,
             $this->country,
         ])->filter()->implode(', ');
+    }
+    // Auto-generate slug on create
+    protected static function booted(): void
+    {
+        static::creating(function ($branch) {
+            if (empty($branch->slug)) {
+                $branch->slug = static::generateSlug($branch->name);
+            }
+        });
+
+        // Regenerate QR when branch or table changes
+        static::updating(function ($branch) {
+            if ($branch->isDirty('name') && empty($branch->slug)) {
+                $branch->slug = static::generateSlug($branch->name);
+            }
+        });
+    }
+
+    private static function generateSlug(string $name): string
+    {
+        $base  = \Illuminate\Support\Str::slug($name);
+        $slug  = $base;
+        $count = 1;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $count++;
+        }
+
+        return $slug;
     }
 }

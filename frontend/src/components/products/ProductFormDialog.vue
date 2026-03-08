@@ -31,13 +31,27 @@
       <v-divider />
 
       <!-- ── Form ────────────────────────────────────────────────────────── -->
-      <v-card-text class="pa-6" style="max-height: 520px; overflow-y: auto">
+      <v-card-text class="pa-6">
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-tabs-window v-model="activeTab" class="py-4">
             <!-- ── Tab: Basic Info ──────────────────────────────────────── -->
             <v-tabs-window-item value="basic">
               <v-row>
-                <v-col>
+                <!-- Name -->
+                <v-col cols="6" sm="6">
+                  <v-text-field
+                    v-model="form.name"
+                    label="Product Name"
+                    variant="outlined"
+                    density="comfortable"
+                    prepend-inner-icon="mdi-package-variant"
+                    :rules="[rules.required, rules.maxLen(200)]"
+                    counter="200"
+                    hint="Full display name of the product"
+                    persistent-hint
+                  />
+                </v-col>
+                <v-col cols="6" sm="6">
                   <v-select
                     v-model="form.tenant_id"
                     :items="tenants"
@@ -50,49 +64,28 @@
               </v-row>
               <v-row dense>
                 <!-- Image preview + URL -->
-                <v-col cols="12">
-                  <div class="d-flex align-center gap-4 mb-4">
-                    <v-avatar size="80" rounded="xl" color="grey-lighten-2">
-                      <v-img
-                        v-if="form.image_url"
-                        :src="form.image_url"
-                        cover
-                      />
-                      <v-icon
-                        v-else
-                        icon="mdi-image-plus"
-                        size="32"
-                        color="grey"
-                      />
-                    </v-avatar>
-                    <div class="flex-1">
-                      <v-text-field
-                        v-model="form.image_url"
-                        label="Image URL"
-                        variant="outlined"
-                        density="comfortable"
-                        prepend-inner-icon="mdi-link"
-                        hint="Paste a public image URL"
-                        persistent-hint
-                        clearable
-                      />
-                    </div>
-                  </div>
-                </v-col>
-
-                <!-- Name -->
-                <v-col cols="12">
+                <v-col cols="6">
                   <v-text-field
-                    v-model="form.name"
-                    label="Product Name"
+                    v-model="form.image_url"
+                    label="Image URL"
                     variant="outlined"
                     density="comfortable"
-                    prepend-inner-icon="mdi-package-variant"
-                    :rules="[rules.required, rules.maxLen(200)]"
-                    counter="200"
-                    hint="Full display name of the product"
+                    prepend-inner-icon="mdi-link"
+                    hint="Paste a public image URL"
                     persistent-hint
+                    clearable
                   />
+                </v-col>
+                <v-col col="6" sm="6">
+                  <v-avatar size="80" rounded="xl" color="grey-lighten-2">
+                    <v-img v-if="form.image_url" :src="form.image_url" cover />
+                    <v-icon
+                      v-else
+                      icon="mdi-image-plus"
+                      size="32"
+                      color="grey"
+                    />
+                  </v-avatar>
                 </v-col>
 
                 <!-- Category -->
@@ -446,7 +439,7 @@
 
       <!-- ── Actions ─────────────────────────────────────────────────────── -->
       <v-card-actions>
-        <v-spacer/>
+        <v-spacer />
         <v-btn variant="tonal" rounded="lg" @click="close">Cancel</v-btn>
         <v-btn
           :color="isEdit ? 'primary' : 'success'"

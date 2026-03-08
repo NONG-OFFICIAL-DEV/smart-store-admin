@@ -53,7 +53,8 @@ class BranchMenuController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'branch_id'       => 'required|uuid|exists:branches,id',
+            'branch_id'   => 'required|array',
+            'branch_id.*' => 'uuid|exists:branches,id',
             'menu_id'         => 'required|uuid|exists:menus,id',
             'available_from'  => 'nullable|date_format:H:i',
             'available_until' => 'nullable|date_format:H:i|after:available_from',

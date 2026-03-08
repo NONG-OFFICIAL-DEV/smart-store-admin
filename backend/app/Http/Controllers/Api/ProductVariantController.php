@@ -50,7 +50,7 @@ class ProductVariantController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return ProductVariant::store($request ,$id);
+        return ProductVariant::store($request, $id);
     }
 
     /**
@@ -58,6 +58,12 @@ class ProductVariantController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $tenant = ProductVariant::findOrFail($id);
+        $tenant->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product Variant deleted',
+        ]);
     }
 }

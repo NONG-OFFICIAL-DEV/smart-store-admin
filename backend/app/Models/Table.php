@@ -96,4 +96,15 @@ class Table extends BaseModel
     {
         return $this->hasMany(Reservation::class);
     }
+
+    // protected static function booted(): void
+    // {
+    //     static::created(function ($table) {
+    //         $branch  = $table->branch;
+    //         if ($branch?->slug) {
+    //             $url = config('app.frontend_url') . '/menu/' . $branch->slug . '/table/' . $table->id;
+    //             $table->update(['qr_code' => $url]);
+    //         }
+    //     });
+    // }
 }

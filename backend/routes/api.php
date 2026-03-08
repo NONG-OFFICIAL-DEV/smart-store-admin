@@ -63,6 +63,7 @@ use App\Http\Controllers\Api\DailySalesSummaryController;
 use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\BranchMenuController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 
 Route::get('/test', function () {
@@ -357,4 +358,16 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::apiResource('branch-menus', BranchMenuController::class);
     Route::delete('branch-menus/unassign', [BranchMenuController::class, 'unassign']);
     Route::get('branch-menus/branch/{branchId}/available-now', [BranchMenuController::class, 'availableNow']);
+});
+
+
+Route::prefix('v1/public')->group(function () {
+    Route::get('menu/{branchSlug}',                      [DigitalMenuController::class, 'show']);
+    Route::get('menu/{branchSlug}/table/{tableId}',      [DigitalMenuController::class, 'show']);
+    Route::get('menu/{branchSlug}/product/{productId}',  [DigitalMenuController::class, 'product']);
+
+    // Orders — no auth, customer places + tracks
+    Route::post('orders',                        [OrderController::class, 'store']);
+    Route::get('orders/{orderNumber}',           [OrderController::class, 'show']);
+    Route::get('orders/table/{tableId}',         [OrderController::class, 'byTable']);
 });
