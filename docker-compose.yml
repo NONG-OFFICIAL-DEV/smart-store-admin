@@ -1,5 +1,5 @@
 services:
-  backend:
+  backend_service:
     image: nongdev/smart-store-backend:latest
     container_name: smart_store_backend
     restart: always
@@ -36,13 +36,12 @@ services:
     ports:
       - "84:84"
     volumes:
-      # - ./backend/public:/var/www/html/public
       - smart_store_backend_storage:/var/www/html/storage
     networks:
       - web
       - internal_project_network
     depends_on:
-      - backend
+      - backend_service
 
 networks:
   web:
