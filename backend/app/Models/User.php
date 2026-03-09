@@ -182,15 +182,15 @@ class User extends Authenticatable implements JWTSubject
         }
 
         // Staff — could have multiple staff records (multiple branches)
-        // $staff = $this->staff->first();
-        // if ($staff) {
-        //     return [
-        //         'type'   => 'staff',
-        //         'label'  => $staff->role?->name ?? 'Staff',
-        //         'tenant' => $staff->tenant?->name,
-        //         'role'   => $staff->role?->name,
-        //     ];
-        // }
+        $staff = $this->relationLoaded('staff') ? $this->staff : $this->staff;
+        if ($staff) {
+            return [
+                'type'   => 'staff',
+                'label'  => $staff->role?->name ?? 'Staff',
+                'tenant' => $staff->tenant?->name,
+                'role'   => $staff->role?->name,
+            ];
+        }
 
         // User exists but not assigned anywhere yet
         return [

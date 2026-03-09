@@ -135,7 +135,7 @@ class StaffController extends Controller
                 'first_name'  => $request->first_name,
                 'last_name'   => $request->last_name,
                 'email'       => $request->email,
-                'password'    => $request->password,   // cast: 'hashed' in model
+                'password_hash' => bcrypt($request->password), 
                 'phone'       => $request->phone,
                 'is_active'   => true,
             ]);

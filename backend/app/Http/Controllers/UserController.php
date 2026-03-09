@@ -86,27 +86,6 @@ class UserController extends Controller
     // UPDATE USER
     public function update(Request $request, $id)
     {
-        // $user = User::findOrFail($id);
-
-        // $data = [
-        //     'name' => $request->name,
-        //     'email'     => $request->email,
-        //     'username'  => $request->username,
-        //     'role_id'   => $request->role_id,
-        //     'status'    => $request->status,
-        // ];
-
-        // if ($request->password) {
-        //     $data['password'] = Hash::make($request->password);
-        // }
-
-        // $user->update($data);
-
-        // return response()->json([
-        //     'message' => 'User updated successfully',
-        //     'data' => $user->load('role')
-        // ], 200);
-
         return User::store($request, $id);
     }
 

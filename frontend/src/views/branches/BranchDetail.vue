@@ -131,7 +131,7 @@
             <v-icon icon="mdi-open-in-new" size="16" color="grey" />
           </v-card>
         </v-col>
-        <v-col cols="12" sm="4" v-if="store.branch.type !='restaurant'">
+        <v-col cols="12" sm="4" v-if="store.branch.type == 'restaurant'">
           <v-card
             rounded="xl"
             elevation="0"

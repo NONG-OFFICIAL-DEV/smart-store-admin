@@ -47,9 +47,6 @@ class AppServiceProvider extends ServiceProvider
             Menu::class,
             Staff::class,
             Table::class,
-            Order::class,
-            OrderItem::class,
-            Payment::class,
             Shift::class,
             Supplier::class,
         ];

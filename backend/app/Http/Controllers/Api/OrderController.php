@@ -22,7 +22,10 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $perPage = min((int) $request->get('per_page', 15), 100);
-        $query = Order::query();
+        $query = Order::with([
+            'items.product',
+            'diningTable',
+        ]);
         if ($search = $request->get('search')) {
             $query->where('order_number', 'like', "%{$search}%")
                 ->orWhere('status', 'like', "%{$search}%");
