@@ -139,8 +139,8 @@ jobs:
             # ✅ Wait for backend to be ready
             echo ">>> Waiting for backend to start..."
             sleep 15
-            docker exec -it smart_store_backend php artisan optimize:clear
-            
+            # docker exec -it smart_store_backend php artisan optimize:clear
+
             # if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
             #   # ✅ Check container is actually running before exec
             #   if docker compose ps smart_store_backend | grep -q "Up"; then
