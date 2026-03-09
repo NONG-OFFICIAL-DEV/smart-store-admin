@@ -1,6 +1,11 @@
 <template>
-  <sidebar :user="user" v-model:rail="rail" />
-  <app-bar :user="user" @toggle="toggleRail" :notifications_count="notifications_count"/>
+  <sidebar :user="user" v-model:rail="rail" :logo_url="logo_url" />
+  <app-bar
+    :user="user"
+    @toggle="toggleRail"
+    :notifications_count="notifications_count"
+    :bu_name="bu_name"
+  />
   <v-main>
     <v-container class="px-4" fluid>
       <router-view />
@@ -9,7 +14,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted ,computed} from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
@@ -20,7 +25,11 @@
 
   const authStore = useAuthStore()
   const router = useRouter()
-  const notifications_count = computed(() => authStore.unread_notifications_count)
+  const notifications_count = computed(
+    () => authStore.unread_notifications_count
+  )
+  const bu_name = computed(() => authStore.bu_name)
+  const logo_url = computed(() => authStore.logo_url)
   // Fetch logged-in user
   onMounted(async () => {
     try {
@@ -38,7 +47,7 @@
   }
 </script>
 <style>
-    .v-navigation-drawer__content {
+  .v-navigation-drawer__content {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
@@ -53,8 +62,8 @@
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
-  
- .v-list-item__append {
+
+  .v-list-item__append {
     display: initial !important;
     align-items: unset !important;
   }

@@ -4,7 +4,7 @@
       <v-icon>mdi-menu</v-icon>
     </v-app-bar-nav-icon>
     <v-app-bar-title class="font-weight-bold d-none d-lg-block d-print-block">
-      Inventory Management
+      {{ bu_name || 'SaaS Management' }}
     </v-app-bar-title>
     <switcher-language :icon-btn="false" />
 
@@ -18,7 +18,6 @@
         <template v-slot:activator="{ props }">
           <v-btn stacked v-bind="props" class="me-4">
             <v-avatar color="brown" size="large">
-              <!-- <v-img :src="user.profile"></v-img> -->
               <span class="text-h6">{{ initials }}</span>
             </v-avatar>
           </v-btn>
@@ -26,16 +25,10 @@
         <v-card>
           <v-card-text>
             <div class="mx-auto text-center">
-              <!-- <v-avatar color="brown">
-                <span class="text-h5">{{ initials }}</span>
-              </v-avatar> -->
               <h3>{{ props.user.name }}</h3>
               <p class="mt-1">
                 {{ props.user.first_name }} {{ props.user.last_name }}
               </p>
-              <!-- {{ me }} -->
-              <!-- <v-divider class="my-3"></v-divider> -->
-              <!-- <v-btn variant="text" rounded>Edit Account</v-btn> -->
               <v-divider class="my-3"></v-divider>
               <v-btn variant="text" rounded="lg" @click="handleLogout">
                 Disconnect
@@ -59,7 +52,8 @@
   const { notif } = useAppUtils()
   const props = defineProps({
     user: Object,
-    notifications_count: Number // user will be passed from parent (Layout.vue)
+    notifications_count: Number, // user will be passed from parent (Layout.vue),
+    bu_name: String
   })
 
   const authStore = useAuthStore()

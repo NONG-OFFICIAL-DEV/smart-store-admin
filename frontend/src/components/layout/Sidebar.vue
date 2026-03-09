@@ -9,7 +9,8 @@
 
   const props = defineProps({
     user: Object,
-    rail: Boolean
+    rail: Boolean,
+    logo_url: String
   })
 
   const open = ref(['dashboard'])
@@ -273,7 +274,7 @@
       :style="rail ? 'height: 64px' : 'height: 100px'"
     >
       <v-img
-        :src="logo"
+        :src="logo_url || logo"
         :width="rail ? 32 : 140"
         contain
         transition="scale-transition"
