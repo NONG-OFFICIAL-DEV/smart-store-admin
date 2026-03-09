@@ -10,11 +10,19 @@ import {
 
 export const useBranchStore = defineStore('branch', {
   state: () => ({
-    branches: [],
     branch: null,
+    stats: null,
+    tableSummary: null,
+    branches: [],
     pagination: {}
   }),
-
+  getters: {
+    tables: state => state.branch?.tables ?? [],
+    menus: state => state.branch?.menus ?? [],
+    staff: state => state.branch?.staff ?? [],
+    branchSlug: state => state.branch?.slug ?? '',
+    isOpen: state => state.branch?.is_open ?? false
+  },
   actions: {
     async fetchBranches(filters) {
       const res = await getAllBranchesApi(filters)
@@ -22,7 +30,10 @@ export const useBranchStore = defineStore('branch', {
     },
     async fetchBranchById(id) {
       const res = await getBranchByIdApi(id)
-      this.branch = res.data.data
+      const data = res.data.data
+      this.branch = data.branch
+      this.stats = data.stats
+      this.tableSummary = data.table_summary
     },
     async createBranch(data) {
       const res = await createBranchApi(data)
@@ -39,6 +50,6 @@ export const useBranchStore = defineStore('branch', {
       if (this.branch) {
         this.branch.is_open = res.data.data.is_open
       }
-    },
+    }
   }
 })

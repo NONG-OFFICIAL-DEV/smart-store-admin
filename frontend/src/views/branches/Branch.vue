@@ -184,6 +184,7 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <v-btn
+            v-if="can('branches.details')"
             icon="mdi-arrow-right-circle"
             size="small"
             variant="text"
@@ -191,13 +192,14 @@
             @click="router.push(`/branches/${item.id}`)"
           />
           <v-btn
+            v-if="isSuperAdmin()"
             icon="mdi-pencil-outline"
             variant="text"
             size="small"
             @click="openEdit(item)"
           />
           <v-btn
-            v-if="can('branches.delete')"
+            v-if="isSuperAdmin()"
             icon="mdi-delete-outline"
             variant="text"
             size="small"

@@ -131,8 +131,7 @@
             <v-icon icon="mdi-open-in-new" size="16" color="grey" />
           </v-card>
         </v-col>
-
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="4" v-if="store.branch.type !='restaurant'">
           <v-card
             rounded="xl"
             elevation="0"
@@ -379,7 +378,7 @@
                 size="x-small"
                 variant="tonal"
                 rounded="lg"
-                @click="router.push('/staff')"
+                @click="router.push('/staff-management')"
               >
                 Manage
               </v-btn>
@@ -455,7 +454,7 @@
             </v-col>
             <v-col cols="6" sm="3">
               <div class="text-caption text-grey">Type</div>
-              <div class="text-body-2 font-weight-medium capitalize">
+              <div class="text-body-2 font-weight-medium text-capitalize">
                 {{ store.branch.type }}
               </div>
             </v-col>
@@ -516,9 +515,6 @@
 <style scoped>
   .cursor-pointer {
     cursor: pointer;
-  }
-  .capitalize {
-    text-transform: capitalize;
   }
   .quick-action-card {
     cursor: pointer;

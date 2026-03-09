@@ -165,12 +165,6 @@ const routes = [
         meta: { requiresAuth: true }
       },
       // {
-      //   path: '/settings/tax',
-      //   name: 'TaxSettings',
-      //   component: () => import('@/views/setting/SettingsTax.vue'),
-      //   meta: { requiresAuth: true }
-      // },
-      // {
       //   path: '/settings/invoice-customization',
       //   name: 'InvoiceCustomization',
       //   component: () => import('@/views/setting/InvoiceCustomization.vue'),

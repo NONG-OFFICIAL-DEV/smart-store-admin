@@ -229,12 +229,6 @@
           // show: can('roles.manage')
         },
         {
-          path: '/settings/tax',
-          title: 'Tax & Business',
-          icon: 'mdi-percent-outline'
-          // show: can('settings.edit')
-        },
-        {
           path: '/settings/invoice-customization',
           title: 'Invoice',
           icon: 'mdi-invoice-text-outline'
