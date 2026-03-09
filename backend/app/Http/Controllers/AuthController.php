@@ -187,6 +187,8 @@ class AuthController extends Controller
                 'is_super_admin' => false,
                 'is_owner'       => true,
                 'tenant_id'      => $ownedTenant->id,
+                'bu_name'        => $ownedTenant->name,
+                'logo_url'       => $ownedTenant->logo_url,
                 'branch_id'      => null,       // access ALL branches
                 'permissions'    => Permission::pluck('code')->toArray(),
             ]);
