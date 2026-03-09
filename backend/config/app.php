@@ -124,4 +124,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // for table QR generate
+    'frontend_url' => env('FRONTEND_URL', 'https://beta.nongofficial.store'),
+
 ];
