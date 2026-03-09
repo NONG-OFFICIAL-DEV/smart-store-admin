@@ -130,30 +130,24 @@ const routes = [
       //   component: () => import('@/views/reports/InventoryReport.vue'),
       //   meta: { requiresAuth: true }
       // },
-      // {
-      //   path: '/audit-logs',
-      //   name: 'AuditLogs',
-      //   component: () => import('@/views/auditLogs/AuditLogPage.vue'),
-      //   meta: { requiresAuth: true }
-      // },
-      // {
-      //   path: '/audit-log/:id',
-      //   name: 'audit-log-details',
-      //   component: () => import('@/views/auditLogs/AuditLogDetails.vue'),
-      //   props: true
-      // },
+      {
+        path: '/audit-logs',
+        name: 'AuditLogs',
+        component: () => import('@/views/auditLogs/AuditLogPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/audit-log/:id',
+        name: 'audit-log-details',
+        component: () => import('@/views/auditLogs/AuditLogDetails.vue'),
+        props: true
+      },
       {
         path: '/sales-reports',
         name: 'Sales',
         component: () => import('@/views/reports/SaleReport.vue'),
         meta: { requiresAuth: true }
       },
-      // {
-      //   path: '/menu-management',
-      //   name: 'MenuManagement',
-      //   component: () => import('@/views/menus/MenuManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
       {
         path: '/menu-management',
         name: 'MenuManagement',

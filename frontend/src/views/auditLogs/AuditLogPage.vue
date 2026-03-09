@@ -1,8 +1,11 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- Title & Buttons -->
-    <custom-title icon="mdi-timeline-clock-outline">
-      Audit Log
+    <custom-title
+      icon="mdi-timeline-clock-outline"
+      title="System Audit Trail"
+      subtitle="Complete history of security and data events"
+    >
       <template #right>
         <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
 

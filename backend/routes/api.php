@@ -60,7 +60,7 @@ use App\Http\Controllers\Api\CouponController;
 
 // ── Reporting ──────────────────────────────────────────────────────────────
 use App\Http\Controllers\Api\DailySalesSummaryController;
-use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Api\BranchMenuController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
@@ -346,8 +346,8 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     });
 
     // ── Activity Logs ─────────────────────────────────────────────────────────
-    Route::get('activity-logs',      [ActivityLogController::class, 'index']);
-    Route::get('activity-logs/{id}', [ActivityLogController::class, 'show']);
+    Route::get('activity-logs',      [AuditLogController::class, 'index']);
+    Route::get('activity-logs/{id}', [AuditLogController::class, 'show']);
 
     // ── Notifications ─────────────────────────────────────────────────────────
     Route::apiResource('notifications', NotificationController::class)
