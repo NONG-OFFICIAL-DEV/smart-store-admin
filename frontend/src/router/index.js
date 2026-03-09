@@ -48,6 +48,11 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        path: '/branches/:id',
+        name: 'branch.detail',
+        component: () => import('@/views/branches/BranchDetail.vue')
+      },
+      {
         path: '/roles-management',
         name: 'RolesManagement',
         component: () => import('@/views/rolePermissions/Role.vue'),
@@ -70,7 +75,7 @@ const routes = [
         path: '/products',
         name: 'Products',
         component: () => import('@/views/products/ProductManagement.vue'),
-        meta: { requiresAuth: true, permission: 'products.view'   } 
+        meta: { requiresAuth: true, permission: 'products.view' }
       },
       {
         path: '/product-details/:id',
@@ -81,8 +86,7 @@ const routes = [
       {
         path: '/product-modifier-groups',
         name: 'modifiergroups',
-        component: () =>
-          import('@/views/products/ProductModifierGroup.vue'),
+        component: () => import('@/views/products/ProductModifierGroup.vue'),
         meta: { requiresAuth: true }
       },
       {

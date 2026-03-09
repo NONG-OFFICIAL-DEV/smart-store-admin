@@ -3,6 +3,14 @@
     class="d-flex align-center justify-space-between mb-6 w-100"
     :class="{ 'flex-column text-center': centeredTitle }"
   >
+  <div
+      v-if="$slots.left"
+      class="d-flex align-center"
+    >
+      <slot name="left">
+       
+      </slot>
+    </div>
     <div class="d-flex align-center" :class="{ 'flex-column': centeredTitle }">
       <v-avatar
         v-if="icon"

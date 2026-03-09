@@ -61,18 +61,24 @@
         item-value="id"
         hover
       >
-
         <!-- Name + Address -->
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-3 py-2">
-            <v-avatar :color="typeColor(item.type)" variant="tonal" rounded="lg" size="38">
+            <v-avatar
+              :color="typeColor(item.type)"
+              variant="tonal"
+              rounded="lg"
+              size="38"
+            >
               <v-icon :icon="typeIcon(item.type)" size="18" />
             </v-avatar>
             <div>
               <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
               <div class="text-caption text-grey">
                 {{ item.address_line1 }}
-                <span v-if="item.address_line2">, {{ item.address_line2 }}</span>
+                <span v-if="item.address_line2">
+                  , {{ item.address_line2 }}
+                </span>
               </div>
             </div>
           </div>
@@ -119,11 +125,17 @@
         <!-- Contact -->
         <template #item.phone="{ item }">
           <div>
-            <div v-if="item.phone" class="d-flex align-center gap-1 text-body-2">
+            <div
+              v-if="item.phone"
+              class="d-flex align-center gap-1 text-body-2"
+            >
               <v-icon icon="mdi-phone-outline" size="13" color="grey" />
               {{ item.phone }}
             </div>
-            <div v-if="item.email" class="d-flex align-center gap-1 text-caption text-grey">
+            <div
+              v-if="item.email"
+              class="d-flex align-center gap-1 text-caption text-grey"
+            >
               <v-icon icon="mdi-email-outline" size="13" />
               {{ item.email }}
             </div>
@@ -136,7 +148,12 @@
           <v-chip size="x-small" variant="tonal" color="orange" class="mr-1">
             TAX {{ formatRate(item.tax_rate) }}
           </v-chip>
-          <v-chip v-if="item.service_charge_rate" size="x-small" variant="tonal" color="teal">
+          <v-chip
+            v-if="item.service_charge_rate"
+            size="x-small"
+            variant="tonal"
+            color="teal"
+          >
             SVC {{ formatRate(item.service_charge_rate) }}
           </v-chip>
         </template>
@@ -167,6 +184,13 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <v-btn
+            icon="mdi-arrow-right-circle"
+            size="small"
+            variant="text"
+            color="primary"
+            @click="router.push(`/branches/${item.id}`)"
+          />
+          <v-btn
             icon="mdi-pencil-outline"
             variant="text"
             size="small"
@@ -185,18 +209,24 @@
         <!-- Empty -->
         <template #no-data>
           <div class="text-center py-12">
-            <v-icon icon="mdi-store-off-outline" size="56" color="grey-lighten-1" class="mb-3" />
+            <v-icon
+              icon="mdi-store-off-outline"
+              size="56"
+              color="grey-lighten-1"
+              class="mb-3"
+            />
             <p class="text-h6 text-medium-emphasis mb-1">No branches found</p>
             <v-btn
-              color="primary" variant="tonal"
-              prepend-icon="mdi-plus" class="mt-2"
+              color="primary"
+              variant="tonal"
+              prepend-icon="mdi-plus"
+              class="mt-2"
               @click="openCreate"
             >
               Add First Branch
             </v-btn>
           </div>
         </template>
-
       </v-data-table>
     </v-card>
 
@@ -207,124 +237,142 @@
       :branch="dialog.branch"
       @saved="handleSave"
     />
-
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useBranchStore }  from '@/stores/branchStore'
-import { usePermission }   from '@/composables/usePermission'
-import { useAppUtils }     from '@nong-official-dev/core'
-import BranchDialog        from '@/components/branches/BranchDialog.vue'
+  import { ref, reactive, computed, onMounted } from 'vue'
+  import { useBranchStore } from '@/stores/branchStore'
+  import { usePermission } from '@/composables/usePermission'
+  import { useAppUtils } from '@nong-official-dev/core'
+  import BranchDialog from '@/components/branches/BranchDialog.vue'
+  import { useRouter } from 'vue-router'
 
-const { can, isSuperAdmin } = usePermission()
-const { confirm, notif }    = useAppUtils()
-const branchStore           = useBranchStore()
+  const router = useRouter()
 
-const search     = ref('')
-const typeFilter = ref(null)
+  const { can, isSuperAdmin } = usePermission()
+  const { confirm, notif } = useAppUtils()
+  const branchStore = useBranchStore()
 
-const dialog = reactive({ show: false, branch: null })
+  const search = ref('')
+  const typeFilter = ref(null)
 
-// ── Branch types ──────────────────────────────────────────────────────────────
-const branchTypes = [
-  { value: 'restaurant', label: 'Restaurant', icon: 'mdi-silverware-fork-knife' },
-  { value: 'cafe',       label: 'Cafe',       icon: 'mdi-coffee-outline'        },
-  { value: 'kiosk',      label: 'Kiosk',      icon: 'mdi-storefront-outline'    },
-  { value: 'food_truck', label: 'Food Truck',  icon: 'mdi-truck-outline'         },
-]
+  const dialog = reactive({ show: false, branch: null })
 
-// ── Normalise branches — handle both array and paginated {data:[]} ────────────
-const allBranches = computed(() => {
-  const b = branchStore.branches
-  return Array.isArray(b) ? b : (b?.data ?? [])
-})
-
-
-// ── Headers — tenant column only for super admin ──────────────────────────────
-const headers = computed(() => [
-  { title: 'Branch',    key: 'name',       sortable: true  },
-  ...(isSuperAdmin() ? [
-    { title: 'Tenant',  key: 'tenant.name', sortable: false },
-  ] : []),
-  { title: 'Type',      key: 'type',       sortable: true  },
-  { title: 'Location',  key: 'city',       sortable: true  },
-  { title: 'Contact',   key: 'phone',      sortable: false },
-  { title: 'Tax / Svc', key: 'tax_rate',   sortable: false },
-  { title: 'Open',      key: 'is_open',    sortable: false },
-  { title: 'Status',    key: 'is_active',  sortable: false },
-  { title: 'Actions',   key: 'actions',    sortable: false },
-])
-
-// ── Filtered ──────────────────────────────────────────────────────────────────
-const filteredBranches = computed(() => {
-  let list = allBranches.value
-  if (search.value) {
-    const q = search.value.toLowerCase()
-    list = list.filter(b =>
-      b.name?.toLowerCase().includes(q) ||
-      b.city?.toLowerCase().includes(q) ||
-      b.phone?.toLowerCase().includes(q) ||
-      b.email?.toLowerCase().includes(q)
-    )
-  }
-  if (typeFilter.value) {
-    list = list.filter(b => b.type === typeFilter.value)
-  }
-  return list
-})
-
-// ── Actions ───────────────────────────────────────────────────────────────────
-const openCreate = () => { dialog.branch = null; dialog.show = true }
-const openEdit   = (b) => { dialog.branch = { ...b }; dialog.show = true }
-
-const handleSave = async (branchData) => {
-  if (branchData.id) {
-    await branchStore.updateBranch(branchData.id, branchData)
-  } else {
-    await branchStore.createBranch(branchData)
-  }
-  await branchStore.fetchBranches()
-  notif('Branch saved successfully')
-}
-
-const handleDelete = (branch) => {
-  confirm({
-    title  : 'Delete Branch',
-    message: `Are you sure you want to delete "${branch.name}"?`,
-    options: { type: 'warning', width: 550 },
-    agree  : async () => {
-      await branchStore.deleteBranch(branch.id)
-      await branchStore.fetchBranches()
-      notif('Branch deleted')
+  // ── Branch types ──────────────────────────────────────────────────────────────
+  const branchTypes = [
+    {
+      value: 'restaurant',
+      label: 'Restaurant',
+      icon: 'mdi-silverware-fork-knife'
     },
-    cancel: () => {},
+    { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee-outline' },
+    { value: 'kiosk', label: 'Kiosk', icon: 'mdi-storefront-outline' },
+    { value: 'food_truck', label: 'Food Truck', icon: 'mdi-truck-outline' }
+  ]
+
+  // ── Normalise branches — handle both array and paginated {data:[]} ────────────
+  const allBranches = computed(() => {
+    const b = branchStore.branches
+    return Array.isArray(b) ? b : (b?.data ?? [])
   })
-}
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const typeColor = (type) => ({
-  restaurant: 'primary',
-  cafe      : 'brown',
-  kiosk     : 'teal',
-  food_truck: 'orange',
-}[type] || 'grey')
+  // ── Headers — tenant column only for super admin ──────────────────────────────
+  const headers = computed(() => [
+    { title: 'Branch', key: 'name', sortable: true },
+    ...(isSuperAdmin()
+      ? [{ title: 'Tenant', key: 'tenant.name', sortable: false }]
+      : []),
+    { title: 'Type', key: 'type', sortable: true },
+    { title: 'Location', key: 'city', sortable: true },
+    { title: 'Contact', key: 'phone', sortable: false },
+    { title: 'Tax / Svc', key: 'tax_rate', sortable: false },
+    { title: 'Open', key: 'is_open', sortable: false },
+    { title: 'Status', key: 'is_active', sortable: false },
+    { title: 'Actions', key: 'actions', sortable: false }
+  ])
 
-const typeIcon = (type) => ({
-  restaurant: 'mdi-silverware-fork-knife',
-  cafe      : 'mdi-coffee-outline',
-  kiosk     : 'mdi-storefront-outline',
-  food_truck: 'mdi-truck-outline',
-}[type] || 'mdi-store-outline')
+  // ── Filtered ──────────────────────────────────────────────────────────────────
+  const filteredBranches = computed(() => {
+    let list = allBranches.value
+    if (search.value) {
+      const q = search.value.toLowerCase()
+      list = list.filter(
+        b =>
+          b.name?.toLowerCase().includes(q) ||
+          b.city?.toLowerCase().includes(q) ||
+          b.phone?.toLowerCase().includes(q) ||
+          b.email?.toLowerCase().includes(q)
+      )
+    }
+    if (typeFilter.value) {
+      list = list.filter(b => b.type === typeFilter.value)
+    }
+    return list
+  })
 
-const formatRate = (rate) =>
-  rate ? (parseFloat(rate) * 100).toFixed(1) + '%' : '0%'
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  const openCreate = () => {
+    dialog.branch = null
+    dialog.show = true
+  }
+  const openEdit = b => {
+    dialog.branch = { ...b }
+    dialog.show = true
+  }
 
-onMounted(() => branchStore.fetchBranches())
+  const handleSave = async branchData => {
+    if (branchData.id) {
+      await branchStore.updateBranch(branchData.id, branchData)
+    } else {
+      await branchStore.createBranch(branchData)
+    }
+    await branchStore.fetchBranches()
+    notif('Branch saved successfully')
+  }
+
+  const handleDelete = branch => {
+    confirm({
+      title: 'Delete Branch',
+      message: `Are you sure you want to delete "${branch.name}"?`,
+      options: { type: 'warning', width: 550 },
+      agree: async () => {
+        await branchStore.deleteBranch(branch.id)
+        await branchStore.fetchBranches()
+        notif('Branch deleted')
+      },
+      cancel: () => {}
+    })
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  const typeColor = type =>
+    ({
+      restaurant: 'primary',
+      cafe: 'brown',
+      kiosk: 'teal',
+      food_truck: 'orange'
+    })[type] || 'grey'
+
+  const typeIcon = type =>
+    ({
+      restaurant: 'mdi-silverware-fork-knife',
+      cafe: 'mdi-coffee-outline',
+      kiosk: 'mdi-storefront-outline',
+      food_truck: 'mdi-truck-outline'
+    })[type] || 'mdi-store-outline'
+
+  const formatRate = rate =>
+    rate ? (parseFloat(rate) * 100).toFixed(1) + '%' : '0%'
+
+  onMounted(() => branchStore.fetchBranches())
 </script>
 
 <style scoped>
-.gap-1 { gap: 4px; }
-.gap-3 { gap: 12px; }
+  .gap-1 {
+    gap: 4px;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
 </style>

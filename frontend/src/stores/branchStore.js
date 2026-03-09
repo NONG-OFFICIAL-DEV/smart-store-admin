@@ -4,7 +4,8 @@ import {
   getBranchByIdApi,
   createBranchApi,
   updateBranchApi,
-  deleteBranchApi
+  deleteBranchApi,
+  toggleOpen
 } from '../api/branchService'
 
 export const useBranchStore = defineStore('branch', {
@@ -32,6 +33,12 @@ export const useBranchStore = defineStore('branch', {
     },
     async deleteBranch(id) {
       await deleteBranchApi(id)
-    }
+    },
+    async toggleOpen(id) {
+      const res = await toggleOpen(id)
+      if (this.branch) {
+        this.branch.is_open = res.data.data.is_open
+      }
+    },
   }
 })

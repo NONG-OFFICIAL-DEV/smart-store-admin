@@ -127,6 +127,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::post('tenants/{id}/transfer-ownership',  [TenantController::class, 'transferOwnership']);
     // ── Branches ──────────────────────────────────────────────────────────────
     Route::apiResource('branches', BranchController::class);
+    Route::post('branches/{id}/toggle-open', [BranchController::class, 'toggleOpen']);
     Route::prefix('branches/{branch}')->group(function () {
         Route::get('hours',          [BranchHourController::class, 'index']);
         Route::post('hours',         [BranchHourController::class, 'store']);

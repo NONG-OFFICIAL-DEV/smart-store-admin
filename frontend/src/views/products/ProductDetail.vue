@@ -1,6 +1,27 @@
 <template>
   <v-container fluid class="pa-0" v-if="product">
-    <custom-title :title="product.name" subtitle="Product Detail">
+    <custom-title>
+      <template #left>
+        <div class="d-flex align-center mb-4">
+          <v-btn
+            size="small"
+            icon="mdi-arrow-left"
+            @click="$router.back()"
+            variant="tonal"
+            class="mr-3"
+          />
+          <div>
+            <div class="d-flex align-center gap-1 text-caption text-grey mb-1">
+              <span class="cursor-pointer" @click="$router.back()">
+                Products
+              </span>
+              <v-icon icon="mdi-chevron-right" size="12" />
+              <span>Product Details</span>
+            </div>
+            <h2 class="text-h5 font-weight-bold">{{ product.name }}</h2>
+          </div>
+        </div>
+      </template>
       <template #right>
         <div class="d-flex gap-2">
           <v-btn
@@ -482,7 +503,7 @@
     variantDialog.value = true
   }
 
-  const handleVariantSaved = async (payload) => {
+  const handleVariantSaved = async payload => {
     try {
       if (payload.id) {
         await variantStore.updateProductVariant(payload.id, payload)

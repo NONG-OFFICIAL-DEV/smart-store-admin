@@ -39,37 +39,6 @@
       icon: 'mdi-store-outline',
       show: can('branches.view')
     },
-
-    // ── 3. OPERATIONS ───────────────────────────────────────────────────────────
-    {
-      title: 'Operations',
-      icon: 'mdi-cash-register',
-      // show:  can('pos.access') || can('kitchen.access'),
-      subLinks: [
-        {
-          path: '/pos',
-          title: 'Point of Sale',
-          icon: 'mdi-cash-register',
-          // show:   can('pos.access'),
-          newTab: true
-        },
-        {
-          path: '/kitchen-kds',
-          title: 'Kitchen Display',
-          icon: 'mdi-chef-hat',
-          // show:   can('kitchen.access'),
-          newTab: true
-        },
-        {
-          path: '/mobile-menu',
-          title: 'Digital Menu',
-          icon: 'mdi-cellphone-play',
-          // show:   can('pos.access'),
-          newTab: true
-        }
-      ]
-    },
-
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
       title: 'Catalog',

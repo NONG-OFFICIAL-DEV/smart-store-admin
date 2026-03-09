@@ -8,12 +8,7 @@
     >
       <template #right>
         <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
-
-        <v-btn
-          color="green"
-          prepend-icon="mdi-download"
-          @click="toggleExportForm"
-        >
+        <v-btn color="green" prepend-icon="mdi-download" @click="toggleExportForm">
           Export
         </v-btn>
       </template>
@@ -31,34 +26,15 @@
             hide-details
           />
         </v-col>
-
         <v-col cols="12" md="3">
-          <v-date-input
-            v-model="formFilters.startDate"
-            label="Start Date"
-            clearable
-            hide-details="auto"
-          />
+          <v-date-input v-model="formFilters.startDate" label="Start Date" clearable hide-details="auto" />
         </v-col>
-
         <v-col cols="12" md="3">
-          <v-date-input
-            v-model="formFilters.endDate"
-            label="End Date"
-            clearable
-            hide-details="auto"
-          />
+          <v-date-input v-model="formFilters.endDate" label="End Date" clearable hide-details="auto" />
         </v-col>
-
-        <v-col cols="12" md="3" class="d-flex align-center">
-          <v-btn class="me-3" variant="outlined" @click="resetFilter">
-            Reset
-          </v-btn>
-          <v-btn
-            color="primary"
-            prepend-icon="mdi-filter-outline"
-            @click="applyFilter"
-          >
+        <v-col cols="12" md="3" class="d-flex align-center gap-2">
+          <v-btn variant="outlined" @click="resetFilter">Reset</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-filter-outline" @click="applyFilter">
             Apply Filter
           </v-btn>
         </v-col>
@@ -77,7 +53,6 @@
             clearable
           />
         </v-col>
-
         <v-col cols="12" md="4">
           <v-date-input
             v-model="exportDates.endDate"
@@ -87,8 +62,7 @@
             clearable
           />
         </v-col>
-
-        <v-col cols="12" md="4" class="d-flex align-center mb-4">
+        <v-col cols="12" md="4" class="d-flex align-center gap-2 mb-4">
           <v-btn
             color="green"
             prepend-icon="mdi-microsoft-excel"
@@ -97,10 +71,7 @@
           >
             Generate
           </v-btn>
-
-          <v-btn class="ms-3" variant="outlined" @click="closeExportForm">
-            Cancel
-          </v-btn>
+          <v-btn variant="outlined" @click="closeExportForm">Cancel</v-btn>
         </v-col>
       </v-row>
     </v-card>
@@ -108,9 +79,54 @@
     <!-- Audit Table -->
     <v-data-table
       :headers="headers"
-      :items="store.logs.data"
-      class="elevation-0"
+      :items="store.logs.data ?? []"
+      :loading="store.loading"
+      class="elevation-0 rounded-lg"
     >
+      <!-- User column -->
+      <template #item.user_name="{ item }">
+        <div class="d-flex flex-column">
+          <span class="text-body-2 font-weight-medium">
+            {{ item.user_name || item.user?.first_name + ' ' + item.user?.last_name || '—' }}
+          </span>
+          <span class="text-caption text-grey">{{ item.user_email }}</span>
+        </div>
+      </template>
+
+      <!-- Action column -->
+      <template #item.action="{ item }">
+        <v-chip
+          :color="actionColor(item.action)"
+          size="small"
+          variant="tonal"
+          label
+        >
+          {{ item.action }}
+        </v-chip>
+      </template>
+
+      <!-- Entity column -->
+      <template #item.entity_type="{ item }">
+        <span v-if="item.entity_type" class="text-body-2">
+          {{ item.entity_type }}
+          <span v-if="item.entity_id" class="text-caption text-grey ms-1">
+            #{{ item.entity_id.slice(0, 8) }}...
+          </span>
+        </span>
+        <span v-else class="text-grey">—</span>
+      </template>
+
+      <!-- IP Address -->
+      <template #item.ip_address="{ item }">
+        <span class="text-caption font-weight-mono">{{ item.ip_address || '—' }}</span>
+      </template>
+
+      <!-- Date -->
+      <template #item.created_at="{ item }">
+        <span class="text-caption">{{ formatDateTime(item.created_at) }}</span>
+      </template>
+
+      <!-- Actions -->
       <template #item.actions="{ item }">
         <v-btn
           icon="mdi-arrow-right-circle"
@@ -118,128 +134,101 @@
           variant="text"
           color="primary"
           @click="goToDetails(item.id)"
-        ></v-btn>
-      </template>
-      <template #item.created_at="{ item }">
-        <td>{{ formatDateTime(item.created_at) }}</td>
+        />
       </template>
     </v-data-table>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
-  import { useAuditLogStore } from '@/stores/auditLogStore'
-  import { useDate } from '@/composables/useDate'
-  import { useRouter } from 'vue-router'
-  const router = useRouter()
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useAuditLogStore } from '@/stores/auditLogStore'
+import { useDate } from '@/composables/useDate'
+import { useRouter } from 'vue-router'
 
-  const { formatDateTime } = useDate()
-  const store = useAuditLogStore()
+const router = useRouter()
+const { formatDateTime } = useDate()
+const store = useAuditLogStore()
 
-  /* ----------------------------- UI STATE ----------------------------- */
-  const showFilterForm = ref(false)
-  const showExportForm = ref(false)
+// ── UI state ───────────────────────────────────────────────────────────────────
+const showFilterForm = ref(false)
+const showExportForm = ref(false)
 
-  const goToDetails = id => {
-    router.push(`/audit-log/${id}`)
-  }
+const toggleFilterForm = () => {
+  showFilterForm.value = !showFilterForm.value
+  showExportForm.value = false
+}
 
-  const toggleFilterForm = () => {
-    showFilterForm.value = !showFilterForm.value
-    showExportForm.value = false
-  }
+const toggleExportForm = () => {
+  showExportForm.value = !showExportForm.value
+  showFilterForm.value = false
+  clearExportErrors()
+}
 
-  const toggleExportForm = () => {
-    showExportForm.value = !showExportForm.value
-    showFilterForm.value = false
-    clearExportErrors()
-  }
+const goToDetails = id => router.push(`/audit-log/${id}`)
 
-  /* ----------------------------- FILTER FORM ----------------------------- */
-  const formFilters = reactive({
-    keyword: null,
-    startDate: null,
-    endDate: null
+// ── Action color helper ────────────────────────────────────────────────────────
+const actionColor = action => {
+  if (action.includes('login'))   return 'success'
+  if (action.includes('logout'))  return 'grey'
+  if (action.includes('created')) return 'primary'
+  if (action.includes('updated')) return 'warning'
+  if (action.includes('deleted')) return 'error'
+  return 'secondary'
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────────
+const formFilters = reactive({ keyword: null, startDate: null, endDate: null })
+
+const applyFilter = () => {
+  store.getAllAuditLogs({
+    keyword:   formFilters.keyword,
+    date_from: formFilters.startDate,
+    date_to:   formFilters.endDate,
   })
+}
 
-  const applyFilter = () => {
-    store.getAllAuditLogs({
-      keyword: formFilters.keyword,
-      date_from: formFilters.startDate,
-      date_to: formFilters.endDate
-    })
+const resetFilter = () => {
+  formFilters.keyword   = null
+  formFilters.startDate = null
+  formFilters.endDate   = null
+  store.getAllAuditLogs()
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+const exportDates  = reactive({ startDate: null, endDate: null })
+const exportErrors = reactive({ start: '', end: '' })
+
+const clearExportErrors = () => { exportErrors.start = ''; exportErrors.end = '' }
+const closeExportForm   = () => { showExportForm.value = false; clearExportErrors() }
+
+const isDateRangeValid = computed(() => {
+  clearExportErrors()
+  if (!exportDates.startDate || !exportDates.endDate) return false
+  if (new Date(exportDates.startDate) > new Date(exportDates.endDate)) {
+    exportErrors.end = 'End Date cannot be earlier than Start Date'
+    return false
   }
+  return true
+})
 
-  const resetFilter = () => {
-    formFilters.keyword = null
-    formFilters.startDate = null
-    formFilters.endDate = null
+const handleExport = () => {
+  if (!isDateRangeValid.value) return
+  store.exportCSV({ date_from: exportDates.startDate, date_to: exportDates.endDate })
+  closeExportForm()
+}
 
-    // reload default list
-    store.getAllAuditLogs()
-  }
+// ── Table headers ──────────────────────────────────────────────────────────────
+const headers = ref([
+  { title: 'User',        key: 'user_name',    sortable: false },
+  { title: 'Action',      key: 'action' },
+  { title: 'Description', key: 'description',  sortable: false },
+  { title: 'Entity',      key: 'entity_type',  sortable: false },
+  { title: 'IP Address',  key: 'ip_address',   sortable: false },
+  { title: 'Date',        key: 'created_at' },
+  { title: '',            key: 'actions',      sortable: false },
+])
 
-  /* ----------------------------- EXPORT FORM ----------------------------- */
-  const exportDates = reactive({
-    startDate: null,
-    endDate: null
-  })
-
-  const exportErrors = reactive({
-    start: '',
-    end: ''
-  })
-
-  const clearExportErrors = () => {
-    exportErrors.start = ''
-    exportErrors.end = ''
-  }
-
-  const closeExportForm = () => {
-    showExportForm.value = false
-    clearExportErrors()
-  }
-
-  /* ----------------------------- EXPORT VALIDATION ----------------------------- */
-  const isDateRangeValid = computed(() => {
-    clearExportErrors()
-
-    if (!exportDates.startDate || !exportDates.endDate) return false
-
-    if (new Date(exportDates.startDate) > new Date(exportDates.endDate)) {
-      exportErrors.end = 'End Date cannot be earlier than Start Date'
-      return false
-    }
-
-    return true
-  })
-
-  /* ----------------------------- EXPORT HANDLER ----------------------------- */
-  const handleExport = () => {
-    if (!isDateRangeValid.value) return
-
-    store.exportCSV({
-      date_from: exportDates.startDate,
-      date_to: exportDates.endDate
-    })
-
-    closeExportForm()
-  }
-
-  /* ----------------------------- TABLE HEADERS ----------------------------- */
-  const headers = ref([
-    { title: 'ID', key: 'id' },
-    { title: 'Username', key: 'user.name' },
-    { title: 'Action', key: 'action_type' },
-    { title: 'Description', key: 'description' },
-    { title: 'Ip address', key: 'ip_address' },
-    { title: 'Date', key: 'created_at' },
-    { title: '', key: 'actions', sortable: false }
-  ])
-
-  /* ----------------------------- INITIAL LOAD ----------------------------- */
-  onMounted(() => {
-    store.getAllAuditLogs()
-  })
+// ── Init ───────────────────────────────────────────────────────────────────────
+onMounted(() => store.getAllAuditLogs())
 </script>

@@ -8,7 +8,14 @@
       variant="tonal"
       class="mr-3"
     />
-    <h2 class="text-h5 font-weight-bold">Audit Log Details</h2>
+    <div>
+      <div class="d-flex align-center gap-1 text-caption text-grey mb-1">
+        <span class="cursor-pointer" @click="$router.back()">Audit Trail</span>
+        <v-icon icon="mdi-chevron-right" size="12" />
+        <span>Details</span>
+      </div>
+      <h2 class="text-h5 font-weight-bold">Audit Log Details</h2>
+    </div>
   </div>
 
   <!-- GENERAL INFORMATION -->
@@ -22,7 +29,8 @@
       <v-col cols="12" md="6">
         <v-list density="comfortable">
           <v-list-item>
-            <strong>ID:</strong> {{ store.log.id }}
+            <strong>ID:</strong>
+            {{ store.log.id }}
           </v-list-item>
 
           <v-list-item>
@@ -33,11 +41,13 @@
           </v-list-item>
 
           <v-list-item>
-            <strong>Module:</strong> {{ store.log.module }}
+            <strong>Module:</strong>
+            {{ store.log.module }}
           </v-list-item>
 
           <v-list-item>
-            <strong>Date:</strong> {{ formatDateTime(store.log.created_at) }}
+            <strong>Date:</strong>
+            {{ formatDateTime(store.log.created_at) }}
           </v-list-item>
         </v-list>
       </v-col>
@@ -45,19 +55,23 @@
       <v-col cols="12" md="6">
         <v-list density="comfortable">
           <v-list-item>
-            <strong>IP Address:</strong> {{ store.log.ip_address }}
+            <strong>IP Address:</strong>
+            {{ store.log.ip_address }}
           </v-list-item>
 
           <v-list-item>
-            <strong>Method:</strong> {{ store.log.method }}
+            <strong>Method:</strong>
+            {{ store.log.method }}
           </v-list-item>
 
           <v-list-item>
-            <strong>URL:</strong> {{ store.log.url }}
+            <strong>URL:</strong>
+            {{ store.log.url }}
           </v-list-item>
 
           <v-list-item>
-            <strong>User Agent:</strong> {{ store.log.user_agent }}
+            <strong>User Agent:</strong>
+            {{ store.log.user_agent }}
           </v-list-item>
         </v-list>
       </v-col>
@@ -81,10 +95,7 @@
       </thead>
 
       <tbody>
-        <tr
-          v-for="(oldVal, key) in store.log.old_values"
-          :key="key"
-        >
+        <tr v-for="(oldVal, key) in store.log.old_values" :key="key">
           <td class="font-weight-medium text-grey-darken-3">
             {{ key }}
           </td>
@@ -136,7 +147,6 @@
   </v-card>
 </template>
 
-
 <script setup>
   import { onMounted, computed } from 'vue'
   import { useRoute } from 'vue-router'
@@ -170,18 +180,17 @@
 </script>
 
 <style scoped>
-.modern-card {
-  border-radius: 14px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08) !important;
-}
+  .modern-card {
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08) !important;
+  }
 
-.json-box {
-  background: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  white-space: pre-wrap;
-  border: 1px solid #e0e0e0;
-}
+  .json-box {
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    border: 1px solid #e0e0e0;
+  }
 </style>
-
