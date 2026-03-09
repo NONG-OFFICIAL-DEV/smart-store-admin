@@ -105,7 +105,7 @@ class Table extends BaseModel
     {
         return Attribute::get(
             fn() => $this->qr_image_path
-                ? config('app.url') . '/storage/' . $this->qr_image_path
+                ? asset('storage/' .$this->qr_image_path)
                 : null
         );
     }

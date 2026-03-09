@@ -119,4 +119,20 @@ class TableController extends Controller
             'Content-Disposition' => 'attachment',
         ]);
     }
+    public function regenerateQrCode(string $id)
+    {
+        $table = Table::with('branch')->findOrFail($id);
+        $table->generateQrCode();
+        $table->refresh();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'table_id'     => $table->id,
+                'table_number' => $table->table_number,
+                'url'          => $table->qr_code,
+                'qr_image_url' => $table->qr_image_url, // ← accessor
+            ]
+        ]);
+    }
 }

@@ -174,7 +174,7 @@
           rounded="lg"
           prepend-icon="mdi-download"
           :disabled="!qrData?.qr_image_url || qrLoading"
-          @click="tableStore.downloadQr(table.id, table.table_number)"
+          @click="onDownloadQr(table)"
         >
           Download
         </v-btn>
@@ -229,6 +229,10 @@
 
   const regenerate = () => {
     if (props.table?.id) tableStore.regenerateQr(props.table.id)
+    tableStore.fetchQrCodeTable(props.table.id)
+  }
+  const onDownloadQr = (table) => {
+    tableStore.downloadQr(table)
   }
 
   const close = () => {

@@ -5,7 +5,9 @@ import {
   createTableApi,
   updateTableApi,
   deleteTableApi,
-  getQrCode
+  getQrCode,
+  downloadQrCode,
+  regenerateQrCode
 } from '../api/tableService'
 
 export const useTableStore = defineStore('table', {
@@ -42,9 +44,34 @@ export const useTableStore = defineStore('table', {
     // ── Open QR dialog ─────────────────────────────────────────────────────────
     async fetchQrCodeTable(tableId) {
       const res = await getQrCode(tableId)
-      console.log(res.data.data);
-    
       this.qrData = res.data.data
+    },
+    // ── Regenerate QR ──────────────────────────────────────────────────────────
+    async regenerateQr(tableId) {
+      this.qrLoading = true
+      try {
+        const res = await regenerateQrCode(tableId)
+        this.qrData = res.data.data
+      } catch (err) {
+        console.error('Failed to regenerate QR', err)
+      } finally {
+        this.qrLoading = false
+      }
+    },
+
+    // ── Download QR ────────────────────────────────────────────────────────────
+    async downloadQr(table) {
+      try {
+        const res = await downloadQrCode(table.id)
+        const url = URL.createObjectURL(res.data)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `QR-Table-${table.table_number}.png`
+        link.click()
+        URL.revokeObjectURL(url)
+      } catch (err) {
+        console.error('Failed to download QR', err)
+      }
     }
   }
 })
