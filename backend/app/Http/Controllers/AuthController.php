@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Permission;
 use App\Models\Tenant;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -60,6 +61,13 @@ class AuthController extends Controller
             ]);
             $user = $user->fresh(); // ← reload from DB so last_login_at is no longer null
 
+            // ── Log login ─────────────────────────────────────────────────────
+            ActivityLog::log(
+                action:      'auth.login',
+                entity:      null,
+                payload:     null,
+                description: "User {$user->email} logged in"
+            );
 
             // ── Load relationships ────────────────────────────────────────────
             $user->load([
@@ -208,6 +216,13 @@ class AuthController extends Controller
     public function logout()
     {
         try {
+            // ── Log before invalidating token ──────────────────────────────
+            ActivityLog::log(
+                action:      'auth.logout',
+                entity:      null,
+                payload:     null,
+                description: 'User logged out'
+            );
             JWTAuth::parseToken()->invalidate();
             return response()->json(['message' => 'Logged out successfully']);
         } catch (JWTException $e) {

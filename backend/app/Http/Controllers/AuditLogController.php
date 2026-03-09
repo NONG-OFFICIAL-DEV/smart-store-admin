@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AuditLog;
+use App\Models\ActivityLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -13,7 +13,7 @@ class AuditLogController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AuditLog::query()->with('user'); // eager load user to avoid N+1 problem
+        $query = ActivityLog::query()->with('user'); // eager load user to avoid N+1 problem
 
         // Optional filters
         if ($request->filled('user_id')) {
@@ -22,10 +22,6 @@ class AuditLogController extends Controller
 
         if ($request->filled('action_type')) {
             $query->where('action_type', $request->action_type);
-        }
-
-        if ($request->filled('module')) {
-            $query->where('module', $request->module);
         }
 
         if ($request->filled('date_from')) {
@@ -49,7 +45,7 @@ class AuditLogController extends Controller
      */
     public function show($id)
     {
-        $auditLog = AuditLog::with('user')->find($id);
+        $auditLog = ActivityLog::with('user')->find($id);
 
         if (!$auditLog) {
             return response()->json([
