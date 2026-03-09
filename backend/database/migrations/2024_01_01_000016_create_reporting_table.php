@@ -35,7 +35,7 @@ return new class extends Migration
         // ── Activity Logs (audit trail) ────────────────────────────────────────
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->foreignUuid('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
             $table->foreignUuid('branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('action', 100)->comment('e.g. order.created, product.deleted');
