@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends BaseModel
 {
@@ -59,6 +61,20 @@ class Product extends BaseModel
             ])
             : $request;
 
+        // ── Handle image upload ────────────────────────────────────────────────
+        if ($request instanceof Request && $request->hasFile('image')) {
+            // Delete old image if updating
+            if ($id) {
+                $old = static::find($id)?->getRawOriginal('image_url'); // raw path, bypass accessor
+                if ($old) {
+                    Storage::disk('public')->delete($old); // "products/xxx.jpg" direct
+                }
+            }
+
+            $path = $request->file('image')->store('products', 'public');
+            $data['image_url'] = $path; // ✅ stores "products/xxx.jpg" — same as qr_image_path
+        }
+
         $result = parent::store($data, $id);
 
         // Sync modifier groups if provided
@@ -70,6 +86,14 @@ class Product extends BaseModel
         return $result;
     }
 
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(function ($value, $attributes) {
+            return isset($attributes['image_url'])
+                ? asset('storage/' . $attributes['image_url'])
+                : null;
+        });
+    }
     // ─── Relationships ────────────────────────────────────────────────────────
     public function tenant()
     {

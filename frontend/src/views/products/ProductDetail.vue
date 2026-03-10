@@ -477,6 +477,7 @@
   const handleProductSaved = async (payload, callbacks) => {
     saving.value = true
     try {
+      payload.append('_method', 'PUT')
       await productStore.updateProduct(payload.id, payload)
       await productStore.fetchProductById(route.params.id)
       notif('Product updated', {

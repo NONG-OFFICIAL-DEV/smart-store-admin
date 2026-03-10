@@ -356,7 +356,7 @@
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-  
+
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
@@ -517,22 +517,25 @@
   }
 
   const onSaved = async payload => {
-    try {
-      if (payload.id) {
-        await productStore.updateProduct(payload.id, payload)
-        notif('Product updated successfully', {
-          type: 'success'
-        })
-      } else {
-        await productStore.createProduct(payload)
-        notif('Product created successfully', {
-          type: 'success'
-        })
-      }
-    } catch (err) {
-      notif('Failed to save product', {
-        type: 'success'
-      })
+  try {
+    if (payload.id || payload.get?.('id')) {
+      await productStore.updateProduct(
+        payload.get?.('id') ?? payload.id,
+        payload,
+        payload instanceof FormData
+          ? { 'Content-Type': 'multipart/form-data' }
+          : { 'Content-Type': 'application/json' }
+      )
+      notif('Product updated successfully', { type: 'success' })
+    } else {
+      await productStore.createProduct(payload)
+      notif('Product created successfully', { type: 'success' })
     }
+
+    dialog.value = false  // ← close after success
+
+  } catch (err) {
+    notif('Failed to save product', { type: 'error' })  // ← also fix typo: was 'success'
   }
+}
 </script>

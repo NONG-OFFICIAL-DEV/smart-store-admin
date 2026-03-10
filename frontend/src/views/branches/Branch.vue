@@ -144,21 +144,6 @@
           </div>
         </template>
 
-        <!-- Tax + Service charge -->
-        <template #item.tax_rate="{ item }">
-          <v-chip size="x-small" variant="tonal" color="orange" class="mr-1">
-            TAX {{ formatRate(item.tax_rate) }}
-          </v-chip>
-          <v-chip
-            v-if="item.service_charge_rate"
-            size="x-small"
-            variant="tonal"
-            color="teal"
-          >
-            SVC {{ formatRate(item.service_charge_rate) }}
-          </v-chip>
-        </template>
-
         <!-- Open -->
         <template #item.is_open="{ item }">
           <v-chip
@@ -287,9 +272,7 @@
       ? [{ title: 'Tenant', key: 'tenant.name', sortable: false }]
       : []),
     { title: 'Type', key: 'type', sortable: true },
-    { title: 'Location', key: 'city', sortable: true },
     { title: 'Contact', key: 'phone', sortable: false },
-    { title: 'Tax / Svc', key: 'tax_rate', sortable: false },
     { title: 'Open', key: 'is_open', sortable: false },
     { title: 'Status', key: 'is_active', sortable: false },
     { title: 'Actions', key: 'actions', sortable: false }
