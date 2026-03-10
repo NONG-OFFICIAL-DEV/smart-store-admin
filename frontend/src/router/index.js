@@ -95,12 +95,12 @@ const routes = [
         component: () => import('@/views/stocks/SupplierManagement.vue'),
         meta: { requiresAuth: true }
       },
-      // {
-      //   path: '/stocks',
-      //   name: 'Stocks',
-      //   component: () => import('@/views/stocks/StockManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/stocks',
+        name: 'Stocks',
+        component: () => import('@/views/stocks/StockManagement.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/purchases',
       //   name: 'Purchases',

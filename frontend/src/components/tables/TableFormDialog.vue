@@ -38,7 +38,6 @@
                 item-title="name"
                 label="Branch"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
                 prepend-inner-icon="mdi-store-outline"
@@ -53,7 +52,6 @@
                 label="Table Number"
                 placeholder="e.g. 1, A1, VIP-01"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
                 prepend-inner-icon="mdi-table-chair"
@@ -67,7 +65,6 @@
                 type="number"
                 label="Capacity (seats)"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required, r.positive]"
                 prepend-inner-icon="mdi-account-group-outline"
@@ -84,7 +81,6 @@
                 item-value="value"
                 label="Table Shape"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-shape-outline"
                 clearable
@@ -107,7 +103,6 @@
                 item-value="id"
                 label="Floor Plan"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-floor-plan"
                 clearable
@@ -135,7 +130,6 @@
                   type="number"
                   label="X Position"
                   variant="outlined"
-                  density="comfortable"
                   rounded="lg"
                   prepend-inner-icon="mdi-arrow-left-right"
                   min="0"
@@ -147,7 +141,6 @@
                   type="number"
                   label="Y Position"
                   variant="outlined"
-                  density="comfortable"
                   rounded="lg"
                   prepend-inner-icon="mdi-arrow-up-down"
                   min="0"
@@ -163,7 +156,6 @@
                 item-value="value"
                 label="Current Status"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-information-outline"
               />
@@ -206,23 +198,11 @@
 
       <v-divider />
       <v-card-actions class="pa-6 pt-4 gap-3">
+        <v-btn variant="tonal" rounded="lg" @click="close">Cancel</v-btn>
         <v-btn
-          block
-          variant="tonal"
-          rounded="lg"
-          size="large"
-          :disabled="loading"
-          @click="close"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          block
           :color="isEdit ? 'primary' : 'success'"
           variant="flat"
           rounded="lg"
-          size="large"
-          :loading="loading"
           :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
           @click="submit"
         >

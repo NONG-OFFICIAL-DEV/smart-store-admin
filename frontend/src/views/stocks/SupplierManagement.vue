@@ -1,258 +1,267 @@
 <template>
-  <custom-title
-    icon="mdi-truck-delivery"
-    title="Supplier Management"
-    subtitle="To mange all supplier"
-  >
-    <template #right>
-      <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
-      <BaseButton icon="mdi-plus" @click="openAddDialog">
-        Add Supplier
-      </BaseButton>
-    </template>
-  </custom-title>
-  <v-card class="mb-4 pa-4 rounded-lg" elevation="0" v-show="showFilterForm">
-    <v-row>
-      <!-- Search -->
-      <v-col cols="12" md="3">
-        <v-text-field
-          v-model="draftFilters.keyword"
-          label="Search (Name, Contact, Phone, Email)"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-        />
-      </v-col>
-
-      <!-- Status -->
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="draftFilters.status"
-          :items="statusOptions"
-          label="Status"
-          hide-details
-        />
-      </v-col>
-
-      <!-- Buttons -->
-      <v-col cols="12" md="3" class="d-flex align-center">
+  <v-container fluid class="pa-0">
+    <!-- Header -->
+    <div class="d-flex align-center justify-space-between mb-5">
+      <div>
+        <h2 class="text-h5 font-weight-bold">Supplier Management</h2>
+        <div class="text-caption text-grey">
+          Manage all suppliers for your business
+        </div>
+      </div>
+      <div class="d-flex gap-2">
         <v-btn
-          class="me-3"
-          variant="outlined"
-          :disabled="!isFilterActive"
-          @click="resetFilter"
+          variant="tonal"
+          rounded="lg"
+          :prepend-icon="
+            showFilter ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+          "
+          @click="showFilter = !showFilter"
         >
-          Reset
+          Filter
         </v-btn>
         <v-btn
           color="primary"
-          prepend-icon="mdi-filter-outline"
-          @click="applyFilter"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openAdd"
         >
-          Apply Filter
+          Add Supplier
         </v-btn>
-      </v-col>
-    </v-row>
-  </v-card>
+      </div>
+    </div>
 
-  <v-data-table-server
-    :headers="headers"
-    :items="supplierStore.suppliers.data"
-    :items-length="supplierStore.suppliers.total || 0"
-    :loading="supplierStore.loading"
-    v-model:items-per-page="tableOptions.itemsPerPage"
-    @update:options="loadItems"
-  >
-    <template #item.actions="{ item }">
-      <v-btn
-        icon="mdi-pencil"
-        color="primary"
-        class="me-2"
-        variant="text"
-        @click="openEditDialog(item)"
-      />
-      <v-btn
-        icon="mdi-delete"
-        color="error"
-        variant="text"
-        @click="handleDelete(item.id)"
-      />
-    </template>
-    <template #item.status="{ item }">
-      <v-chip size="small" :color="item.status == '1' ? 'green' : 'red'">
-        <v-icon
-          :icon="item.status == '1' ? 'mdi-check-circle' : 'mdi-cancel'"
-          start
-        ></v-icon>
-        {{ item.status == '1' ? 'Active' : 'Inactiv' }}
-      </v-chip>
-    </template>
-  </v-data-table-server>
+    <!-- Filter panel -->
+    <v-expand-transition>
+      <v-card
+        v-show="showFilter"
+        rounded="xl"
+        elevation="0"
+        border
+        class="mb-4 pa-4"
+      >
+        <v-row dense align="center">
+          <v-col cols="12" sm="4">
+            <v-text-field
+              v-model="draft.keyword"
+              label="Search name, contact, phone, email"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="3">
+            <v-select
+              v-model="draft.is_active"
+              :items="statusOptions"
+              label="Status"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="3" class="d-flex gap-2">
+            <v-btn
+              variant="tonal"
+              rounded="lg"
+              :disabled="!filterActive"
+              @click="resetFilter"
+            >
+              Reset
+            </v-btn>
+            <v-btn
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              prepend-icon="mdi-filter"
+              @click="applyFilter"
+            >
+              Apply
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card>
+    </v-expand-transition>
 
-  <!-- Add / Edit Dialog -->
-  <SupplierDialog
-    v-model="isDialogOpen"
-    :supplier="selectedSupplier"
-    @save="handleSave"
-  />
+    <!-- Table -->
+    <v-card rounded="xl" elevation="0" border>
+      <v-data-table-server
+        :headers="headers"
+        :items="store.suppliers.data ?? []"
+        :items-length="store.suppliers.total ?? 0"
+        :loading="store.loading"
+        v-model:items-per-page="opts.itemsPerPage"
+        @update:options="loadItems"
+      >
+        <!-- Status chip -->
+        <template #item.is_active="{ item }">
+          <v-chip
+            :color="item.is_active ? 'success' : 'error'"
+            size="x-small"
+            variant="tonal"
+            label
+          >
+            {{ item.is_active ? 'Active' : 'Inactive' }}
+          </v-chip>
+        </template>
+
+        <!-- Payment terms -->
+        <template #item.payment_terms="{ item }">
+          <span class="text-caption text-grey">
+            {{ item.payment_terms || '—' }}
+          </span>
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <v-btn
+            icon="mdi-pencil-outline"
+            size="small"
+            variant="text"
+            color="primary"
+            class="mr-1"
+            @click="openEdit(item)"
+          />
+          <v-btn
+            icon="mdi-delete-outline"
+            size="small"
+            variant="text"
+            color="error"
+            @click="handleDelete(item.id)"
+          />
+        </template>
+      </v-data-table-server>
+    </v-card>
+
+    <!-- Dialog -->
+    <SupplierDialog
+      v-model="dialog"
+      :supplier="selected"
+      :loading="saving"
+      @save="handleSave"
+    />
+  </v-container>
 </template>
 
 <script setup>
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useSupplierStore } from '@/stores/supplierStore'
-  import SupplierDialog from '@/components/SupplierDialog.vue'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { useI18n } from 'vue-i18n'
+  import SupplierDialog from '@/components/SupplierDialog.vue'
 
-  const supplierStore = useSupplierStore()
+  const store = useSupplierStore()
   const { confirm, notif } = useAppUtils()
-  const { t } = useI18n()
 
-  /* =====================
-   TABLE STATE
-===================== */
-
-  const tableOptions = reactive({
-    page: 1,
-    itemsPerPage: 10
-  })
-
-  /* =====================
-   FILTER STATE
-===================== */
-
-  // what user types/selects
-  const draftFilters = reactive({
-    keyword: '',
-    status: null
-  })
-
-  // what API actually uses
-  const appliedFilters = reactive({
-    keyword: '',
-    status: ''
-  })
-
-  const isFilterActive = computed(() => {
-    return draftFilters.keyword.trim() !== '' || draftFilters.status !== ''
-  })
-
-  /* =====================
-   UI STATE
-===================== */
-
-  const showFilterForm = ref(false)
-  const isDialogOpen = ref(false)
-  const selectedSupplier = ref(null)
-
-  /* =====================
-   TABLE HEADERS
-===================== */
+  // ── Table ──────────────────────────────────────────────────────────────────────
+  const opts = reactive({ page: 1, itemsPerPage: 15 })
 
   const headers = [
-    { title: 'Name', key: 'name' },
-    { title: 'Contact', key: 'contact_name' },
+    { title: 'Supplier', key: 'name' },
+    { title: 'Contact', key: 'contact_person' },
     { title: 'Phone', key: 'phone' },
     { title: 'Email', key: 'email' },
-    { title: 'Status', key: 'status' },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Payment Terms', key: 'payment_terms' },
+    { title: 'Status', key: 'is_active' },
+    { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
   ]
+
+  // ── Filter ─────────────────────────────────────────────────────────────────────
+  const showFilter = ref(false)
+  const draft = reactive({ keyword: '', is_active: null })
+  const applied = reactive({ keyword: '', is_active: null })
+  const filterActive = computed(
+    () => draft.keyword.trim() !== '' || draft.is_active !== null
+  )
 
   const statusOptions = [
-    { title: 'Active', value: 1 },
-    { title: 'Inactive', value: 0 }
+    { title: 'Active', value: true },
+    { title: 'Inactive', value: false }
   ]
 
-  /* =====================
-   FETCH DATA (ONE SOURCE)
-===================== */
-
-  const fetchData = () => {
-    supplierStore.fetchSuppliers({
-      page: tableOptions.page,
-      per_page: tableOptions.itemsPerPage,
-      keyword: appliedFilters.keyword,
-      status: appliedFilters.status
-    })
-  }
-
-  /* =====================
-   EVENTS
-===================== */
-
-  const loadItems = ({ page, itemsPerPage }) => {
-    tableOptions.page = page
-    tableOptions.itemsPerPage = itemsPerPage
-    fetchData()
-  }
-
   const applyFilter = () => {
-    appliedFilters.keyword = draftFilters.keyword
-    appliedFilters.status = draftFilters.status
-
-    tableOptions.page = 1
+    Object.assign(applied, { ...draft })
+    opts.page = 1
     fetchData()
   }
 
   const resetFilter = () => {
-    draftFilters.keyword = ''
-    draftFilters.status = ''
-
-    appliedFilters.keyword = ''
-    appliedFilters.status = ''
-
-    tableOptions.page = 1
+    Object.assign(draft, { keyword: '', is_active: null })
+    Object.assign(applied, { keyword: '', is_active: null })
+    opts.page = 1
     fetchData()
   }
 
-  const toggleFilterForm = () => {
-    showFilterForm.value = !showFilterForm.value
+  // ── Fetch ──────────────────────────────────────────────────────────────────────
+  const fetchData = () =>
+    store.fetchSuppliers({
+      page: opts.page,
+      per_page: opts.itemsPerPage,
+      keyword: applied.keyword,
+      is_active: applied.is_active
+    })
+
+  const loadItems = ({ page, itemsPerPage }) => {
+    opts.page = page
+    opts.itemsPerPage = itemsPerPage
+    fetchData()
   }
 
-  /* =====================
-   CRUD
-===================== */
+  // ── Dialog ─────────────────────────────────────────────────────────────────────
+  const dialog = ref(false)
+  const selected = ref(null)
+  const saving = ref(false)
 
-  const openAddDialog = () => {
-    selectedSupplier.value = null
-    isDialogOpen.value = true
+  const openAdd = () => {
+    selected.value = null
+    dialog.value = true
+  }
+  const openEdit = item => {
+    selected.value = { ...item }
+    dialog.value = true
   }
 
-  const openEditDialog = supplier => {
-    selectedSupplier.value = { ...supplier }
-    isDialogOpen.value = true
-  }
-
-  const handleSave = async supplier => {
-    if (supplier.id) {
-      await supplierStore.updateSupplier(supplier)
-      notif(t('messages.updated_success'), { type: 'success' })
-    } else {
-      await supplierStore.addSupplier(supplier)
-      notif(t('messages.saved_success'), { type: 'success' })
+  const handleSave = async data => {
+    saving.value = true
+    try {
+      if (data.id) {
+        await store.updateSupplier(data)
+        notif('Supplier updated', { type: 'success' })
+      } else {
+        await store.addSupplier(data)
+        notif('Supplier added', { type: 'success' })
+      }
+      dialog.value = false
+      fetchData()
+    } catch {
+      notif('Something went wrong', { type: 'error' })
+    } finally {
+      saving.value = false
     }
-
-    isDialogOpen.value = false
-    fetchData()
   }
 
   const handleDelete = id => {
     confirm({
-      title: 'Are you sure?',
-      message: 'Are you sure you want to delete this supplier?',
-      options: { type: 'error', width: 500 },
+      title: 'Delete Supplier',
+      message: 'This action cannot be undone.',
+      options: { type: 'error' },
       agree: async () => {
-        await supplierStore.removeSupplier(id)
-        notif(t('messages.deleted_success'), { type: 'success' })
+        await store.removeSupplier(id)
+        notif('Supplier deleted', { type: 'success' })
         fetchData()
       }
     })
   }
 
-  /* =====================
-   INIT
-===================== */
-
-  onMounted(() => {
-    fetchData()
-  })
+  onMounted(fetchData)
 </script>
+
+<style scoped>
+  .gap-2 {
+    gap: 8px;
+  }
+</style>

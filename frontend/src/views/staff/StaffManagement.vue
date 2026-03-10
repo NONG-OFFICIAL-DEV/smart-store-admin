@@ -1,18 +1,22 @@
 <template>
-  <custom-title title="Staff Management" subtitle="Employees · Roles · Access">
-    <template #right>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        rounded="lg"
-        @click="openCreate"
-      >
-        Add Staff
-      </v-btn>
-    </template>
-  </custom-title>
-
   <v-container fluid class="pa-0">
+    <custom-title
+      icon="mdi-account"
+      title="Staff Management"
+      subtitle="Employees · Roles · Access"
+    >
+      <template #right>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          rounded="lg"
+          @click="openCreate"
+        >
+          Add Staff
+        </v-btn>
+      </template>
+    </custom-title>
+
     <!-- ── Stats ──────────────────────────────────────────────────────────────── -->
     <v-row class="mb-4">
       <v-col v-for="(stat, i) in stats" :key="i" cols="12" sm="6" lg="3">
@@ -35,7 +39,19 @@
 
     <!-- ── Toolbar ─────────────────────────────────────────────────────────────── -->
     <v-row align="center" class="mb-6 px-1">
-      <v-col cols="12" sm="auto">
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="search"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Search staff..."
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          max-width="300"
+        />
+      </v-col>
+      <v-col cols="12" sm="6">
         <v-btn-toggle
           v-model="activeFilter"
           color="primary"
@@ -51,20 +67,6 @@
             Inactive
           </v-btn>
         </v-btn-toggle>
-      </v-col>
-      <v-spacer />
-      <v-col cols="12" sm="auto">
-        <v-text-field
-          v-model="search"
-          prepend-inner-icon="mdi-magnify"
-          placeholder="Search staff..."
-          variant="outlined"
-          density="compact"
-          rounded="lg"
-          hide-details
-          max-width="300"
-          class="bg-white"
-        />
       </v-col>
     </v-row>
 

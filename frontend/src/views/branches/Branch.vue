@@ -7,6 +7,7 @@
     >
       <template #right>
         <v-btn
+          v-if="isSuperAdmin()"
           color="primary"
           prepend-icon="mdi-plus"
           rounded="lg"

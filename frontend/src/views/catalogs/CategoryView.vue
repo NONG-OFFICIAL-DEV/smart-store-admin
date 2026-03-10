@@ -7,6 +7,7 @@
     >
       <template #right>
         <v-btn
+          v-if="isSuperAdmin()"
           color="primary"
           prepend-icon="mdi-plus"
           rounded="lg"
@@ -51,7 +52,9 @@
                 {{ item.name?.charAt(0)?.toUpperCase() }}
               </span>
             </v-avatar>
-            <span class="font-weight-medium text-body-2 ms-2">{{ item.name }}</span>
+            <span class="font-weight-medium text-body-2 ms-2">
+              {{ item.name }}
+            </span>
           </div>
         </template>
 
@@ -125,11 +128,12 @@
   import { useCategoryStore } from '@/stores/categoryStore'
   import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
-
+  import { usePermission } from '@/composables/usePermission'
   const { confirm, notif } = useAppUtils()
 
   // ── Store ──────────────────────────────────────────────────────────────────
   const categoryStore = useCategoryStore()
+  const { can, isSuperAdmin } = usePermission()
 
   // ── Table Headers ──────────────────────────────────────────────────────────
   const headers = [
@@ -137,13 +141,17 @@
     { title: 'Name', key: 'name', sortable: true },
     { title: 'Description', key: 'description', sortable: false },
     { title: 'Status', key: 'is_active', sortable: true, width: '110px' },
-    {
-      title: 'Actions',
-      key: 'actions',
-      sortable: false,
-      width: '100px',
-      align: 'center'
-    }
+    ...(isSuperAdmin()
+      ? [
+          {
+            title: 'Actions',
+            key: 'actions',
+            sortable: false,
+            width: '100px',
+            align: 'center'
+          }
+        ]
+      : [])
   ]
 
   // ── Filters & Pagination ───────────────────────────────────────────────────
@@ -206,7 +214,7 @@
     fetchData()
   }
 
-  const openDeleteConfirm = async (item) => {
+  const openDeleteConfirm = async item => {
     confirm({
       title: 'Delete Category',
       message: `Are you sure you want to delete category "${item.name}"?`,

@@ -527,7 +527,6 @@
   const timezoneOptions = [
     { value: 'UTC', label: 'UTC' },
     { value: 'Asia/Phnom_Penh', label: 'Asia/Phnom Penh (ICT)' },
-    { value: 'Asia/Bangkok', label: 'Asia/Bangkok (ICT)' },
     { value: 'Asia/Singapore', label: 'Asia/Singapore (SGT)' },
     { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)' },
     { value: 'America/New_York', label: 'America/New York (EST)' },

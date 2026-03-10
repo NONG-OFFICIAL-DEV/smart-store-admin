@@ -2,9 +2,7 @@
   <v-dialog v-model="model" max-width="670" persistent scrollable>
     <v-card rounded="lg">
       <!-- Header -->
-      <v-card-title
-        class="d-flex align-center justify-space-between"
-      >
+      <v-card-title class="d-flex align-center justify-space-between">
         <div class="d-flex align-center gap-3">
           <div>
             {{ isEdit ? 'Edit Category' : 'Add Category' }}
@@ -266,8 +264,6 @@
         <v-btn
           variant="outlined"
           rounded="lg"
-          class="flex-grow-1"
-          :disabled="loading"
           @click="close"
         >
           Cancel
@@ -276,8 +272,6 @@
           :color="isEdit ? 'primary' : 'success'"
           variant="flat"
           rounded="lg"
-          class="flex-grow-1"
-          :loading="loading"
           @click="submit"
         >
           {{ isEdit ? 'Save Changes' : 'Create Category' }}

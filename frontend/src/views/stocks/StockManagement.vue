@@ -1,323 +1,482 @@
 <template>
-  <custom-title icon="mdi-warehouse">
-    Current Stock Levels
-    <template #right>
-      <BaseButtonFilter @click="toggleFilterForm" />
-    </template>
-  </custom-title>
-  <v-card class="mb-4 pa-4 rounded-lg" elevation="0" v-show="showFilterForm">
-    <v-row>
-      <!-- Product Name / SKU -->
-      <v-col cols="12" md="3">
-        <v-text-field
-          v-model="filters.keyword"
-          label="Search (Product / SKU)"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-        />
+  <v-container fluid class="pa-0">
+    <custom-title
+      icon="mdi-warehouse"
+      title="Inventory Stock"
+      subtitle="Track stock levels across all branches"
+    >
+      <template #right>
+        <div class="d-flex gap-2">
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            :prepend-icon="
+              showFilter ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+            "
+            @click="showFilter = !showFilter"
+          >
+            Filter
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-plus"
+            @click="openAdd"
+          >
+            Add Stock
+          </v-btn>
+        </div>
+      </template>
+    </custom-title>
+
+    <!-- ── Low Stock Alert ────────────────────────────────────────────── -->
+    <v-alert
+      v-if="store.lowStockItems.length"
+      type="warning"
+      variant="tonal"
+      rounded="xl"
+      density="compact"
+      class="mb-4"
+      :text="`${store.lowStockItems.length} item(s) are at or below reorder point`"
+      prepend-icon="mdi-alert-outline"
+    />
+
+    <!-- ── Stats ──────────────────────────────────────────────────────── -->
+    <v-row dense class="mb-4">
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
+          <div class="text-h5 font-weight-black text-primary">
+            {{ store.stocks.total ?? 0 }}
+          </div>
+          <div class="text-caption text-grey mt-1">Total Items</div>
+        </v-card>
       </v-col>
-
-      <!-- Category -->
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="filters.category_id"
-          :items="categoryStore.categories.data"
-          item-title="name"
-          item-value="id"
-          label="Category"
-          multiple
-          hide-details
-        >
-          <template v-slot:selection="{ item, index }">
-            <v-chip v-if="index < 2" :text="item.title" size="x-small" />
-
-            <span
-              v-if="index === 2"
-              class="text-grey text-caption align-self-center"
-            >
-              (+{{ filters.category_id.length - 2 }} others)
-            </span>
-          </template>
-        </v-select>
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
+          <div class="text-h5 font-weight-black text-warning">
+            {{ store.lowStockItems.length }}
+          </div>
+          <div class="text-caption text-grey mt-1">Low Stock</div>
+        </v-card>
       </v-col>
-
-      <!-- Unit -->
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="filters.unit_id"
-          :items="unitStore.units"
-          item-title="name"
-          item-value="id"
-          label="Unit"
-          hide-details
-        />
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
+          <div class="text-h5 font-weight-black text-success">
+            {{
+              store.stocks.data?.filter(s => parseFloat(s.quantity_on_hand) > 0)
+                .length ?? 0
+            }}
+          </div>
+          <div class="text-caption text-grey mt-1">In Stock</div>
+        </v-card>
       </v-col>
-
-      <!-- Stock Level -->
-      <v-col cols="12" md="3">
-        <v-select
-          v-model="filters.stock_level"
-          :items="stockLevelOptions"
-          label="Stock Level"
-          hide-details
-        />
-      </v-col>
-
-      <!-- Quantity Range -->
-      <v-col cols="12" md="3">
-        <v-text-field
-          v-model="filters.min_qty"
-          type="number"
-          label="Min Quantity"
-          hide-details
-        />
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-text-field
-          v-model="filters.max_qty"
-          type="number"
-          label="Max Quantity"
-          hide-details
-        />
-      </v-col>
-
-      <!-- Buttons -->
-      <v-col cols="12" md="3" class="d-flex align-center">
-        <v-btn class="me-3" variant="outlined" @click="resetFilter">
-          Reset
-        </v-btn>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-filter-outline"
-          @click="applyFilter"
-        >
-          Apply Filter
-        </v-btn>
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
+          <div class="text-h5 font-weight-black text-error">
+            {{
+              store.stocks.data?.filter(
+                s => parseFloat(s.quantity_on_hand) <= 0
+              ).length ?? 0
+            }}
+          </div>
+          <div class="text-caption text-grey mt-1">Out of Stock</div>
+        </v-card>
       </v-col>
     </v-row>
-  </v-card>
 
-  <v-data-table-server
-    v-model:items-per-page="itemsPerPage"
-    :items-length="stockStore.stocks.total || 0"
-    @update:options="loadItems"
-    :headers="headers"
-    :items="stockStore.stocks.data"
-    class="text-no-wrap elevation-0"
-  >
-    <template #item.product="{ item }">
-      {{ item.product?.name }}
-    </template>
-    <template #item.updated_at="{ item }">
-      {{ formatDate(item.product?.updated_at) }}
-    </template>
-    <template #item.stock_alert="{ item }">
-      <v-chip :color="stockAlertChip(item).color" variant="flat" size="small">
-        <v-icon :icon="stockAlertChip(item).icon" start></v-icon>
-        {{ stockAlertChip(item).text }}
-      </v-chip>
-    </template>
-    <template #item.no="{ index }">
-      {{ index + 1 }}
-    </template>
-    <template #item.actions="{ item }">
-      <v-row dense>
-        <!-- Stock Adjustment (Admin, Storekeeper only) -->
-        <v-tooltip location="top" v-if="canAdjustStock">
-          <template #activator="{ props }">
+    <!-- ── Filter ─────────────────────────────────────────────────────── -->
+    <v-expand-transition>
+      <v-card
+        v-show="showFilter"
+        rounded="xl"
+        elevation="0"
+        border
+        class="mb-4 pa-4"
+      >
+        <v-row dense align="center">
+          <v-col cols="12" sm="3">
+            <v-text-field
+              v-model="draft.keyword"
+              label="Search ingredient..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="3">
+            <v-select
+              v-model="draft.branch_id"
+              :items="branchStore.branches?.data ?? []"
+              item-value="id"
+              item-title="name"
+              label="Branch"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="2">
+            <v-select
+              v-model="draft.category"
+              :items="categoryOptions"
+              label="Category"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="2">
+            <v-select
+              v-model="draft.stock_status"
+              :items="stockStatusOptions"
+              label="Stock Status"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="2" class="d-flex gap-2">
             <v-btn
-              v-bind="props"
-              icon
-              color="orange"
-              variant="text"
-              @click="openDialog('adjustment', item)"
+              variant="tonal"
+              rounded="lg"
+              :disabled="!filterActive"
+              @click="resetFilter"
             >
-              <v-icon>mdi-tune</v-icon>
+              Reset
             </v-btn>
-          </template>
-          <span>Adjustment</span>
-        </v-tooltip>
-
-        <!-- Stock Movements (Admin, Storekeeper, Purchaser) -->
-        <v-tooltip location="top" v-if="canViewMovements">
-          <template #activator="{ props }">
             <v-btn
-              v-bind="props"
-              icon
-              variant="text"
-              @click="openMovementDialog(item)"
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              @click="applyFilter"
             >
-              <v-icon>mdi-history</v-icon>
+              Apply
             </v-btn>
-          </template>
-          <span>Stock Movements</span>
-        </v-tooltip>
-      </v-row>
-    </template>
-  </v-data-table-server>
+          </v-col>
+        </v-row>
+      </v-card>
+    </v-expand-transition>
 
-  <MovementDialog v-model="isDialogOpen" :stock="selectedStock" />
+    <!-- ── Table ──────────────────────────────────────────────────────── -->
+    <v-card rounded="xl" elevation="0" border>
+      <v-data-table-server
+        :headers="headers"
+        :items="store.stocks.data ?? []"
+        :items-length="store.stocks.total ?? 0"
+        :loading="store.loading"
+        v-model:items-per-page="opts.itemsPerPage"
+        @update:options="loadItems"
+      >
+        <!-- Ingredient -->
+        <template #item.ingredient="{ item }">
+          <div>
+            <div class="text-body-2 font-weight-medium">
+              {{ item.ingredient?.name ?? '—' }}
+            </div>
+            <div class="text-caption text-grey">
+              {{ item.ingredient?.category ?? '' }}
+            </div>
+          </div>
+        </template>
 
-  <!-- Stock Action Dialog -->
-  <StockActionDialog
-    v-model="dialogVisible"
-    :actionType="dialogType"
-    :stock="selectedStock"
-    @submitAction="handleAction"
-  />
+        <!-- Branch -->
+        <template #item.branch="{ item }">
+          <span class="text-body-2">{{ item.branch?.name ?? '—' }}</span>
+        </template>
+
+        <!-- Quantity on hand -->
+        <template #item.quantity_on_hand="{ item }">
+          <div class="d-flex align-center gap-2">
+            <span
+              class="text-body-2 font-weight-bold"
+              :class="stockColor(item)"
+            >
+              {{ item.quantity_on_hand }}
+            </span>
+            <span class="text-caption text-grey">
+              {{ item.ingredient?.unit }}
+            </span>
+            <!-- Low stock badge -->
+            <v-icon
+              v-if="isLowStock(item)"
+              icon="mdi-alert-circle"
+              color="warning"
+              size="16"
+            />
+          </div>
+        </template>
+
+        <!-- Reserved -->
+        <template #item.quantity_reserved="{ item }">
+          <span class="text-body-2">
+            {{ item.quantity_reserved }}
+            <span class="text-caption text-grey">
+              {{ item.ingredient?.unit }}
+            </span>
+          </span>
+        </template>
+
+        <!-- Reorder point -->
+        <template #item.reorder_point="{ item }">
+          <span class="text-caption text-grey">
+            {{ item.ingredient?.reorder_point ?? '—' }}
+          </span>
+        </template>
+
+        <!-- Last counted -->
+        <template #item.last_counted_at="{ item }">
+          <span class="text-caption text-grey">
+            {{
+              item.last_counted_at ? formatDate(item.last_counted_at) : 'Never'
+            }}
+          </span>
+        </template>
+
+        <!-- Status chip -->
+        <template #item.status="{ item }">
+          <v-chip
+            :color="stockStatusChipColor(item)"
+            size="x-small"
+            variant="tonal"
+            label
+          >
+            {{ stockStatusLabel(item) }}
+          </v-chip>
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <v-btn
+            icon="mdi-pencil-outline"
+            size="small"
+            variant="text"
+            color="primary"
+            class="mr-1"
+            @click="openEdit(item)"
+          />
+          <v-btn
+            icon="mdi-delete-outline"
+            size="small"
+            variant="text"
+            color="error"
+            @click="handleDelete(item.id)"
+          />
+        </template>
+      </v-data-table-server>
+    </v-card>
+
+    <!-- ── Dialog ─────────────────────────────────────────────────────── -->
+    <InventoryStockDialog
+      v-model="dialog"
+      :stock="selected"
+      :loading="saving"
+      @save="handleSave"
+    />
+  </v-container>
 </template>
 
 <script setup>
-  import { ref, onMounted, computed } from 'vue'
-  import { useStockStore } from '@/stores/stockStore'
-  import MovementDialog from '@/components/MovementDialog.vue'
-  import StockActionDialog from '@/components/stocks/StockActionDialog.vue'
-  import { useStockMovementStore } from '@/stores/stockMovementStore'
-  import { useDate } from '@/composables/useDate'
-  import { useCategoryStore } from '@/stores/categoryStore'
-  import { useUnitStore } from '@/stores/unitStore'
-  import { useAuthStore } from '@/stores/authStore'
+  import { ref, reactive, computed, onMounted } from 'vue'
+  import { useInventoryStockStore } from '@/stores/inventoryStockStore'
+  import { useBranchStore } from '@/stores/branchStore'
+  import { useAppUtils } from '@/composables/useAppUtils'
+  import InventoryStockDialog from '@/components/inventory/InventoryStockDialog.vue'
 
-  const authStore = useAuthStore()
-  // import { useAppUtils } from '@/composables/useAppUtils'
+  const store = useInventoryStockStore()
+  const branchStore = useBranchStore()
+  const { confirm, notif } = useAppUtils()
 
-  const { formatDate } = useDate()
-  // const { confirm, notif } = useAppUtils()
-  const stockMovementStore = useStockMovementStore()
-  const stockStore = useStockStore()
-  const categoryStore = useCategoryStore()
-  const unitStore = useUnitStore()
+  // ── Table ──────────────────────────────────────────────────────────────────────
+  const opts = reactive({ page: 1, itemsPerPage: 15 })
 
   const headers = [
-    { title: 'No', key: 'no' },
-    { title: 'Product', key: 'product' },
-    { title: 'SKU', key: 'product.sku' },
-    { title: 'Category', key: 'product.category.name' },
-    { title: 'Quantity', key: 'quantity' },
-    { title: 'Unit', key: 'product.unit.abbreviation' },
-    // { title: 'Stock Alert', key: 'product.low_stock_threshold' },
-    { title: 'Status', key: 'stock_alert' },
-    { title: '', key: 'actions' }
+    { title: 'Ingredient', key: 'ingredient', sortable: false },
+    { title: 'Branch', key: 'branch', sortable: false },
+    { title: 'On Hand', key: 'quantity_on_hand' },
+    { title: 'Reserved', key: 'quantity_reserved' },
+    { title: 'Reorder Point', key: 'reorder_point', sortable: false },
+    { title: 'Last Counted', key: 'last_counted_at' },
+    { title: 'Status', key: 'status', sortable: false },
+    { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
   ]
-  const itemsPerPage = ref(10)
-  const form = ref({
-    quantity: 0,
-    note: ''
-  })
-  const filters = ref({
+
+  // ── Filter ─────────────────────────────────────────────────────────────────────
+  const showFilter = ref(false)
+  const draft = reactive({
     keyword: '',
-    category_id: null,
-    unit_id: null,
-    stock_level: null,
-    min_qty: null,
-    max_qty: null
+    branch_id: null,
+    category: null,
+    stock_status: null
   })
-  const stockLevelOptions = [
+  const applied = reactive({
+    keyword: '',
+    branch_id: null,
+    category: null,
+    stock_status: null
+  })
+  const filterActive = computed(
+    () =>
+      draft.keyword.trim() !== '' ||
+      draft.branch_id ||
+      draft.category ||
+      draft.stock_status
+  )
+
+  const categoryOptions = [
+    'dairy',
+    'produce',
+    'packaging',
+    'meat',
+    'seafood',
+    'dry goods',
+    'beverages',
+    'other'
+  ]
+  const stockStatusOptions = [
     { title: 'In Stock', value: 'in_stock' },
     { title: 'Low Stock', value: 'low_stock' },
     { title: 'Out of Stock', value: 'out_of_stock' }
   ]
 
-  const isDialogOpen = ref(false)
-  const selectedStock = ref(null)
-  const dialogVisible = ref(false)
-  const dialogType = ref('') // return | adjustment | loss
-  const showFilterForm = ref(false)
+  const applyFilter = () => {
+    Object.assign(applied, { ...draft })
+    opts.page = 1
+    fetchData()
+  }
 
-  const canAdjustStock = computed(() => [1, 2].includes(authStore.me?.role_id))
+  const resetFilter = () => {
+    Object.assign(draft, {
+      keyword: '',
+      branch_id: null,
+      category: null,
+      stock_status: null
+    })
+    Object.assign(applied, {
+      keyword: '',
+      branch_id: null,
+      category: null,
+      stock_status: null
+    })
+    opts.page = 1
+    fetchData()
+  }
 
-  const canViewMovements = computed(() =>
-    [1, 2, 3].includes(authStore.me?.role_id)
-  )
+  // ── Fetch ──────────────────────────────────────────────────────────────────────
+  const fetchData = () =>
+    store.fetchStocks({
+      page: opts.page,
+      per_page: opts.itemsPerPage,
+      keyword: applied.keyword || undefined,
+      branch_id: applied.branch_id || undefined,
+      category: applied.category || undefined,
+      stock_status: applied.stock_status || undefined
+    })
+
+  const loadItems = ({ page, itemsPerPage }) => {
+    opts.page = page
+    opts.itemsPerPage = itemsPerPage
+    fetchData()
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────────
+  const isLowStock = item =>
+    item.ingredient?.reorder_point !== null &&
+    parseFloat(item.quantity_on_hand) <=
+      parseFloat(item.ingredient?.reorder_point ?? 0) &&
+    parseFloat(item.quantity_on_hand) > 0
+
+  const stockColor = item => {
+    const qty = parseFloat(item.quantity_on_hand)
+    if (qty <= 0) return 'text-error'
+    if (isLowStock(item)) return 'text-warning'
+    return 'text-success'
+  }
+
+  const stockStatusLabel = item => {
+    const qty = parseFloat(item.quantity_on_hand)
+    if (qty <= 0) return 'Out of Stock'
+    if (isLowStock(item)) return 'Low Stock'
+    return 'In Stock'
+  }
+
+  const stockStatusChipColor = item => {
+    const qty = parseFloat(item.quantity_on_hand)
+    if (qty <= 0) return 'error'
+    if (isLowStock(item)) return 'warning'
+    return 'success'
+  }
+
+  const formatDate = dt =>
+    new Date(dt).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+
+  // ── CRUD ───────────────────────────────────────────────────────────────────────
+  const dialog = ref(false)
+  const selected = ref(null)
+  const saving = ref(false)
+
+  const openAdd = () => {
+    selected.value = null
+    dialog.value = true
+  }
+  const openEdit = item => {
+    selected.value = { ...item }
+    dialog.value = true
+  }
+
+  const handleSave = async data => {
+    saving.value = true
+    try {
+      if (data.id) {
+        await store.updateStock(data.id, data)
+        notif('Stock updated', { type: 'success' })
+      } else {
+        await store.addStock(data)
+        notif('Stock added', { type: 'success' })
+      }
+      dialog.value = false
+      fetchData()
+    } catch {
+      notif('Something went wrong', { type: 'error' })
+    } finally {
+      saving.value = false
+    }
+  }
+
+  const handleDelete = id => {
+    confirm({
+      title: 'Delete Stock Record',
+      message: 'This will remove this stock entry permanently.',
+      options: { type: 'error' },
+      agree: async () => {
+        await store.removeStock(id)
+        notif('Deleted', { type: 'success' })
+        fetchData()
+      }
+    })
+  }
 
   onMounted(() => {
-    unitStore.fetchUnits()
-    categoryStore.fetchCategories({
-      per_page: -1
-    })
-    stockStore.fetchStocks(filters.value)
+    branchStore.fetchBranches()
+    fetchData()
   })
-  const applyFilter = () => {
-    stockStore.fetchStocks({
-      keyword: filters.value.keyword,
-      category_id: filters.value.category_id?.join(',') ?? '',
-      unit_id: filters.value.unit_id,
-      stock_level: filters.value.stock_level,
-      min_qty: filters.value.min_qty,
-      max_qty: filters.value.max_qty
-    })
-  }
-  const loadItems = ({ page, itemsPerPage }) => {
-    stockStore.fetchStocks({
-      page,
-      per_page: itemsPerPage
-    })
-  }
-  const resetFilter = () => {
-    filters.value = {
-      keyword: '',
-      category_id: null,
-      unit_id: null,
-      stock_level: null,
-      min_qty: null,
-      max_qty: null
-    }
-    stockStore.fetchStocks()
-  }
-  const toggleFilterForm = () => {
-    showFilterForm.value = !showFilterForm.value
-  }
-  function openDialog(type, stock) {
-    dialogType.value = type
-    selectedStock.value = stock
-    form.value = { quantity: 0, note: '' }
-    dialogVisible.value = true
-  }
-  const openMovementDialog = item => {
-    selectedStock.value = item
-    isDialogOpen.value = true
-  }
-  const stockAlertChip = item => {
-    const threshold = item.product?.low_stock_threshold ?? 0
-    const qty = item.quantity
-
-    if (qty <= 0) {
-      return { text: 'Out of Stock', color: 'red', icon: 'mdi-close-circle' }
-    }
-
-    if (qty <= threshold) {
-      return { text: 'Low Stock', color: 'warning', icon: 'mdi-alert' }
-    }
-
-    return { text: 'In Stock', color: 'green', icon: 'mdi-check-circle' }
-  }
-
-  async function handleAction(payload) {
-    const { stockId, ...data } = payload
-
-    switch (dialogType.value) {
-      case 'return':
-        await stockMovementStore.returnStock({
-          product_id: stockId,
-          ...data
-        })
-        break
-      case 'adjustment':
-        await stockMovementStore.adjustStock({
-          product_id: stockId,
-          ...data
-        })
-        break
-      case 'loss':
-        await stockMovementStore.reportLoss({
-          product_id: stockId,
-          ...data
-        })
-        break
-    }
-
-    // Refresh stock
-    await stockStore.fetchStocks()
-  }
 </script>
+
+<style scoped>
+  .gap-2 {
+    gap: 8px;
+  }
+</style>

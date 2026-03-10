@@ -1,6 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+      icon="mdi-shield-crown"
       title="Roles"
       subtitle="Define roles and assign permissions to control access"
     >
@@ -16,27 +17,6 @@
         </v-btn>
       </template>
     </custom-title>
-
-    <!-- ── Stats ──────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border>
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <p class="text-caption text-medium-emphasis">
-                  {{ stat.label }}
-                </p>
-                <p class="text-h6 font-weight-bold mt-1">{{ stat.value }}</p>
-              </div>
-              <v-avatar :color="stat.color" size="40" rounded="lg">
-                <v-icon :icon="stat.icon" size="20" color="white" />
-              </v-avatar>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
 
     <!-- ── Search ─────────────────────────────────────────────────────────── -->
     <v-card rounded="xl" elevation="0" border class="mb-4">
@@ -294,33 +274,6 @@
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const roles = computed(() => roleStore.roles || [])
-
-  const stats = computed(() => [
-    {
-      label: 'Total Roles',
-      value: roles.value.length,
-      icon: 'mdi-shield-account',
-      color: 'primary'
-    },
-    {
-      label: 'System Roles',
-      value: roles.value.filter(r => r.is_system).length,
-      icon: 'mdi-shield-crown',
-      color: 'warning'
-    },
-    {
-      label: 'Custom Roles',
-      value: roles.value.filter(r => !r.is_system).length,
-      icon: 'mdi-shield-edit',
-      color: 'success'
-    },
-    {
-      label: 'Permissions',
-      value: permStore.permissions?.length || 0,
-      icon: 'mdi-key-variant',
-      color: 'secondary'
-    }
-  ])
 
   // ── Filtered roles ────────────────────────────────────────────────────────────
   const filteredRoles = computed(() => {

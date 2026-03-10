@@ -1,167 +1,275 @@
 <template>
-  <v-dialog v-model="internalOpen" max-width="800" persistent>
-    <v-card>
-      <v-toolbar
-        :title="form.id ? 'Edit Supplier' : 'Add Supplier'"
-        class="bg-primary"
-      >
-        <v-spacer />
-        <v-btn icon="mdi-close" @click="close"></v-btn>
-      </v-toolbar>
-
-      <v-form ref="supplierForm" @submit.prevent="save">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.name"
-                :rules="[v => !!v || 'Name is required']"
-                required
-              >
-                <template v-slot:label>
-                  Supplier Name
-                  <span class="required-asterisk">*</span>
-                </template>
-              </v-text-field>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.contact_name"
-                label="Contact Person"
+  <v-dialog v-model="model" max-width="580" persistent scrollable>
+    <v-card rounded="xl" elevation="0" border>
+      <!-- ── Header ──────────────────────────────────────────────────── -->
+      <v-card-title class="pa-5 pb-4">
+        <div class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center gap-3">
+            <v-avatar
+              :color="isEdit ? 'primary' : 'success'"
+              size="42"
+              rounded="lg"
+              variant="tonal"
+            >
+              <v-icon
+                :icon="
+                  isEdit ? 'mdi-truck-edit-outline' : 'mdi-truck-plus-outline'
+                "
+                size="20"
               />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field v-model="form.phone" label="Phone" />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.email"
-                type="email"
-                :rules="emailRules"
-                required
-              >
-                <template v-slot:label>
-                  Email
-                  <span class="required-asterisk">*</span>
-                </template>
-              </v-text-field>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" md="8">
-              <v-text-field v-model="form.address" label="Address" />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-switch
-                v-model="form.status"
-                :label="form.status ? 'Active' : 'Inactive'"
-                :true-value="1"
-                :false-value="0"
-                color="success"
-                inset
-                hide-details
-              ></v-switch>
-            </v-col>
-          </v-row>
-        </v-card-text>
+            </v-avatar>
+            <div>
+              <div class="text-body-1 font-weight-bold">
+                {{ isEdit ? 'Edit Supplier' : 'Add Supplier' }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{
+                  isEdit
+                    ? 'Update supplier details'
+                    : 'Add a new supplier to your business'
+                }}
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" size="small" variant="text" @click="close" />
+        </div>
+      </v-card-title>
 
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="close">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" @click="save">Save</v-btn>
-        </v-card-actions>
-      </v-form>
+      <v-divider />
+
+      <!-- ── Form ────────────────────────────────────────────────────── -->
+      <v-card-text class="pa-0" style="max-height: 65vh">
+        <v-form ref="formRef">
+          <!-- Basic Info -->
+          <div class="form-section">
+            <div class="form-section-label">
+              <v-icon icon="mdi-information-outline" size="13" class="mr-1" />
+              Basic Info
+            </div>
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.name"
+                  label="Supplier Name *"
+                  variant="outlined"
+                  rounded="lg"
+                  :rules="[r.required]"
+                  prepend-inner-icon="mdi-domain"
+                  maxlength="150"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.contact_person"
+                  label="Contact Person"
+                  variant="outlined"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-account-outline"
+                  maxlength="100"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.phone"
+                  label="Phone"
+                  variant="outlined"
+                  rounded="lg"
+                  :rules="[r.phone]"
+                  prepend-inner-icon="mdi-phone-outline"
+                  maxlength="30"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.email"
+                  label="Email"
+                  type="email"
+                  variant="outlined"
+                  rounded="lg"
+                  :rules="[r.email]"
+                  prepend-inner-icon="mdi-email-outline"
+                  maxlength="255"
+                />
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="form.address"
+                  label="Address"
+                  variant="outlined"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-map-marker-outline"
+                />
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider />
+
+          <!-- Payment & Settings -->
+          <div class="form-section">
+            <div class="form-section-label">
+              <v-icon icon="mdi-cash-outline" size="13" class="mr-1" />
+              Payment & Settings
+            </div>
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-combobox
+                  v-model="form.payment_terms"
+                  :items="paymentTermOptions"
+                  label="Payment Terms"
+                  variant="outlined"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-file-sign"
+                  placeholder="e.g. Net 30, COD"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="12" sm="6" class="d-flex align-center">
+                <v-card
+                  rounded="lg"
+                  border
+                  elevation="0"
+                  class="px-3 py-2 d-flex align-center justify-space-between w-100"
+                >
+                  <div>
+                    <div class="text-body-2 font-weight-medium">Active</div>
+                    <div class="text-caption text-grey">
+                      Available for orders
+                    </div>
+                  </div>
+                  <v-switch
+                    v-model="form.is_active"
+                    color="success"
+                    inset
+                    hide-details
+                    density="compact"
+                  />
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+        </v-form>
+      </v-card-text>
+
+      <v-divider />
+
+      <!-- ── Actions ──────────────────────────────────────────────────── -->
+      <v-card-actions class="pa-4 gap-2">
+        <v-spacer />
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+          Cancel
+        </v-btn>
+        <v-btn
+          :color="isEdit ? 'primary' : 'success'"
+          variant="flat"
+          rounded="lg"
+          :loading="loading"
+          :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
+          @click="save"
+        >
+          {{ isEdit ? 'Save Changes' : 'Add Supplier' }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup>
-  import { ref, watch } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
 
   const props = defineProps({
     modelValue: Boolean,
-    supplier: { type: Object, default: null }
+    supplier: { type: Object, default: null },
+    loading: Boolean
   })
   const emit = defineEmits(['update:modelValue', 'save'])
 
-  const internalOpen = ref(false)
-  const supplierForm = ref(null) // Ref for the form element
+  const formRef = ref(null)
 
-  const initialForm = {
-    id: null,
+  const model = computed({
+    get: () => props.modelValue,
+    set: v => emit('update:modelValue', v)
+  })
+  const isEdit = computed(() => !!props.supplier?.id)
+
+  const paymentTermOptions = ['Net 30', 'Net 60', 'Net 90', 'COD', 'Prepaid']
+
+  // ── Default form — matches DB schema exactly ───────────────────────────────────
+  const defaultForm = () => ({
     name: '',
-    contact_name: '',
+    contact_person: '', // ← schema: contact_person (not contact_name)
     phone: '',
     email: '',
-    status: 1
-  }
-
-  const form = ref({ ...initialForm })
-
-  const statusOptions = ref([
-    { id: 1, name: 'Active' },
-    { id: 0, name: 'Inactive' }
-  ])
-
-  // Validation Rules
-  const emailRules = [
-    v => !!v || 'Email is required',
-    v => /.+@.+\..+/.test(v) || 'E-mail must be valid'
-  ]
-
-  const resetForm = () => {
-    form.value = { ...initialForm }
-    if (supplierForm.value) {
-      supplierForm.value.resetValidation()
-    }
-  }
-
-  watch(
-    () => props.modelValue,
-    val => (internalOpen.value = val),
-    { immediate: true }
-  )
-  watch(internalOpen, val => {
-    emit('update:modelValue', val)
-    if (!val) resetForm() // Reset when closing
+    address: '',
+    payment_terms: '',
+    is_active: true // ← schema: is_active boolean (not status int)
   })
+
+  const form = reactive(defaultForm())
 
   watch(
     () => props.supplier,
-    newVal => {
-      if (newVal) {
-        form.value = { ...newVal }
-      } else {
-        resetForm()
-      }
+    val => {
+      Object.assign(
+        form,
+        val
+          ? {
+              name: val.name ?? '',
+              contact_person: val.contact_person ?? '',
+              phone: val.phone ?? '',
+              email: val.email ?? '',
+              address: val.address ?? '',
+              payment_terms: val.payment_terms ?? '',
+              is_active: val.is_active ?? true
+            }
+          : defaultForm()
+      )
     },
     { immediate: true }
   )
 
-  const close = () => (internalOpen.value = false)
+  // ── Rules ──────────────────────────────────────────────────────────────────────
+  const r = {
+    required: v => !!v || 'Required',
+    email: v => !v || /.+@.+\..+/.test(v) || 'Invalid email',
+    phone: v => !v || /^[+\d\s().-]+$/.test(v) || 'Invalid phone'
+  }
 
+  // ── Submit ─────────────────────────────────────────────────────────────────────
   const save = async () => {
-    // Validate form before emitting save
-    const { valid } = await supplierForm.value.validate()
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+    emit('save', {
+      ...(props.supplier?.id ? { id: props.supplier.id } : {}),
+      ...form
+    })
+  }
 
-    if (valid) {
-      emit('save', { ...form.value })
-      close()
-    }
+  const close = () => {
+    model.value = false
+    formRef.value?.reset()
+    Object.assign(form, defaultForm())
   }
 </script>
-<style scoped>
-  /* Targets the asterisk specifically if you want it red globally in this form */
-  :deep(.v-label.v-field-label--floating) {
-    opacity: 1; /* Keeps the label clear */
-  }
 
-  /* Custom class or global selector to make the star red */
-  .required-asterisk {
-    color: rgb(var(--v-theme-error)); /* Uses Vuetify's error color variable */
-    margin-left: 2px;
-    font-weight: bold;
+<style scoped>
+  .form-section {
+    padding: 16px 20px;
+  }
+  .form-section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgb(var(--v-theme-primary));
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+  }
+  .w-100 {
+    width: 100%;
+  }
+  .gap-3 {
+    gap: 12px;
   }
 </style>

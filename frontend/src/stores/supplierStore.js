@@ -5,37 +5,54 @@ import {
   createSupplierApi,
   updateSupplierApi,
   deleteSupplierApi
-} from '../api/supplierService'
+} from '@/api/supplierService'
 
 export const useSupplierStore = defineStore('supplier', {
   state: () => ({
-    suppliers: [],
+    suppliers: { data: [], total: 0 }, // match v-data-table-server shape
     supplier: null,
-    pagination: {}
+    loading: false,
+    error: null
   }),
 
   actions: {
-    async fetchSuppliers(filters) {
-      const res = await getAllSuppliersApi(filters)
-      this.suppliers = res.data.data.data
-      this.pagination = res.data.data
+    async fetchSuppliers(filters = {}) {
+      this.loading = true
+      try {
+        const res = await getAllSuppliersApi(filters)
+        this.suppliers = res.data.data // { data: [...], total, per_page, ... }
+      } catch (e) {
+        this.error = e?.response?.data?.message ?? 'Failed to load suppliers'
+      } finally {
+        this.loading = false
+      }
     },
+
     async fetchSupplierById(id) {
       const res = await getSupplierByIdApi(id)
       this.supplier = res.data.data
     },
-    async createSupplier(data) {
+
+    async addSupplier(data) {
       const res = await createSupplierApi(data)
-      this.suppliers.unshift(res.data.data)
+      // Prepend to local list without refetching
+      this.suppliers.data?.unshift(res.data.data)
+      this.suppliers.total++
+      return res.data.data
     },
-    async updateSupplier(id, data) {
-      const res = await updateSupplierApi(id, data)
-      const index = this.suppliers.findIndex(item => item.id === id)
-      if (index !== -1) this.suppliers[index] = res.data.data
+
+    async updateSupplier(supplier) {
+      // supplier is the full object with id
+      const res = await updateSupplierApi(supplier.id, supplier)
+      const index = this.suppliers.data?.findIndex(s => s.id === supplier.id)
+      if (index !== -1) this.suppliers.data[index] = res.data.data
+      return res.data.data
     },
-    async deleteSupplier(id) {
+
+    async removeSupplier(id) {
       await deleteSupplierApi(id)
-      this.suppliers = this.suppliers.filter(item => item.id !== id)
+      this.suppliers.data = this.suppliers.data?.filter(s => s.id !== id)
+      this.suppliers.total = Math.max(0, (this.suppliers.total ?? 1) - 1)
     }
   }
 })
