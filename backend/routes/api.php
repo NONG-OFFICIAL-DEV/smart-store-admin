@@ -62,6 +62,7 @@ use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DailySalesSummaryController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Api\BranchMenuController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
@@ -362,6 +363,14 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::apiResource('branch-menus', BranchMenuController::class);
     Route::delete('branch-menus/unassign', [BranchMenuController::class, 'unassign']);
     Route::get('branch-menus/branch/{branchId}/available-now', [BranchMenuController::class, 'availableNow']);
+
+    Route::prefix('dashboard')->group(function () {
+        Route::get('stats',        [DashboardController::class, 'stats']);
+        Route::get('chart',        [DashboardController::class, 'chart']);
+        Route::get('live-orders',  [DashboardController::class, 'liveOrders']);
+        Route::get('top-products', [DashboardController::class, 'topProducts']);
+        Route::get('activity',     [DashboardController::class, 'activity']);
+    });
 });
 
 

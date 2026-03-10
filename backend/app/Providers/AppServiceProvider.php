@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Observers\ActivityLogObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
-use App\Models\{Product, Category, Branch, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, Shift, Supplier};
+use App\Models\{Product, Category, Branch, BranchMenu, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, Shift, Supplier};
 use App\Models\Scopes\TenantScope;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Tenant::observe(ActivityLogObserver::class);
         Staff::observe(ActivityLogObserver::class);
         Menu::observe(ActivityLogObserver::class);
+        BranchMenu::observe(ActivityLogObserver::class);
         Table::observe(ActivityLogObserver::class);
         Order::observe(ActivityLogObserver::class);
         OrderItem::observe(ActivityLogObserver::class);
@@ -45,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
             ProductVariant::class,
             Category::class,
             Menu::class,
+            BranchMenu::class,
             Staff::class,
             Table::class,
             Shift::class,

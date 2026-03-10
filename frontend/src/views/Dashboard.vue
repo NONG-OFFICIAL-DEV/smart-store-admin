@@ -12,11 +12,10 @@
           </span>
         </div>
         <h1 class="text-h4 font-weight-black dashboard-title">
-          Good morning, Alex 👋
+          Good {{ greeting }}, {{ userName }} 👋
         </h1>
         <p class="text-body-2 text-medium-emphasis mt-1">
-          {{ today }} · {{ branches.length }} branches active across your
-          network
+          {{ today }} · {{ branches.length }} branches across your network
         </p>
       </div>
       <div class="d-flex align-center gap-3">
@@ -27,12 +26,13 @@
           density="compact"
           hide-details
           rounded="lg"
+          style="width: 120px"
+          @update:model-value="onPeriodChange"
         />
         <v-btn
           color="primary"
           variant="flat"
           rounded="lg"
-          class="ms-2"
           prepend-icon="mdi-download-outline"
         >
           Export
@@ -46,69 +46,71 @@
         <v-card
           rounded="xl"
           elevation="0"
+          border
           :class="['kpi-card', i === 0 ? 'kpi-card--hero' : '']"
           :color="i === 0 ? 'primary' : undefined"
-          border
         >
           <v-card-text class="pa-5">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar
-                :color="i === 0 ? 'rgba(255,255,255,0.2)' : kpi.color"
-                size="40"
-                rounded="lg"
-              >
-                <v-icon
-                  :icon="kpi.icon"
-                  size="20"
-                  :color="i === 0 ? 'white' : 'white'"
-                />
-              </v-avatar>
-              <v-chip
-                :color="
-                  kpi.trend > 0
-                    ? i === 0
-                      ? 'rgba(255,255,255,0.25)'
-                      : 'success'
-                    : 'error'
-                "
-                variant="tonal"
-                size="x-small"
-                rounded="lg"
-              >
-                <v-icon
-                  :icon="
-                    kpi.trend > 0 ? 'mdi-trending-up' : 'mdi-trending-down'
+            <v-skeleton-loader
+              v-if="store.loading.stats"
+              type="list-item-two-line"
+            />
+            <template v-else>
+              <div class="d-flex align-center justify-space-between mb-3">
+                <v-avatar
+                  :color="i === 0 ? 'rgba(255,255,255,0.2)' : kpi.color"
+                  size="40"
+                  rounded="lg"
+                >
+                  <v-icon :icon="kpi.icon" size="20" color="white" />
+                </v-avatar>
+                <v-chip
+                  :color="
+                    kpi.trend > 0
+                      ? i === 0
+                        ? 'rgba(255,255,255,0.25)'
+                        : 'success'
+                      : 'error'
                   "
-                  size="12"
-                  class="mr-1"
-                />
-                {{ Math.abs(kpi.trend) }}%
-              </v-chip>
-            </div>
-            <div
-              :class="[
-                'text-h5 font-weight-black',
-                i === 0 ? 'text-white' : ''
-              ]"
-            >
-              {{ kpi.value }}
-            </div>
-            <div
-              :class="[
-                'text-caption mt-1',
-                i === 0 ? 'text-white opacity-80' : 'text-medium-emphasis'
-              ]"
-            >
-              {{ kpi.label }}
-            </div>
-            <div
-              :class="[
-                'text-caption mt-1',
-                i === 0 ? 'text-white opacity-60' : 'text-disabled'
-              ]"
-            >
-              vs last {{ selectedPeriod.toLowerCase() }}
-            </div>
+                  variant="tonal"
+                  size="x-small"
+                  rounded="lg"
+                >
+                  <v-icon
+                    :icon="
+                      kpi.trend > 0 ? 'mdi-trending-up' : 'mdi-trending-down'
+                    "
+                    size="12"
+                    class="mr-1"
+                  />
+                  {{ Math.abs(kpi.trend) }}%
+                </v-chip>
+              </div>
+              <div
+                :class="[
+                  'text-h5 font-weight-black',
+                  i === 0 ? 'text-white' : ''
+                ]"
+              >
+                {{ kpi.value }}
+              </div>
+              <div
+                :class="[
+                  'text-caption mt-1',
+                  i === 0 ? 'text-white opacity-80' : 'text-medium-emphasis'
+                ]"
+              >
+                {{ kpi.label }}
+              </div>
+              <div
+                :class="[
+                  'text-caption mt-1',
+                  i === 0 ? 'text-white opacity-60' : 'text-disabled'
+                ]"
+              >
+                vs last {{ selectedPeriod.toLowerCase() }}
+              </div>
+            </template>
           </v-card-text>
         </v-card>
       </v-col>
@@ -142,8 +144,12 @@
             </div>
           </v-card-title>
           <v-card-text class="pa-5 pt-2">
-            <!-- SVG Chart -->
-            <div class="chart-wrap">
+            <v-skeleton-loader
+              v-if="store.loading.chart"
+              type="image"
+              height="180"
+            />
+            <div v-else class="chart-wrap">
               <svg
                 viewBox="0 0 700 200"
                 preserveAspectRatio="none"
@@ -159,7 +165,6 @@
                     <stop offset="100%" stop-color="#1867C0" stop-opacity="0" />
                   </linearGradient>
                 </defs>
-                <!-- Grid lines -->
                 <line
                   v-for="y in [40, 80, 120, 160]"
                   :key="y"
@@ -171,9 +176,7 @@
                   stroke-opacity="0.06"
                   stroke-width="1"
                 />
-                <!-- Area fill -->
                 <path :d="chartAreaPath" fill="url(#chartGrad)" />
-                <!-- Line -->
                 <path
                   :d="chartLinePath"
                   fill="none"
@@ -182,7 +185,6 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 />
-                <!-- Dots -->
                 <circle
                   v-for="(pt, i) in chartPoints"
                   :key="i"
@@ -194,7 +196,6 @@
                   stroke-width="2"
                 />
               </svg>
-              <!-- X labels -->
               <div class="chart-labels">
                 <span
                   v-for="l in chartLabels"
@@ -208,7 +209,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- ── Branch Performance Table ───────────────────────────────────── -->
+        <!-- ── Branch Performance ──────────────────────────────────────────── -->
         <v-card rounded="xl" elevation="0" border>
           <v-card-title class="pa-5 pb-3">
             <div class="d-flex align-center justify-space-between">
@@ -225,6 +226,7 @@
                 color="primary"
                 size="small"
                 append-icon="mdi-arrow-right"
+                @click="$router.push('/branches')"
               >
                 View All
               </v-btn>
@@ -232,88 +234,101 @@
           </v-card-title>
           <v-divider />
           <v-list class="pa-2">
-            <v-list-item
-              v-for="branch in branches"
-              :key="branch.id"
-              rounded="lg"
-              class="mb-1 branch-row"
-            >
-              <template #prepend>
-                <v-avatar
-                  :color="branch.color"
-                  size="38"
-                  rounded="lg"
-                  class="mr-3"
-                >
-                  <v-icon icon="mdi-store" size="18" color="white" />
-                </v-avatar>
-              </template>
-
-              <v-list-item-title class="font-weight-medium text-body-2">
-                {{ branch.name }}
-                <v-chip
-                  v-if="branch.rank === 1"
-                  size="x-small"
-                  color="warning"
-                  variant="tonal"
-                  class="ml-2"
-                >
-                  <v-icon icon="mdi-crown" size="10" class="mr-1" />
-                  Top
-                </v-chip>
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-caption">
-                {{ branch.city }} · {{ branch.orders }} orders today
-              </v-list-item-subtitle>
-
-              <template #append>
-                <div class="d-flex align-center gap-4">
-                  <!-- Progress bar -->
-                  <div style="width: 100px">
-                    <div class="d-flex justify-space-between mb-1">
-                      <span class="text-caption text-medium-emphasis">
-                        {{ branch.revenuePercent }}%
-                      </span>
-                    </div>
-                    <v-progress-linear
-                      :model-value="branch.revenuePercent"
-                      :color="branch.color"
-                      rounded
-                      height="6"
-                      bg-color="grey-lighten-3"
-                    />
-                  </div>
-                  <div class="text-right" style="min-width: 80px">
-                    <div class="font-weight-bold text-body-2">
-                      ${{ branch.revenue.toLocaleString() }}
-                    </div>
-                    <div
-                      class="text-caption"
-                      :class="
-                        branch.growth >= 0 ? 'text-success' : 'text-error'
-                      "
-                    >
-                      <v-icon
-                        :icon="
-                          branch.growth >= 0
-                            ? 'mdi-trending-up'
-                            : 'mdi-trending-down'
-                        "
-                        size="11"
+            <v-skeleton-loader
+              v-if="store.loading.stats"
+              v-for="n in 3"
+              :key="n"
+              type="list-item-two-line"
+              class="mb-1"
+            />
+            <template v-else>
+              <v-list-item
+                v-for="(branch, idx) in branches"
+                :key="branch.id"
+                rounded="lg"
+                class="mb-1 branch-row"
+                @click="$router.push(`/branches/${branch.id}`)"
+              >
+                <template #prepend>
+                  <v-avatar
+                    :color="branchColor(idx)"
+                    size="38"
+                    rounded="lg"
+                    class="mr-3"
+                  >
+                    <v-icon icon="mdi-store" size="18" color="white" />
+                  </v-avatar>
+                </template>
+                <v-list-item-title class="font-weight-medium text-body-2">
+                  {{ branch.name }}
+                  <v-chip
+                    v-if="branch.rank === 1"
+                    size="x-small"
+                    color="warning"
+                    variant="tonal"
+                    class="ml-2"
+                  >
+                    <v-icon icon="mdi-crown" size="10" class="mr-1" />
+                    Top
+                  </v-chip>
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-caption">
+                  {{ branch.city }} · {{ branch.orders }} orders today
+                </v-list-item-subtitle>
+                <template #append>
+                  <div class="d-flex align-center gap-4">
+                    <div style="width: 100px">
+                      <div class="d-flex justify-space-between mb-1">
+                        <span class="text-caption text-medium-emphasis">
+                          {{ branch.revenuePercent }}%
+                        </span>
+                      </div>
+                      <v-progress-linear
+                        :model-value="branch.revenuePercent"
+                        :color="branchColor(idx)"
+                        rounded
+                        height="6"
+                        bg-color="grey-lighten-3"
                       />
-                      {{ Math.abs(branch.growth) }}%
+                    </div>
+                    <div class="text-right" style="min-width: 80px">
+                      <div class="font-weight-bold text-body-2">
+                        ${{ branch.revenue?.toLocaleString() }}
+                      </div>
+                      <div
+                        class="text-caption"
+                        :class="
+                          branch.growth >= 0 ? 'text-success' : 'text-error'
+                        "
+                      >
+                        <v-icon
+                          :icon="
+                            branch.growth >= 0
+                              ? 'mdi-trending-up'
+                              : 'mdi-trending-down'
+                          "
+                          size="11"
+                        />
+                        {{ Math.abs(branch.growth) }}%
+                      </div>
                     </div>
                   </div>
-                </div>
-              </template>
-            </v-list-item>
+                </template>
+              </v-list-item>
+              <div
+                v-if="!branches.length"
+                class="text-center py-6 text-medium-emphasis text-body-2"
+              >
+                No branches found
+              </div>
+            </template>
           </v-list>
         </v-card>
       </v-col>
 
       <!-- ── Right Column ─────────────────────────────────────────────────── -->
       <v-col cols="12" lg="4">
-        <!-- Live Orders Feed -->
+        <!-- Live Orders -->
         <v-card rounded="xl" elevation="0" border class="mb-4">
           <v-card-title class="pa-5 pb-3">
             <div class="d-flex align-center justify-space-between">
@@ -324,13 +339,13 @@
                     Live Orders
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Updating in real-time
+                    Active right now
                   </div>
                 </div>
               </div>
               <v-chip color="success" variant="tonal" size="small" rounded="lg">
                 {{
-                  liveOrders.filter(o => o.status === 'preparing').length
+                  store.liveOrders.filter(o => o.status === 'preparing').length
                 }}
                 active
               </v-chip>
@@ -342,48 +357,63 @@
             class="pa-2"
             style="max-height: 280px; overflow-y: auto"
           >
-            <v-list-item
-              v-for="order in liveOrders"
-              :key="order.id"
-              rounded="lg"
+            <v-skeleton-loader
+              v-if="store.loading.liveOrders"
+              v-for="n in 4"
+              :key="n"
+              type="list-item"
               class="mb-1"
-            >
-              <template #prepend>
-                <v-avatar
-                  :color="orderStatusColor(order.status)"
-                  size="32"
-                  rounded="lg"
-                  class="mr-2"
-                >
-                  <v-icon
-                    :icon="orderStatusIcon(order.status)"
-                    size="15"
-                    color="white"
-                  />
-                </v-avatar>
-              </template>
-              <v-list-item-title class="text-body-2 font-weight-medium">
-                #{{ order.number }} · {{ order.branch }}
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-caption">
-                {{ order.items }} items · {{ order.ago }}
-              </v-list-item-subtitle>
-              <template #append>
-                <div class="text-right">
-                  <div class="text-body-2 font-weight-bold">
-                    ${{ order.total }}
-                  </div>
-                  <v-chip
+            />
+            <template v-else-if="store.liveOrders.length">
+              <v-list-item
+                v-for="order in store.liveOrders"
+                :key="order.id"
+                rounded="lg"
+                class="mb-1"
+              >
+                <template #prepend>
+                  <v-avatar
                     :color="orderStatusColor(order.status)"
-                    variant="tonal"
-                    size="x-small"
+                    size="32"
                     rounded="lg"
+                    class="mr-2"
                   >
-                    {{ order.status }}
-                  </v-chip>
-                </div>
-              </template>
-            </v-list-item>
+                    <v-icon
+                      :icon="orderStatusIcon(order.status)"
+                      size="15"
+                      color="white"
+                    />
+                  </v-avatar>
+                </template>
+                <v-list-item-title class="text-body-2 font-weight-medium">
+                  #{{ order.number }} · {{ order.branch }}
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-caption">
+                  {{ order.items }} items · {{ order.ago }}
+                </v-list-item-subtitle>
+                <template #append>
+                  <div class="text-right">
+                    <div class="text-body-2 font-weight-bold">
+                      ${{ order.total }}
+                    </div>
+                    <v-chip
+                      :color="orderStatusColor(order.status)"
+                      variant="tonal"
+                      size="x-small"
+                      rounded="lg"
+                    >
+                      {{ order.status }}
+                    </v-chip>
+                  </div>
+                </template>
+              </v-list-item>
+            </template>
+            <div
+              v-else
+              class="text-center py-6 text-medium-emphasis text-caption"
+            >
+              No active orders
+            </div>
           </v-list>
         </v-card>
 
@@ -397,41 +427,62 @@
           </v-card-title>
           <v-divider />
           <v-list density="compact" class="pa-2">
-            <v-list-item
-              v-for="(prod, i) in topProducts"
-              :key="prod.name"
-              rounded="lg"
+            <v-skeleton-loader
+              v-if="store.loading.topProducts"
+              v-for="n in 5"
+              :key="n"
+              type="list-item"
               class="mb-1"
-            >
-              <template #prepend>
-                <v-avatar
-                  color="grey-lighten-3"
-                  size="32"
-                  rounded="lg"
-                  class="mr-2"
-                >
-                  <span
-                    class="text-caption font-weight-black text-medium-emphasis"
+            />
+            <template v-else-if="store.topProducts.length">
+              <v-list-item
+                v-for="(prod, i) in store.topProducts"
+                :key="prod.name"
+                rounded="lg"
+                class="mb-1"
+              >
+                <template #prepend>
+                  <v-avatar
+                    color="grey-lighten-3"
+                    size="34"
+                    rounded="lg"
+                    class="mr-2"
                   >
-                    {{ i + 1 }}
-                  </span>
-                </v-avatar>
-              </template>
-              <v-list-item-title class="text-body-2 font-weight-medium">
-                {{ prod.name }}
-              </v-list-item-title>
-              <v-list-item-subtitle class="text-caption">
-                {{ prod.sold }} sold
-              </v-list-item-subtitle>
-              <template #append>
-                <div class="text-right">
-                  <div class="text-body-2 font-weight-bold text-success">
-                    ${{ prod.revenue.toLocaleString() }}
+                    <img
+                      v-if="prod.image_url"
+                      :src="prod.image_url"
+                      style="width: 100%; height: 100%; object-fit: cover"
+                    />
+                    <span
+                      v-else
+                      class="text-caption font-weight-black text-medium-emphasis"
+                    >
+                      {{ i + 1 }}
+                    </span>
+                  </v-avatar>
+                </template>
+                <v-list-item-title class="text-body-2 font-weight-medium">
+                  {{ prod.name }}
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-caption">
+                  {{ prod.sold }} sold
+                </v-list-item-subtitle>
+                <template #append>
+                  <div class="text-right">
+                    <div class="text-body-2 font-weight-bold text-success">
+                      ${{ prod.revenue?.toLocaleString() }}
+                    </div>
+                    <div class="text-caption text-medium-emphasis">revenue</div>
                   </div>
-                  <div class="text-caption text-medium-emphasis">revenue</div>
-                </div>
-              </template>
-            </v-list-item>
+                </template>
+              </v-list-item>
+            </template>
+            <div
+              v-else
+              class="text-center py-6 text-medium-emphasis text-caption"
+            >
+              No data yet
+            </div>
           </v-list>
         </v-card>
       </v-col>
@@ -439,7 +490,7 @@
 
     <!-- ── Bottom Row ─────────────────────────────────────────────────────── -->
     <v-row dense class="mt-1">
-      <!-- Orders by Type donut -->
+      <!-- Donut -->
       <v-col cols="12" sm="6" lg="3">
         <v-card rounded="xl" elevation="0" border height="100%">
           <v-card-title class="pa-5 pb-3">
@@ -449,71 +500,77 @@
             </div>
           </v-card-title>
           <v-card-text class="pa-5 pt-0">
-            <!-- Donut SVG -->
-            <div class="donut-wrap">
-              <svg viewBox="0 0 120 120" class="donut-svg">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="45"
-                  fill="none"
-                  stroke="#f5f5f5"
-                  stroke-width="18"
-                />
-                <circle
-                  v-for="(seg, i) in donutSegments"
-                  :key="i"
-                  cx="60"
-                  cy="60"
-                  r="45"
-                  fill="none"
-                  :stroke="seg.color"
-                  stroke-width="18"
-                  :stroke-dasharray="`${seg.dash} ${seg.gap}`"
-                  :stroke-dashoffset="seg.offset"
-                  stroke-linecap="butt"
-                />
-                <text
-                  x="60"
-                  y="55"
-                  text-anchor="middle"
-                  class="donut-total-label"
-                >
-                  {{ totalOrdersToday }}
-                </text>
-                <text
-                  x="60"
-                  y="70"
-                  text-anchor="middle"
-                  class="donut-sub-label"
-                >
-                  orders
-                </text>
-              </svg>
-            </div>
-            <div class="mt-3">
-              <div
-                v-for="seg in donutSegments"
-                :key="seg.label"
-                class="d-flex align-center justify-space-between mb-2"
-              >
-                <div class="d-flex align-center gap-2">
-                  <div
-                    class="donut-legend-dot"
-                    :style="{ background: seg.color }"
+            <v-skeleton-loader
+              v-if="store.loading.stats"
+              type="image"
+              height="140"
+            />
+            <template v-else>
+              <div class="donut-wrap">
+                <svg viewBox="0 0 120 120" class="donut-svg">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="45"
+                    fill="none"
+                    stroke="#f5f5f5"
+                    stroke-width="18"
                   />
-                  <span class="text-body-2">{{ seg.label }}</span>
-                </div>
-                <span class="text-body-2 font-weight-bold">
-                  {{ seg.count }}
-                </span>
+                  <circle
+                    v-for="(seg, i) in donutSegments"
+                    :key="i"
+                    cx="60"
+                    cy="60"
+                    r="45"
+                    fill="none"
+                    :stroke="seg.color"
+                    stroke-width="18"
+                    :stroke-dasharray="`${seg.dash} ${seg.gap}`"
+                    :stroke-dashoffset="seg.offset"
+                    stroke-linecap="butt"
+                  />
+                  <text
+                    x="60"
+                    y="55"
+                    text-anchor="middle"
+                    class="donut-total-label"
+                  >
+                    {{ totalOrdersToday }}
+                  </text>
+                  <text
+                    x="60"
+                    y="70"
+                    text-anchor="middle"
+                    class="donut-sub-label"
+                  >
+                    orders
+                  </text>
+                </svg>
               </div>
-            </div>
+              <div class="mt-3">
+                <div
+                  v-for="seg in donutSegments"
+                  :key="seg.label"
+                  class="d-flex align-center justify-space-between mb-2"
+                >
+                  <div class="d-flex align-center gap-2">
+                    <div
+                      class="donut-legend-dot"
+                      :style="{ background: seg.color }"
+                    />
+                    <span class="text-body-2">{{ seg.label }}</span>
+                  </div>
+                  <span class="text-body-2 font-weight-bold">
+                    {{ seg.count }}
+                  </span>
+                </div>
+              </div>
+            </template>
           </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Recent activity -->
+      <!-- Recent Activity -->
       <v-col cols="12" sm="6" lg="5">
         <v-card rounded="xl" elevation="0" border height="100%">
           <v-card-title class="pa-5 pb-3">
@@ -523,14 +580,20 @@
             </div>
           </v-card-title>
           <v-divider />
+          <v-skeleton-loader
+            v-if="store.loading.activity"
+            type="list-item-three-line"
+            class="pa-4"
+          />
           <v-timeline
+            v-else-if="store.activity.length"
             density="compact"
             side="end"
             class="pa-4"
             truncate-line="both"
           >
             <v-timeline-item
-              v-for="event in recentActivity"
+              v-for="event in store.activity"
               :key="event.id"
               :dot-color="event.color"
               size="x-small"
@@ -553,6 +616,12 @@
               </div>
             </v-timeline-item>
           </v-timeline>
+          <div
+            v-else
+            class="text-center py-8 text-medium-emphasis text-caption"
+          >
+            No recent activity
+          </div>
         </v-card>
       </v-col>
 
@@ -579,7 +648,7 @@
                   variant="tonal"
                   class="quick-action-card pa-4 text-center"
                   hover
-                  @click="action.fn"
+                  @click="$router.push(action.route)"
                 >
                   <v-icon :icon="action.icon" size="28" class="mb-2" />
                   <div class="text-body-2 font-weight-semibold">
@@ -596,11 +665,18 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { storeToRefs } from 'pinia'
+  import { useDashboardStore } from '@/stores/dashboardStore'
+  import { useAuthStore } from '@/stores/authStore'
 
-  // ── Period ────────────────────────────────────────────────────────────────────
+  const store = useDashboardStore()
+  const authStore = useAuthStore()
+
+  // ── Period ─────────────────────────────────────────────────────────────────────
   const periods = ['Today', 'Week', 'Month', 'Year']
   const selectedPeriod = ref('Week')
+  const chartMode = ref('revenue')
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -609,217 +685,69 @@
     day: 'numeric'
   })
 
-  // ── KPIs ──────────────────────────────────────────────────────────────────────
-  const kpis = computed(() => [
-    {
-      label: 'Total Revenue',
-      value: '$48,320',
-      icon: 'mdi-cash-multiple',
-      color: 'primary',
-      trend: +12.4
-    },
-    {
-      label: 'Total Orders',
-      value: '1,284',
-      icon: 'mdi-receipt-outline',
-      color: 'success',
-      trend: +8.1
-    },
-    {
-      label: 'Avg Order Value',
-      value: '$37.60',
-      icon: 'mdi-calculator-variant',
-      color: 'warning',
-      trend: +3.2
-    },
-    {
-      label: 'Active Products',
-      value: '142',
-      icon: 'mdi-package-variant',
-      color: 'secondary',
-      trend: -2.0
-    }
-  ])
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
+  const userName = computed(
+    () => authStore.user?.name?.split(' ')[0] ?? 'there'
+  )
 
-  // ── Branches ──────────────────────────────────────────────────────────────────
-  const branches = ref([
-    {
-      id: 'b1',
-      name: 'Downtown Central',
-      city: 'Bangkok',
-      revenue: 18400,
-      orders: 312,
-      revenuePercent: 92,
-      growth: +14.2,
-      color: 'primary',
-      rank: 1
-    },
-    {
-      id: 'b2',
-      name: 'Siam Square',
-      city: 'Bangkok',
-      revenue: 13200,
-      orders: 228,
-      revenuePercent: 66,
-      growth: +7.8,
-      color: 'success',
-      rank: 2
-    },
-    {
-      id: 'b3',
-      name: 'On Nut Branch',
-      city: 'Bangkok',
-      revenue: 9800,
-      orders: 185,
-      revenuePercent: 49,
-      growth: -2.1,
-      color: 'warning',
-      rank: 3
-    },
-    {
-      id: 'b4',
-      name: 'Chiang Mai Hub',
-      city: 'Chiang Mai',
-      revenue: 6920,
-      orders: 134,
-      revenuePercent: 35,
-      growth: +18.5,
-      color: 'secondary',
-      rank: 4
-    }
-  ])
+  // ── Data ───────────────────────────────────────────────────────────────────────
+  const kpis = computed(() => store.stats?.kpis ?? [])
+  const branches = computed(() => store.stats?.branches ?? [])
 
-  // ── Revenue Chart ─────────────────────────────────────────────────────────────
-  const chartMode = ref('revenue')
-  const chartData = [38, 52, 44, 65, 58, 72, 68, 85, 76, 90, 82, 95, 88, 100]
-  const chartLabels = [
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun',
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun'
+  const branchColors = [
+    'primary',
+    'success',
+    'warning',
+    'secondary',
+    'info',
+    'error'
   ]
+  const branchColor = i => branchColors[i % branchColors.length]
+
+  // ── Chart ──────────────────────────────────────────────────────────────────────
+  const chartLabels = computed(() => store.chart.map(r => r.label))
+
+  const chartValues = computed(() =>
+    store.chart.map(r => (chartMode.value === 'revenue' ? r.revenue : r.orders))
+  )
 
   const chartPoints = computed(() => {
+    const vals = chartValues.value
+    if (!vals.length) return []
     const w = 700,
       h = 180,
       pad = 20
-    const max = Math.max(...chartData)
-    return chartData.map((v, i) => ({
-      x: pad + (i / (chartData.length - 1)) * (w - pad * 2),
+    const max = Math.max(...vals) || 1
+    return vals.map((v, i) => ({
+      x: pad + (i / Math.max(vals.length - 1, 1)) * (w - pad * 2),
       y: h - pad - (v / max) * (h - pad * 2)
     }))
   })
 
-  const chartLinePath = computed(() => {
-    return chartPoints.value
+  const chartLinePath = computed(() =>
+    chartPoints.value
       .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
       .join(' ')
-  })
+  )
 
   const chartAreaPath = computed(() => {
     const pts = chartPoints.value
-    const last = pts[pts.length - 1]
-    const first = pts[0]
+    if (!pts.length) return ''
+    const last = pts[pts.length - 1],
+      first = pts[0]
     return `${chartLinePath.value} L${last.x},200 L${first.x},200 Z`
   })
 
-  // ── Live Orders ───────────────────────────────────────────────────────────────
-  const liveOrders = ref([
-    {
-      id: 1,
-      number: '4821',
-      branch: 'Downtown',
-      items: 3,
-      total: '42.50',
-      status: 'preparing',
-      ago: '2 min ago'
-    },
-    {
-      id: 2,
-      number: '4820',
-      branch: 'Siam',
-      items: 1,
-      total: '12.00',
-      status: 'ready',
-      ago: '5 min ago'
-    },
-    {
-      id: 3,
-      number: '4819',
-      branch: 'On Nut',
-      items: 5,
-      total: '78.00',
-      status: 'preparing',
-      ago: '7 min ago'
-    },
-    {
-      id: 4,
-      number: '4818',
-      branch: 'Chiang Mai',
-      items: 2,
-      total: '28.50',
-      status: 'completed',
-      ago: '9 min ago'
-    },
-    {
-      id: 5,
-      number: '4817',
-      branch: 'Downtown',
-      items: 4,
-      total: '55.00',
-      status: 'completed',
-      ago: '11 min ago'
-    }
-  ])
-
-  const orderStatusColor = s =>
-    ({
-      preparing: 'warning',
-      ready: 'success',
-      completed: 'grey',
-      cancelled: 'error'
-    })[s] || 'grey'
-  const orderStatusIcon = s =>
-    ({
-      preparing: 'mdi-chef-hat',
-      ready: 'mdi-check-circle',
-      completed: 'mdi-receipt',
-      cancelled: 'mdi-close-circle'
-    })[s] || 'mdi-circle'
-
-  // ── Top Products ──────────────────────────────────────────────────────────────
-  const topProducts = ref([
-    { name: 'Margherita Pizza', sold: 284, revenue: 3689 },
-    { name: 'Espresso', sold: 412, revenue: 1442 },
-    { name: 'Chicken Burger', sold: 198, revenue: 2574 },
-    { name: 'Caesar Salad', sold: 156, revenue: 1716 },
-    { name: 'Branded Tote Bag', sold: 89, revenue: 890 }
-  ])
-
-
-  // ── Donut Chart ───────────────────────────────────────────────────────────────
-  const totalOrdersToday = 859
-  const donutRaw = [
-    { label: 'Dine-in', count: 412, color: '#1867C0' },
-    { label: 'Takeaway', count: 298, color: '#00897B' },
-    { label: 'Delivery', count: 149, color: '#FB8C00' }
-  ]
-  const circum = 2 * Math.PI * 45 // ~282.7
+  // ── Donut ──────────────────────────────────────────────────────────────────────
+  const totalOrdersToday = computed(() => store.stats?.total_orders_today ?? 0)
+  const donutRaw = computed(() => store.stats?.orders_by_type ?? [])
+  const circum = 2 * Math.PI * 45
 
   const donutSegments = computed(() => {
-    const total = donutRaw.reduce((s, d) => s + d.count, 0)
-    let offset = -circum * 0.25 // start at top
-    return donutRaw.map(d => {
+    const total = donutRaw.value.reduce((s, d) => s + d.count, 0) || 1
+    let offset = -circum * 0.25
+    return donutRaw.value.map(d => {
       const dash = (d.count / total) * circum * 0.97
       const gap = circum - dash
       const seg = { ...d, dash, gap, offset: -offset }
@@ -828,87 +756,83 @@
     })
   })
 
-  // ── Recent Activity ───────────────────────────────────────────────────────────
-  const recentActivity = ref([
-    {
-      id: 1,
-      title: 'New branch menu assigned',
-      desc: 'Siam Square · Lunch Menu',
-      color: 'primary',
-      time: '2m ago'
-    },
-    {
-      id: 2,
-      title: 'Product marked unavailable',
-      desc: 'Mozzarella Pizza · Downtown',
-      color: 'error',
-      time: '15m ago'
-    },
-    {
-      id: 3,
-      title: 'High order volume alert',
-      desc: 'Downtown · 300+ orders today',
-      color: 'warning',
-      time: '1h ago'
-    },
-    {
-      id: 4,
-      title: 'New product created',
-      desc: 'Truffle Fries added to catalog',
-      color: 'success',
-      time: '2h ago'
-    },
-    {
-      id: 5,
-      title: 'Branch override set',
-      desc: 'Chiang Mai · Espresso +$0.50',
-      color: 'secondary',
-      time: '3h ago'
-    }
-  ])
+  // ── Order helpers ──────────────────────────────────────────────────────────────
+  const orderStatusColor = s =>
+    ({
+      preparing: 'warning',
+      ready: 'success',
+      completed: 'grey',
+      cancelled: 'error'
+    })[s] ?? 'grey'
+  const orderStatusIcon = s =>
+    ({
+      preparing: 'mdi-chef-hat',
+      ready: 'mdi-check-circle',
+      completed: 'mdi-receipt',
+      cancelled: 'mdi-close-circle'
+    })[s] ?? 'mdi-circle'
 
-  // ── Quick Actions ─────────────────────────────────────────────────────────────
+  // ── Quick Actions ──────────────────────────────────────────────────────────────
   const quickActions = [
     {
       label: 'Add Product',
       icon: 'mdi-package-variant-plus',
       color: 'primary',
-      fn: () => {}
+      route: '/products'
     },
     {
       label: 'New Branch',
       icon: 'mdi-store-plus',
       color: 'success',
-      fn: () => {}
+      route: '/branches'
     },
     {
       label: 'Assign Menu',
       icon: 'mdi-book-plus-outline',
       color: 'warning',
-      fn: () => {}
+      route: '/menus'
     },
     {
       label: 'View Reports',
       icon: 'mdi-chart-bar',
       color: 'secondary',
-      fn: () => {}
+      route: '/reports'
     },
     {
       label: 'Manage Staff',
       icon: 'mdi-account-multiple-plus',
       color: 'info',
-      fn: () => {}
+      route: '/staff'
     },
-    { label: 'Settings', icon: 'mdi-cog-outline', color: 'error', fn: () => {} }
+    {
+      label: 'Settings',
+      icon: 'mdi-cog-outline',
+      color: 'error',
+      route: '/settings'
+    }
   ]
+
+  // ── Load & auto-refresh ────────────────────────────────────────────────────────
+  const onPeriodChange = () =>
+    store.fetchAll(selectedPeriod.value.toLowerCase())
+
+  let liveInterval = null
+
+  onMounted(async () => {
+    await store.fetchAll(selectedPeriod.value.toLowerCase())
+    // Poll live orders every 30s
+    liveInterval = setInterval(() => store.fetchLiveOrders(), 30_000)
+  })
+
+  onUnmounted(() => {
+    if (liveInterval) clearInterval(liveInterval)
+  })
 </script>
 
 <style scoped>
   .dashboard-title {
     letter-spacing: -0.5px;
   }
-
-  /* Live indicator dot */
   .live-dot {
     width: 8px;
     height: 8px;
@@ -929,19 +853,14 @@
       box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
     }
   }
-
-  /* Hero KPI card */
   .kpi-card--hero {
     background: linear-gradient(135deg, #1867c0 0%, #1565c0 100%) !important;
     box-shadow: 0 8px 24px rgba(24, 103, 192, 0.3) !important;
   }
-
-  /* Branch row hover */
   .branch-row {
     transition: background 0.15s;
+    cursor: pointer;
   }
-
-  /* Revenue chart */
   .chart-wrap {
     position: relative;
   }
@@ -957,8 +876,6 @@
     margin-top: 6px;
     padding: 0 2px;
   }
-
-  /* Donut */
   .donut-wrap {
     display: flex;
     justify-content: center;
@@ -987,8 +904,6 @@
     border-radius: 3px;
     flex-shrink: 0;
   }
-
-  /* Quick action cards */
   .quick-action-card {
     cursor: pointer;
     transition:
@@ -998,7 +913,6 @@
   .quick-action-card:hover {
     transform: translateY(-2px);
   }
-
   .opacity-80 {
     opacity: 0.8;
   }
@@ -1007,5 +921,14 @@
   }
   .tracking-wide {
     letter-spacing: 0.08em;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
+  .gap-4 {
+    gap: 16px;
   }
 </style>
