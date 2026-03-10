@@ -48,7 +48,6 @@ class Product extends BaseModel
                 'barcode',
                 'name',
                 'description',
-                'image_url',
                 'base_price',
                 'cost_price',
                 'product_type',
