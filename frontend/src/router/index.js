@@ -147,7 +147,7 @@ const routes = [
         props: true
       },
       {
-        path: '/sales-reports',
+        path: '/orders-reports',
         name: 'Sales',
         component: () => import('@/views/reports/SaleReport.vue'),
         meta: { requiresAuth: true }

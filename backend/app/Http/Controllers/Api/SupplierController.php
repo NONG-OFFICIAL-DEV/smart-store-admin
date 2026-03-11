@@ -34,7 +34,7 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return Supplier::store($request);
     }
 
     /**
@@ -50,7 +50,7 @@ class SupplierController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return Supplier::store($request, $id);
     }
 
     /**
@@ -58,6 +58,17 @@ class SupplierController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Supplier::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product removed'
+        ]);
     }
 }

@@ -1,837 +1,1135 @@
 <template>
-  <v-container fluid class="pa-0">
+  <div class="report-page">
     <custom-title
-      icon="mdi-sale"
-      title="Sales Summary"
-      subtitle="Daily revenue · Orders · Profit breakdown"
-    ></custom-title>
-    <div class="sales-page">
-      <!-- ── Page Header ─────────────────────────────────────────────────────── -->
-      <v-card class="py-4 px-2 mb-4" rounded="xl" border elevation="0">
-        <v-row>
-                <v-col>
-          <v-select
-            v-model="filters.branch_id"
-            :items="branches.data"
-            item-value="id"
-            item-title="name"
-            label="Branch"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-            min-width="180"
-            prepend-inner-icon="mdi-store-outline"
-            clearable
-          />
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="filters.date_from"
-            type="date"
-            label="From"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-            min-width="160"
-          />
-        </v-col>
-        <v-col>
-          <v-text-field
-            v-model="filters.date_to"
-            type="date"
-            label="To"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-            min-width="160"
-          />
-        </v-col>
-<v-col>
-  
-</v-col>
+      icon="mdi-note"
+      title="Order Report"
+      subtitle="Sales analytics &amp; order history"
+    >
+      <template #right>
         <v-btn
-          color="primary"
+          color="success"
           variant="flat"
           rounded="lg"
-          prepend-icon="mdi-magnify"
-          :loading="loading"
-          @click="fetchData"
+          prepend-icon="mdi-microsoft-excel"
+          :loading="exporting"
+          :disabled="!stats"
+          @click="exportExcel"
         >
-          Search
+          Export Excel
         </v-btn>
+      </template>
+    </custom-title>
+
+
+    <BranchFilterBar
+      v-model="filters.branch_ids"
+      :branches="branchStore.branches?.data || branchStore.branches || []"
+      :period="period"
+      @period-change="onPeriodChange"
+      @date-change="
+        ({ from, to }) => {
+          filters.date_from = from
+          filters.date_to = to
+          loadAll()
+        }
+      "
+    />
+
+    <!-- ══ KPI Cards ════════════════════════════════════════════════════════ -->
+    <v-row dense class="mb-5">
+      <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="3">
+        <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="kpi-icon-wrap" :style="`background:${kpi.bg}`">
+              <v-icon :icon="kpi.icon" :color="kpi.color" size="18" />
+            </div>
+            <v-chip
+              size="x-small"
+              rounded="lg"
+              :color="kpi.changePositive ? 'success' : 'error'"
+              variant="tonal"
+            >
+              <v-icon start size="10">
+                {{
+                  kpi.changePositive ? 'mdi-trending-up' : 'mdi-trending-down'
+                }}
+              </v-icon>
+              {{ kpi.change }}
+            </v-chip>
+          </div>
+          <div class="kpi-value">{{ kpi.value }}</div>
+          <div class="text-caption text-medium-emphasis mt-1">
+            {{ kpi.label }}
+          </div>
+          <div class="text-caption mt-1" style="opacity: 0.55; font-size: 10px">
+            vs {{ periodLabel(previousPeriod) }}: {{ kpi.prev }}
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ══ Charts Row ═══════════════════════════════════════════════════════ -->
+    <v-row dense class="mb-5">
+      <!-- Revenue Over Time -->
+      <v-col cols="12" md="8">
+        <v-card rounded="xl" border elevation="0" class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div>
+              <div class="text-body-1 font-weight-bold">Revenue Over Time</div>
+              <div class="text-caption text-medium-emphasis">
+                {{ periodLabel(period) }}
+              </div>
+            </div>
+            <v-btn-toggle
+              v-model="chartMode"
+              mandatory
+              density="compact"
+              rounded="lg"
+              variant="outlined"
+              color="primary"
+              size="x-small"
+            >
+              <v-btn value="revenue" size="x-small">Revenue</v-btn>
+              <v-btn value="orders" size="x-small">Orders</v-btn>
+            </v-btn-toggle>
+          </div>
+          <div style="height: 240px">
+            <canvas ref="lineChartRef" />
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Order Type Breakdown -->
+      <v-col cols="12" md="4">
+        <v-card rounded="xl" border elevation="0" class="pa-5">
+          <div class="text-body-1 font-weight-bold mb-1">Order Types</div>
+          <div class="text-caption text-medium-emphasis mb-4">
+            Distribution breakdown
+          </div>
+          <div
+            style="
+              height: 200px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <canvas ref="donutChartRef" />
+          </div>
+          <!-- Legend -->
+          <div class="mt-3">
+            <div
+              v-for="t in orderTypeStats"
+              :key="t.label"
+              class="d-flex align-center justify-space-between mb-1"
+            >
+              <div class="d-flex align-center gap-2">
+                <div class="legend-dot" :style="`background:${t.color}`" />
+                <span class="text-caption">{{ t.label }}</span>
+              </div>
+              <span class="text-caption font-weight-bold">{{ t.count }}</span>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ══ Payment + Status Bar ══════════════════════════════════════════════ -->
+    <v-row dense class="mb-5">
+      <!-- Payment Methods -->
+      <v-col cols="12" md="6">
+        <v-card rounded="xl" border elevation="0" class="pa-5">
+          <div class="text-body-1 font-weight-bold mb-4">Payment Methods</div>
+          <div style="height: 200px">
+            <canvas ref="barChartRef" />
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Status Summary -->
+      <v-col cols="12" md="6">
+        <v-card rounded="xl" border elevation="0" class="pa-5">
+          <div class="text-body-1 font-weight-bold mb-4">Order Status</div>
+          <div class="status-list">
+            <div
+              v-for="s in statusStats"
+              :key="s.status"
+              class="status-row mb-3"
+            >
+              <div class="d-flex justify-space-between mb-1">
+                <div class="d-flex align-center gap-2">
+                  <v-icon :icon="s.icon" :color="s.color" size="16" />
+                  <span class="text-body-2 text-capitalize">
+                    {{ s.status }}
+                  </span>
+                </div>
+                <span class="text-body-2 font-weight-bold">{{ s.count }}</span>
+              </div>
+              <v-progress-linear
+                :model-value="s.pct"
+                :color="s.color"
+                rounded
+                height="6"
+                bg-color="grey-lighten-3"
+              />
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ══ Period Comparison Banner ══════════════════════════════════════════ -->
+    <v-card
+      rounded="xl"
+      border
+      elevation="0"
+      class="pa-5 mb-5 comparison-banner"
+    >
+      <div class="text-body-1 font-weight-bold mb-4">
+        Period Comparison
+        <span class="text-caption text-medium-emphasis ml-2">
+          {{ periodLabel(period) }} vs {{ periodLabel(previousPeriod) }}
+        </span>
+      </div>
+      <v-row dense>
+        <v-col v-for="c in comparisonRows" :key="c.label" cols="6" sm="3">
+          <div class="compare-cell pa-3 rounded-lg">
+            <div class="text-caption text-medium-emphasis mb-2">
+              {{ c.label }}
+            </div>
+            <div class="d-flex align-end gap-2 mb-1">
+              <span class="text-h6 font-weight-bold">{{ c.current }}</span>
+              <v-chip
+                size="x-small"
+                rounded="lg"
+                :color="c.up ? 'success' : 'error'"
+                variant="tonal"
+                class="mb-1"
+              >
+                {{ c.up ? '▲' : '▼' }} {{ c.diff }}
+              </v-chip>
+            </div>
+            <div class="text-caption" style="opacity: 0.5">
+              Prev: {{ c.previous }}
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+    </v-card>
+
+    <!-- ══ Filters + Table ══════════════════════════════════════════════════ -->
+    <v-card rounded="xl" border elevation="0" class="mb-4">
+      <div class="pa-4 d-flex align-center gap-3 flex-wrap border-b">
+        <v-text-field
+          v-model="filters.search"
+          placeholder="Search order #, customer..."
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          style="max-width: 260px"
+          @update:model-value="onSearch"
+        />
+        <v-select
+          v-model="filters.status"
+          :items="statusOptions"
+          item-title="label"
+          item-value="value"
+          placeholder="Status"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          clearable
+          style="max-width: 150px"
+          @update:model-value="loadOrders"
+        />
+        <v-select
+          v-model="filters.order_type"
+          :items="orderTypeOptions"
+          item-title="label"
+          item-value="value"
+          placeholder="Type"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          clearable
+          style="max-width: 150px"
+          @update:model-value="loadOrders"
+        />
+        <v-spacer />
         <v-btn
           variant="tonal"
           rounded="lg"
-          prepend-icon="mdi-download-outline"
-          @click="exportCsv"
-        >
-          Export
-        </v-btn>
-        </v-row>
-  
-      </v-card>
+          size="small"
+          icon="mdi-filter-off-outline"
+          @click="resetFilters"
+        />
+      </div>
 
-      <!-- ── Period Totals (aggregate of filtered range) ──────────────────────── -->
-      <v-row class="mb-5" dense>
-        <v-col v-for="(kpi, i) in kpis" :key="i" cols="6" sm="4" md="2">
-          <v-card class="kpi-card" rounded="xl" border elevation="0">
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-avatar
-                  :color="kpi.color"
-                  variant="tonal"
-                  rounded="lg"
-                  size="36"
-                >
-                  <v-icon :icon="kpi.icon" size="18" />
-                </v-avatar>
-                <v-chip
-                  v-if="kpi.trend !== null"
-                  :color="kpi.trend >= 0 ? 'success' : 'error'"
-                  size="x-small"
-                  variant="tonal"
-                >
-                  <v-icon
-                    :icon="
-                      kpi.trend >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'
-                    "
-                    size="12"
-                    class="mr-1"
-                  />
-                  {{ Math.abs(kpi.trend) }}%
-                </v-chip>
-              </div>
-              <div class="kpi-value">{{ kpi.value }}</div>
-              <div class="kpi-label">{{ kpi.label }}</div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <!-- ── Charts Row ──────────────────────────────────────────────────────── -->
-      <v-row class="mb-5" dense>
-        <!-- Revenue chart -->
-        <v-col cols="12" md="8">
-          <v-card rounded="xl" border elevation="0" height="320">
-            <v-card-text class="pa-4 h-100 d-flex flex-column">
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div class="chart-title">Revenue Trend</div>
-                <v-btn-toggle
-                  v-model="chartMetric"
-                  color="primary"
-                  variant="tonal"
-                  rounded="lg"
-                  mandatory
-                  density="compact"
-                >
-                  <v-btn value="total_revenue" size="small" class="text-none">
-                    Revenue
-                  </v-btn>
-                  <v-btn value="net_revenue" size="small" class="text-none">
-                    Net
-                  </v-btn>
-                  <v-btn value="gross_profit" size="small" class="text-none">
-                    Profit
-                  </v-btn>
-                </v-btn-toggle>
-              </div>
-              <div class="chart-area flex-grow-1" ref="revenueChartRef">
-                <svg
-                  v-if="chartData.length"
-                  class="sparkline"
-                  :viewBox="`0 0 ${svgW} ${svgH}`"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="0%"
-                        stop-color="#6366f1"
-                        stop-opacity="0.3"
-                      />
-                      <stop
-                        offset="100%"
-                        stop-color="#6366f1"
-                        stop-opacity="0"
-                      />
-                    </linearGradient>
-                  </defs>
-                  <path :d="areaPath" fill="url(#revGrad)" />
-                  <path
-                    :d="linePath"
-                    fill="none"
-                    stroke="#6366f1"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-
-                  <!-- Data points -->
-                  <circle
-                    v-for="(pt, i) in chartPoints"
-                    :key="i"
-                    :cx="pt.x"
-                    :cy="pt.y"
-                    r="3.5"
-                    fill="#6366f1"
-                    stroke="white"
-                    stroke-width="2"
-                    class="chart-dot"
-                    @mouseenter="hoveredPoint = { ...pt, index: i }"
-                    @mouseleave="hoveredPoint = null"
-                  />
-
-                  <!-- Tooltip -->
-                  <g v-if="hoveredPoint">
-                    <rect
-                      :x="hoveredPoint.x - 50"
-                      :y="hoveredPoint.y - 36"
-                      width="100"
-                      height="28"
-                      rx="6"
-                      fill="#1e1b4b"
-                      opacity="0.9"
-                    />
-                    <text
-                      :x="hoveredPoint.x"
-                      :y="hoveredPoint.y - 17"
-                      text-anchor="middle"
-                      fill="white"
-                      font-size="11"
-                      font-weight="600"
-                    >
-                      {{
-                        formatCurrency(
-                          chartData[hoveredPoint.index]?.[chartMetric]
-                        )
-                      }}
-                    </text>
-                    <text
-                      :x="hoveredPoint.x"
-                      :y="hoveredPoint.y - 6"
-                      text-anchor="middle"
-                      fill="#a5b4fc"
-                      font-size="9"
-                    >
-                      {{ chartData[hoveredPoint.index]?.date }}
-                    </text>
-                  </g>
-                </svg>
-                <div v-else class="chart-empty">
-                  <v-icon
-                    icon="mdi-chart-line"
-                    size="40"
-                    color="grey-lighten-2"
-                  />
-                  <p class="text-caption text-grey mt-2">
-                    No data for selected period
-                  </p>
-                </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <!-- Order type breakdown -->
-        <v-col cols="12" md="4">
-          <v-card rounded="xl" border elevation="0" height="320">
-            <v-card-text class="pa-4 h-100 d-flex flex-column">
-              <div class="chart-title mb-4">Order Types</div>
-              <div class="d-flex flex-column gap-3 flex-grow-1 justify-center">
-                <div
-                  v-for="type in orderTypes"
-                  :key="type.key"
-                  class="order-type-row"
-                >
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <div class="d-flex align-center gap-2">
-                      <v-avatar
-                        :color="type.color"
-                        variant="tonal"
-                        size="28"
-                        rounded="lg"
-                      >
-                        <v-icon :icon="type.icon" size="14" />
-                      </v-avatar>
-                      <span class="text-body-2 font-weight-medium">
-                        {{ type.label }}
-                      </span>
-                    </div>
-                    <span class="text-body-2 font-weight-bold">
-                      {{ totals[type.key] || 0 }}
-                    </span>
-                  </div>
-                  <v-progress-linear
-                    :model-value="orderTypePercent(type.key)"
-                    :color="type.color"
-                    rounded
-                    height="6"
-                    bg-color="grey-lighten-3"
-                  />
-                  <div class="text-caption text-grey text-right">
-                    {{ orderTypePercent(type.key) }}%
-                  </div>
-                </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <!-- ── Data Table ─────────────────────────────────────────────────────── -->
-      <v-card rounded="xl" border elevation="0">
-        <v-card-title class="pa-5 pb-0">
-          <div class="d-flex align-center justify-space-between">
-            <span class="text-h6 font-weight-bold">Daily Breakdown</span>
-            <v-text-field
-              v-model="search"
-              prepend-inner-icon="mdi-magnify"
-              placeholder="Search by date..."
-              variant="outlined"
-              density="compact"
-              rounded="lg"
-              hide-details
-              max-width="220"
-            />
-          </div>
-        </v-card-title>
-
-        <v-data-table
-          :headers="headers"
-          :items="filteredSummaries"
-          :loading="loading"
-          :search="search"
-          item-value="id"
-          hover
-          rounded="xl"
-          :items-per-page="15"
-        >
-          <!-- Date -->
-          <template #item.date="{ item }">
-            <div class="d-flex align-center gap-2">
-              <v-avatar color="primary" variant="tonal" size="32" rounded="lg">
-                <span class="text-caption font-weight-bold">
-                  {{ dayOfMonth(item.date) }}
-                </span>
-              </v-avatar>
-              <div>
-                <div class="text-body-2 font-weight-medium">
-                  {{ formatDate(item.date) }}
-                </div>
-                <div class="text-caption text-grey">
-                  {{ dayName(item.date) }}
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- Branch -->
-          <template #item.branch="{ item }">
-            <v-chip
-              size="small"
+      <v-data-table-server
+        :headers="headers"
+        :items="orders"
+        :items-length="pagination?.total ?? 0"
+        :loading="tableLoading"
+        :items-per-page="filters.per_page"
+        :page="filters.page"
+        item-value="id"
+        @update:page="
+          p => {
+            filters.page = p
+            loadOrders()
+          }
+        "
+        @update:items-per-page="
+          p => {
+            filters.per_page = p
+            filters.page = 1
+            loadOrders()
+          }
+        "
+      >
+        <template #item.order_number="{ item }">
+          <div class="d-flex align-center gap-2 py-1">
+            <v-avatar
+              :color="typeColor(item.order_type)"
+              size="30"
+              rounded="md"
               variant="tonal"
-              color="primary"
-              prepend-icon="mdi-store-outline"
             >
-              {{ item.branch?.name || '—' }}
-            </v-chip>
-          </template>
-
-          <!-- Orders -->
-          <template #item.total_orders="{ item }">
-            <div class="d-flex align-center gap-1">
-              <v-icon icon="mdi-receipt-outline" size="14" color="grey" />
-              <span class="text-body-2 font-weight-medium">
-                {{ item.total_orders }}
-              </span>
+              <v-icon :icon="typeIcon(item.order_type)" size="14" />
+            </v-avatar>
+            <div>
+              <div class="text-body-2 font-weight-bold">
+                {{ item.order_number }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ item.branch?.name }}
+              </div>
             </div>
-          </template>
+          </div>
+        </template>
 
-          <!-- Revenue -->
-          <template #item.total_revenue="{ item }">
-            <span class="text-body-2 font-weight-bold text-primary">
-              {{ formatCurrency(item.total_revenue) }}
-            </span>
-          </template>
-
-          <!-- Discount -->
-          <template #item.total_discount="{ item }">
-            <span class="text-body-2 text-error">
-              {{
-                item.total_discount > 0
-                  ? '-' + formatCurrency(item.total_discount)
-                  : '—'
-              }}
-            </span>
-          </template>
-
-          <!-- Tax -->
-          <template #item.total_tax="{ item }">
-            <span class="text-body-2 text-medium-emphasis">
-              {{ formatCurrency(item.total_tax) }}
-            </span>
-          </template>
-
-          <!-- Net Revenue -->
-          <template #item.net_revenue="{ item }">
-            <span class="text-body-2 font-weight-bold text-success">
-              {{ formatCurrency(item.net_revenue) }}
-            </span>
-          </template>
-
-          <!-- Gross Profit -->
-          <template #item.gross_profit="{ item }">
-            <div
-              v-if="item.gross_profit != null"
-              class="d-flex align-center gap-1"
-            >
-              <span class="text-body-2 font-weight-medium">
-                {{ formatCurrency(item.gross_profit) }}
-              </span>
-              <v-chip
-                :color="
-                  profitMargin(item) >= 30
-                    ? 'success'
-                    : profitMargin(item) >= 15
-                      ? 'warning'
-                      : 'error'
-                "
-                size="x-small"
-                variant="tonal"
-              >
-                {{ profitMargin(item) }}%
-              </v-chip>
+        <template #item.customer="{ item }">
+          <div v-if="item.customer">
+            <div class="text-body-2">{{ item.customer.name }}</div>
+            <div class="text-caption text-medium-emphasis">
+              {{ item.customer.phone }}
             </div>
-            <span v-else class="text-grey">—</span>
-          </template>
+          </div>
+          <span v-else class="text-caption text-medium-emphasis">Walk-in</span>
+        </template>
 
-          <!-- Avg Order -->
-          <template #item.avg_order_value="{ item }">
-            <span class="text-body-2">
-              {{
-                item.avg_order_value
-                  ? formatCurrency(item.avg_order_value)
-                  : '—'
-              }}
-            </span>
-          </template>
+        <template #item.items_count="{ item }">
+          <v-chip size="x-small" variant="tonal" rounded="lg">
+            {{ item.items?.length ?? 0 }} items
+          </v-chip>
+        </template>
 
-          <!-- Order types mini -->
-          <template #item.order_types="{ item }">
-            <div class="d-flex gap-2">
-              <v-chip
-                v-if="item.dine_in_orders"
-                size="x-small"
-                color="indigo"
-                variant="tonal"
-                prepend-icon="mdi-silverware-fork-knife"
-              >
-                {{ item.dine_in_orders }}
-              </v-chip>
-              <v-chip
-                v-if="item.takeaway_orders"
-                size="x-small"
-                color="orange"
-                variant="tonal"
-                prepend-icon="mdi-bag-personal-outline"
-              >
-                {{ item.takeaway_orders }}
-              </v-chip>
-              <v-chip
-                v-if="item.delivery_orders"
-                size="x-small"
-                color="teal"
-                variant="tonal"
-                prepend-icon="mdi-moped-outline"
-              >
-                {{ item.delivery_orders }}
-              </v-chip>
+        <template #item.total_amount="{ item }">
+          <span class="font-weight-bold text-body-2">
+            {{ fmt(item.total_amount) }}
+          </span>
+        </template>
+
+        <template #item.payment_method="{ item }">
+          <v-chip
+            v-if="item.payment_method"
+            size="x-small"
+            rounded="lg"
+            variant="tonal"
+            :color="payColor(item.payment_method)"
+          >
+            {{ item.payment_method?.replace('_', ' ') }}
+          </v-chip>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
+
+        <template #item.status="{ item }">
+          <v-chip
+            size="small"
+            rounded="lg"
+            variant="tonal"
+            :color="statusColor(item.status)"
+          >
+            {{ item.status }}
+          </v-chip>
+        </template>
+
+        <template #item.created_at="{ item }">
+          <div class="text-body-2">{{ fmtDate(item.created_at) }}</div>
+          <div class="text-caption text-medium-emphasis">
+            {{ fmtTime(item.created_at) }}
+          </div>
+        </template>
+
+        <template #item.actions="{ item }">
+          <v-btn
+            icon="mdi-eye-outline"
+            size="small"
+            variant="text"
+            color="primary"
+            @click="viewOrder(item)"
+          />
+        </template>
+
+        <template #top>
+          <div class="d-flex align-center justify-space-between px-4 py-3">
+            <div class="text-caption text-medium-emphasis">
+              {{ pagination?.total ?? 0 }} orders
             </div>
-          </template>
-
-          <!-- New customers -->
-          <template #item.new_customers="{ item }">
-            <div v-if="item.new_customers" class="d-flex align-center gap-1">
-              <v-icon
-                icon="mdi-account-plus-outline"
-                size="14"
-                color="success"
-              />
-              <span class="text-body-2 text-success font-weight-medium">
-                {{ item.new_customers }}
-              </span>
+            <div class="text-body-2 font-weight-bold text-success">
+              Total: {{ fmt(stats?.total_revenue ?? 0) }}
             </div>
-            <span v-else class="text-grey">—</span>
-          </template>
+          </div>
+        </template>
+      </v-data-table-server>
+    </v-card>
 
-          <!-- No data -->
-          <template #no-data>
-            <div class="text-center py-12">
-              <v-icon
-                icon="mdi-chart-bar-stacked"
-                size="56"
-                color="grey-lighten-1"
-                class="mb-3"
-              />
-              <p class="text-h6 text-medium-emphasis mb-1">No sales data</p>
-              <p class="text-body-2 text-grey">
-                Try adjusting the date range or branch filter
-              </p>
-            </div>
-          </template>
-
-          <!-- Loading -->
-          <template #loading>
-            <v-skeleton-loader v-for="n in 8" :key="n" type="table-row" />
-          </template>
-        </v-data-table>
-      </v-card>
-    </div>
-  </v-container>
+    <OrderDetailDialog v-model="detailDialog" :order-id="selectedOrderId" />
+  </div>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { storeToRefs } from 'pinia'
-  import { useReportStore } from '@/stores/reportStore'
+  import { ref, computed, onMounted, watch, nextTick } from 'vue'
+  import { useOrderStore } from '@/stores/orderStore'
   import { useBranchStore } from '@/stores/branchStore'
 
-  const salesStore = useReportStore()
-  const branchStore = useBranchStore()
+  import { useAppUtils } from '@/composables/useAppUtils'
+  import OrderDetailDialog from '@/components/orders/OrderDetailDialog.vue'
+  import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
+  import {
+    Chart,
+    LineElement,
+    BarElement,
+    ArcElement,
+    PointElement,
+    LineController,
+    BarController,
+    DoughnutController,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend,
+    Filler
+  } from 'chart.js'
 
-  const { summaries, loading } = storeToRefs(salesStore)
-  const { branches } = storeToRefs(branchStore)
-
-  // ── Filters ───────────────────────────────────────────────────────────────────
-  const today = new Date().toISOString().split('T')[0]
-  const lastMonth = new Date(Date.now() - 30 * 864e5)
-    .toISOString()
-    .split('T')[0]
-
-  const filters = ref({
-    branch_id: null,
-    date_from: lastMonth,
-    date_to: today
-  })
-
-  const search = ref('')
-  const chartMetric = ref('total_revenue')
-  const hoveredPoint = ref(null)
-
-  // ── SVG chart dimensions ──────────────────────────────────────────────────────
-  const svgW = 600
-  const svgH = 160
-  const padX = 20
-  const padY = 16
-
-  // ── Computed: totals across filtered data ─────────────────────────────────────
-  const totals = computed(() => {
-    const list = summaries.value
-    return {
-      total_orders: list.reduce((s, r) => s + (r.total_orders || 0), 0),
-      total_revenue: list.reduce((s, r) => s + Number(r.total_revenue || 0), 0),
-      total_discount: list.reduce(
-        (s, r) => s + Number(r.total_discount || 0),
-        0
-      ),
-      total_tax: list.reduce((s, r) => s + Number(r.total_tax || 0), 0),
-      net_revenue: list.reduce((s, r) => s + Number(r.net_revenue || 0), 0),
-      gross_profit: list.reduce((s, r) => s + Number(r.gross_profit || 0), 0),
-      dine_in_orders: list.reduce((s, r) => s + (r.dine_in_orders || 0), 0),
-      takeaway_orders: list.reduce((s, r) => s + (r.takeaway_orders || 0), 0),
-      delivery_orders: list.reduce((s, r) => s + (r.delivery_orders || 0), 0),
-      new_customers: list.reduce((s, r) => s + (r.new_customers || 0), 0)
-    }
-  })
-
-  const kpis = computed(() => [
-    {
-      label: 'Total Orders',
-      value: totals.value.total_orders,
-      icon: 'mdi-receipt-outline',
-      color: 'primary',
-      trend: null
-    },
-    {
-      label: 'Gross Revenue',
-      value: formatCurrency(totals.value.total_revenue),
-      icon: 'mdi-cash-multiple',
-      color: 'indigo',
-      trend: null
-    },
-    {
-      label: 'Discounts',
-      value: formatCurrency(totals.value.total_discount),
-      icon: 'mdi-tag-minus-outline',
-      color: 'error',
-      trend: null
-    },
-    {
-      label: 'Tax Collected',
-      value: formatCurrency(totals.value.total_tax),
-      icon: 'mdi-percent-outline',
-      color: 'orange',
-      trend: null
-    },
-    {
-      label: 'Net Revenue',
-      value: formatCurrency(totals.value.net_revenue),
-      icon: 'mdi-trending-up',
-      color: 'success',
-      trend: null
-    },
-    {
-      label: 'Gross Profit',
-      value: formatCurrency(totals.value.gross_profit),
-      icon: 'mdi-chart-bar',
-      color: 'teal',
-      trend: null
-    }
-  ])
-
-  const orderTypes = [
-    {
-      key: 'dine_in_orders',
-      label: 'Dine In',
-      icon: 'mdi-silverware-fork-knife',
-      color: 'indigo'
-    },
-    {
-      key: 'takeaway_orders',
-      label: 'Takeaway',
-      icon: 'mdi-bag-personal-outline',
-      color: 'orange'
-    },
-    {
-      key: 'delivery_orders',
-      label: 'Delivery',
-      icon: 'mdi-moped-outline',
-      color: 'teal'
-    }
-  ]
-
-  const orderTypePercent = key => {
-    const total = totals.value.total_orders
-    if (!total) return 0
-    return Math.round((totals.value[key] / total) * 100)
-  }
-
-  // ── SVG chart ─────────────────────────────────────────────────────────────────
-  const chartData = computed(() =>
-    [...summaries.value].sort((a, b) => a.date.localeCompare(b.date))
+  Chart.register(
+    LineElement,
+    BarElement,
+    ArcElement,
+    PointElement,
+    LineController,
+    BarController,
+    DoughnutController,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend,
+    Filler
   )
 
-  const chartPoints = computed(() => {
-    const data = chartData.value
-    if (!data.length) return []
+  const { notif } = useAppUtils()
+  const branchStore = useBranchStore()
+  const orderStore = useOrderStore()
+  // ── Refs ──────────────────────────────────────────────────────────────────────
+  const lineChartRef = ref(null)
+  const donutChartRef = ref(null)
+  const barChartRef = ref(null)
+  let lineChart = null
+  let donutChart = null
+  let barChart = null
 
-    const values = data.map(d => Number(d[chartMetric.value] || 0))
-    const minV = Math.min(...values)
-    const maxV = Math.max(...values)
-    const range = maxV - minV || 1
+  const period = ref('today')
+  const chartMode = ref('revenue')
+  const exporting = ref(false)
+  const tableLoading = ref(false)
 
-    return data.map((d, i) => ({
-      x: padX + (i / Math.max(data.length - 1, 1)) * (svgW - padX * 2),
-      y:
-        padY +
-        (1 - (Number(d[chartMetric.value] || 0) - minV) / range) *
-          (svgH - padY * 2)
-    }))
+  const stats = ref(null)
+  const prevStats = ref(null)
+  const chartData = ref([]) // [{label, revenue, orders}]
+  const orders = ref([])
+  const pagination = ref(null)
+
+  const detailDialog = ref(false)
+  const selectedOrderId = ref(null)
+
+  const filters = ref({
+    branch_ids: [],
+    search: '',
+    status: null,
+    order_type: null,
+    date_from: null,
+    date_to: null,
+    per_page: 10,
+    page: 1
   })
 
-  const linePath = computed(() => {
-    const pts = chartPoints.value
-    if (!pts.length) return ''
-    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  // ── Period helpers ─────────────────────────────────────────────────────────────
+  const previousPeriod = computed(
+    () =>
+      ({
+        today: 'yesterday',
+        yesterday: 'day_before',
+        week: 'last_week',
+        month: 'last_month',
+        last_month: 'month_before',
+        custom: 'prev_custom'
+      })[period.value] ?? 'yesterday'
+  )
+
+  const periodLabel = p =>
+    ({
+      today: 'Today',
+      yesterday: 'Yesterday',
+      week: 'This Week',
+      month: 'This Month',
+      last_month: 'Last Month',
+      day_before: '2 Days Ago',
+      last_week: 'Last Week',
+      month_before: '2 Months Ago',
+      custom: 'Custom Range',
+      prev_custom: 'Previous Range'
+    })[p] ?? p
+
+  const periodDates = p => {
+    const today = new Date()
+    const fmt = d => d.toISOString().slice(0, 10)
+    const add = (d, n) => {
+      const x = new Date(d)
+      x.setDate(x.getDate() + n)
+      return x
+    }
+
+    switch (p) {
+      case 'today':
+        return { from: fmt(today), to: fmt(today) }
+      case 'yesterday': {
+        const y = add(today, -1)
+        return { from: fmt(y), to: fmt(y) }
+      }
+      case 'week': {
+        const mon = new Date(today)
+        mon.setDate(today.getDate() - today.getDay() + 1)
+        return { from: fmt(mon), to: fmt(today) }
+      }
+      case 'month': {
+        const first = new Date(today.getFullYear(), today.getMonth(), 1)
+        return { from: fmt(first), to: fmt(today) }
+      }
+      case 'last_month': {
+        const first = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+        const last = new Date(today.getFullYear(), today.getMonth(), 0)
+        return { from: fmt(first), to: fmt(last) }
+      }
+      case 'custom':
+        return { from: filters.value.date_from, to: filters.value.date_to }
+      default:
+        return { from: fmt(today), to: fmt(today) }
+    }
+  }
+
+  const previousPeriodDates = computed(() => {
+    const cur = periodDates(period.value)
+    if (!cur.from || !cur.to) return cur
+
+    const from = new Date(cur.from)
+    const to = new Date(cur.to)
+    const days = Math.round((to - from) / 86400000) + 1
+
+    const pFrom = new Date(from)
+    pFrom.setDate(pFrom.getDate() - days)
+    const pTo = new Date(to)
+    pTo.setDate(pTo.getDate() - days)
+
+    return {
+      from: pFrom.toISOString().slice(0, 10),
+      to: pTo.toISOString().slice(0, 10)
+    }
   })
 
-  const areaPath = computed(() => {
-    const pts = chartPoints.value
-    if (!pts.length) return ''
-    const line = pts
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-      .join(' ')
-    return `${line} L ${pts[pts.length - 1].x} ${svgH} L ${pts[0].x} ${svgH} Z`
+  // ── KPI cards ──────────────────────────────────────────────────────────────────
+  const kpiCards = computed(() => {
+    const s = stats.value
+    const ps = prevStats.value
+    if (!s) return []
+
+    const pct = (a, b) => (b ? (((a - b) / b) * 100).toFixed(1) + '%' : '—')
+    const up = (a, b) => a >= b
+
+    return [
+      {
+        label: 'Revenue',
+        value: fmt(s.total_revenue ?? 0),
+        prev: fmt(ps?.total_revenue ?? 0),
+        change: pct(s.total_revenue, ps?.total_revenue),
+        changePositive: up(s.total_revenue, ps?.total_revenue),
+        icon: 'mdi-cash-multiple',
+        color: 'success',
+        bg: '#e8f5e9'
+      },
+      {
+        label: 'Orders',
+        value: s.total_orders ?? 0,
+        prev: ps?.total_orders ?? 0,
+        change: pct(s.total_orders, ps?.total_orders),
+        changePositive: up(s.total_orders, ps?.total_orders),
+        icon: 'mdi-receipt-text-outline',
+        color: 'primary',
+        bg: '#e3f2fd'
+      },
+      {
+        label: 'Avg Order Value',
+        value: fmt(s.total_orders ? s.total_revenue / s.total_orders : 0),
+        prev: fmt(ps?.total_orders ? ps.total_revenue / ps.total_orders : 0),
+        change: pct(
+          s.total_orders ? s.total_revenue / s.total_orders : 0,
+          ps?.total_orders ? ps.total_revenue / ps.total_orders : 0
+        ),
+        changePositive: up(
+          s.total_orders ? s.total_revenue / s.total_orders : 0,
+          ps?.total_orders ? ps?.total_revenue / ps?.total_orders : 0
+        ),
+        icon: 'mdi-tag-outline',
+        color: 'info',
+        bg: '#e1f5fe'
+      },
+      {
+        label: 'Completed',
+        value: s.completed ?? 0,
+        prev: ps?.completed ?? 0,
+        change: pct(s.completed, ps?.completed),
+        changePositive: up(s.completed, ps?.completed),
+        icon: 'mdi-check-circle-outline',
+        color: 'warning',
+        bg: '#fff8e1'
+      }
+    ]
   })
 
-  // ── Table ─────────────────────────────────────────────────────────────────────
+  // ── Status stats ───────────────────────────────────────────────────────────────
+  const statusStats = computed(() => {
+    const s = stats.value
+    if (!s) return []
+    const total = s.total_orders || 1
+    return [
+      {
+        status: 'completed',
+        count: s.completed ?? 0,
+        color: 'success',
+        icon: 'mdi-check-circle',
+        pct: ((s.completed ?? 0) / total) * 100
+      },
+      {
+        status: 'pending',
+        count: s.pending ?? 0,
+        color: 'warning',
+        icon: 'mdi-clock-outline',
+        pct: ((s.pending ?? 0) / total) * 100
+      },
+      {
+        status: 'cancelled',
+        count: s.cancelled ?? 0,
+        color: 'error',
+        icon: 'mdi-close-circle',
+        pct: ((s.cancelled ?? 0) / total) * 100
+      }
+    ]
+  })
+
+  // ── Order type stats ───────────────────────────────────────────────────────────
+  const orderTypeStats = ref([])
+
+  // ── Comparison rows ────────────────────────────────────────────────────────────
+  const comparisonRows = computed(() => {
+    const s = stats.value
+    const ps = prevStats.value
+    if (!s || !ps) return []
+
+    const diff = (a, b, isCurrency = false) => {
+      const d = a - b
+      return isCurrency ? fmt(Math.abs(d)) : Math.abs(d)
+    }
+    const up = (a, b) => a >= b
+
+    return [
+      {
+        label: 'Revenue',
+        current: fmt(s.total_revenue ?? 0),
+        previous: fmt(ps.total_revenue ?? 0),
+        diff: fmt(Math.abs((s.total_revenue ?? 0) - (ps.total_revenue ?? 0))),
+        up: up(s.total_revenue, ps.total_revenue)
+      },
+      {
+        label: 'Orders',
+        current: s.total_orders ?? 0,
+        previous: ps.total_orders ?? 0,
+        diff: Math.abs((s.total_orders ?? 0) - (ps.total_orders ?? 0)),
+        up: up(s.total_orders, ps.total_orders)
+      },
+      {
+        label: 'Completed',
+        current: s.completed ?? 0,
+        previous: ps.completed ?? 0,
+        diff: Math.abs((s.completed ?? 0) - (ps.completed ?? 0)),
+        up: up(s.completed, ps.completed)
+      },
+      {
+        label: 'Cancelled',
+        current: s.cancelled ?? 0,
+        previous: ps.cancelled ?? 0,
+        diff: Math.abs((s.cancelled ?? 0) - (ps.cancelled ?? 0)),
+        up: !up(s.cancelled, ps.cancelled) // fewer is better
+      }
+    ]
+  })
+
+  // ── Options ───────────────────────────────────────────────────────────────────
+  const statusOptions = [
+    { value: null, label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'preparing', label: 'Preparing' },
+    { value: 'ready', label: 'Ready' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ]
+  const orderTypeOptions = [
+    { value: null, label: 'All Types' },
+    { value: 'dine_in', label: 'Dine In' },
+    { value: 'takeaway', label: 'Takeaway' },
+    { value: 'delivery', label: 'Delivery' },
+    { value: 'walk_in', label: 'Walk In' }
+  ]
   const headers = [
-    { title: 'Date', key: 'date', sortable: true },
-    { title: 'Branch', key: 'branch', sortable: false },
-    { title: 'Orders', key: 'total_orders', sortable: true },
-    { title: 'Revenue', key: 'total_revenue', sortable: true },
-    { title: 'Discount', key: 'total_discount', sortable: false },
-    { title: 'Tax', key: 'total_tax', sortable: false },
-    { title: 'Net Revenue', key: 'net_revenue', sortable: true },
-    { title: 'Profit', key: 'gross_profit', sortable: true },
-    { title: 'Avg Order', key: 'avg_order_value', sortable: true },
-    { title: 'Types', key: 'order_types', sortable: false },
-    { title: 'New Guests', key: 'new_customers', sortable: true }
+    { title: 'Order', key: 'order_number', sortable: false },
+    { title: 'Customer', key: 'customer', sortable: false },
+    { title: 'Items', key: 'items_count', sortable: false },
+    { title: 'Total', key: 'total_amount', sortable: true },
+    { title: 'Payment', key: 'payment_method', sortable: false },
+    { title: 'Status', key: 'status', sortable: false },
+    { title: 'Date', key: 'created_at', sortable: true },
+    { title: '', key: 'actions', sortable: false, width: '48' }
   ]
 
-  const filteredSummaries = computed(() => summaries.value)
-
   // ── Helpers ───────────────────────────────────────────────────────────────────
-  const formatCurrency = val =>
+  const fmt = v =>
     new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(val || 0)
+    }).format(v ?? 0)
+  const fmtDate = v =>
+    v
+      ? new Date(v).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      : '—'
+  const fmtTime = v =>
+    v
+      ? new Date(v).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : ''
+  const statusColor = s =>
+    ({
+      pending: 'warning',
+      confirmed: 'info',
+      preparing: 'info',
+      ready: 'success',
+      completed: 'success',
+      cancelled: 'error'
+    })[s] ?? 'grey'
+  const typeColor = t =>
+    ({
+      dine_in: 'primary',
+      takeaway: 'info',
+      delivery: 'warning',
+      walk_in: 'success'
+    })[t] ?? 'grey'
+  const typeIcon = t =>
+    ({
+      dine_in: 'mdi-silverware',
+      takeaway: 'mdi-bag-personal',
+      delivery: 'mdi-moped',
+      walk_in: 'mdi-walk'
+    })[t] ?? 'mdi-cart'
+  const payColor = p =>
+    ({
+      cash: 'success',
+      card: 'primary',
+      qr: 'info',
+      store_credit: 'warning',
+      credit_term: 'error'
+    })[p] ?? 'grey'
 
-  const formatDate = d =>
-    new Date(d).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  const dayName = d =>
-    new Date(d).toLocaleDateString('en-US', { weekday: 'long' })
-  const dayOfMonth = d => new Date(d).getDate()
-  const profitMargin = item => {
-    if (!item.gross_profit || !item.total_revenue) return 0
-    return Math.round((item.gross_profit / item.total_revenue) * 100)
+  // ── Data loading ──────────────────────────────────────────────────────────────
+  const onPeriodChange = (val) => {
+    period.value = val   
+    if (period.value !== 'custom') {
+      const dates = periodDates(val)
+      filters.value.date_from = dates.from
+      filters.value.date_to = dates.to
+      filters.value.page = 1
+      loadAll()
+    }
   }
+
+  const loadAll = async () => {
+    await Promise.all([
+      loadStats(),
+      loadOrders(),
+      loadChartData(),
+      branchStore.fetchBranches()
+    ])
+  }
+
+  const loadStats = async () => {
+    try {
+      const dates = periodDates(period.value)
+      const prevDates = previousPeriodDates.value
+
+      const [curRes, prevRes] = await Promise.all([
+        orderStore.getAllOrdersReport({
+          date_from: dates.from,
+          date_to: dates.to,
+          per_page: 1
+        }),
+        orderStore.getAllOrdersReport({
+          date_from: prevDates.from,
+          date_to: prevDates.to,
+          per_page: 1
+        })
+      ])
+      stats.value = curRes.data.stats
+      prevStats.value = prevRes.data.stats
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const loadOrders = async () => {
+    tableLoading.value = true
+    try {
+      const dates = periodDates(period.value)
+      const res = await orderStore.getAllOrdersReport({
+        ...filters.value,
+        date_from: filters.value.date_from ?? dates.from,
+        date_to: filters.value.date_to ?? dates.to
+      })
+      orders.value = res.data.data.data
+      pagination.value = {
+        current_page: res.data.data.current_page,
+        last_page: res.data.data.last_page,
+        per_page: res.data.data.per_page,
+        total: res.data.data.total
+      }
+
+      // Build type stats from current results
+      buildTypeStats(orders.value)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      tableLoading.value = false
+    }
+  }
+
+  const loadChartData = async () => {
+    try {
+      // Fetch all orders for chart (no pagination)
+      const dates = periodDates(period.value)
+      const res = await orderStore.getAllOrdersReport({
+        date_from: dates.from,
+        date_to: dates.to,
+        per_page: 9999
+      })
+      const allOrders = res.data.data.data
+      buildChartData(allOrders, dates.from, dates.to)
+      buildPaymentStats(allOrders)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const buildChartData = (allOrders, from, to) => {
+    // Group by day
+    const map = {}
+    const cur = new Date(from)
+    const end = new Date(to)
+    while (cur <= end) {
+      const key = cur.toISOString().slice(0, 10)
+      map[key] = { label: key, revenue: 0, orders: 0 }
+      cur.setDate(cur.getDate() + 1)
+    }
+    for (const o of allOrders) {
+      const key = o.created_at?.slice(0, 10)
+      if (map[key] && o.status !== 'cancelled') {
+        map[key].revenue += parseFloat(o.total_amount ?? 0)
+        map[key].orders++
+      }
+    }
+    chartData.value = Object.values(map)
+    nextTick(() => drawLineChart())
+  }
+
+  const buildTypeStats = allOrders => {
+    const COLORS = {
+      dine_in: '#3b82f6',
+      takeaway: '#06b6d4',
+      delivery: '#f59e0b',
+      walk_in: '#10b981'
+    }
+    const map = {}
+    for (const o of allOrders) {
+      const t = o.order_type ?? 'other'
+      map[t] = (map[t] ?? 0) + 1
+    }
+    orderTypeStats.value = Object.entries(map).map(([key, count]) => ({
+      label: key.replace('_', ' '),
+      count,
+      color: COLORS[key] ?? '#94a3b8'
+    }))
+    nextTick(() => drawDonutChart())
+  }
+
+  const buildPaymentStats = allOrders => {
+    const map = {}
+    for (const o of allOrders) {
+      const p = o.payment_method ?? 'unknown'
+      map[p] = (map[p] ?? 0) + parseFloat(o.total_amount ?? 0)
+    }
+    nextTick(() => drawBarChart(map))
+  }
+
+  // ── Chart drawing ──────────────────────────────────────────────────────────────
+  const drawLineChart = () => {
+    if (!lineChartRef.value) return
+    if (lineChart) lineChart.destroy()
+
+    const labels = chartData.value.map(d => {
+      const dt = new Date(d.label)
+      return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })
+    const values =
+      chartMode.value === 'revenue'
+        ? chartData.value.map(d => d.revenue)
+        : chartData.value.map(d => d.orders)
+
+    lineChart = new Chart(lineChartRef.value, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: chartMode.value === 'revenue' ? 'Revenue ($)' : 'Orders',
+            data: values,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#3b82f6',
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
+          y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
+        }
+      }
+    })
+  }
+
+  const drawDonutChart = () => {
+    if (!donutChartRef.value) return
+    if (donutChart) donutChart.destroy()
+
+    const data = orderTypeStats.value
+    donutChart = new Chart(donutChartRef.value, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [
+          {
+            data: data.map(d => d.count),
+            backgroundColor: data.map(d => d.color),
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: { legend: { display: false } }
+      }
+    })
+  }
+
+  const drawBarChart = paymentMap => {
+    if (!barChartRef.value) return
+    if (barChart) barChart.destroy()
+
+    const labels = Object.keys(paymentMap).map(k => k.replace('_', ' '))
+    const values = Object.values(paymentMap)
+    const colors = ['#10b981', '#3b82f6', '#06b6d4', '#f59e0b', '#ef4444']
+
+    barChart = new Chart(barChartRef.value, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Revenue ($)',
+            data: values,
+            backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+            borderRadius: 6,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
+        }
+      }
+    })
+  }
+
+  watch(chartMode, () => drawLineChart())
 
   // ── Actions ───────────────────────────────────────────────────────────────────
-  const fetchData = async () => {
-    // salesStore.fetchSummaries sets store.summaries array
-    await salesStore.fetchSummaries(filters.value)
+  let searchTimer = null
+  const onSearch = () => {
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => loadOrders(), 400)
   }
 
-  const exportCsv = () => {
-    const rows = [
-      [
-        'Date',
-        'Branch',
-        'Orders',
-        'Revenue',
-        'Discount',
-        'Tax',
-        'Net Revenue',
-        'Gross Profit',
-        'Avg Order',
-        'Dine In',
-        'Takeaway',
-        'Delivery',
-        'New Customers'
-      ],
-      ...summaries.value.map(r => [
-        r.date,
-        r.branch?.name,
-        r.total_orders,
-        r.total_revenue,
-        r.total_discount,
-        r.total_tax,
-        r.net_revenue,
-        r.gross_profit ?? '',
-        r.avg_order_value ?? '',
-        r.dine_in_orders,
-        r.takeaway_orders,
-        r.delivery_orders,
-        r.new_customers
-      ])
-    ]
-    const csv = rows.map(r => r.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `sales-summary-${filters.value.date_from}-to-${filters.value.date_to}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  const resetFilters = () => {
+    filters.value = {
+      search: '',
+      status: null,
+      order_type: null,
+      date_from: null,
+      date_to: null,
+      per_page: 15,
+      page: 1
+    }
+    loadOrders()
   }
 
-  onMounted(async () => {
-    await Promise.all([branchStore.fetchBranches?.(), fetchData()])
+  const viewOrder = order => {
+    selectedOrderId.value = order.id
+    detailDialog.value = true
+  }
+
+  const exportExcel = async () => {
+    exporting.value = true
+    try {
+      const dates = periodDates(period.value)
+      const res = await orderStore.exportOrders({
+        ...filters.value,
+        date_from: filters.value.date_from ?? dates.from,
+        date_to: filters.value.date_to ?? dates.to
+      })
+      const url = URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Order-Report-${new Date().toISOString().slice(0, 10)}.xlsx`
+      link.click()
+      URL.revokeObjectURL(url)
+      notif('Excel exported', { type: 'success' })
+    } catch {
+      notif('Export failed', { type: 'error' })
+    } finally {
+      exporting.value = false
+    }
+  }
+
+  onMounted(() => {
+    onPeriodChange()
   })
 </script>
 
 <style scoped>
-  .sales-page {
-    padding: 0;
+  .report-page {
+    max-width: 1400px;
   }
 
-  .page-title {
-    font-size: 1.6rem;
-    font-weight: 800;
+  .report-title {
     letter-spacing: -0.5px;
-    color: rgb(var(--v-theme-on-surface));
-  }
-  .page-subtitle {
-    font-size: 0.85rem;
-    color: rgb(var(--v-theme-on-surface-variant));
-    margin-top: 2px;
   }
 
-  /* ── KPI cards ──────────────────────────────────────────────────────────────── */
-  .kpi-card {
-    transition: transform 0.2s ease;
-  }
-  .kpi-card:hover {
-    transform: translateY(-2px);
-  }
-
-  .kpi-value {
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -0.3px;
-    margin-bottom: 2px;
-  }
-  .kpi-label {
-    font-size: 0.72rem;
-    color: rgb(var(--v-theme-on-surface-variant));
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* ── Chart ──────────────────────────────────────────────────────────────────── */
-  .chart-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    letter-spacing: -0.2px;
-  }
-  .chart-area {
-    position: relative;
-    min-height: 140px;
-  }
-  .sparkline {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-  .chart-dot {
-    cursor: pointer;
-    transition: r 0.15s;
-  }
-  .chart-dot:hover {
-    r: 5;
-  }
-  .chart-empty {
+  .period-tabs {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* KPI cards */
+  .kpi-card {
+    transition: box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07) !important;
+  }
+  .kpi-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    min-height: 140px;
+  }
+  .kpi-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
   }
 
-  /* ── Order type rows ─────────────────────────────────────────────────────────── */
-  .order-type-row {
-    margin-bottom: 4px;
+  /* Comparison banner */
+  .comparison-banner {
+    background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  }
+  .compare-cell {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
-  /* ── Gaps ───────────────────────────────────────────────────────────────────── */
+  /* Legend dot */
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
   .gap-2 {
     gap: 8px;
   }
   .gap-3 {
     gap: 12px;
   }
-  .h-100 {
-    height: 100%;
+  .border-b {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   }
 </style>

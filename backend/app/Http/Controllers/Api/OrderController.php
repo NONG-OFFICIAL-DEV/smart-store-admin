@@ -306,4 +306,118 @@ class OrderController extends Controller
             ]),
         ];
     }
+
+    public function orderReport(Request $request)
+    {
+        $perPage = min((int) $request->get('per_page', 15), 100);
+        $user    = auth()->user();
+
+        // ── Resolve allowed branch IDs for this user ──────────────────────────
+        $allowedBranchIds = null;
+        if (!$user->is_super_admin) {
+            $tenantId         = $user->resolveTenantId($request);
+            $allowedBranchIds = \App\Models\Branch::where('tenant_id', $tenantId)
+                ->pluck('id')
+                ->toArray();
+        }
+
+        // ── Branch IDs requested by the frontend ──────────────────────────────
+        // Comes in as branch_ids[] array
+        $requestedBranchIds = $request->input('branch_ids', []);
+
+        // ── Final branch filter: intersection of allowed + requested ──────────
+        // If user sent branch_ids → use those (but only ones they're allowed to see)
+        // If user sent nothing    → show all allowed branches
+        if (!empty($requestedBranchIds) && $allowedBranchIds !== null) {
+            $finalBranchIds = array_intersect($requestedBranchIds, $allowedBranchIds);
+        } elseif (!empty($requestedBranchIds)) {
+            // super admin filtering by specific branches
+            $finalBranchIds = $requestedBranchIds;
+        } else {
+            $finalBranchIds = $allowedBranchIds; // all tenant branches
+        }
+
+        $query = Order::with([
+            'branch:id,name',
+            'customer:id,name,phone',
+            'items',
+        ])
+            ->when(
+                $finalBranchIds,
+                fn($q) =>
+                $q->whereIn('branch_id', $finalBranchIds)
+            )
+            ->when(
+                $request->status,
+                fn($q) =>
+                $q->where('status', $request->status)
+            )
+            ->when(
+                $request->order_type,
+                fn($q) =>
+                $q->where('order_type', $request->order_type)
+            )
+            ->when(
+                $request->payment_method,
+                fn($q) =>
+                $q->where('payment_method', $request->payment_method)
+            )
+            ->when(
+                $request->date_from,
+                fn($q) =>
+                $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay())
+            )
+            ->when(
+                $request->date_to,
+                fn($q) =>
+                $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay())
+            )
+            ->when(
+                $request->search,
+                fn($q) =>
+                $q->where(
+                    fn($q2) =>
+                    $q2->where('order_number', 'like', "%{$request->search}%")
+                        ->orWhereHas(
+                            'customer',
+                            fn($q3) =>
+                            $q3->where('name',  'like', "%{$request->search}%")
+                                ->orWhere('phone', 'like', "%{$request->search}%")
+                        )
+                )
+            )
+            ->orderBy('created_at', 'desc');
+
+        $orders = $query->paginate($perPage);
+
+        // ── Stats (same branch filter, no pagination) ─────────────────────────
+        $statsQuery = Order::when(
+            $finalBranchIds,
+            fn($q) =>
+            $q->whereIn('branch_id', $finalBranchIds)
+        )
+            ->when(
+                $request->date_from,
+                fn($q) =>
+                $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay())
+            )
+            ->when(
+                $request->date_to,
+                fn($q) =>
+                $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay())
+            );
+        $stats = [
+            'total_orders'  => (clone $statsQuery)->count(),
+            'total_revenue' => (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
+            'pending'       => (clone $statsQuery)->where('status', 'pending')->count(),
+            'completed'     => (clone $statsQuery)->where('status', 'completed')->count(),
+            'cancelled'     => (clone $statsQuery)->where('status', 'cancelled')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders,
+            'stats'   => $stats,
+        ]);
+    }
 }

@@ -67,6 +67,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\OrderExportController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -238,6 +239,8 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     });
 
     // ── Orders ────────────────────────────────────────────────────────────────
+    Route::get('orders/report',  [OrderController::class, 'orderReport']);
+    Route::get('orders/export',  [OrderExportController::class, 'export']);
     Route::apiResource('orders', OrderController::class);
     Route::prefix('orders/{order}')->group(function () {
         Route::get('items',             [OrderItemController::class, 'byOrder']);

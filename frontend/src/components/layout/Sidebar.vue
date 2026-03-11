@@ -140,8 +140,8 @@
           // show: can('reports.sales')
         },
         {
-          path: '/sales-reports',
-          title: 'Sales Analytics',
+          path: '/orders-reports',
+          title: 'Orders Analytics',
           icon: 'mdi-chart-bar'
           // show: can('reports.sales')
         },

@@ -4,17 +4,35 @@ import {
   getOrderByIdApi,
   createOrderApi,
   updateOrderApi,
-  deleteOrderApi
+  deleteOrderApi,
+  exportOrdersApi,
+  getAllOrdersReportApi
 } from '../api/orderService'
 
 export const useOrderStore = defineStore('order', {
   state: () => ({
     orders: [],
     order: null,
-    pagination: {}
+    pagination: {},
+    // Active filters
+    filters: {
+      search: '',
+      branch_id: null,
+      status: null,
+      order_type: null,
+      payment_method: null,
+      date_from: null,
+      date_to: null,
+      per_page: 15,
+      page: 1
+    }
   }),
 
   actions: {
+    async getAllOrdersReport(filters) {
+      const res = await getAllOrdersReportApi(filters)
+      return res
+    },
     async fetchOrders(filters) {
       const res = await getAllOrdersApi(filters)
       this.orders = res.data.data.data
@@ -36,6 +54,23 @@ export const useOrderStore = defineStore('order', {
     async deleteOrder(id) {
       await deleteOrderApi(id)
       this.orders = this.orders.filter(item => item.id !== id)
+    },
+    async exportOrders(param) {
+      const res = await exportOrdersApi(param)
+      return res
+    },
+    resetFilters() {
+      this.filters = {
+        search: '',
+        branch_id: null,
+        status: null,
+        order_type: null,
+        payment_method: null,
+        date_from: null,
+        date_to: null,
+        per_page: 15,
+        page: 1
+      }
     }
   }
 })

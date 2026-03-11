@@ -200,4 +200,30 @@ class User extends Authenticatable implements JWTSubject
             'role'   => null,
         ];
     }
+
+    // ── Resolve tenant from logged in user ────────────────────────────────────
+    // 3 cases:
+    //   1. Super admin → must pass tenant_id in request
+    //   2. Tenant owner → get from tenants.owner_user_id
+    //   3. Tenant admin → get from tenant_admins table
+    public function resolveTenantId(Request $request): ?string
+    {
+        $user = auth()->user();
+
+        // Case 1: Super Admin — they must specify which tenant
+        if ($user->is_super_admin) {
+            $request->validate([
+                'tenant_id' => 'required|uuid|exists:tenants,id',
+            ]);
+            return $request->tenant_id;
+        }
+
+        // Case 2: Tenant Owner
+        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
+        if ($ownedTenant) {
+            return $ownedTenant->id;
+        }
+
+        return null;
+    }
 }
