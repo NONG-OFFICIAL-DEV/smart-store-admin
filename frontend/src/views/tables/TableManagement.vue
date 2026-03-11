@@ -1,33 +1,33 @@
 <template>
-  <custom-title
-    icon="mdi-table"
-    title="Tables"
-    subtitle="Floor plan · Status · Capacity"
-  >
-    <template #right>
-      <div class="d-flex gap-2">
-        <v-btn-toggle
-          v-model="viewMode"
-          color="primary"
-          mandatory
-          density="compact"
-        >
-          <v-btn value="map" icon="mdi-floor-plan" />
-          <v-btn value="list" icon="mdi-format-list-bulleted" />
-        </v-btn-toggle>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-plus"
-          rounded="lg"
-          @click="openCreate"
-        >
-          Add Table
-        </v-btn>
-      </div>
-    </template>
-  </custom-title>
-
   <v-container fluid class="pa-0">
+    <custom-title
+      icon="mdi-table"
+      title="Tables"
+      subtitle="Floor plan · Status · Capacity"
+    >
+      <template #right>
+        <div class="d-flex gap-2">
+          <v-btn-toggle
+            v-model="viewMode"
+            color="primary"
+            mandatory
+            density="compact"
+          >
+            <v-btn value="map" icon="mdi-floor-plan" />
+            <v-btn value="list" icon="mdi-format-list-bulleted" />
+          </v-btn-toggle>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-plus"
+            rounded="lg"
+            @click="openCreate"
+          >
+            Add Table
+          </v-btn>
+        </div>
+      </template>
+    </custom-title>
+
     <!-- Stats -->
     <v-row class="mb-5">
       <v-col v-for="(stat, i) in stats" :key="i" cols="6" sm="3">
@@ -314,96 +314,53 @@
         </v-data-table>
       </v-card>
     </template>
+
+    <!-- Table Form Dialog -->
+    <TableFormDialog
+      v-model="dialog"
+      :item="selectedItem"
+      :floor-plans="floorPlanOptions"
+      :loading="saving"
+      @save="handleSave"
+    />
+
+    <!-- Status Change Dialog -->
+    <v-dialog v-model="statusDialog" max-width="360">
+      <v-card rounded="xl" elevation="0" border>
+        <v-card-title class="pa-5 pb-4">
+          <div class="text-h6 font-weight-bold">
+            Table {{ statusTarget?.table_number }} — Change Status
+          </div>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-4">
+          <v-row dense>
+            <v-col v-for="s in statusOptions" :key="s.value" cols="6">
+              <v-btn
+                block
+                :color="s.color"
+                :variant="statusTarget?.status === s.value ? 'flat' : 'tonal'"
+                rounded="lg"
+                class="text-none mb-2"
+                :prepend-icon="s.icon"
+                :loading="saving && newStatus === s.value"
+                @click="changeStatus(s.value)"
+              >
+                {{ s.label }}
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <TableQRDialog
+      v-if="qrDialog"
+      v-model="qrDialog"
+      :table="qrTarget"
+      :branch-name="'Your Restaurant'"
+    />
   </v-container>
-
-  <!-- Table Form Dialog -->
-  <TableFormDialog
-    v-model="dialog"
-    :item="selectedItem"
-    :floor-plans="floorPlanOptions"
-    :loading="saving"
-    @save="handleSave"
-  />
-
-  <!-- Status Change Dialog -->
-  <v-dialog v-model="statusDialog" max-width="360">
-    <v-card rounded="xl" elevation="0" border>
-      <v-card-title class="pa-5 pb-4">
-        <div class="text-h6 font-weight-bold">
-          Table {{ statusTarget?.table_number }} — Change Status
-        </div>
-      </v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4">
-        <v-row dense>
-          <v-col v-for="s in statusOptions" :key="s.value" cols="6">
-            <v-btn
-              block
-              :color="s.color"
-              :variant="statusTarget?.status === s.value ? 'flat' : 'tonal'"
-              rounded="lg"
-              class="text-none mb-2"
-              :prepend-icon="s.icon"
-              :loading="saving && newStatus === s.value"
-              @click="changeStatus(s.value)"
-            >
-              {{ s.label }}
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
-
-  <!-- Delete Confirm -->
-  <v-dialog v-model="deleteDialog" max-width="400" persistent>
-    <v-card rounded="xl" elevation="0" border>
-      <v-card-text class="pa-6 text-center">
-        <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-          <v-icon icon="mdi-delete-outline" size="28" />
-        </v-avatar>
-        <h3 class="text-h6 font-weight-bold mb-2">Delete Table?</h3>
-        <p class="text-body-2 text-medium-emphasis">
-          Table
-          <strong>{{ deleteTarget?.table_number }}</strong>
-          will be permanently removed.
-        </p>
-      </v-card-text>
-      <v-card-actions class="px-6 pb-6 pt-0 gap-3">
-        <v-btn block variant="tonal" rounded="lg" @click="deleteDialog = false">
-          Cancel
-        </v-btn>
-        <v-btn
-          block
-          color="error"
-          variant="flat"
-          rounded="lg"
-          :loading="saving"
-          @click="handleDelete"
-        >
-          Delete
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Snackbar -->
-  <v-snackbar
-    v-model="snackbar.show"
-    :color="snackbar.color"
-    location="bottom right"
-    rounded="lg"
-    :timeout="3000"
-  >
-    {{ snackbar.message }}
-  </v-snackbar>
-  <TableQRDialog
-    v-if="qrDialog"
-    v-model="qrDialog"
-    :table="qrTarget"
-    :branch-name="'Your Restaurant'"
-  />
-  <!-- :menu-base-url="`${$config?.appUrl || 'https://menu.yourapp.com'}/table/`" -->
 </template>
 
 <script setup>
@@ -413,6 +370,8 @@
   import { useTableStore } from '@/stores/tableStore'
   import TableFormDialog from '@/components/tables/TableFormDialog.vue'
   import TableQRDialog from '@/components/tables/TableQRDialog.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+  const { confirm, notif } = useAppUtils()
 
   const qrDialog = ref(false)
   const qrTarget = ref(null)
@@ -434,16 +393,9 @@
   const selectedFloorPlan = ref(null)
   const dialog = ref(false)
   const statusDialog = ref(false)
-  const deleteDialog = ref(false)
   const selectedItem = ref(null)
   const statusTarget = ref(null)
-  const deleteTarget = ref(null)
   const newStatus = ref(null)
-  const snackbar = ref({ show: false, message: '', color: 'success' })
-
-  const showSnack = (m, c = 'success') => {
-    snackbar.value = { show: true, message: m, color: c }
-  }
 
   // Mock floor plans — replace with store
   const floorPlanOptions = ref([{ id: null, name: 'All Floors' }])
@@ -543,10 +495,7 @@
     selectedItem.value = { ...t }
     dialog.value = true
   }
-  const confirmDelete = t => {
-    deleteTarget.value = t
-    deleteDialog.value = true
-  }
+
   const openStatusChange = t => {
     statusTarget.value = t
     statusDialog.value = true
@@ -561,24 +510,40 @@
       // store.updateTable replaces item in tables array
       await tableStore.updateTable(statusTarget.value.id, { status })
       statusDialog.value = false
-      showSnack(`Table ${statusTarget.value.table_number} → ${status}`)
+      notif(`Table ${statusTarget.value.table_number} → ${status}`, {
+        type: 'success'
+      })
     } catch {
-      showSnack('Failed to update status', 'error')
+      notif('Failed to update status', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
       newStatus.value = null
     }
   }
 
-  const handleDelete = async () => {
+  const confirmDelete = async data => {
     saving.value = true
     try {
-      // store.deleteTable filters tables array itself
-      await tableStore.deleteTable(deleteTarget.value.id)
-      deleteDialog.value = false
-      showSnack(`Table ${deleteTarget.value.table_number} deleted`)
+      confirm({
+        title: 'Delete Table?',
+        message: `Table
+          <strong>${data.table_number}</strong>
+          will be permanently removed.`,
+        options: { type: 'warning', width: 550 },
+        agree: async () => {
+          await tableStore.deleteTable(data.id)
+          notif(`Table ${data.table_number} deleted`, {
+            type: 'success'
+          })
+        },
+        cancel: () => {}
+      })
     } catch {
-      showSnack('Failed to delete', 'error')
+      notif('Failed to delete', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
@@ -590,15 +555,21 @@
       if (payload.id) {
         // store.updateTable replaces item in tables array by index
         await tableStore.updateTable(payload.id, payload)
-        showSnack('Table updated')
+        notif('Table updated', {
+          type: 'success'
+        })
       } else {
         // store.createTable unshifts into tables array
         await tableStore.createTable(payload)
-        showSnack('Table created')
+        notif('Table created', {
+          type: 'success'
+        })
       }
       dialog.value = false
     } catch {
-      showSnack('Failed to save', 'error')
+      notif('Failed to save', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }

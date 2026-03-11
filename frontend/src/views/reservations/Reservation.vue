@@ -1,18 +1,22 @@
 <template>
-  <custom-title icon="mdi-calendar-check-outline" title="Reservations" subtitle="Bookings · Seating · Walk-ins">
-    <template #right>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-calendar-plus"
-        rounded="lg"
-        @click="openCreate"
-      >
-        New Reservation
-      </v-btn>
-    </template>
-  </custom-title>
-
   <v-container fluid class="pa-0">
+    <custom-title
+      icon="mdi-calendar-check-outline"
+      title="Reservations"
+      subtitle="Bookings · Seating · Walk-ins"
+    >
+      <template #right>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-calendar-plus"
+          rounded="lg"
+          @click="openCreate"
+        >
+          New Reservation
+        </v-btn>
+      </template>
+    </custom-title>
+
     <!-- Stats -->
     <v-row class="mb-5">
       <v-col v-for="(stat, i) in stats" :key="i" cols="6" sm="3">
@@ -134,13 +138,7 @@
 
     <!-- Reservations list -->
     <v-row v-if="!loading" dense>
-      <v-col
-        v-for="res in reservations"
-        :key="res.id"
-        cols="12"
-        md="6"
-        lg="4"
-      >
+      <v-col v-for="res in reservations" :key="res.id" cols="12" md="6" lg="4">
         <v-card rounded="xl" border elevation="0" class="res-card">
           <!-- Status bar top -->
           <div
@@ -347,48 +345,6 @@
     :loading="saving"
     @save="handleSave"
   />
-
-  <!-- Delete Confirm -->
-  <v-dialog v-model="deleteDialog" max-width="400" persistent>
-    <v-card rounded="xl" elevation="0" border>
-      <v-card-text class="pa-6 text-center">
-        <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-          <v-icon icon="mdi-delete-outline" size="28" />
-        </v-avatar>
-        <h3 class="text-h6 font-weight-bold mb-2">Delete Reservation?</h3>
-        <p class="text-body-2 text-medium-emphasis">
-          Reservation for
-          <strong>{{ deleteTarget?.customer_name }}</strong>
-          will be removed.
-        </p>
-      </v-card-text>
-      <v-card-actions class="px-6 pb-6 pt-0 gap-3">
-        <v-btn block variant="tonal" rounded="lg" @click="deleteDialog = false">
-          Cancel
-        </v-btn>
-        <v-btn
-          block
-          color="error"
-          variant="flat"
-          rounded="lg"
-          :loading="saving"
-          @click="handleDelete"
-        >
-          Delete
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-snackbar
-    v-model="snackbar.show"
-    :color="snackbar.color"
-    location="bottom right"
-    rounded="lg"
-    :timeout="3000"
-  >
-    {{ snackbar.message }}
-  </v-snackbar>
 </template>
 
 <script setup>
@@ -398,7 +354,8 @@
   import { useReservationStore } from '@/stores/reservationStore'
   import { useTableStore } from '@/stores/tableStore'
   import ReservationFormDialog from '@/components/reservations/ReservationFormDialog.vue'
-
+  import { useAppUtils } from '@nong-official-dev/core'
+  const { confirm, notif } = useAppUtils()
   const route = useRoute()
   const reservationStore = useReservationStore()
   const tableStore = useTableStore()
@@ -408,11 +365,8 @@
 
   const saving = ref(false)
   const dialog = ref(false)
-  const deleteDialog = ref(false)
   const selectedItem = ref(null)
-  const deleteTarget = ref(null)
   const activeTab = ref('all')
-  const snackbar = ref({ show: false, message: '', color: 'success' })
 
   const filters = ref({
     date: new Date().toISOString().split('T')[0],
@@ -420,10 +374,6 @@
     table_id: route.query.table_id || null,
     search: ''
   })
-
-  const showSnack = (m, c = 'success') => {
-    snackbar.value = { show: true, message: m, color: c }
-  }
 
   const statusTabs = [
     {
@@ -530,31 +480,43 @@
     selectedItem.value = { ...r }
     dialog.value = true
   }
-  const confirmDelete = r => {
-    deleteTarget.value = r
-    deleteDialog.value = true
-  }
-
   const updateStatus = async (res, status) => {
     saving.value = true
     try {
       await reservationStore.updateReservation(res.id, { status })
-      showSnack(`Reservation ${status}`)
+      notif(`Reservation ${status}`, {
+        type: 'success'
+      })
     } catch {
-      showSnack('Failed to update', 'error')
+      notif('Failed to delete', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
   }
 
-  const handleDelete = async () => {
+  const confirmDelete = async res => {
     saving.value = true
     try {
-      await reservationStore.deleteReservation(deleteTarget.value.id)
-      deleteDialog.value = false
-      showSnack('Reservation deleted')
+      confirm({
+        title: 'Delete Reservation?',
+        message: `Reservation for
+        <strong>${res.customer_name}</strong>
+        will be removed.`,
+        options: { type: 'warning', width: 500 },
+        agree: async () => {
+          await reservationStore.deleteReservation(res.id)
+          notif('Reservation deleted successfully', {
+            type: 'success'
+          })
+        },
+        cancel: () => {}
+      })
     } catch {
-      showSnack('Failed to delete', 'error')
+      notif('Failed to delete', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
@@ -567,9 +529,13 @@
         ? await reservationStore.updateReservation(payload.id, payload)
         : await reservationStore.createReservation(payload)
       dialog.value = false
-      showSnack(payload.id ? 'Reservation updated' : 'Reservation created')
+      notif(payload.id ? 'Reservation updated' : 'Reservation created', {
+        type: 'success'
+      })
     } catch {
-      showSnack('Failed to save', 'error')
+      notif('Failed to save', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }

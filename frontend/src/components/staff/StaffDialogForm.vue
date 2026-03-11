@@ -178,6 +178,7 @@
                     variant="outlined"
                     rounded="lg"
                     prepend-inner-icon="mdi-identifier"
+                    hide-details
                     :readonly="!editingCode"
                     :bg-color="!editingCode ? 'grey-lighten-4' : undefined"
                   >
@@ -206,7 +207,7 @@
                       <div class="text-body-2 font-weight-medium">Active</div>
                       <div class="text-caption text-grey">Allow login</div>
                     </div>
-                    <v-switch v-model="form.is_active" color="success" inset />
+                    <v-switch v-model="form.is_active" color="success" inset hide-details density="compact"/>
                   </v-card>
                 </v-col>
               </v-row>

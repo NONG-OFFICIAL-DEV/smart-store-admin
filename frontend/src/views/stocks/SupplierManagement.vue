@@ -1,36 +1,35 @@
 <template>
   <v-container fluid class="pa-0">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-5">
-      <div>
-        <h2 class="text-h5 font-weight-bold">Supplier Management</h2>
-        <div class="text-caption text-grey">
-          Manage all suppliers for your business
+    <custom-title
+      icon="mdi-strak"
+      title="Supplier Management"
+      subtitle="Manage all suppliers for your business"
+    >
+      <template #right>
+        <div class="d-flex gap-2">
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            :prepend-icon="
+              showFilter ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+            "
+            @click="showFilter = !showFilter"
+          >
+            Filter
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-plus"
+            @click="openAdd"
+          >
+            Add Supplier
+          </v-btn>
         </div>
-      </div>
-      <div class="d-flex gap-2">
-        <v-btn
-          variant="tonal"
-          rounded="lg"
-          :prepend-icon="
-            showFilter ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilter = !showFilter"
-        >
-          Filter
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          @click="openAdd"
-        >
-          Add Supplier
-        </v-btn>
-      </div>
-    </div>
-
+      </template>
+    </custom-title>
+  
     <!-- Filter panel -->
     <v-expand-transition>
       <v-card

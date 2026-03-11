@@ -189,61 +189,6 @@
       :loading="permSaving"
       @saved="handlePermissionsSaved"
     />
-
-    <!-- ── Delete Confirm ─────────────────────────────────────────────────── -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card rounded="xl" elevation="0" border>
-        <v-card-text class="pa-6 text-center">
-          <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-            <v-icon icon="mdi-shield-remove" size="28" />
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Delete Role?</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Delete
-            <strong>{{ deleteTarget?.name }}</strong>
-            ? Users with this role will lose their access.
-          </p>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0 gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            @click="deleteDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            block
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleteLoading"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Snackbar -->
-    <v-snackbar
-      v-model="snack.show"
-      :color="snack.color"
-      rounded="lg"
-      location="bottom right"
-    >
-      {{ snack.text }}
-      <template #actions>
-        <v-btn
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          @click="snack.show = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 
@@ -253,6 +198,8 @@
   import { usePermissionStore } from '@/stores/permissionStore'
   import RoleFormDialog from '@/components/rolePermissions/RoleFormDialog.vue'
   import RolePermissionsDialog from '@/components/rolePermissions/RolePermissionsDialog.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+  const { confirm, notif } = useAppUtils()
 
   const roleStore = useRoleStore()
   const permStore = usePermissionStore()
@@ -262,15 +209,12 @@
   const filterSystem = ref(null)
   const dialog = ref(false)
   const permDialog = ref(false)
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
   const deleteLoading = ref(false)
   const saving = ref(false)
   const permSaving = ref(false)
   const editItem = ref(null)
   const activeRole = ref(null)
   const assignedPermIds = ref([])
-  const snack = ref({ show: false, text: '', color: 'success' })
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const roles = computed(() => roleStore.roles || [])
@@ -314,10 +258,6 @@
     return colorCache[g]
   }
 
-  const showSnack = (text, color = 'success') => {
-    snack.value = { show: true, text, color }
-  }
-
   // ── Role CRUD ─────────────────────────────────────────────────────────────────
   const openCreate = () => {
     editItem.value = null
@@ -333,15 +273,21 @@
     try {
       if (payload.id) {
         await roleStore.updateRole(payload.id, payload)
-        showSnack('Role updated')
+        notif(`'Role updated`, {
+          type: 'success'
+        })
       } else {
         await roleStore.createRole(payload)
-        showSnack('Role created')
+        notif(`Role created`, {
+          type: 'success'
+        })
       }
       await roleStore.fetchRoles()
       dialog.value = false
     } catch (e) {
-      showSnack(e?.response?.data?.message || 'Failed', 'error')
+      notif(e?.response?.data?.message || 'Delete failed', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
@@ -360,29 +306,40 @@
     try {
       await roleStore.updateRole(role_id, { permission_ids })
       await roleStore.fetchRoles()
-      showSnack('Permissions saved')
+      notif(`Permissions saved`, {
+        type: 'success'
+      })
       permDialog.value = false
     } catch (e) {
-      showSnack(e?.response?.data?.message || 'Failed', 'error')
+      notif(e?.response?.data?.message || 'Delete failed', {
+        type: 'error'
+      })
     } finally {
       permSaving.value = false
     }
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────────────
-  const confirmDelete = item => {
-    deleteTarget.value = item
-    deleteDialog.value = true
-  }
-
-  const doDelete = async () => {
+  const confirmDelete = async data => {
     deleteLoading.value = true
     try {
-      await roleStore.deleteRole(deleteTarget.value.id)
-      showSnack('Role deleted', 'error')
-      deleteDialog.value = false
+      confirm({
+        title: 'Delete Role?',
+        message: `Delete
+            <strong>${data?.name}.</strong>?
+            <br/> Users with this role will lose their access.`,
+        options: { type: 'warning', width: 550 },
+        agree: async () => {
+          await roleStore.deleteRole(data.id)
+          notif(`Role deleted`, {
+            type: 'success'
+          })
+        },
+        cancel: () => {}
+      })
     } catch (e) {
-      showSnack(e?.response?.data?.message || 'Delete failed', 'error')
+      notif(e?.response?.data?.message || 'Delete failed', {
+        type: 'error'
+      })
     } finally {
       deleteLoading.value = false
     }

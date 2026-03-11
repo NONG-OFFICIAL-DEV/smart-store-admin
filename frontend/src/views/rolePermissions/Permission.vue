@@ -1,9 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+      icon="mdi-key"
       title="Permissions"
-      subtitle="          System-wide permission codes grouped by module
-"
+      subtitle="System-wide permission codes grouped by module"
     >
       <template #right>
         <v-btn
@@ -368,68 +368,14 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- Delete confirm -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card rounded="xl" elevation="0" border>
-        <v-card-text class="pa-6 text-center">
-          <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-            <v-icon icon="mdi-key-remove" size="28" />
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Delete Permission?</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Delete
-            <strong>{{ deleteTarget?.code }}</strong>
-            ? Roles using this permission will lose this access.
-          </p>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0 gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            @click="deleteDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            block
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleteLoading"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Snackbar -->
-    <v-snackbar
-      v-model="snack.show"
-      :color="snack.color"
-      rounded="lg"
-      location="bottom right"
-    >
-      {{ snack.text }}
-      <template #actions>
-        <v-btn
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          @click="snack.show = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { usePermissionStore } from '@/stores/permissionStore'
-
+  import { useAppUtils } from '@nong-official-dev/core'
+  const { confirm, notif } = useAppUtils()
   const store = usePermissionStore()
 
   // ── UI state ──────────────────────────────────────────────────────────────────
@@ -437,8 +383,6 @@
   const filterGroup = ref(null)
   const viewMode = ref('grouped')
   const dialog = ref(false)
-  const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
   const deleteLoading = ref(false)
   const saving = ref(false)
   const formRef = ref(null)
@@ -618,33 +562,47 @@
     try {
       if (isEdit.value) {
         await store.updatePermission(form.value.id, form.value)
-        showSnack('Permission updated')
+        notif(`Permissions updated`, {
+          type: 'success'
+        })
       } else {
         await store.createPermission(form.value)
-        showSnack('Permission created')
+        notif(`Permissions created`, {
+          type: 'success'
+        })
       }
       await store.fetchPermissions()
       closeDialog()
     } catch (e) {
-      showSnack(e?.response?.data?.message || 'Failed', 'error')
+      notif(e?.response?.data?.message || 'Delete failed', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
   }
-
-  const confirmDelete = item => {
-    deleteTarget.value = item
-    deleteDialog.value = true
-  }
-
-  const doDelete = async () => {
+  const confirmDelete = async item => {
     deleteLoading.value = true
     try {
-      await store.deletePermission(deleteTarget.value.id)
-      showSnack('Permission deleted', 'error')
-      deleteDialog.value = false
-    } catch (e) {
-      showSnack(e?.response?.data?.message || 'Delete failed', 'error')
+      confirm({
+        title: 'Delete Permission?',
+        message: `Delete
+            <strong>${item.code}</strong>
+            ? <br/>Roles using this permission will lose this access.
+          </p>`,
+        options: { type: 'warning', width: 550 },
+        agree: async () => {
+          await store.deletePermission(item.id)
+          notif(`Permission deleted`, {
+            type: 'success'
+          })
+        },
+        cancel: () => {}
+      })
+    } catch {
+      notif('Failed to delete', {
+        type: 'error'
+      })
     } finally {
       deleteLoading.value = false
     }

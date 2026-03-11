@@ -198,7 +198,7 @@
                 color="warning"
                 rounded="lg"
                 prepend-icon="mdi-account-plus-outline"
-                >
+              >
                 <!-- @click="openAssign(item)" -->
                 Assign Role
               </v-btn>
@@ -221,7 +221,7 @@
               size="small"
               variant="text"
               color="error"
-              @click="confirmDelete(item)"
+              @click="confirmDeleteUser(item)"
             />
           </div>
         </template>
@@ -242,63 +242,6 @@
       :loading="saving"
       @saved="handleUserSaved"
     />
-
-    <!-- Delete Confirm -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card rounded="xl" elevation="0" border>
-        <v-card-text class="pa-6 text-center">
-          <v-avatar color="error" size="56" rounded="lg" class="mb-4">
-            <v-icon icon="mdi-account-remove" size="28" />
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Delete User?</h3>
-          <p class="text-body-2 text-medium-emphasis">
-            Are you sure you want to delete
-            <strong>
-              {{ deleteTarget?.first_name }} {{ deleteTarget?.last_name }}
-            </strong>
-            ? This cannot be undone.
-          </p>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0 gap-3">
-          <v-btn
-            block
-            variant="tonal"
-            rounded="lg"
-            @click="deleteDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            block
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleteLoading"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Snackbar -->
-    <v-snackbar
-      v-model="snack.show"
-      :color="snack.color"
-      rounded="lg"
-      location="bottom right"
-    >
-      {{ snack.text }}
-      <template #actions>
-        <v-btn
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          @click="snack.show = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 
@@ -317,11 +260,9 @@
   const filterVerified = ref(null)
   const dialog = ref(false)
   const deleteDialog = ref(false)
-  const deleteTarget = ref(null)
   const deleteLoading = ref(false)
   const saving = ref(false)
   const editItem = ref(null)
-  const snack = ref({ show: false, text: '', color: 'success' })
 
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
@@ -427,10 +368,6 @@
           year: 'numeric'
         })
       : '—'
-  const showSnack = (text, color = 'success') => {
-    snack.value = { show: true, text, color }
-  }
-
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const openCreate = () => {
     editItem.value = null
@@ -446,15 +383,21 @@
     try {
       if (payload.id) {
         await store.updateUser(payload)
-        showSnack('User updated successfully')
+        notif('User updated successfully', {
+          type: 'success'
+        })
       } else {
         await store.addUser(payload)
-        showSnack('User created successfully')
+        notif('User created successfully', {
+          type: 'success'
+        })
       }
       await store.fetchUsers()
       dialog.value = false
     } catch (e) {
-      showSnack(e?.response?.data?.message || 'Operation failed', 'error')
+       notif(e?.response?.data?.message || 'Operation failed', {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
@@ -463,37 +406,38 @@
   const toggleActive = async item => {
     try {
       await store.updateUser({ id: item.id, is_active: item.is_active })
-      showSnack(`User ${item.is_active ? 'activated' : 'deactivated'}`)
+      notif(`User ${item.is_active ? 'activated' : 'deactivated'}`, {
+        type: 'success'
+      })
     } catch {
       item.is_active = !item.is_active // revert on error
     }
   }
 
-  const confirmDelete = item => {
-    deleteTarget.value = item
-    deleteDialog.value = true
-    confirm({
-      title: 'Delete Branch',
-      message: `Are you sure you want to delete branch "${branch.name}"?`,
-      options: { type: 'warning', width: 550 },
-      agree: () => {
-        // branchStore.deleteBranch(branch.id)
-        notif('Removed successully', {
-          type: 'success'
-        })
-      },
-      cancel: () => {}
-    })
-  }
-
-  const doDelete = async () => {
+  const confirmDeleteUser = async data => {
     deleteLoading.value = true
     try {
-      await store.deleteUser(deleteTarget.value.id)
-      showSnack('User deleted', 'error')
+      confirm({
+        title: 'Delete User?',
+        message: ` Are you sure you want to delete
+            <strong>
+              ${data?.first_name} ${data?.last_name}
+            </strong>
+            ?`,
+        options: { type: 'warning', width: 500 },
+        agree: async () => {
+          await store.deleteUser(data.id)
+          notif('User deleted successfully', {
+            type: 'success'
+          })
+        },
+        cancel: () => {}
+      })
       deleteDialog.value = false
-    } catch (e) {
-      showSnack(e?.response?.data?.message || 'Delete failed', 'error')
+    } catch {
+      notif('Failed to delete', {
+        type: 'error'
+      })
     } finally {
       deleteLoading.value = false
     }
