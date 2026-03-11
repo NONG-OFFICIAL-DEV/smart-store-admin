@@ -66,6 +66,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
+use App\Http\Controllers\Api\AdminDashboardController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -370,6 +371,13 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('live-orders',  [DashboardController::class, 'liveOrders']);
         Route::get('top-products', [DashboardController::class, 'topProducts']);
         Route::get('activity',     [DashboardController::class, 'activity']);
+    });
+    Route::prefix('admin/dashboard')->group(function () {
+        Route::get('stats',        [AdminDashboardController::class, 'stats']);
+        Route::get('chart',        [AdminDashboardController::class, 'chart']);
+        Route::get('tenant-chart', [AdminDashboardController::class, 'tenantChart']);
+        Route::get('activity',     [AdminDashboardController::class, 'activity']);
+        Route::get('live-orders',  [AdminDashboardController::class, 'liveOrders']);
     });
 });
 
