@@ -228,13 +228,13 @@
         form,
         val
           ? {
-              tenant_id: val.tenant_id ?? '',
+              tenant_id: val.tenant_id ?? null,
               name: val.name ?? '',
               contact_person: val.contact_person ?? '',
               phone: val.phone ?? '',
               email: val.email ?? '',
               address: val.address ?? '',
-              payment_terms: val.payment_terms ?? '',
+              payment_terms: val.payment_terms ?? null,
               is_active: val.is_active ?? true
             }
           : defaultForm()
@@ -254,10 +254,24 @@
   const save = async () => {
     const { valid } = await formRef.value.validate()
     if (!valid) return
-    emit('save', {
-      ...(props.supplier?.id ? { id: props.supplier.id } : {}),
-      ...form
-    })
+
+    const payload = {
+      ...(isEdit.value ? { id: props.supplier.id } : {}),
+      name: form.name,
+      contact_person: form.contact_person,
+      phone: form.phone,
+      email: form.email,
+      address: form.address,
+      payment_terms: form.payment_terms,
+      is_active: form.is_active
+    }
+
+    // ✅ Only include tenant_id if super admin and has value
+    if (isSuperAdmin() && form.tenant_id) {
+      payload.tenant_id = form.tenant_id
+    }
+
+    emit('save', payload)
   }
 
   const close = () => {
@@ -266,8 +280,6 @@
     Object.assign(form, defaultForm())
   }
   onMounted(async () => {
-    console.log(isSuperAdmin());
-    
     if (isSuperAdmin()) tenantStore.fetchTenants()
   })
 </script>

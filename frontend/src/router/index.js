@@ -241,8 +241,15 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'Login' })
   }
 
-  if (!authStore.me?.id) {
-    await authStore.fetchMe()
+   if (!authStore.me?.id) {
+    try {
+      await authStore.fetchMe()
+    } catch {
+      // ✅ fetchMe failed (401 expired token) → clear and redirect
+      localStorage.removeItem('token')
+      if (to.name === 'Login') return next()
+      return next({ name: 'Login' })
+    }
   }
 
   if (to.name === 'Login') return next({ name: 'Dashboard' })
