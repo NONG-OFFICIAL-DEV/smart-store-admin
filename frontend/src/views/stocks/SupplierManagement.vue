@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
-      icon="mdi-strak"
+      icon="mdi-truck-outline"
       title="Supplier Management"
       subtitle="Manage all suppliers for your business"
     >

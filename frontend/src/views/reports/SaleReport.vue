@@ -1069,13 +1069,6 @@
 </script>
 
 <style scoped>
-  .report-page {
-    max-width: 1400px;
-  }
-
-  .report-title {
-    letter-spacing: -0.5px;
-  }
 
   .period-tabs {
     display: flex;

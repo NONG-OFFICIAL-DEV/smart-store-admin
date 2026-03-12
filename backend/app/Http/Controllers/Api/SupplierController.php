@@ -32,9 +32,46 @@ class SupplierController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
-        return Supplier::store($request);
+        $request->validate([
+            'name'           => 'required|string|max:150',
+            'contact_person' => 'nullable|string|max:100',
+            'phone'          => 'nullable|string|max:30',
+            'email'          => 'nullable|email|max:255',
+            'address'        => 'nullable|string',
+            'payment_terms'  => 'nullable|string|max:100',
+            'is_active'      => 'boolean',
+
+            // Super admin only — optionally pass tenant_id
+            'tenant_id'      => 'sometimes|uuid|exists:tenants,id',
+        ]);
+
+        // ── Resolve tenant_id server side ─────────────────────────────────────
+        $user = auth()->user();
+
+        if ($user->is_super_admin) {
+            // Super admin MUST pass tenant_id in body
+            $request->validate(['tenant_id' => 'required|uuid|exists:tenants,id']);
+            $tenantId = $request->tenant_id;
+        } else {
+            // Tenant owner/admin → resolve automatically, ignore any tenant_id in request
+            $tenantId = $user->resolveTenantId($request);
+        }
+
+        $supplier = Supplier::create([
+            'tenant_id'      => $tenantId,
+            'name'           => $request->name,
+            'contact_person' => $request->contact_person,
+            'phone'          => $request->phone,
+            'email'          => $request->email,
+            'address'        => $request->address,
+            'payment_terms'  => $request->payment_terms,
+            'is_active'      => $request->boolean('is_active', true),
+        ]);
+
+        return response()->json(['success' => true, 'data' => $supplier], 201);
     }
 
     /**

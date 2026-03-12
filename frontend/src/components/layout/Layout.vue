@@ -14,34 +14,32 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
   import { useRouter } from 'vue-router'
 
   const rail = ref(false)
-  const user = ref(null)
-
   const authStore = useAuthStore()
   const router = useRouter()
+
+  // ✅ Just read from store — router guard already called fetchMe
+  const user = computed(() => authStore.me)
   const notifications_count = computed(
     () => authStore.unread_notifications_count
   )
   const bu_name = computed(() => authStore.bu_name)
   const logo_url = computed(() => authStore.logo_url)
-  // Fetch logged-in user
-  onMounted(async () => {
-    try {
-      await authStore.fetchMe()
-      user.value = authStore.me
-    } catch {
-      await authStore.logout()
+
+  // Only keep logout fallback if needed
+  onMounted(() => {
+    if (!authStore.me?.id) {
+      authStore.logout()
       router.push({ name: 'Login' })
     }
   })
 
-  // Toggle rail for sidebar
   function toggleRail() {
     rail.value = !rail.value
   }

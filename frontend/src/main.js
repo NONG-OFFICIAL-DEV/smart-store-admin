@@ -5,7 +5,7 @@ import router from "./router"
 import vuetify from "./plugins/vuetify"
 import i18n from "./plugins/i18n"
 import "./style.css"
-import './utils/echo'
+// import './utils/echo'
 import CustomTitle from "./components/global/CustomTitle.vue"
 import BaseButton from "./components/customs/BaseButton.vue"
 import BaseButtonFilter from "./components/customs/BaseButtonFilter.vue"

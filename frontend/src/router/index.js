@@ -229,19 +229,23 @@ const router = createRouter({
   routes
 })
 
-// Global navigation guard
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
 
-  // Redirect logged-in users away from Login page
-  if (to.name === 'Login' && token) {
-    return next({ name: 'Dashboard' }) // or any protected route
-  }
+router.beforeEach(async (to, from, next) => {
+  // ✅ Import INSIDE the callback — runs after app.use(pinia)
+  const { useAuthStore } = await import('@/stores/authStore')
+  const authStore = useAuthStore()
+  const token     = localStorage.getItem('token')
 
-  // Redirect unauthenticated users from protected pages
-  if (to.meta.requiresAuth && !token) {
+  if (!token) {
+    if (to.name === 'Login') return next()
     return next({ name: 'Login' })
   }
+
+  if (!authStore.me?.id) {
+    await authStore.fetchMe()
+  }
+
+  if (to.name === 'Login') return next({ name: 'Dashboard' })
 
   next()
 })

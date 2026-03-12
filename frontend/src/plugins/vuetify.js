@@ -39,7 +39,8 @@ const vuetify = createVuetify({
     VTextField: {
       variant: 'outlined',
       density: 'comfortable',
-      color: 'primary'
+      color: 'primary',
+      rounded: 'lg'
     },
 
     // Textarea defaults

@@ -210,18 +210,23 @@ class User extends Authenticatable implements JWTSubject
     {
         $user = auth()->user();
 
-        // Case 1: Super Admin — they must specify which tenant
+        // Case 1: Super Admin — use tenant_id from request (query or body)
         if ($user->is_super_admin) {
-            $request->validate([
-                'tenant_id' => 'required|uuid|exists:tenants,id',
-            ]);
-            return $request->tenant_id;
+            return $request->input('tenant_id'); // nullable — caller decides if required
         }
 
         // Case 2: Tenant Owner
         $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
         if ($ownedTenant) {
             return $ownedTenant->id;
+        }
+
+        // Case 3: Tenant Staff / Admin
+        $staffRecord = \App\Models\Staff::where('user_id', $user->id)
+            ->where('is_active', true)
+            ->first();
+        if ($staffRecord) {
+            return $staffRecord->tenant_id;
         }
 
         return null;

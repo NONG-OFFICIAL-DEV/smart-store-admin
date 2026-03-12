@@ -42,6 +42,15 @@
         <v-form ref="formRef">
           <!-- Basic Info -->
           <div class="form-section">
+            <v-select
+              v-if="isSuperAdmin()"
+              v-model="form.tenant_id"
+              :items="tenants"
+              item-title="name"
+              item-value="id"
+              label="Tenant"
+              :rules="[r.required]"
+            />
             <div class="form-section-label">
               <v-icon icon="mdi-information-outline" size="13" class="mr-1" />
               Basic Info
@@ -175,8 +184,11 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch } from 'vue'
-
+  import { ref, reactive, computed, watch, onMounted } from 'vue'
+  import { storeToRefs } from 'pinia'
+  import { usePermission } from '@/composables/usePermission'
+  import { useTenantStore } from '@/stores/tenantStore'
+  const { isSuperAdmin } = usePermission()
   const props = defineProps({
     modelValue: Boolean,
     supplier: { type: Object, default: null },
@@ -185,7 +197,8 @@
   const emit = defineEmits(['update:modelValue', 'save'])
 
   const formRef = ref(null)
-
+  const tenantStore = useTenantStore()
+  const { tenants } = storeToRefs(tenantStore)
   const model = computed({
     get: () => props.modelValue,
     set: v => emit('update:modelValue', v)
@@ -196,12 +209,13 @@
 
   // ── Default form — matches DB schema exactly ───────────────────────────────────
   const defaultForm = () => ({
+    tenant_id: null,
     name: '',
     contact_person: '', // ← schema: contact_person (not contact_name)
     phone: '',
     email: '',
     address: '',
-    payment_terms: '',
+    payment_terms: null,
     is_active: true // ← schema: is_active boolean (not status int)
   })
 
@@ -214,6 +228,7 @@
         form,
         val
           ? {
+              tenant_id: val.tenant_id ?? '',
               name: val.name ?? '',
               contact_person: val.contact_person ?? '',
               phone: val.phone ?? '',
@@ -250,6 +265,11 @@
     formRef.value?.reset()
     Object.assign(form, defaultForm())
   }
+  onMounted(async () => {
+    console.log(isSuperAdmin());
+    
+    if (isSuperAdmin()) tenantStore.fetchTenants()
+  })
 </script>
 
 <style scoped>
