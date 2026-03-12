@@ -67,6 +67,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\OrderExportController;
 
 Route::get('/test', function () {
@@ -380,7 +381,11 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('chart',        [AdminDashboardController::class, 'chart']);
         Route::get('tenant-chart', [AdminDashboardController::class, 'tenantChart']);
         Route::get('activity',     [AdminDashboardController::class, 'activity']);
-        Route::get('live-orders',  [AdminDashboardController::class, 'liveOrders']);
+    });
+
+    Route::prefix('mart/pos')->group(function () {
+        Route::get('orders', [MartPosController::class, 'index']);   // today's orders
+        Route::post('orders', [MartPosController::class, 'store']);   // new sale
     });
 });
 

@@ -143,4 +143,28 @@ class Product extends BaseModel
         if (!$this->cost_price || $this->base_price == 0) return null;
         return round((($this->base_price - $this->cost_price) / $this->base_price) * 100, 2);
     }
+
+    // Add to app/Models/Product.php
+
+    // ── Relationships ─────────────────────────────────────────────────────────────
+    public function units()
+    {
+        return $this->hasMany(ProductUnit::class)->orderBy('sort_order');
+    }
+
+    public function activeUnits()
+    {
+        return $this->hasMany(ProductUnit::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    public function baseUnit()
+    {
+        return $this->hasOne(ProductUnit::class)->where('is_base_unit', true);
+    }
+
+    // ── Find unit by barcode (for barcode scanner) ────────────────────────────────
+    public static function findByBarcode(string $barcode): ?ProductUnit
+    {
+        return ProductUnit::where('barcode', $barcode)->with('product')->first();
+    }
 }

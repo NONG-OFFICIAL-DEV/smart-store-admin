@@ -24,7 +24,13 @@
       path: '/dashboard',
       title: t('menu.dashboard'),
       icon: 'mdi-view-dashboard-outline',
-      show: can('dashboard.view')
+      show: !authStore.isSuperAdmin
+    },
+    {
+      path: '/admin-dashboard',
+      title: t('menu.dashboard'),
+      icon: 'mdi-view-dashboard-outline',
+      show: authStore.isSuperAdmin
     },
 
     // ── 2. TENANTS & BRANCHES ───────────────────────────────────────────────────

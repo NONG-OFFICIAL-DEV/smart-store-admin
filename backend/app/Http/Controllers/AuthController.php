@@ -136,7 +136,7 @@ class AuthController extends Controller
         // ── 4. Regular Staff ───────────────────────────────────────────────
         $staff = $user->staff()
             ->withoutGlobalScopes()          // ← bypass TenantScope
-            ->with('role')
+            ->with(['role.permissions', 'branch', 'tenant'])
             ->first();
 
         if (!$staff) {
@@ -152,10 +152,11 @@ class AuthController extends Controller
             'bu_name'        => $staff->tenant?->name,
             'bu_type'        => $staff->tenant?->type,
             'logo_url'       => $staff->tenant?->logo_url,
+            'branch_name' => $staff->branch?->name,
             'branch_id'      => $staff->branch_id,
+            'role_name'    => $staff->role->name,
             'permissions'    => $staff->role->permissions->pluck('code')->toArray(),
         ]);
-
     }
 
     // Logout

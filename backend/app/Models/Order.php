@@ -215,15 +215,26 @@ class Order extends BaseModel
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order) {
+            if (empty($order->order_number)) {
+                $order->order_number = static::generateOrderNumber($order->branch_id);
+            }
+        });
+    }
+
     public static function generateOrderNumber(string $branchId): string
     {
-        $prefix = 'ORD-' . now()->format('Ymd') . '-';
-        $last   = static::where('order_number', 'like', $prefix . '%')
-            ->orderByDesc('order_number')
-            ->value('order_number');
+        // Get short branch tag (first 3 chars, uppercase, letters only)
+        $branch = \App\Models\Branch::find($branchId);
+        $tag    = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $branch?->name ?? 'BR'), 0, 3));
 
-        $next = $last ? ((int) substr($last, -4)) + 1 : 1;
-        return $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);
+        do {
+            $number = 'ORD-' . $tag . '-' . now()->format('ymd') . '-' . strtoupper(Str::random(4));
+        } while (static::where('order_number', $number)->exists());
+
+        return $number;
     }
 
     public function getAmountPaidAttribute(): float

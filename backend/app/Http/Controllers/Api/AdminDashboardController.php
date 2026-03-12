@@ -190,16 +190,18 @@ class AdminDashboardController extends Controller
         $period      = $request->input('period', 'week');
         [$from, $to] = $this->dateRange($period);
 
-        $groupFormat = match(strtolower($period)) {
-            'today' => '%H:00',
-            'year'  => '%Y-%m',
-            default => '%Y-%m-%d',
+        // PostgreSQL TO_CHAR format mapping
+        $groupFormat = match (strtolower($period)) {
+            'today' => 'HH24:00',     // 24-hour format
+            'year'  => 'YYYY-MM',     // Year-Month
+            default => 'YYYY-MM-DD',  // Year-Month-Day
         };
 
         $rows = Order::whereBetween('created_at', [$from, $to])
             ->whereNotIn('status', ['cancelled'])
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as label"),
+                // Use TO_CHAR for PostgreSQL instead of DATE_FORMAT
+                DB::raw("TO_CHAR(created_at, '{$groupFormat}') as label"),
                 DB::raw('SUM(total_amount) as revenue'),
                 DB::raw('COUNT(*) as orders')
             )
@@ -250,16 +252,16 @@ class AdminDashboardController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     public function activity()
     {
-        $logs = ActivityLog::with('user:id,name,email')
+        $logs = ActivityLog::with('user:id,first_name,last_name,email')
             ->orderByDesc('created_at')
-            ->limit(12)
+            ->limit(3)
             ->get()
             ->map(fn($log) => [
                 'id'          => $log->id,
                 'title'       => $log->description ?? $log->action,
                 'desc'        => trim(($log->entity_type ?? '') . ' · ' . ($log->user_name ?? $log->user?->name ?? ''), ' · '),
                 'tenant_name' => $log->tenant?->bu_name ?? null,
-                'color'       => match($log->action) {
+                'color'       => match ($log->action) {
                     'created' => 'success',
                     'deleted' => 'error',
                     'updated' => 'primary',
@@ -269,29 +271,5 @@ class AdminDashboardController extends Controller
             ]);
 
         return response()->json(['success' => true, 'data' => $logs]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /api/v1/admin/dashboard/live-orders
-    // ─────────────────────────────────────────────────────────────────────────
-    public function liveOrders()
-    {
-        $orders = Order::with(['branch:id,name', 'branch.tenant:id,bu_name', 'items'])
-            ->whereNotIn('status', ['completed', 'cancelled'])
-            ->orderByDesc('created_at')
-            ->limit(15)
-            ->get()
-            ->map(fn($o) => [
-                'id'     => $o->id,
-                'number' => $o->order_number,
-                'branch' => $o->branch?->name,
-                'tenant' => $o->branch?->tenant?->bu_name,
-                'items'  => $o->items->count(),
-                'total'  => number_format($o->total_amount, 2),
-                'status' => $o->status,
-                'ago'    => Carbon::parse($o->created_at)->diffForHumans(),
-            ]);
-
-        return response()->json(['success' => true, 'data' => $orders]);
     }
 }

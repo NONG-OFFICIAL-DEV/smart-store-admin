@@ -40,13 +40,6 @@ class OrderController extends Controller
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    // public function store(Request $request)
-    // {
-    //     Order::store($request);
-    // }
 
     // ── POST /api/v1/public/orders ─────────────────────────────────────────
     // Called from mobile menu — no auth required
@@ -131,7 +124,6 @@ class OrderController extends Controller
             $order = Order::create([
                 'branch_id'              => $branch->id,
                 'table_id'               => $request->table_id,
-                'order_number'           => $this->generateOrderNumber($branch->id),
                 'order_type'             => $request->order_type ?? 'dine_in',
                 'status'                 => 'pending',
                 'source'                 => 'mobile_app',
@@ -243,16 +235,6 @@ class OrderController extends Controller
         ]);
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────
-
-    private function generateOrderNumber(string $branchId): string
-    {
-        $prefix = 'ORD-' . now()->format('Ymd') . '-';
-        $last   = Order::where('branch_id', $branchId)
-            ->where('order_number', 'like', $prefix . '%')
-            ->count();
-        return $prefix . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
-    }
 
     private function generateQueueNumber(string $branchId): int
     {

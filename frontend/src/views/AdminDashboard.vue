@@ -396,95 +396,6 @@
           </v-card-text>
         </v-card>
 
-        <!-- Live Orders (all tenants) -->
-        <v-card rounded="xl" elevation="0" border class="mb-4">
-          <v-card-title class="pa-5 pb-3">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center gap-2">
-                <div class="live-dot" />
-                <div>
-                  <div class="text-subtitle-1 font-weight-bold">
-                    Live Orders
-                  </div>
-                  <div class="text-caption text-medium-emphasis">
-                    All tenants
-                  </div>
-                </div>
-              </div>
-              <v-chip color="success" variant="tonal" size="small" rounded="lg">
-                {{
-                  store.liveOrders.filter(o => o.status === 'preparing').length
-                }}
-                active
-              </v-chip>
-            </div>
-          </v-card-title>
-          <v-divider />
-          <v-list
-            density="compact"
-            class="pa-2"
-            style="max-height: 260px; overflow-y: auto"
-          >
-            <v-skeleton-loader
-              v-if="store.loading.liveOrders"
-              v-for="n in 4"
-              :key="n"
-              type="list-item"
-              class="mb-1"
-            />
-            <template v-else-if="store.liveOrders.length">
-              <v-list-item
-                v-for="order in store.liveOrders"
-                :key="order.id"
-                rounded="lg"
-                class="mb-1"
-              >
-                <template #prepend>
-                  <v-avatar
-                    :color="orderStatusColor(order.status)"
-                    size="30"
-                    rounded="lg"
-                    class="mr-2"
-                  >
-                    <v-icon
-                      :icon="orderStatusIcon(order.status)"
-                      size="14"
-                      color="white"
-                    />
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="text-body-2 font-weight-medium">
-                  #{{ order.number }} · {{ order.branch }}
-                </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  {{ order.tenant }} · {{ order.ago }}
-                </v-list-item-subtitle>
-                <template #append>
-                  <div class="text-right">
-                    <div class="text-body-2 font-weight-bold">
-                      ${{ order.total }}
-                    </div>
-                    <v-chip
-                      :color="orderStatusColor(order.status)"
-                      variant="tonal"
-                      size="x-small"
-                      rounded="lg"
-                    >
-                      {{ order.status }}
-                    </v-chip>
-                  </div>
-                </template>
-              </v-list-item>
-            </template>
-            <div
-              v-else
-              class="text-center py-5 text-caption text-medium-emphasis"
-            >
-              No active orders
-            </div>
-          </v-list>
-        </v-card>
-
         <!-- Recent Tenants -->
         <v-card rounded="xl" elevation="0" border>
           <v-card-title class="pa-5 pb-3">
@@ -893,7 +804,6 @@
   let liveInterval = null
   onMounted(async () => {
     await store.fetchAll(selectedPeriod.value.toLowerCase())
-    liveInterval = setInterval(() => store.fetchLiveOrders(), 30_000)
   })
   onUnmounted(() => {
     if (liveInterval) clearInterval(liveInterval)

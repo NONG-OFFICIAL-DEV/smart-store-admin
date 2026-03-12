@@ -4,7 +4,6 @@ import {
   getAdminChartApi,
   getAdminTenantChartApi,
   getAdminActivityApi,
-  getAdminLiveOrdersApi,
 } from '@/api/adminDashboardService'
 
 export const useAdminDashboardStore = defineStore('adminDashboard', {
@@ -31,7 +30,6 @@ export const useAdminDashboardStore = defineStore('adminDashboard', {
         this.fetchChart(period),
         this.fetchTenantChart(period),
         this.fetchActivity(),
-        this.fetchLiveOrders(),
       ])
     },
 
@@ -74,16 +72,6 @@ export const useAdminDashboardStore = defineStore('adminDashboard', {
         this.activity  = res.data.data
       } finally {
         this.loading.activity = false
-      }
-    },
-
-    async fetchLiveOrders() {
-      this.loading.liveOrders = true
-      try {
-        const res        = await getAdminLiveOrdersApi()
-        this.liveOrders  = res.data.data
-      } finally {
-        this.loading.liveOrders = false
       }
     },
   },
