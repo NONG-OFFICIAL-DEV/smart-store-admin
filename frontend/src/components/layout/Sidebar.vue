@@ -59,6 +59,12 @@
           // show: can('products.view')
         },
         {
+          path: '/ingredients',
+          title: 'Ingredients',
+          icon: 'mdi-tree'
+          // show: can('products.view')
+        },
+        {
           path: '/product-modifier-groups',
           title: 'Modifiers',
           icon: 'mdi-tune-variant'

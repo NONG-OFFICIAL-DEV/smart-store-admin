@@ -101,12 +101,12 @@ const routes = [
         component: () => import('@/views/stocks/StockManagement.vue'),
         meta: { requiresAuth: true }
       },
-      // {
-      //   path: '/purchases',
-      //   name: 'Purchases',
-      //   component: () => import('@/views/stocks/PurchaseManagement.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/purchases',
+        name: 'Purchases',
+        component: () => import('@/views/stocks/PurchaseManagement.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/purchase/create',
       //   name: 'PurchaseCreate',
@@ -218,6 +218,11 @@ const routes = [
       {
         path: '/reservations',
         component: () => import('@/views/reservations/Reservation.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/ingredients',
+        component: () => import('@/views/ingredients/Ingredient.vue'),
         meta: { requiresAuth: true }
       }
     ]

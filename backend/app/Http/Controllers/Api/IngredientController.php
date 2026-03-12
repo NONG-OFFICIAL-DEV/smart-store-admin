@@ -34,7 +34,7 @@ class IngredientController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return Ingredient::store($request);
     }
 
     /**
@@ -50,7 +50,7 @@ class IngredientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return Ingredient::store($request, $id);
     }
 
     /**
