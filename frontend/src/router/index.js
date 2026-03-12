@@ -78,6 +78,12 @@ const routes = [
         meta: { requiresAuth: true, permission: 'products.view' }
       },
       {
+        path: '/product-units',
+        name: 'ProductUnits',
+        component: () => import('@/views/products/ProductUnit.vue'),
+        meta: { requiresAuth: true, permission: 'products.view' }
+      },
+      {
         path: '/product-details/:id',
         name: 'productDetails',
         component: () => import('@/views/products/ProductDetail.vue'),

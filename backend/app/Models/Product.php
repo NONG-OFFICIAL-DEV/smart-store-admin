@@ -18,26 +18,41 @@ class Product extends BaseModel
         'image_url',
         'base_price',
         'cost_price',
-        'product_type',
+        'product_type',       // food, beverage, retail, combo
         'preparation_time',
         'calories',
         'is_available',
         'is_featured',
         'tax_category',
         'sort_order',
+        // ── Mart fields ───────────────────────────────
+        'selling_price',
+        'wholesale_price',
+        'stock_quantity',
+        'reorder_level',
+        'track_stock',
+        'expiry_date',
+        'unit',
     ];
 
+    // ── 2. Add to $casts ──────────────────────────────────────────────────────────
     protected $casts = [
         'base_price'       => 'decimal:2',
         'cost_price'       => 'decimal:2',
+        'selling_price'    => 'decimal:2',
+        'wholesale_price'  => 'decimal:2',
+        'stock_quantity'   => 'decimal:3',
+        'reorder_level'    => 'decimal:3',
         'is_available'     => 'boolean',
         'is_featured'      => 'boolean',
+        'track_stock'      => 'boolean',
         'sort_order'       => 'integer',
         'preparation_time' => 'integer',
         'calories'         => 'integer',
+        'expiry_date'      => 'date',
     ];
 
-    // ─── Store ────────────────────────────────────────────────────────────────
+    // ── 3. Replace store() ────────────────────────────────────────────────────────
     public static function store(array|Request $request, ?string $id = null)
     {
         $data = $request instanceof Request
@@ -57,26 +72,30 @@ class Product extends BaseModel
                 'is_featured',
                 'tax_category',
                 'sort_order',
+                // mart fields
+                'selling_price',
+                'wholesale_price',
+                'stock_quantity',
+                'reorder_level',
+                'track_stock',
+                'expiry_date',
+                'unit',
             ])
             : $request;
 
-        // ── Handle image upload ────────────────────────────────────────────────
+        // ── Image upload ───────────────────────────────────────────────────────
         if ($request instanceof Request && $request->hasFile('image')) {
-            // Delete old image if updating
             if ($id) {
-                $old = static::find($id)?->getRawOriginal('image_url'); // raw path, bypass accessor
-                if ($old) {
-                    Storage::disk('public')->delete($old); // "products/xxx.jpg" direct
-                }
+                $old = static::find($id)?->getRawOriginal('image_url');
+                if ($old) Storage::disk('public')->delete($old);
             }
-
             $path = $request->file('image')->store('products', 'public');
-            $data['image_url'] = $path; // ✅ stores "products/xxx.jpg" — same as qr_image_path
+            $data['image_url'] = $path;
         }
 
         $result = parent::store($data, $id);
 
-        // Sync modifier groups if provided
+        // ── Sync modifier groups ───────────────────────────────────────────────
         if ($request instanceof Request && $request->has('modifier_group_ids')) {
             $product = $id ? static::find($id) : static::latest()->first();
             $product?->modifierGroups()->sync($request->modifier_group_ids);

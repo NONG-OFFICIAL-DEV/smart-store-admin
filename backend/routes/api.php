@@ -69,6 +69,7 @@ use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\OrderExportController;
+use App\Http\Controllers\Api\ProductUnitController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -387,6 +388,12 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('orders', [MartPosController::class, 'index']);   // today's orders
         Route::post('orders', [MartPosController::class, 'store']);   // new sale
     });
+
+    // ── Product Units ──────────────────────────────────────────────────────
+    Route::get('products/{product}/units',       [ProductUnitController::class, 'index']);
+    Route::post('products/{product}/units',       [ProductUnitController::class, 'store']);
+    Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update']);
+    Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy']);
 });
 
 

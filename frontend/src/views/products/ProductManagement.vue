@@ -186,6 +186,14 @@
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <v-btn
+              icon="mdi-package-variant"
+              size="small"
+              variant="text"
+              color="primary"
+              title="Manage Units"
+              @click="goToUnits(item)"
+            />
+            <v-btn
               icon="mdi-eye-outline"
               size="small"
               variant="text"
@@ -356,7 +364,9 @@
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
 
+  const router = useRouter()
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   // ── Store ─────────────────────────────────────────────────────────────────────
@@ -473,6 +483,12 @@
   const formatPrice = v => `$${Number(v).toFixed(2)}`
 
   // ── CRUD ──────────────────────────────────────────────────────────────────────
+  const goToUnits = p =>
+    router.push({
+      name: 'ProductUnits',
+      params: { productId: p.id },
+      query: { name: p.name }
+    })
   const openCreate = () => {
     editItem.value = null
     dialog.value = true
@@ -517,25 +533,24 @@
   }
 
   const onSaved = async payload => {
-  try {
-    if (payload.id || payload.get?.('id')) {
-      await productStore.updateProduct(
-        payload.get?.('id') ?? payload.id,
-        payload,
-        payload instanceof FormData
-          ? { 'Content-Type': 'multipart/form-data' }
-          : { 'Content-Type': 'application/json' }
-      )
-      notif('Product updated successfully', { type: 'success' })
-    } else {
-      await productStore.createProduct(payload)
-      notif('Product created successfully', { type: 'success' })
+    try {
+      if (payload.id || payload.get?.('id')) {
+        await productStore.updateProduct(
+          payload.get?.('id') ?? payload.id,
+          payload,
+          payload instanceof FormData
+            ? { 'Content-Type': 'multipart/form-data' }
+            : { 'Content-Type': 'application/json' }
+        )
+        notif('Product updated successfully', { type: 'success' })
+      } else {
+        await productStore.createProduct(payload)
+        notif('Product created successfully', { type: 'success' })
+      }
+
+      dialog.value = false // ← close after success
+    } catch (err) {
+      notif('Failed to save product', { type: 'error' }) // ← also fix typo: was 'success'
     }
-
-    dialog.value = false  // ← close after success
-
-  } catch (err) {
-    notif('Failed to save product', { type: 'error' })  // ← also fix typo: was 'success'
   }
-}
 </script>
