@@ -70,16 +70,6 @@
             >
               Login
             </v-btn>
-
-            <!-- <div class="text-center mt-4 fade-in">
-              <v-btn
-                variant="text"
-                size="small"
-                @click="onForgotPassword"
-              >
-                Forgot password?
-              </v-btn>
-            </div> -->
           </v-form>
         </v-card>
       </v-col>
@@ -116,6 +106,7 @@
         email: email.value,
         password: password.value
       })
+console.log(success);
 
       if (success) {
         if (success.data.user.role_id === 5) {
@@ -137,7 +128,6 @@
         errors.password = res.errors.password?.join(', ')
       }
       if (res?.status == 'invalid_credentials') {
-        // console.log(res.status == 'invalid_credentials')
         errors.general = res.message
       }
     }
@@ -146,7 +136,6 @@
 
 <style scoped>
   .login-container {
-    /* background: linear-gradient(135deg, #e3f2fd, #fce4ec); */
     height: 100vh;
   }
 
