@@ -230,6 +230,24 @@ const routes = [
         path: '/ingredients',
         component: () => import('@/views/ingredients/Ingredient.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: '/mart/purchase-order',
+        name: 'MartPurchaseOrders',
+        component: () => import('@/views/mart/MartPurchaseOrder.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/mart/purchase-orders/create',
+        name: 'MartPurchaseOrderCreate',
+        component: () => import('@/views/mart/MartPoForm.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/mart/purchase-orders/:id/edit',
+        name: 'MartPurchaseOrderEdit',
+        component: () => import('@/views/mart/MartPoForm.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   }
@@ -240,19 +258,18 @@ const router = createRouter({
   routes
 })
 
-
 router.beforeEach(async (to, from, next) => {
   // ✅ Import INSIDE the callback — runs after app.use(pinia)
   const { useAuthStore } = await import('@/stores/authStore')
   const authStore = useAuthStore()
-  const token     = localStorage.getItem('token')
+  const token = localStorage.getItem('token')
 
   if (!token) {
     if (to.name === 'Login') return next()
     return next({ name: 'Login' })
   }
 
-   if (!authStore.me?.id) {
+  if (!authStore.me?.id) {
     try {
       await authStore.fetchMe()
     } catch {
