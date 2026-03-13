@@ -24,17 +24,7 @@ class MartPurchaseOrderController extends Controller
             'per_page'  => 'nullable|integer|max:100',
         ]);
 
-        $user     = auth()->user();
-        $tenantId = $user->staff?->tenant_id
-            ?? $user->tenant_id        // ← owner has tenant_id directly on users table
-            ?? null;
-
-        if (!$tenantId) {
-            return response()->json(['success' => false, 'message' => 'Tenant not found'], 403);
-        }
-
         $query = MartPurchaseOrder::with(['supplier:id,name', 'branch:id,name', 'items'])
-            ->where('tenant_id', $tenantId)
             ->when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))
             ->when($request->status,    fn($q) => $q->where('status', $request->status))
             ->when($request->search,    fn($q) =>

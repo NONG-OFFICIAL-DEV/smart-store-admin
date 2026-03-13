@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Observers\ActivityLogObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
-use App\Models\{Product, Category, Branch, BranchMenu, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, Shift, Supplier};
+use App\Models\{Product, Category, Branch, BranchMenu, MartPurchaseOrder, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, Shift, Supplier};
 use App\Models\Scopes\TenantScope;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
         ProductVariant::observe(ActivityLogObserver::class);
         Shift::observe(ActivityLogObserver::class);
         Broadcast::routes();
-    // for get data by user
+    // for get data by specific user
         $tenantModels = [
             Branch::class,
             Product::class,
@@ -51,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             Table::class,
             Shift::class,
             Supplier::class,
+            MartPurchaseOrder::class
         ];
 
         foreach ($tenantModels as $model) {

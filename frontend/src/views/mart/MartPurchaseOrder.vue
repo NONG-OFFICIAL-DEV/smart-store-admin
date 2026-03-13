@@ -305,7 +305,13 @@
   const cancelling = ref(false)
   const deleting = ref(false)
 
-  const filters = ref({branch_id:"60d024e1-736c-4326-8236-82294bd15702", search: '', status: null, per_page: 15, page: 1 })
+  const filters = ref({
+    branch_id: null,
+    search: '',
+    status: null,
+    per_page: 15,
+    page: 1
+  })
 
   const statusOptions = [
     { value: 'draft', label: 'Draft' },
