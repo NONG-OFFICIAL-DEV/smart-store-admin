@@ -483,12 +483,13 @@
   const formatPrice = v => `$${Number(v).toFixed(2)}`
 
   // ── CRUD ──────────────────────────────────────────────────────────────────────
-  const goToUnits = p =>
+  const goToUnits = p => {
     router.push({
       name: 'ProductUnits',
-      params: { productId: p.id },
+      params: { id: p.id }, // ← id not productId
       query: { name: p.name }
     })
+  }
   const openCreate = () => {
     editItem.value = null
     dialog.value = true

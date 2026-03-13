@@ -238,7 +238,7 @@
   const unitStore = useProductUnitStore()
   const { notif } = useAppUtils()
 
-  const productId = computed(() => route.params.productId)
+  const productId = computed(() => route.params.id)
   const productName = computed(() => route.query.name ?? 'Product')
 
   const dialog = ref(false)

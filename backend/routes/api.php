@@ -385,6 +385,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     });
 
     Route::prefix('mart/pos')->group(function () {
+        Route::get('products', [MartPosController::class, 'products']);
         Route::get('orders', [MartPosController::class, 'index']);   // today's orders
         Route::post('orders', [MartPosController::class, 'store']);   // new sale
     });
