@@ -245,39 +245,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- Delete confirm -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card rounded="xl" border elevation="0">
-        <v-card-title class="pa-5">
-          <div class="d-flex align-center gap-3">
-            <v-avatar color="error" variant="tonal" size="40" rounded="lg">
-              <v-icon icon="mdi-delete-outline" />
-            </v-avatar>
-            <div>
-              <div class="text-body-1 font-weight-bold">Delete PO?</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ deleteTarget?.po_number }}
-              </div>
-            </div>
-          </div>
-        </v-card-title>
-        <v-card-actions class="pa-5 gap-3">
-          <v-btn variant="tonal" rounded="lg" @click="deleteDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleting"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -290,20 +257,17 @@
   import MartPoDetailDialog from '@/components/mart/MartPoDetailDialog.vue'
   import { useRouter } from 'vue-router'
   const poStore = useMartPurchaseOrderStore()
-  const { notif } = useAppUtils()
+  const { notif, confirm } = useAppUtils()
 
   const router = useRouter()
   const receiveDialog = ref(false)
   const detailDialog = ref(false)
   const cancelDialog = ref(false)
-  const deleteDialog = ref(false)
   const selectedPo = ref(null)
   const detailPo = ref(null)
   const cancelTarget = ref(null)
-  const deleteTarget = ref(null)
   const receiving = ref(false)
   const cancelling = ref(false)
-  const deleting = ref(false)
 
   const filters = ref({
     branch_id: null,
@@ -443,20 +407,21 @@
     }
   }
 
-  const confirmDelete = po => {
-    deleteTarget.value = po
-    deleteDialog.value = true
-  }
-  const doDelete = async () => {
-    deleting.value = true
+
+  const confirmDelete = async (po) => {
     try {
-      await poStore.deleteOrder(deleteTarget.value.id)
-      notif('PO deleted', { type: 'success' })
-      deleteDialog.value = false
+      confirm({
+        title: 'Delete PO?',
+        message: `${po.po_number}`,
+        options: { type: 'warning', width: 500 },
+        agree: async () => {
+          await poStore.deleteOrder(po.id)
+          notif('PO deleted', { type: 'success' })
+        },
+        cancel: () => {}
+      })
     } catch (e) {
       notif(e.response?.data?.message ?? 'Failed', { type: 'error' })
-    } finally {
-      deleting.value = false
     }
   }
 

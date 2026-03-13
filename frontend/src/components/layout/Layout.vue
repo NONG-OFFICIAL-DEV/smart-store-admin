@@ -4,7 +4,8 @@
     :user="user"
     @toggle="toggleRail"
     :notifications_count="notifications_count"
-    :bu_name="bu_name"
+    :bu-name="buName"
+    :branch-name="branchName"
   />
   <v-main>
     <v-container class="px-4" fluid>
@@ -29,7 +30,8 @@
   const notifications_count = computed(
     () => authStore.unread_notifications_count
   )
-  const bu_name = computed(() => authStore.bu_name)
+  const buName = computed(() => authStore.bu_name)
+  const branchName = computed(() => authStore.branch_name)
   const logo_url = computed(() => authStore.logo_url)
 
   // Only keep logout fallback if needed

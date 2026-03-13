@@ -131,6 +131,12 @@
           // show: can('inventory.view')
         },
         {
+          path: '/mart/purchase-order',
+          title: 'Purchases',
+          icon: 'mdi-cart-arrow-down'
+          // show: can('inventory.view')
+        },
+        {
           path: '/suppliers',
           title: 'Suppliers',
           icon: 'mdi-truck-delivery-outline'

@@ -1,74 +1,150 @@
 <template>
-  <v-container fluid class="login-container">
+  <v-container fluid class="pa-0 login-container">
     <v-row no-gutters class="fill-height">
-      <!-- LEFT SIDE -->
-      <v-col cols="12" md="6" class="left-side">
-        <v-img
-          src="https://www.kindpng.com/picc/m/567-5674919_inventory-management-inventory-management-system-png-transparent-png.png"
-          alt="Login Illustration"
-          cover
-          class="h-100 w-100 login-image"
-        />
-      </v-col>
-
-      <!-- RIGHT SIDE -->
+      <!-- ── Left panel ──────────────────────────────────────────────────── -->
       <v-col
         cols="12"
         md="6"
-        class="right-side d-flex align-center justify-center pa-8"
+        class="left-panel d-none d-md-flex flex-column pa-12 text-white"
       >
-        <v-card class="login-card" elevation="0" rounded="xl">
-          <div class="text-start mb-6 fade-in">
-            <h1 class="title">Welcome Back 👋</h1>
-            <p class="subtitle">Please sign in to continue</p>
+        <!-- Decorative orbs -->
+        <div class="orb orb-1" />
+        <div class="orb orb-2" />
+        <div class="orb orb-3" />
+
+        <!-- Brand -->
+        <div class="brand-mark d-flex align-center mb-auto">
+          <div class="brand-icon-wrapper mr-3">
+            <v-icon icon="mdi-store-outline" size="22" color="white" />
+          </div>
+          <span
+            class="text-h6 font-weight-black"
+            style="letter-spacing: -0.3px"
+          >
+            BrewDesk
+          </span>
+        </div>
+
+        <!-- Content -->
+        <div class="left-content fade-in">
+          <div class="eyebrow mb-4">RETAIL & RESTAURANT OS</div>
+          <h2 class="left-title mb-5">
+            One platform.
+            <br />
+            Every branch.
+          </h2>
+          <p class="left-sub mb-10">
+            Manage your POS, inventory, staff and reports across all locations
+            from a single dashboard.
+          </p>
+
+          <div class="feature-list">
+            <div
+              v-for="f in features"
+              :key="f"
+              class="feature-item d-flex align-center mb-4"
+            >
+              <div class="feature-check mr-3">
+                <v-icon icon="mdi-check" size="13" color="white" />
+              </div>
+              <span class="text-body-2 font-weight-medium feature-text">
+                {{ f }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-caption mt-auto left-footer-text">
+          © {{ new Date().getFullYear() }} BrewDesk — Enterprise Edition
+        </div>
+      </v-col>
+
+      <!-- ── Right panel ─────────────────────────────────────────────────── -->
+      <v-col
+        cols="12"
+        md="6"
+        class="d-flex align-center justify-center right-panel"
+      >
+        <v-card
+          flat
+          class="login-card px-4 px-sm-10"
+          width="100%"
+          max-width="500"
+        >
+          <!-- Header -->
+          <div class="text-start mb-10 fade-in">
+            <div class="form-header">
+              <div class="form-title">Sign in</div>
+              <div class="form-sub">
+                Enter your credentials to access your workspace
+              </div>
+            </div>
           </div>
 
-          <v-form @submit.prevent="login" class="fade-in">
+          <!-- General error -->
+          <v-slide-y-transition>
+            <v-alert
+              v-if="errors.general"
+              type="error"
+              variant="tonal"
+              density="comfortable"
+              class="mb-6 rounded-lg"
+              border="start"
+            >
+              <span class="text-body-2">{{ errors.general }}</span>
+            </v-alert>
+          </v-slide-y-transition>
+
+          <!-- Form -->
+          <v-form ref="formRef" class="fade-in" @submit.prevent="handleLogin">
+            <label class="text-caption ml-1">Email Address</label>
             <v-text-field
               v-model="email"
-              label="Email"
+              placeholder="name@company.com"
               variant="outlined"
               rounded="lg"
               prepend-inner-icon="mdi-email-outline"
-              class="mb-4"
-              density="comfortable"
-              :error="!!errors.email"
+              class="mt-1 mb-2"
+              color="primary"
+              :rules="emailRules"
               :error-messages="errors.email"
-              required
+              :disabled="loading"
+              validate-on="blur"
+              @update:model-value="errors.email = ''"
             />
 
+            <div class="d-flex align-center justify-space-between mt-4">
+              <label class="text-caption ml-1">Password</label>
+            </div>
             <v-text-field
               v-model="password"
-              label="Password"
+              placeholder="••••••••"
               variant="outlined"
               rounded="lg"
               :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
               :type="visible ? 'text' : 'password'"
               prepend-inner-icon="mdi-lock-outline"
-              density="comfortable"
-              :error="!!errors.password"
+              class="mt-1"
+              color="primary"
+              :rules="passwordRules"
               :error-messages="errors.password"
-              required
+              :disabled="loading"
+              validate-on="blur"
               @click:append-inner="visible = !visible"
+              @update:model-value="errors.password = ''"
             />
-            <v-alert
-              type="error"
-              density="compact"
-              v-if="errors.general"
-              class="text-red mt-2"
-            >
-              {{ errors.general }}
-            </v-alert>
 
             <v-btn
               type="submit"
               color="primary"
               block
-              class="mt-6"
-              size="large"
+              class="mt-8 py-7 text-none submit-btn"
               rounded="lg"
+              elevation="0"
+              :loading="loading"
             >
-              Login
+              Sign In to Dashboard
             </v-btn>
           </v-form>
         </v-card>
@@ -83,102 +159,290 @@
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useI18n } from 'vue-i18n'
+
   const { t } = useI18n()
   const { notif } = useAppUtils()
+  const router = useRouter()
+  const store = useAuthStore()
+
+  const formRef = ref(null)
   const email = ref('')
   const password = ref('')
-  const store = useAuthStore()
-  const router = useRouter()
-  const errors = reactive({
-    email: '',
-    password: '',
-    general: ''
-  })
+  const loading = ref(false)
   const visible = ref(false)
-  const login = async () => {
-    // clear previous errors
-    errors.email = ''
-    errors.password = ''
-    errors.general = ''
 
+  const errors = reactive({ email: '', password: '', general: '' })
+
+  const features = [
+    'Multi-branch POS & order management',
+    'Real-time inventory tracking',
+    'Staff roles & permissions',
+    'Sales analytics & reports'
+  ]
+
+  // ── Validation rules ───────────────────────────────────────────────────────
+  const emailRules = [
+    v => !!v || 'Email is required',
+    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Enter a valid email address'
+  ]
+  const passwordRules = [
+    v => !!v || 'Password is required',
+    v => v.length >= 6 || 'Password must be at least 6 characters'
+  ]
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  const handleLogin = async () => {
+    errors.email = errors.password = errors.general = ''
+
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+
+    loading.value = true
     try {
-      const success = await store.login({
+      const response = await store.login({
         email: email.value,
         password: password.value
       })
-      if (success) {
-        if (success.data.is_super_admin) {
-          router.push('/admin-dashboard')
-        } else if (success.data.is_owner) {
-          router.push('/dashboard')
-        } else {
-          router.push('/pos/dining-table-view')
-        }
-        notif(t('messages.login_sucess'), {
-          type: 'success',
-          color: 'primary'
-        })
+      if (response) {
+        const user = response.data
+        const route = user.is_super_admin ? '/admin-dashboard' : '/dashboard'
+        router.push(route)
+        notif(t('messages.login_sucess'), { type: 'success' })
       }
     } catch (err) {
       const res = err.response?.data
-      if (res?.status === 'validation_error') {
-        errors.email = res.errors.email?.join(', ')
-        errors.password = res.errors.password?.join(', ')
+      const code = res?.status
+
+      if (code === 'validation_error') {
+        errors.email = res.errors?.email?.[0] ?? ''
+        errors.password = res.errors?.password?.[0] ?? ''
+      } else if (code === 'invalid_credentials') {
+        errors.general =
+          res.message ?? 'The email or password you entered is incorrect.'
+      } else if (err.response?.status === 429) {
+        errors.general =
+          'Too many attempts. Please wait a moment and try again.'
+      } else if (!err.response) {
+        errors.general = 'Cannot connect to server. Check your connection.'
+      } else {
+        errors.general =
+          res?.message ?? 'An unexpected error occurred. Please try again.'
       }
-      if (res?.status == 'invalid_credentials') {
-        errors.general = res.message
-      }
+    } finally {
+      loading.value = false
     }
   }
 </script>
 
 <style scoped>
+  /* ── Container ────────────────────────────────────────────────────────── */
   .login-container {
     height: 100vh;
+    overflow: hidden;
   }
 
-  .left-side {
-    display: none;
+  /* ── Left panel ───────────────────────────────────────────────────────── */
+  .left-panel {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      150deg,
+      #0f172a 0%,
+      #1e3a5f 35%,
+      #1d4ed8 70%,
+      #6366f1 100%
+    );
+  }
+
+  /* Mesh gradient overlay */
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse at 20% 50%,
+        rgba(99, 102, 241, 0.35) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse at 80% 10%,
+        rgba(59, 130, 246, 0.25) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse at 60% 90%,
+        rgba(139, 92, 246, 0.2) 0%,
+        transparent 50%
+      );
+    pointer-events: none;
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(60px);
+  }
+  .orb-1 {
+    width: 340px;
+    height: 340px;
+    top: -100px;
+    right: -80px;
+    background: rgba(99, 102, 241, 0.3);
+  }
+  .orb-2 {
+    width: 240px;
+    height: 240px;
+    bottom: 40px;
+    left: -60px;
+    background: rgba(59, 130, 246, 0.25);
+  }
+  .orb-3 {
+    width: 180px;
+    height: 180px;
+    top: 45%;
+    left: 55%;
+    background: rgba(139, 92, 246, 0.2);
+  }
+
+  .brand-icon-wrapper {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 9px;
+    border-radius: 11px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: grid;
+    place-items: center;
+  }
+
+  .left-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+  }
+
+  .left-title {
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -1.2px;
+    color: #fff;
+  }
+
+  .left-sub {
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 360px;
+  }
+
+  .feature-check {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .feature-text {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .left-footer-text {
+    color: rgba(255, 255, 255, 0.25);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Right panel ──────────────────────────────────────────────────────── */
+  .right-panel {
+    background: #ffffff;
   }
 
   .login-card {
-    max-width: 420px;
-    width: 100%;
-    padding: 40px;
-    backdrop-filter: blur(14px);
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent !important;
   }
 
-  .title {
-    font-size: 28px;
-    font-weight: 700;
+  /* ── Form header ──────────────────────────────────────────────────────── */
+  .form-header {
+    margin-bottom: 8px;
+  }
+  .form-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+  .form-sub {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-top: 4px;
   }
 
-  .subtitle {
-    font-size: 15px;
-    opacity: 0.7;
+  /* ── Field borders ────────────────────────────────────────────────────── */
+  :deep(.v-field__outline) {
+    --v-field-border-opacity: 1;
+    --v-field-border-color: #e2e8f0;
+  }
+  :deep(.v-field--focused .v-field__outline) {
+    --v-field-border-color: rgb(var(--v-theme-primary));
+  }
+  :deep(.v-field__prepend-inner .v-icon),
+  :deep(.v-field__append-inner .v-icon) {
+    opacity: 0.4;
+  }
+  :deep(.v-field--focused .v-field__prepend-inner .v-icon) {
+    opacity: 0.9;
+    color: rgb(var(--v-theme-primary)) !important;
   }
 
+  /* ── Submit ───────────────────────────────────────────────────────────── */
+  .submit-btn {
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.1px !important;
+    box-shadow: 0 4px 18px rgba(99, 102, 241, 0.28) !important;
+    transition:
+      box-shadow 0.2s,
+      transform 0.1s !important;
+  }
+  .submit-btn:hover:not(:disabled) {
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4) !important;
+    transform: translateY(-1px);
+  }
+  .submit-btn:active {
+    transform: translateY(0) !important;
+  }
+
+  /* ── Animation ────────────────────────────────────────────────────────── */
   .fade-in {
-    animation: fadeIn 0.7s ease-in-out;
+    animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
-
-  /* Smooth fade animation */
   @keyframes fadeIn {
-    0% {
+    from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: translateY(10px);
     }
-    100% {
+    to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @media (min-width: 960px) {
-    .left-side {
-      display: block;
     }
   }
 </style>

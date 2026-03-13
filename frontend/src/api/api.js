@@ -36,10 +36,6 @@ api.interceptors.response.use(
 
   error => {
     useLoadingStore().stop()
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login' // hard redirect, clears all state
-    }
     return Promise.reject(error)
   }
 )

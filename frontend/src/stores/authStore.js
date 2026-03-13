@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('auth', {
     unread_notifications_count: 0,
     token: localStorage.getItem('token') || null,
     bu_name: null,
+    branch_name: null,
     logo_url: null
   }),
   getters: {
@@ -49,6 +50,7 @@ export const useAuthStore = defineStore('auth', {
       this.isSuperAdmin = res.data.is_super_admin ?? false
       this.isOwner = res.data.is_owner ?? false
       this.bu_name = res.data.bu_name ?? null
+      this.branch_name = res.data.branch_name ?? null
       this.logo_url = res.data.logo_url ?? null
     }
   }
