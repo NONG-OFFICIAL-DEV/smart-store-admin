@@ -106,15 +106,13 @@
         email: email.value,
         password: password.value
       })
-console.log(success);
-
       if (success) {
-        if (success.data.user.role_id === 5) {
-          router.push('/pos/menu-list')
-        } else if (success.data.user.role_id === 4) {
-          router.push('/pos/dining-table-view')
-        } else {
+        if (success.data.is_super_admin) {
+          router.push('/admin-dashboard')
+        } else if (success.data.is_owner) {
           router.push('/dashboard')
+        } else {
+          router.push('/pos/dining-table-view')
         }
         notif(t('messages.login_sucess'), {
           type: 'success',

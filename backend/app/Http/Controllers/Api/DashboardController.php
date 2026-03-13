@@ -195,17 +195,18 @@ class DashboardController extends Controller
 
         [$from, $to] = $this->dateRange($period);
 
+        // ── PostgreSQL: to_char() for date formatting ─────────────────────────
         $groupFormat = match (strtolower($period)) {
-            'today' => '%H:00',
-            'year'  => '%Y-%m',
-            default => '%Y-%m-%d',
+            'today' => 'HH24":00"',   // 08:00, 09:00 ...
+            'year'  => 'YYYY-MM',     // 2026-01, 2026-02 ...
+            default => 'YYYY-MM-DD',  // 2026-03-12 ...
         };
 
         $rows = Order::whereIn('branch_id', $branchIds)
             ->whereBetween('created_at', [$from, $to])
             ->whereNotIn('status', ['cancelled'])
             ->select(
-                DB::raw("(created_at, '{$groupFormat}') as label"),
+                DB::raw("to_char(created_at AT TIME ZONE 'UTC', '{$groupFormat}') as label"),
                 DB::raw('SUM(total_amount) as revenue'),
                 DB::raw('COUNT(*) as orders')
             )
@@ -218,7 +219,7 @@ class DashboardController extends Controller
             'data'    => $rows->map(fn($r) => [
                 'label'   => $r->label,
                 'revenue' => (float) $r->revenue,
-                'orders'  => (int) $r->orders,
+                'orders'  => (int)   $r->orders,
             ]),
         ]);
     }

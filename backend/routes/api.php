@@ -68,6 +68,7 @@ use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\MartPosController;
+use App\Http\Controllers\Api\MartPurchaseOrderController;
 use App\Http\Controllers\Api\OrderExportController;
 use App\Http\Controllers\Api\ProductUnitController;
 
@@ -388,6 +389,28 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('products', [MartPosController::class, 'products']);
         Route::get('orders', [MartPosController::class, 'index']);   // today's orders
         Route::post('orders', [MartPosController::class, 'store']);   // new sale
+    });
+
+    // ── Mart Purchase Orders ───────────────────────────────────────────────────
+    Route::prefix('mart')->group(function () {
+    
+        Route::get('purchase-orders',[MartPurchaseOrderController::class, 'index']);
+        Route::post('purchase-orders',[MartPurchaseOrderController::class, 'store']);
+        Route::get('purchase-orders/{id}',[MartPurchaseOrderController::class, 'show']);
+        Route::put('purchase-orders/{id}',[MartPurchaseOrderController::class, 'update']);
+        Route::delete('purchase-orders/{id}',[MartPurchaseOrderController::class, 'destroy']);
+        Route::post('purchase-orders/{id}/receive',[MartPurchaseOrderController::class, 'receive']);
+        Route::post('purchase-orders/{id}/cancel',[MartPurchaseOrderController::class, 'cancel']);
+    
+        // ── Stock ──────────────────────────────────────────────────────────────
+        Route::post('stock/adjust',     [StockAdjustmentController::class, 'adjust']);
+        Route::get ('stock/movements',  [StockAdjustmentController::class, 'movements']);
+        Route::get ('stock/low-stock',  [StockAdjustmentController::class, 'lowStock']);
+    
+        // ── POS (already exists, shown for reference) ──────────────────────────
+        // Route::get ('pos/products', [MartPosController::class, 'products']);
+        // Route::get ('pos/orders',   [MartPosController::class, 'index']);
+        // Route::post('pos/orders',   [MartPosController::class, 'store']);
     });
 
     // ── Product Units ──────────────────────────────────────────────────────

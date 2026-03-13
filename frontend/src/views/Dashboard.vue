@@ -119,96 +119,7 @@
     <v-row dense>
       <!-- ── Revenue Chart ────────────────────────────────────────────────── -->
       <v-col cols="12" lg="8">
-        <v-card rounded="xl" elevation="0" border class="mb-4">
-          <v-card-title class="pa-5 pb-3">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <div class="text-subtitle-1 font-weight-bold">
-                  Revenue Overview
-                </div>
-                <div class="text-caption text-medium-emphasis">
-                  All branches combined
-                </div>
-              </div>
-              <v-btn-toggle
-                v-model="chartMode"
-                mandatory
-                density="compact"
-                rounded="lg"
-                variant="outlined"
-                color="primary"
-              >
-                <v-btn value="revenue" size="small">Revenue</v-btn>
-                <v-btn value="orders" size="small">Orders</v-btn>
-              </v-btn-toggle>
-            </div>
-          </v-card-title>
-          <v-card-text class="pa-5 pt-2">
-            <v-skeleton-loader
-              v-if="store.loading.chart"
-              type="image"
-              height="180"
-            />
-            <div v-else class="chart-wrap">
-              <svg
-                viewBox="0 0 700 200"
-                preserveAspectRatio="none"
-                class="revenue-chart"
-              >
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stop-color="#1867C0"
-                      stop-opacity="0.25"
-                    />
-                    <stop offset="100%" stop-color="#1867C0" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-                <line
-                  v-for="y in [40, 80, 120, 160]"
-                  :key="y"
-                  x1="0"
-                  :y1="y"
-                  x2="700"
-                  :y2="y"
-                  stroke="currentColor"
-                  stroke-opacity="0.06"
-                  stroke-width="1"
-                />
-                <path :d="chartAreaPath" fill="url(#chartGrad)" />
-                <path
-                  :d="chartLinePath"
-                  fill="none"
-                  stroke="#1867C0"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <circle
-                  v-for="(pt, i) in chartPoints"
-                  :key="i"
-                  :cx="pt.x"
-                  :cy="pt.y"
-                  r="4"
-                  fill="white"
-                  stroke="#1867C0"
-                  stroke-width="2"
-                />
-              </svg>
-              <div class="chart-labels">
-                <span
-                  v-for="l in chartLabels"
-                  :key="l"
-                  class="text-caption text-medium-emphasis"
-                >
-                  {{ l }}
-                </span>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-
+       <RevenueChart :chart-data="store.chart" :loading="store.loading.chart" />
         <!-- ── Branch Performance ──────────────────────────────────────────── -->
         <v-card rounded="xl" elevation="0" border>
           <v-card-title class="pa-5 pb-3">
@@ -669,7 +580,7 @@
   import { storeToRefs } from 'pinia'
   import { useDashboardStore } from '@/stores/dashboardStore'
   import { useAuthStore } from '@/stores/authStore'
-
+import RevenueChart from '@/components/dashboard/RevenueChart.vue'
   const store = useDashboardStore()
   const authStore = useAuthStore()
 
