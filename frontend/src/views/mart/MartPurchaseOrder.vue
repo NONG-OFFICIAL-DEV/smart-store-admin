@@ -1,14 +1,12 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-bold">Purchase Orders</h1>
-        <p class="text-caption text-medium-emphasis mt-1">
-          Mart stock replenishment
-        </p>
-      </div>
-      <div class="d-flex gap-2">
+    <custom-title
+      icon="mdi-cart-arrow-down"
+      title="Purchase Orders"
+      subtitle="Mart stock replenishment"
+    >
+      <template #right>
         <!-- <v-btn
           variant="tonal"
           rounded="lg"
@@ -27,8 +25,8 @@
         >
           New PO
         </v-btn>
-      </div>
-    </div>
+      </template>
+    </custom-title>
 
     <!-- Stats row -->
     <v-row dense class="mb-4">
@@ -407,8 +405,7 @@
     }
   }
 
-
-  const confirmDelete = async (po) => {
+  const confirmDelete = async po => {
     try {
       confirm({
         title: 'Delete PO?',

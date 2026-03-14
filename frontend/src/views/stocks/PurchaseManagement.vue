@@ -1,23 +1,21 @@
 <template>
   <div>
-    <!-- ── Header ─────────────────────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-bold">Purchase Orders</h1>
-        <p class="text-caption text-medium-emphasis mt-1">
-          Manage supplier orders and stock receiving
-        </p>
-      </div>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openCreate"
-      >
-        New PO
-      </v-btn>
-    </div>
+    <custom-title
+      title="Purchase Orders"
+      subtitle=" Manage supplier orders and stock receiving"
+    >
+      <template #right>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          New PO
+        </v-btn>
+      </template>
+    </custom-title>
 
     <!-- ── Stats ──────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-4">

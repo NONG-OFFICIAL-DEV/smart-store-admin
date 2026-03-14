@@ -41,6 +41,7 @@ export const useOrderStore = defineStore('order', {
     async fetchOrderById(id) {
       const res = await getOrderByIdApi(id)
       this.order = res.data.data
+      return res
     },
     async createOrder(data) {
       const res = await createOrderApi(data)

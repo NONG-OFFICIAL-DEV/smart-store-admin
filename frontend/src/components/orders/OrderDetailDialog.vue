@@ -42,12 +42,12 @@
           <!-- ── Info Row ──────────────────────────────────────────────────── -->
           <div class="pa-5 pb-4">
             <v-row dense>
-              <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">Branch</div>
+              <!-- <v-col cols="6" sm="3">
+                <div class="text-caption text-medium-emphasis">Order number</div>
                 <div class="text-body-2 font-weight-medium">
-                  {{ order.branch?.name }}
+                  {{ order.order_number }}
                 </div>
-              </v-col>
+              </v-col> -->
               <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">Type</div>
                 <div class="text-body-2 font-weight-medium capitalize">
@@ -107,7 +107,7 @@
                     {{ item.product?.name ?? item.name }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ formatCurrency(item.price) }} × {{ item.quantity }}
+                    {{ formatCurrency(item.unit_price) }} × {{ item.quantity }}
                   </div>
                   <div v-if="item.note" class="text-caption text-info">
                     Note: {{ item.note }}
@@ -115,7 +115,7 @@
                 </div>
               </div>
               <div class="text-body-2 font-weight-bold">
-                {{ formatCurrency(item.price * item.quantity) }}
+                {{ formatCurrency(item.unit_price * item.quantity) }}
               </div>
             </div>
           </div>
@@ -229,7 +229,7 @@
     if (!props.orderId) return
     loading.value = true
     try {
-      const res = await store.getOrder(props.orderId)
+      const res = await store.fetchOrderById(props.orderId)
       order.value = res.data.data
     } finally {
       loading.value = false

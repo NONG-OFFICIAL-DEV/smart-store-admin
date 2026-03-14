@@ -179,7 +179,7 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $orderNumber)
+    public function show(string $identifier)
     {
         $order = Order::with([
             'items.product',
@@ -188,7 +188,10 @@ class OrderController extends Controller
             'diningTable',
             'statusHistory',
         ])
-            ->where('order_number', $orderNumber)
+            ->where(function ($q) use ($identifier) {
+                $q->where('order_number', $identifier)
+                    ->orWhere('id', $identifier);
+            })
             ->firstOrFail();
 
         return response()->json([

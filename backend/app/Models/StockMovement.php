@@ -12,10 +12,10 @@ class StockMovement extends Model
     protected $guarded      = [];
 
     protected $casts = [
-        'quantity'   => 'decimal:4',
-        'qty_before' => 'decimal:4',
-        'qty_after'  => 'decimal:4',
-        'unit_cost'  => 'decimal:4',
+        'quantity'   => 'float',
+        'qty_before' => 'float',
+        'qty_after'  => 'float',
+        'unit_cost'  => 'float',
         'created_at' => 'datetime',
     ];
 
