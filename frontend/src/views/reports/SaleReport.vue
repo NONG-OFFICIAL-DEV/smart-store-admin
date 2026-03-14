@@ -20,7 +20,6 @@
       </template>
     </custom-title>
 
-
     <BranchFilterBar
       v-model="filters.branch_ids"
       :branches="branchStore.branches?.data || branchStore.branches || []"
@@ -337,13 +336,12 @@
 
         <template #item.payment_method="{ item }">
           <v-chip
-            v-if="item.payment_method"
-            size="x-small"
+            size="small"
             rounded="lg"
-            variant="tonal"
-            :color="payColor(item.payment_method)"
+            v-if="getPaymentMethod(item)"
+            :color="payColor(getPaymentMethod(item))"
           >
-            {{ item.payment_method?.replace('_', ' ') }}
+            {{ payLabel(getPaymentMethod(item)) }}
           </v-chip>
           <span v-else class="text-caption text-medium-emphasis">—</span>
         </template>
@@ -759,18 +757,39 @@
       delivery: 'mdi-moped',
       walk_in: 'mdi-walk'
     })[t] ?? 'mdi-cart'
-  const payColor = p =>
+
+  const getPaymentMethod = order =>
+    order.payments?.[0]?.payment_method ?? order.payment_method ?? null
+
+  // Normalize to display label
+  const payLabel = raw =>
+    ({
+      cash: 'Cash',
+      card: 'Card',
+      qr_code: 'QR',
+      qr: 'QR',
+      online: 'Transfer',
+      transfer: 'Transfer'
+    })[raw] ??
+    raw?.replace('_', ' ') ??
+    '—'
+
+  // Color map — covers both old and new enum values
+  const payColor = raw =>
     ({
       cash: 'success',
       card: 'primary',
+      qr_code: 'info',
       qr: 'info',
+      online: 'purple',
+      transfer: 'purple',
       store_credit: 'warning',
       credit_term: 'error'
-    })[p] ?? 'grey'
+    })[raw] ?? 'grey'
 
   // ── Data loading ──────────────────────────────────────────────────────────────
-  const onPeriodChange = (val) => {
-    period.value = val   
+  const onPeriodChange = val => {
+    period.value = val
     if (period.value !== 'custom') {
       const dates = periodDates(val)
       filters.value.date_from = dates.from
@@ -896,13 +915,28 @@
     }))
     nextTick(() => drawDonutChart())
   }
-
   const buildPaymentStats = allOrders => {
     const map = {}
+
     for (const o of allOrders) {
-      const p = o.payment_method ?? 'unknown'
-      map[p] = (map[p] ?? 0) + parseFloat(o.total_amount ?? 0)
+      // Read from payments[] array first, fallback to order.payment_method
+      const raw =
+        o.payments?.[0]?.payment_method ?? o.payment_method ?? 'unknown'
+
+      // Normalize db enum → display label
+      const label =
+        {
+          cash: 'Cash',
+          card: 'Card',
+          qr_code: 'QR',
+          online: 'Transfer',
+          qr: 'QR',
+          transfer: 'Transfer'
+        }[raw] ?? raw
+
+      map[label] = (map[label] ?? 0) + parseFloat(o.total_amount ?? 0)
     }
+
     nextTick(() => drawBarChart(map))
   }
 
@@ -1069,7 +1103,6 @@
 </script>
 
 <style scoped>
-
   .period-tabs {
     display: flex;
     flex-direction: column;

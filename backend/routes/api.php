@@ -71,6 +71,8 @@ use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\MartPurchaseOrderController;
 use App\Http\Controllers\Api\OrderExportController;
 use App\Http\Controllers\Api\ProductUnitController;
+use App\Http\Controllers\Api\StockAdjustmentController;
+use App\Http\Controllers\Api\MartProductController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -385,32 +387,30 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('activity',     [AdminDashboardController::class, 'activity']);
     });
 
-    Route::prefix('mart/pos')->group(function () {
-        Route::get('products', [MartPosController::class, 'products']);
-        Route::get('orders', [MartPosController::class, 'index']);   // today's orders
-        Route::post('orders', [MartPosController::class, 'store']);   // new sale
-    });
-
     // ── Mart Purchase Orders ───────────────────────────────────────────────────
     Route::prefix('mart')->group(function () {
-    
-        Route::get('purchase-orders',[MartPurchaseOrderController::class, 'index']);
-        Route::post('purchase-orders',[MartPurchaseOrderController::class, 'store']);
-        Route::get('purchase-orders/{id}',[MartPurchaseOrderController::class, 'show']);
-        Route::put('purchase-orders/{id}',[MartPurchaseOrderController::class, 'update']);
-        Route::delete('purchase-orders/{id}',[MartPurchaseOrderController::class, 'destroy']);
-        Route::post('purchase-orders/{id}/receive',[MartPurchaseOrderController::class, 'receive']);
-        Route::post('purchase-orders/{id}/cancel',[MartPurchaseOrderController::class, 'cancel']);
-    
+
+        Route::get('purchase-orders', [MartPurchaseOrderController::class, 'index']);
+        Route::post('purchase-orders', [MartPurchaseOrderController::class, 'store']);
+        Route::get('purchase-orders/{id}', [MartPurchaseOrderController::class, 'show']);
+        Route::put('purchase-orders/{id}', [MartPurchaseOrderController::class, 'update']);
+        Route::delete('purchase-orders/{id}', [MartPurchaseOrderController::class, 'destroy']);
+        Route::post('purchase-orders/{id}/receive', [MartPurchaseOrderController::class, 'receive']);
+        Route::post('purchase-orders/{id}/cancel', [MartPurchaseOrderController::class, 'cancel']);
+
         // ── Stock ──────────────────────────────────────────────────────────────
         Route::post('stock/adjust',     [StockAdjustmentController::class, 'adjust']);
-        Route::get ('stock/movements',  [StockAdjustmentController::class, 'movements']);
-        Route::get ('stock/low-stock',  [StockAdjustmentController::class, 'lowStock']);
-    
-        // ── POS (already exists, shown for reference) ──────────────────────────
-        // Route::get ('pos/products', [MartPosController::class, 'products']);
-        // Route::get ('pos/orders',   [MartPosController::class, 'index']);
-        // Route::post('pos/orders',   [MartPosController::class, 'store']);
+        Route::get('stock/movements',  [StockAdjustmentController::class, 'movements']);
+        Route::get('stock/low-stock',  [StockAdjustmentController::class, 'lowStock']);
+
+        Route::get('products',      [MartProductController::class, 'index']);
+        Route::get('products/{id}', [MartProductController::class, 'show']);
+
+        Route::prefix('/pos')->group(function () {
+            Route::get('products', [MartPosController::class, 'products']);
+            Route::get('orders', [MartPosController::class, 'index']);
+            Route::post('orders', [MartPosController::class, 'store']);
+        });
     });
 
     // ── Product Units ──────────────────────────────────────────────────────

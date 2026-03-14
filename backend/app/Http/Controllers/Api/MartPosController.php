@@ -8,22 +8,26 @@ use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\Branch;
+use App\Models\Payment;
 use App\Models\ProductUnit;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MartPosController extends Controller
 {
+    // for create order in mart POS
     // ── POST /api/v1/mart/pos/orders ──────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
-            'branch_id'       => 'required|uuid|exists:branches,id',
-            'payment_method'  => 'required|in:cash,card,qr,transfer',
-            'customer_type'   => 'nullable|in:retail,wholesale',
-            'notes'           => 'nullable|string|max:500',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'items'           => 'required|array|min:1',
+            'branch_id'               => 'required|uuid|exists:branches,id',
+            'payment_method'          => 'required|in:cash,card,qr,transfer',
+            'customer_type'           => 'nullable|in:retail,wholesale',
+            'cash_tendered'           => 'nullable|numeric|min:0',
+            'notes'                   => 'nullable|string|max:500',
+            'discount_amount'         => 'nullable|numeric|min:0',
+            'items'                   => 'required|array|min:1',
             'items.*.product_id'      => 'required|uuid|exists:products,id',
             'items.*.product_unit_id' => 'nullable|uuid|exists:product_units,id',
             'items.*.quantity'        => 'required|integer|min:1',
@@ -31,10 +35,25 @@ class MartPosController extends Controller
 
         $branch       = Branch::with('tenant')->findOrFail($request->branch_id);
         $cashier      = auth()->user();
+        $staff        = $cashier->staff;
         $customerType = $request->customer_type ?? 'retail';
 
-        return DB::transaction(function () use ($request, $branch, $cashier, $customerType) {
+        // Map payment method to payments table enum
+        $paymentMethodMap = [
+            'cash'     => 'cash',
+            'card'     => 'card',
+            'qr'       => 'qr_code',
+            'transfer' => 'online',
+        ];
 
+        return DB::transaction(function () use (
+            $request,
+            $branch,
+            $cashier,
+            $staff,
+            $customerType,
+            $paymentMethodMap
+        ) {
             $subtotal    = 0;
             $itemsData   = [];
             $stockErrors = [];
@@ -45,27 +64,23 @@ class MartPosController extends Controller
                     ? ProductUnit::findOrFail($item['product_unit_id'])
                     : null;
 
-                // ── Resolve unit price ─────────────────────────────────────
+                // ── Resolve price ──────────────────────────────────────────────
                 if ($productUnit) {
-                    // Use unit-specific price based on customer type
-                    $unitPrice   = $productUnit->priceFor($customerType);
-                    $qtyPerBase  = (float) $productUnit->qty_per_base;
-                    $unitName    = $productUnit->unit_label ?? $productUnit->unit_name;
+                    $unitPrice  = $productUnit->priceFor($customerType);
+                    $qtyPerBase = (float) $productUnit->qty_per_base;
+                    $unitName   = $productUnit->unit_label ?? $productUnit->unit_name;
                 } else {
-                    // No unit selected → use product base price (1 unit)
-                    $unitPrice   = (float) ($product->selling_price ?? $product->base_price ?? 0);
-                    $qtyPerBase  = 1;
-                    $unitName    = $product->unit ?? 'pcs';
+                    $unitPrice  = (float) ($product->selling_price ?? $product->base_price ?? 0);
+                    $qtyPerBase = 1;
+                    $unitName   = $product->unit ?? 'pcs';
                 }
 
-                // ── Stock check (in base units) ────────────────────────────
+                // ── Stock check ────────────────────────────────────────────────
                 $baseQtyNeeded = $item['quantity'] * $qtyPerBase;
-                if ($product->track_stock) {
-                    if ((float) $product->stock_quantity < $baseQtyNeeded) {
-                        $available = floor($product->stock_quantity / $qtyPerBase);
-                        $stockErrors[] = "'{$product->name}' ({$unitName}): only {$available} available";
-                        continue;
-                    }
+                if ((float) $product->stock_quantity < $baseQtyNeeded) {
+                    $available     = floor($product->stock_quantity / $qtyPerBase);
+                    $stockErrors[] = "'{$product->name}' ({$unitName}): only {$available} available";
+                    continue;
                 }
 
                 $totalPrice = $unitPrice * $item['quantity'];
@@ -95,19 +110,19 @@ class MartPosController extends Controller
                 ], 422);
             }
 
-            // ── Totals ─────────────────────────────────────────────────────
+            // ── Totals ─────────────────────────────────────────────────────────
             $discountAmount = (float) ($request->discount_amount ?? 0);
             $taxRate        = (float) ($branch->tenant->tax_rate ?? 0);
             $taxAmount      = round(($subtotal - $discountAmount) * $taxRate, 2);
             $totalAmount    = $subtotal - $discountAmount + $taxAmount;
 
-            // ── Create order ───────────────────────────────────────────────
+            // ── Create order ───────────────────────────────────────────────────
             $order = Order::create([
                 'branch_id'             => $branch->id,
+                'cashier_id'            => $staff?->id,
                 'order_type'            => 'takeaway',
                 'status'                => 'completed',
                 'source'                => 'pos',
-                'payment_method'        => $request->payment_method,
                 'subtotal'              => $subtotal,
                 'tax_amount'            => $taxAmount,
                 'service_charge_amount' => 0,
@@ -117,20 +132,50 @@ class MartPosController extends Controller
                 'completed_at'          => now(),
             ]);
 
-            // ── Create items + deduct stock in base units ──────────────────
+            // ── Create items + deduct stock + log movement ─────────────────────
             foreach ($itemsData as $itemData) {
-                $product  = $itemData['_product'];
-                $baseQty  = $itemData['_base_qty'];
+                $product = $itemData['_product'];
+                $baseQty = $itemData['_base_qty'];
                 unset($itemData['_product'], $itemData['_base_qty']);
 
                 OrderItem::create(['order_id' => $order->id, ...$itemData]);
 
-                // Always deduct in BASE units
-                if ($product->track_stock) {
-                    $product->decrement('stock_quantity', $baseQty);
-                }
+                $qtyBefore = (float) $product->stock_quantity;
+                $qtyAfter  = $qtyBefore - $baseQty;
+                $product->decrement('stock_quantity', $baseQty);
+
+                StockMovement::create([
+                    'branch_id'      => $branch->id,
+                    'product_id'     => $product->id,
+                    'movement_type'  => 'sale',
+                    'quantity'       => -$baseQty,
+                    'qty_before'     => $qtyBefore,
+                    'qty_after'      => $qtyAfter,
+                    'reference_type' => 'order',
+                    'reference_id'   => $order->id,
+                    'notes'          => "POS sale · {$customerType}",
+                ]);
             }
 
+            // ── Create payment record ──────────────────────────────────────────
+            $cashTendered = (float) ($request->cash_tendered ?? $totalAmount);
+            $changeGiven  = $request->payment_method === 'cash'
+                ? max(0, $cashTendered - $totalAmount)
+                : null;
+
+            $payment = Payment::create([
+                'order_id'       => $order->id,
+                'branch_id'      => $branch->id,
+                'staff_id'       => $staff?->id,
+                'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
+                'amount'         => $totalAmount,
+                'change_given'   => $changeGiven,
+                'currency'       => 'USD',
+                'status'         => 'completed',
+                'paid_at'        => now(),
+            ]);
+
+            // ── Order status history ───────────────────────────────────────────
             OrderStatusHistory::create([
                 'order_id'    => $order->id,
                 'from_status' => null,
@@ -150,7 +195,10 @@ class MartPosController extends Controller
                     'discount'       => $order->discount_amount,
                     'tax'            => $order->tax_amount,
                     'total_amount'   => $order->total_amount,
-                    'payment_method' => $order->payment_method,
+                    'payment_method' => $request->payment_method,
+                    'cash_tendered'  => $cashTendered,
+                    'change_given'   => $changeGiven,
+                    'payment_id'     => $payment->id,
                     'items'          => $order->items,
                     'receipt'        => $this->buildReceipt($order, $branch, $customerType),
                 ],
@@ -187,6 +235,10 @@ class MartPosController extends Controller
         $branch = Branch::findOrFail($request->branch_id);
 
         $products = Product::with(['activeUnits', 'category:id,name'])
+            ->where(function ($q) {
+                $q->where('product_type', 'retail')
+                    ->orWhere('track_stock', true);
+            })
             ->where('tenant_id', $branch->tenant_id)
             ->where('is_available', true)
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))

@@ -52,22 +52,20 @@
                 class="pa-4 d-flex align-center gap-3"
               >
                 <v-avatar
-                  color="primary"
-                  variant="tonal"
-                  size="40"
+                  size="56"
                   rounded="lg"
+                  :color="avatarColor(props.item.full_name)"
                 >
-                  <span class="text-body-2 font-weight-bold">
-                    {{ initials(props.item) }}
+                  <span class="text-white font-weight-bold">
+                    {{ initials(props.item.full_name) }}
                   </span>
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="text-body-2 font-weight-bold">
-                    {{ props.item?.user?.first_name }}
-                    {{ props.item?.user?.last_name }}
+                    {{ props.item?.full_name }}
                   </div>
                   <div class="text-caption text-grey">
-                    {{ props.item?.user?.email }}
+                    {{ props.item?.email }}
                   </div>
                 </div>
                 <v-chip size="x-small" color="primary" variant="tonal" label>
@@ -207,7 +205,13 @@
                       <div class="text-body-2 font-weight-medium">Active</div>
                       <div class="text-caption text-grey">Allow login</div>
                     </div>
-                    <v-switch v-model="form.is_active" color="success" inset hide-details density="compact"/>
+                    <v-switch
+                      v-model="form.is_active"
+                      color="success"
+                      inset
+                      hide-details
+                      density="compact"
+                    />
                   </v-card>
                 </v-col>
               </v-row>
@@ -377,8 +381,7 @@
                         rounded="lg"
                         :rules="[r.required]"
                         prepend-inner-icon="mdi-shield-account-outline"
-                      >
-                      </v-select>
+                      ></v-select>
                     </v-col>
                     <v-col cols="12" sm="6">
                       <v-text-field
@@ -726,11 +729,17 @@
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────────
-  const initials = item => {
-    const f = item?.user?.first_name?.[0] ?? ''
-    const l = item?.user?.last_name?.[0] ?? ''
-    return (f + l).toUpperCase()
-  }
+  const initials = n =>
+    n
+      ? n
+          .split(' ')
+          .map(x => x[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+      : '?'
+  const avatarColor = n =>
+    n ? ['#3b5bdb', '#2f9e44', '#e67700', '#c92a2a'][n.length % 4] : '#808080'
 
   const generatePassword = () => {
     const chars =

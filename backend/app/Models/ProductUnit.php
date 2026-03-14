@@ -25,7 +25,7 @@ class ProductUnit extends Model
     ];
 
     protected $casts = [
-        'qty_per_base'     => 'decimal:3',
+        'qty_per_base'     => 'float',
         'retail_price'     => 'decimal:2',
         'wholesale_price'  => 'decimal:2',
         'cost_price'       => 'decimal:2',

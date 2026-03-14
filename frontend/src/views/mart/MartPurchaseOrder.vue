@@ -164,8 +164,8 @@
               variant="text"
               @click="openEdit(item)"
             />
+            <!-- v-if="canReceive(item)" -->
             <v-btn
-              v-if="canReceive(item)"
               icon="mdi-package-down"
               size="small"
               variant="text"

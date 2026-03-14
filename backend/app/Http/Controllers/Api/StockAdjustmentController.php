@@ -83,7 +83,7 @@ class StockAdjustmentController extends Controller
     public function movements(Request $request)
     {
         $request->validate([
-            'branch_id'  => 'required|uuid|exists:branches,id',
+            // 'branch_id'  => 'required|uuid|exists:branches,id',
             'product_id' => 'nullable|uuid',
             'type'       => 'nullable|string',
             'from'       => 'nullable|date',
@@ -96,7 +96,7 @@ class StockAdjustmentController extends Controller
                 'staff:id,user_id',
                 'staff.user:id,first_name,last_name',
             ])
-            ->where('branch_id', $request->branch_id)
+            // ->where('branch_id', $request->branch_id)
             ->when($request->product_id, fn($q) => $q->where('product_id', $request->product_id))
             ->when($request->type,       fn($q) => $q->where('movement_type', $request->type))
             ->when($request->from,       fn($q) => $q->whereDate('created_at', '>=', $request->from))

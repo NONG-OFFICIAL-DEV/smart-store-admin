@@ -248,6 +248,18 @@ const routes = [
         name: 'MartPurchaseOrderEdit',
         component: () => import('@/views/mart/MartPoForm.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: '/mart/stock',
+        name: 'MartStock',
+        component: () => import('@/views/mart/MartStockManagement.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/mart/stock-movements',
+        name: 'MartStockMovements',
+        component: () => import('@/views/mart/MartStockMovements.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   }

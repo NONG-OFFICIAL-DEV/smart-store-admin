@@ -323,6 +323,7 @@ class OrderController extends Controller
             'branch:id,name',
             'customer:id,name,phone',
             'items',
+            'payments'
         ])
             ->when(
                 $finalBranchIds,

@@ -118,4 +118,47 @@ class ProductController extends Controller
             'message' => 'Modifier groups linked successfully',
         ]);
     }
+
+    // Route: GET /api/v1/mart/products
+
+    public function products(Request $request)
+    {
+        // $tenantId = auth()->user()->staff->tenant_id;
+        // $branchId = $request->branch_id ?? auth()->user()->staff->branch_id;
+
+        $products = Product::with(['activeUnits'])
+            ->where(function ($q) {
+                $q->where('product_type', 'retail')
+                    ->orWhere('track_stock', true);
+            })
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn($p) => [
+                'id'             => $p->id,
+                'name'           => $p->name,
+                'sku'            => $p->sku,
+                'image_url'      => $p->image_url,
+                'unit'           => $p->unit,
+                'stock_quantity' => (float) $p->stock_quantity,
+                'reorder_level'  => $p->reorder_level !== null ? (float) $p->reorder_level : null,
+                'cost_price'     => (float) $p->cost_price,
+                'retail_price'   => (float) $p->retail_price,
+                'wholesale_price' => (float) $p->wholesale_price,
+                'product_type'   => $p->product_type,
+                'active_units'   => $p->activeUnits->map(fn($u) => [
+                    'id'           => $u->id,
+                    'unit_name'    => $u->unit_name,
+                    'unit_label'   => $u->unit_label,
+                    'qty_per_base' => (float) $u->qty_per_base,
+                    'cost_price'   => (float) $u->cost_price,
+                    'retail_price' => (float) $u->retail_price,
+                    'wholesale_price' => (float) $u->wholesale_price,
+                    'is_base_unit' => (bool) $u->is_base_unit,
+                    'barcode'      => $u->barcode,
+                ]),
+            ]);
+
+        return response()->json(['data' => $products]);
+    }
 }

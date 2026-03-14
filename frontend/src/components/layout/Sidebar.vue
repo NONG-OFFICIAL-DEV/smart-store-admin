@@ -125,6 +125,12 @@
           // show: can('inventory.view')
         },
         {
+          path: '/mart/stock',
+          title: 'Current Mart Stock',
+          icon: 'mdi-layers-triple-outline'
+          // show: can('inventory.view')
+        },
+        {
           path: '/purchases',
           title: 'Purchases',
           icon: 'mdi-cart-arrow-down'
@@ -132,7 +138,7 @@
         },
         {
           path: '/mart/purchase-order',
-          title: 'Purchases',
+          title: 'Mart Purchases',
           icon: 'mdi-cart-arrow-down'
           // show: can('inventory.view')
         },
