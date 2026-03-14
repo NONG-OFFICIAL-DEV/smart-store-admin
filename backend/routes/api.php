@@ -73,6 +73,8 @@ use App\Http\Controllers\Api\OrderExportController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\StockAdjustmentController;
 use App\Http\Controllers\Api\MartProductController;
+use App\Http\Controllers\Api\MartProductPerformanceController;
+use App\Http\Controllers\Api\MartPurchaseReportController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -411,8 +413,11 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
             Route::get('orders', [MartPosController::class, 'index']);
             Route::post('orders', [MartPosController::class, 'store']);
         });
+        Route::get('/reports/purchases',           [MartPurchaseReportController::class,    'index']);
+        Route::get('/reports/product-performance', [MartProductPerformanceController::class, 'index']);
     });
 
+    Route::get('product-units/names', [ProductUnitController::class, 'names']);
     // ── Product Units ──────────────────────────────────────────────────────
     Route::get('products/{product}/units',       [ProductUnitController::class, 'index']);
     Route::post('products/{product}/units',       [ProductUnitController::class, 'store']);

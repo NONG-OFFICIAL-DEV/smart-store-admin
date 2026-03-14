@@ -12,6 +12,7 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || null,
     bu_name: null,
     branch_name: null,
+    role_name: null,
     logo_url: null
   }),
   getters: {
@@ -20,7 +21,15 @@ export const useAuthStore = defineStore('auth', {
       if (state.isOwner) return true
       if (state.isSuperAdmin) return true
       return state.permissions.includes(code)
-    }
+    },
+    // ── Business type helpers ──────────────────────────────────────────────
+    isMart: state =>
+      ['minimart', 'retail', 'wholesale'].includes(state.bu_type),
+
+    isFood: state =>
+      ['restaurant', 'cafe', 'bakery', 'kiosk', 'food_truck'].includes(
+        state.bu_type
+      )
   },
   actions: {
     //how to use it see in file Login.vue
@@ -44,14 +53,23 @@ export const useAuthStore = defineStore('auth', {
     },
     async fetchMe() {
       const res = await authService.me().catch(() => {})
-      this.me = res.data.user
-      this.unread_notifications_count = res.data.unread_notifications_count
-      this.permissions = res.data.permissions ?? []
-      this.isSuperAdmin = res.data.is_super_admin ?? false
-      this.isOwner = res.data.is_owner ?? false
-      this.bu_name = res.data.bu_name ?? null
-      this.branch_name = res.data.branch_name ?? null
-      this.logo_url = res.data.logo_url ?? null
+      const d = res.data
+
+      this.me = d.user
+      this.unread_notifications_count = d.unread_notifications_count ?? 0
+      this.permissions = d.permissions ?? []
+      this.isSuperAdmin = d.is_super_admin ?? false
+      this.isOwner = d.is_owner ?? false
+      // Tenant
+      this.tenant_id = d.tenant_id ?? null
+      this.bu_name = d.bu_name ?? null
+      this.bu_type = d.bu_type ?? null
+      this.logo_url = d.logo_url ?? null
+      // Branch
+      this.branch_id = d.branch_id ?? null
+      this.branch_name = d.branch_name ?? null
+      // Staff
+      this.role_name = d.role_name ?? null
     }
   }
 })

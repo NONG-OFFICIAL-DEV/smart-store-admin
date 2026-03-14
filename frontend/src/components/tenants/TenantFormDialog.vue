@@ -251,7 +251,33 @@
               </v-col>
 
               <!-- Slug — auto-generated, lockable -->
-              <v-col cols="12">
+              <v-col cols="6">
+                <v-select
+                  v-model="form.bu_type"
+                  :items="typeOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Type *"
+                  variant="outlined"
+                  rounded="lg"
+                  :rules="[r.required]"
+                >
+                  <template #item="{ props: p, item }">
+                    <v-list-item v-bind="p">
+                      <template #prepend>
+                        <v-icon :icon="item.raw.icon" size="16" class="mr-1" />
+                      </template>
+                    </v-list-item>
+                  </template>
+                  <template #selection="{ item }">
+                    <div class="d-flex align-center gap-1">
+                      <v-icon :icon="item.raw.icon" size="15" />
+                      <span class="text-body-2">{{ item.raw.label }}</span>
+                    </div>
+                  </template>
+                </v-select>
+              </v-col>
+              <v-col cols="6">
                 <v-text-field
                   v-model="form.slug"
                   label="Slug"
@@ -488,6 +514,21 @@
     return (f + l).toUpperCase()
   })
 
+  const typeOptions = [
+    {
+      value: 'restaurant',
+      label: 'Restaurant',
+      icon: 'mdi-silverware-fork-knife'
+    },
+    { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee' },
+    { value: 'bakery', label: 'Bakery', icon: 'mdi-bread-slice-outline' },
+    { value: 'kiosk', label: 'Kiosk', icon: 'mdi-store-outline' },
+    { value: 'food_truck', label: 'Food Truck', icon: 'mdi-truck-outline' },
+    { value: 'minimart', label: 'Mini Mart', icon: 'mdi-shopping-outline' },
+    { value: 'retail', label: 'Retail', icon: 'mdi-tag-outline' },
+    { value: 'wholesale', label: 'Wholesale', icon: 'mdi-warehouse' }
+  ]
+
   // ── Options ───────────────────────────────────────────────────────────────────
   const planOptions = [
     { value: 'free', label: 'Free', icon: 'mdi-star-outline', color: 'grey' },
@@ -544,6 +585,7 @@
     // Business fields
     name: '',
     slug: '',
+    bu_type: '',
     plan: 'free',
     logo_url: '',
     primary_color: '#6366f1',
@@ -567,6 +609,7 @@
       if (val) {
         Object.assign(form, {
           name: val.name,
+          bu_type: val.bu_type,
           slug: val.slug,
           plan: val.plan,
           logo_url: val.logo_url ?? '',
@@ -619,6 +662,7 @@
       emit('save', {
         id: props.item.id,
         name: form.name,
+        bu_type: form.bu_type,
         slug: form.slug,
         plan: form.plan,
         logo_url: form.logo_url,

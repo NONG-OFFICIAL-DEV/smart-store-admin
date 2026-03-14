@@ -84,6 +84,15 @@
               >
                 {{ buName }}
               </v-chip>
+              <v-chip
+                v-if="roleName"
+                size="x-small"
+                variant="tonal"
+                color="secondary"
+                rounded="lg"
+              >
+                {{ roleName }}
+              </v-chip>
             </div>
 
             <v-divider class="mb-3 mt-2" />
@@ -118,7 +127,8 @@
     user: Object,
     notifications_count: Number,
     buName: String,
-    branchName: String
+    branchName: String,
+    roleName: String,
   })
 
   const authStore = useAuthStore()

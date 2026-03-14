@@ -10,3 +10,5 @@ export const updateProductUnitApi = (productId, id, data) =>
   api.put(`${base(productId)}/${id}`, data)
 export const deleteProductUnitApi = (productId, id) =>
   api.delete(`${base(productId)}/${id}`)
+export const getProductUnitNameApi = () =>
+  api.get('v1/product-units/names')

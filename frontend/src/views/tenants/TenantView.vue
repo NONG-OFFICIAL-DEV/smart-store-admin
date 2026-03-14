@@ -120,6 +120,17 @@
         </template>
 
         <!-- Plan -->
+        <template #item.bu_type="{ item }">
+          <v-chip
+            :color="getBuType(item.bu_type).color"
+            :prepend-icon="getBuType(item.bu_type).icon"
+            variant="tonal"
+            size="small"
+            rounded="lg"
+          >
+            {{ getBuType(item.bu_type).label }}
+          </v-chip>
+        </template>
         <template #item.plan="{ item }">
           <v-chip
             :color="planColor(item.plan)"
@@ -369,12 +380,65 @@
   const headers = [
     { title: 'Tenant', key: 'name', sortable: true },
     { title: 'Owner', key: 'owner', sortable: false },
+    { title: 'BU type', key: 'bu_type', sortable: false },
     { title: 'Plan', key: 'plan', sortable: true },
     { title: 'Locale', key: 'locale', sortable: false },
     { title: 'Expires', key: 'plan_expires_at', sortable: true },
     { title: 'Status', key: 'is_active', sortable: true },
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ]
+  const typeOptions = [
+    {
+      value: 'restaurant',
+      label: 'Restaurant',
+      icon: 'mdi-silverware-fork-knife',
+      color: 'orange'
+    },
+    { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee', color: 'brown' },
+    {
+      value: 'bakery',
+      label: 'Bakery',
+      icon: 'mdi-bread-slice-outline',
+      color: 'amber'
+    },
+    {
+      value: 'kiosk',
+      label: 'Kiosk',
+      icon: 'mdi-store-outline',
+      color: 'teal'
+    },
+    {
+      value: 'food_truck',
+      label: 'Food Truck',
+      icon: 'mdi-truck-outline',
+      color: 'cyan'
+    },
+    {
+      value: 'minimart',
+      label: 'Mini Mart',
+      icon: 'mdi-shopping-outline',
+      color: 'primary'
+    },
+    {
+      value: 'retail',
+      label: 'Retail',
+      icon: 'mdi-tag-outline',
+      color: 'indigo'
+    },
+    {
+      value: 'wholesale',
+      label: 'Wholesale',
+      icon: 'mdi-warehouse',
+      color: 'purple'
+    }
+  ]
+
+  const getBuType = value =>
+    typeOptions.find(t => t.value === value) ?? {
+      label: value,
+      icon: 'mdi-store',
+      color: 'grey'
+    }
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   const openCreate = () => {
@@ -444,7 +508,7 @@
   }
 
   // Delete
-  const confirmDelete = async (tenant) => {
+  const confirmDelete = async tenant => {
     saving.value = true
     try {
       confirm({

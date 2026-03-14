@@ -689,7 +689,7 @@
       {
         label: 'Products',
         sub: 'In catalog',
-        icon: 'mdi-package-variant-outline',
+        icon: 'mdi-package-variant',
         color: 'info',
         value: kpiMap['Total Products'] ?? '—'
       },
@@ -785,7 +785,7 @@
     },
     {
       label: 'All Products',
-      icon: 'mdi-package-variant-outline',
+      icon: 'mdi-package-variant',
       color: 'info',
       route: '/products'
     },

@@ -62,7 +62,7 @@
                 <!-- ── Image + Name/Category side by side ──────────────── -->
                 <div class="form-section-label">
                   <v-icon
-                    icon="mdi-package-variant-outline"
+                    icon="mdi-package-variant"
                     size="13"
                     class="mr-1"
                   />

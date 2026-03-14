@@ -6,6 +6,7 @@
     :notifications_count="notifications_count"
     :bu-name="buName"
     :branch-name="branchName"
+    :role-name="roleName"
   />
   <v-main>
     <v-container class="px-4" fluid>
@@ -32,6 +33,7 @@
   )
   const buName = computed(() => authStore.bu_name)
   const branchName = computed(() => authStore.branch_name)
+  const roleName = computed(() => authStore.role_name)
   const logo_url = computed(() => authStore.logo_url)
 
   // Only keep logout fallback if needed

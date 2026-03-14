@@ -169,7 +169,7 @@ class AdminDashboardController extends Controller
                         'label' => 'Total Products',
                         'value' => number_format($totalProducts),
                         'raw'   => $totalProducts,
-                        'icon'  => 'mdi-package-variant-outline',
+                        'icon'  => 'mdi-package-variant',
                         'color' => 'error',
                         'trend' => 0,
                     ],

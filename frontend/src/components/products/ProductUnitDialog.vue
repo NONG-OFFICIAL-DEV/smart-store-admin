@@ -22,19 +22,64 @@
       <v-card-text class="pa-5">
         <v-form ref="formRef">
           <v-row dense>
-            <!-- Unit name -->
+            <!-- Unit name — combobox from DB + fallback to common -->
             <v-col cols="12" sm="6">
-              <v-text-field
+              <v-combobox
                 v-model="form.unit_name"
+                :items="unitNameOptions"
+                :loading="loadingNames"
+                item-title="title"
+                item-value="title"
                 label="Unit Name *"
-                placeholder="can, pack, box, pallet"
+                placeholder="can, pack, box, kg..."
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
-                hint="Internal identifier (lowercase)"
-              />
+                clearable
+                @update:model-value="onUnitNameChange"
+              >
+                <!-- Item row in dropdown -->
+                <template #item="{ item, props: iProps }">
+                  <v-list-item v-bind="iProps" :subtitle="item.raw?.subtitle">
+                    <template #append>
+                      <v-chip
+                        v-if="item.raw?.source === 'db'"
+                        size="x-small"
+                        color="primary"
+                        variant="tonal"
+                        rounded="lg"
+                      >
+                        existing
+                      </v-chip>
+                      <v-chip
+                        v-else
+                        size="x-small"
+                        color="grey"
+                        variant="tonal"
+                        rounded="lg"
+                      >
+                        common
+                      </v-chip>
+                    </template>
+                  </v-list-item>
+                </template>
+
+                <!-- When user typed something not in list -->
+                <template #no-data>
+                  <v-list-item>
+                    <v-list-item-title class="text-caption">
+                      Press
+                      <kbd>Enter</kbd>
+                      to use "
+                      <strong>{{ form.unit_name }}</strong>
+                      "
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-combobox>
             </v-col>
+
             <!-- Unit label -->
             <v-col cols="12" sm="6">
               <v-text-field
@@ -59,7 +104,7 @@
                 density="comfortable"
                 rounded="lg"
                 :rules="[r.required, r.positive]"
-                hint="How many base units in this unit (e.g. 24 for a box)"
+                hint="e.g. 24 for a box of 24 cans"
                 prepend-inner-icon="mdi-numeric"
               />
             </v-col>
@@ -73,7 +118,7 @@
                 density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-barcode"
-                hint="Scan or type barcode for this unit"
+                hint="Scan or type barcode"
                 clearable
               />
             </v-col>
@@ -138,9 +183,7 @@
               </v-alert>
             </v-col>
 
-            <v-col cols="12">
-              <v-divider class="my-1" />
-            </v-col>
+            <v-col cols="12"><v-divider class="my-1" /></v-col>
 
             <!-- Is base unit -->
             <v-col cols="12" sm="6">
@@ -150,7 +193,6 @@
                 label="This is the base unit"
                 density="compact"
                 hide-details
-                hint="e.g. the individual can"
               />
             </v-col>
 
@@ -190,7 +232,8 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch } from 'vue'
+  import { ref, reactive, computed, watch, onMounted } from 'vue'
+  import { useProductUnitStore } from '@/stores/productUnitStore'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -200,12 +243,100 @@
   const emit = defineEmits(['update:modelValue', 'save'])
 
   const formRef = ref(null)
+  const loadingNames = ref(false)
+  const dbUnits = ref([]) // from API
+  const productUnitStore = useProductUnitStore()
+
   const model = computed({
     get: () => props.modelValue,
     set: v => emit('update:modelValue', v)
   })
   const isEdit = computed(() => !!props.unit?.id)
 
+  // ── Fallback common units (used when DB is empty or as extra suggestions) ──
+  const commonUnits = [
+    { title: 'pcs', unit_label: 'Pcs', qty_per_base: 1, source: 'common' },
+    { title: 'can', unit_label: 'Can', qty_per_base: 1, source: 'common' },
+    {
+      title: 'bottle',
+      unit_label: 'Bottle',
+      qty_per_base: 1,
+      source: 'common'
+    },
+    { title: 'pack', unit_label: 'Pack', qty_per_base: 6, source: 'common' },
+    { title: 'box', unit_label: 'Box', qty_per_base: 24, source: 'common' },
+    {
+      title: 'carton',
+      unit_label: 'Carton',
+      qty_per_base: 24,
+      source: 'common'
+    },
+    { title: 'case', unit_label: 'Case', qty_per_base: 12, source: 'common' },
+    { title: 'kg', unit_label: 'kg', qty_per_base: 1, source: 'common' },
+    { title: 'g', unit_label: 'g', qty_per_base: 1, source: 'common' },
+    { title: 'litre', unit_label: 'Litre', qty_per_base: 1, source: 'common' },
+    { title: 'dozen', unit_label: 'Dozen', qty_per_base: 12, source: 'common' },
+    { title: 'bag', unit_label: 'Bag', qty_per_base: 1, source: 'common' }
+  ]
+
+  // ── Merge DB units first, then fill in common ones not already in DB ───────
+  const unitNameOptions = computed(() => {
+    const dbTitles = new Set(dbUnits.value.map(u => u.title))
+    const extras = commonUnits.filter(u => !dbTitles.has(u.title))
+
+    return [
+      // DB units shown first with "existing" badge
+      ...dbUnits.value.map(u => ({
+        ...u,
+        source: 'db',
+        subtitle: `× ${u.qty_per_base} · used in your products`
+      })),
+      // Common units not yet in DB shown as fallback
+      ...extras.map(u => ({
+        ...u,
+        source: 'common',
+        subtitle: `× ${u.qty_per_base}`
+      }))
+    ]
+  })
+
+  // ── Fetch distinct unit names from DB ─────────────────────────────────────
+  const fetchUnitNames = async () => {
+    loadingNames.value = true
+    try {
+      const res = await productUnitStore.fetchUnitName()
+      dbUnits.value = (res.data.data ?? []).map(u => ({
+        title: u.title,
+        unit_label: u.unit_label,
+        qty_per_base: u.qty_per_base
+      }))
+    } catch {
+      // silently fall back to commonUnits
+      dbUnits.value = []
+    } finally {
+      loadingNames.value = false
+    }
+  }
+
+  // ── When user picks or types a unit name ──────────────────────────────────
+  const onUnitNameChange = val => {
+    const selected = typeof val === 'object' && val !== null ? val : null
+
+    if (selected) {
+      // Auto-fill label if blank
+      if (!form.unit_label && selected.unit_label) {
+        form.unit_label = selected.unit_label
+      }
+      // Auto-fill qty if still at 1 and selected has better default
+      if (form.qty_per_base === 1 && selected.qty_per_base > 1) {
+        form.qty_per_base = selected.qty_per_base
+      }
+      // Always store plain string
+      form.unit_name = selected.title
+    }
+  }
+
+  // ── Form ──────────────────────────────────────────────────────────────────
   const defaultForm = () => ({
     unit_name: '',
     unit_label: '',
@@ -235,6 +366,14 @@
     { immediate: true }
   )
 
+  // Fetch names when dialog opens
+  watch(
+    () => props.modelValue,
+    open => {
+      if (open) fetchUnitNames()
+    }
+  )
+
   const r = {
     required: v => !!v || 'Required',
     positive: v => v > 0 || 'Must be > 0'
@@ -252,6 +391,10 @@
     emit('save', {
       ...(isEdit.value ? { id: props.unit.id } : {}),
       ...form,
+      unit_name:
+        typeof form.unit_name === 'object'
+          ? (form.unit_name?.title ?? '')
+          : form.unit_name,
       wholesale_price: form.wholesale_price || null,
       cost_price: form.cost_price || null,
       barcode: form.barcode || null

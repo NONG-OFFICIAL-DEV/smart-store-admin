@@ -8,6 +8,7 @@ class Tenant extends BaseModel
 {
     protected $fillable = [
         'name',
+        'bu_type',
         'slug',
         'plan',
         'plan_expires_at',
@@ -23,6 +24,7 @@ class Tenant extends BaseModel
     protected $casts = [
         'plan_expires_at' => 'datetime',
         'is_active'       => 'boolean',
+        'bu_type' => 'string',
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────
@@ -31,10 +33,10 @@ class Tenant extends BaseModel
         $data = $request instanceof Request
             ? $request->only([
                 'name',
+                'bu_type',
                 'slug',
                 'plan',
                 'plan_expires_at',
-                // 'owner_user_id',
                 'logo_url',
                 'primary_color',
                 'timezone',

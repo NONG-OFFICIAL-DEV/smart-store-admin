@@ -129,12 +129,6 @@ const routes = [
       //   component: () => import('@/views/purchases/PurchaseDetails.vue')
       // },
       // {
-      //   path: '/purchase-reports',
-      //   name: 'Reports',
-      //   component: () => import('@/views/reports/PurchaseReport.vue'),
-      //   meta: { requiresAuth: true }
-      // },
-      // {
       //   path: '/inventory-reports',
       //   name: 'InventoryReport',
       //   component: () => import('@/views/reports/InventoryReport.vue'),
@@ -260,7 +254,19 @@ const routes = [
         name: 'MartStockMovements',
         component: () => import('@/views/mart/MartStockMovements.vue'),
         meta: { requiresAuth: true }
-      }
+      },
+      {
+        path: '/mart/reports/purchases',
+        name: 'MartPurchaseReport',
+        component: () => import('@/views/mart/MartPurchaseReport.vue'),
+        meta: { requiresAuth: true }
+      },
+      // {
+      //   path: '/mart/reports/product-performance',
+      //   name: 'MartProductPerformance',
+      //   component: () => import('@/views/mart/MartProductPerformance.vue'),
+      //   meta: { requiresAuth: true }
+      // }
     ]
   }
 ]

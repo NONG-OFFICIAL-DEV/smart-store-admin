@@ -4,7 +4,8 @@ import {
   getProductUnitsApi,
   createProductUnitApi,
   updateProductUnitApi,
-  deleteProductUnitApi
+  deleteProductUnitApi,
+  getProductUnitNameApi
 } from '@/api/productUnitService'
 
 export const useProductUnitStore = defineStore('productUnit', {
@@ -24,6 +25,10 @@ export const useProductUnitStore = defineStore('productUnit', {
       } finally {
         this.loading = false
       }
+    },
+    async fetchUnitName() {
+      const res = await getProductUnitNameApi()
+      return res
     },
 
     async createUnit(productId, data) {

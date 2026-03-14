@@ -108,4 +108,20 @@ class ProductUnitController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Unit deleted']);
     }
+
+    public function names(Request $request)
+    {
+        $names = ProductUnit::whereHas('product')
+            ->select('unit_name', 'unit_label', 'qty_per_base')
+            ->distinct('unit_name')
+            ->orderBy('unit_name')
+            ->get()
+            ->map(fn($u) => [
+                'title'        => $u->unit_name,
+                'unit_label'   => $u->unit_label,
+                'qty_per_base' => (float) $u->qty_per_base,
+            ]);
+
+        return response()->json(['data' => $names]);
+    }
 }

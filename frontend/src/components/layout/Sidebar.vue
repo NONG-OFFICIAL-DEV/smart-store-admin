@@ -16,7 +16,8 @@
   const open = ref(['dashboard'])
 
   const can = code => authStore.can(code)
-
+  const isMart = computed(() => authStore.isMart)
+  const isFood = computed(() => authStore.isFood)
   // ── Menu Definition ───────────────────────────────────────────────────────────
   const menu = computed(() => [
     // ── 1. DASHBOARD ────────────────────────────────────────────────────────────
@@ -36,56 +37,69 @@
     // ── 2. TENANTS & BRANCHES ───────────────────────────────────────────────────
     {
       path: '/tenants',
-      title: 'Tenants',
+      title: t('menu.tenant'),
       icon: 'mdi-office-building-outline',
       show: authStore.isSuperAdmin
     },
     {
       path: '/branches',
-      title: 'Branches',
+      title: t('menu.branches'),
       icon: 'mdi-store-outline',
       show: can('branches.view')
     },
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
-      title: 'Catalog',
-      icon: 'mdi-book-open-page-variant-outline',
+      title: authStore.isSuperAdmin
+        ? 'Catalog / Products'
+        : authStore.isMart
+          ? t('menu.products')
+          : t('menu.catalog'),
+
+      icon: authStore.isSuperAdmin
+        ? 'mdi-book-open-page-variant-outline'
+        : authStore.isMart
+          ? 'mdi-tag-outline'
+          : 'mdi-book-open-page-variant-outline',
       // show: can('categories.view') || can('products.view'),
       subLinks: [
         {
           path: '/categories',
-          title: 'Categories',
+          title: t('menu.categories'),
           icon: 'mdi-shape-outline'
           // show: can('categories.view')
         },
         {
           path: '/products',
-          title: 'Products',
+          title: t('menu.products'),
           icon: 'mdi-tag-outline'
           // show: can('products.view')
         },
         {
           path: '/ingredients',
           title: 'Ingredients',
-          icon: 'mdi-tree'
+          icon: 'mdi-tree',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/product-modifier-groups',
           title: 'Modifiers',
-          icon: 'mdi-tune-variant'
+          icon: 'mdi-tune-variant',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/menu-management',
           title: 'Menus',
-          icon: 'mdi-menu'
+          icon: 'mdi-menu',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/branch-menus',
           title: 'Branch Menus',
-          icon: 'mdi-book-open-variant'
+          icon: 'mdi-book-open-variant',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         }
       ]
@@ -96,6 +110,7 @@
       title: 'Dining',
       icon: 'mdi-silverware-fork-knife',
       // show: can('tables.view') || can('reservations.view'),
+      show: authStore.isFood || authStore.isSuperAdmin,
       subLinks: [
         {
           path: '/dining-table',
@@ -114,37 +129,41 @@
 
     // ── 6. INVENTORY ────────────────────────────────────────────────────────────
     {
-      title: 'Inventory',
+      title: t('menu.inventory'),
       icon: 'mdi-warehouse',
       // show: can('inventory.view'),
       subLinks: [
         {
           path: '/stocks',
-          title: 'Current Stock',
-          icon: 'mdi-layers-triple-outline'
+          title: t('menu.stock_overview'),
+          icon: 'mdi-layers-triple-outline',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('inventory.view')
         },
         {
           path: '/mart/stock',
-          title: 'Current Mart Stock',
-          icon: 'mdi-layers-triple-outline'
+          title: t('menu.stock_overview'),
+          icon: 'mdi-layers-triple-outline',
+          show: authStore.isMart || authStore.isSuperAdmin
           // show: can('inventory.view')
         },
         {
           path: '/purchases',
-          title: 'Purchases',
-          icon: 'mdi-cart-arrow-down'
+          title: t('menu.purchase_order'),
+          icon: 'mdi-cart-arrow-down',
+          show: authStore.isFood || authStore.isSuperAdmin
           // show: can('inventory.view')
         },
         {
           path: '/mart/purchase-order',
-          title: 'Mart Purchases',
-          icon: 'mdi-cart-arrow-down'
+          title: t('menu.purchase_order'),
+          icon: 'mdi-cart-arrow-down',
+          show: authStore.isMart || authStore.isSuperAdmin
           // show: can('inventory.view')
         },
         {
           path: '/suppliers',
-          title: 'Suppliers',
+          title: t('menu.suppliers'),
           icon: 'mdi-truck-delivery-outline'
           // show: can('inventory.view')
         }
@@ -153,11 +172,12 @@
 
     // ── 7. ACCOUNTING ───────────────────────────────────────────────────────────
     {
-      title: 'Accounting',
-      icon: 'mdi-calculator-variant-outline',
+      title: t('menu.reports'),
+      icon: 'mdi-chart-areaspline',
       // show: can('reports.sales') || can('reports.inventory'),
       subLinks: [
         {
+          show: authStore.isSuperAdmin,
           path: '/expense-management',
           title: 'Expenses',
           icon: 'mdi-cash-minus'
@@ -165,19 +185,19 @@
         },
         {
           path: '/orders-reports',
-          title: 'Orders Analytics',
+          title: t('menu.orders_analytics'),
           icon: 'mdi-chart-bar'
           // show: can('reports.sales')
         },
         {
-          path: '/purchase-reports',
-          title: 'Purchase Reports',
+          path: '/mart/reports/purchases',
+          title: t('menu.purchase_reports'),
           icon: 'mdi-file-document-outline'
           // show: can('reports.inventory')
         },
         {
           path: '/inventory-reports',
-          title: 'Stock Reports',
+          title: t('menu.stock_reports'),
           icon: 'mdi-clipboard-list-outline'
           // show: can('reports.inventory')
         }
@@ -186,44 +206,47 @@
 
     // ── 8. STAFF & PAYROLL ──────────────────────────────────────────────────────
     {
-      title: 'Staff & Payroll',
+      title: t('menu.staff'),
       icon: 'mdi-account-group-outline',
       // show: can('staff.view'),
       subLinks: [
         {
           path: '/staff-management',
-          title: 'Staff List',
+          title: t('menu.staff_list'),
           icon: 'mdi-account-multiple-outline'
           // show: can('staff.view')
         },
         {
           path: '/shift-management',
-          title: 'Shifts',
+          title: t('menu.shift'),
           icon: 'mdi-clock-outline'
           // show: can('staff.view')
         },
         {
+          title: t('menu.shift_assign'),
           path: '/shift-assignments',
-          title: 'Shift Assignments',
           icon: 'mdi-calendar-account-outline'
           // show: can('staff.view')
         },
         {
           path: '/attendance',
           title: 'Attendance',
-          icon: 'mdi-clock-check-outline'
+          icon: 'mdi-clock-check-outline',
+          show: authStore.isSuperAdmin
           // show: can('staff.view')
         },
         {
           path: '/payroll',
           title: 'Payroll',
-          icon: 'mdi-cash-multiple'
+          icon: 'mdi-cash-multiple',
+          show: authStore.isSuperAdmin
           // show: can('staff.view')
         },
         {
           path: '/staff-performance',
           title: 'Performance',
-          icon: 'mdi-chart-timeline-variant'
+          icon: 'mdi-chart-timeline-variant',
+          show: authStore.isSuperAdmin
           // show: can('staff.view')
         }
       ]
@@ -261,7 +284,7 @@
         },
         {
           path: '/audit-logs',
-          title: 'Activity Logs',
+          title: t('menu.activity_log'),
           icon: 'mdi-history'
           // show: can('settings.view')
         }

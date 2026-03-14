@@ -128,6 +128,7 @@ class AuthController extends Controller
                 'is_owner'       => true,
                 'tenant_id'      => $ownedTenant->id,
                 'bu_name'        => $ownedTenant->name,
+                'bu_type'        => $ownedTenant->bu_type,
                 'logo_url'       => $ownedTenant->logo_url,
                 'branch_id'      => null,       // access ALL branches
                 'permissions'    => Permission::pluck('code')->toArray(),
@@ -150,7 +151,7 @@ class AuthController extends Controller
             'is_staff'       => true,
             'tenant_id'      => $staff->tenant_id,
             'bu_name'        => $staff->tenant?->name,
-            'bu_type'        => $staff->tenant?->type,
+            'bu_type'        => $staff->tenant?->bu_type,
             'logo_url'       => $staff->tenant?->logo_url,
             'branch_name' => $staff->branch?->name,
             'branch_id'      => $staff->branch_id,

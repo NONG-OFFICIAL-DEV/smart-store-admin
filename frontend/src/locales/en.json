@@ -3,23 +3,43 @@
     "en": "English",
     "km": "Khmer"
   },
+
   "menu": {
     "dashboard": "Dashboard",
+    "tenant": "Tenants",
+    "pos": "Point of Sale",
     "products": "Products",
+    "product_units": "Product Units",
     "categories": "Categories",
     "suppliers": "Suppliers",
     "customers": "Customers",
     "inventory": "Inventory",
+    "stock_overview": "Stock Overview",
     "stock_in": "Stock In",
     "stock_out": "Stock Out",
+    "stock_movements": "Stock Movements",
     "adjustment": "Adjustments",
     "purchase_order": "Purchase Orders",
+    "low_stock": "Low Stock Alerts",
     "sales": "Sales",
+    "orders": "Orders",
     "reports": "Reports",
     "settings": "Settings",
     "users": "Users",
     "roles": "Roles & Permissions",
-    "activity_log": "Activity Log"
+    "activity_log": "Activity Log",
+    "branches": "Branches",
+    "staff": "Staff",
+    "tables": "Tables",
+    "menus": "Menus",
+    "promotions": "Promotions",
+    "catalog": "Catalog",
+    "orders_analytics": "Orders Analytics",
+    "purchase_reports": "Purchase Reports",
+    "stock_reports": "Stock Reports",
+    "product_performance": "Product Performance",
+    "sales_report": "Sales Report",
+    "profit_loss": "Profit & Loss"
   },
 
   "btn": {
@@ -29,14 +49,32 @@
     "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
     "yes": "Yes",
+    "no": "No",
     "filter": "Filter",
     "search": "Search",
     "view": "View",
     "export": "Export",
     "import": "Import",
     "print": "Print",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "refresh": "Refresh",
+    "add": "Add",
+    "remove": "Remove",
+    "submit": "Submit",
+    "reset": "Reset",
+    "clear": "Clear",
+    "apply": "Apply",
+    "receive": "Receive",
+    "checkout": "Checkout",
+    "pay": "Pay",
+    "adjust": "Adjust",
+    "new_order": "New Order",
+    "add_to_cart": "Add to Cart",
+    "save_changes": "Save Changes",
+    "create_po": "Create PO"
   },
 
   "form": {
@@ -44,16 +82,38 @@
     "description": "Description",
     "category": "Category",
     "supplier": "Supplier",
+    "branch": "Branch",
     "price": "Price",
     "cost": "Cost",
+    "cost_price": "Cost Price",
+    "retail_price": "Retail Price",
+    "wholesale_price": "Wholesale Price",
+    "selling_price": "Selling Price",
     "quantity": "Quantity",
     "sku": "SKU",
     "barcode": "Barcode",
     "stock": "Stock",
+    "unit": "Unit",
+    "unit_name": "Unit Name",
+    "unit_label": "Unit Label",
+    "qty_per_base": "Qty Per Base Unit",
     "email": "Email",
     "phone": "Phone",
     "address": "Address",
-    "date": "Date"
+    "date": "Date",
+    "date_from": "Date From",
+    "date_to": "Date To",
+    "notes": "Notes",
+    "status": "Status",
+    "type": "Type",
+    "image": "Image",
+    "tax_rate": "Tax Rate",
+    "discount": "Discount",
+    "payment_method": "Payment Method",
+    "customer_type": "Customer Type",
+    "expected_delivery": "Expected Delivery",
+    "reference": "Reference",
+    "reorder_level": "Reorder Level"
   },
 
   "inventory": {
@@ -62,7 +122,136 @@
     "max_stock": "Maximum Stock",
     "stock_level": "Stock Level",
     "low_stock": "Low Stock",
-    "out_of_stock": "Out of Stock"
+    "out_of_stock": "Out of Stock",
+    "in_stock": "In Stock",
+    "reorder_level": "Reorder Level",
+    "stock_quantity": "Stock Quantity",
+    "total_products": "Total Products",
+    "needs_reorder": "Needs Reorder",
+    "healthy_level": "Healthy Level",
+    "zero_stock": "Zero Stock"
+  },
+
+  "stock": {
+    "movement_type": {
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "adjustment_in": "Adjustment In",
+      "adjustment_out": "Adjustment Out",
+      "waste": "Waste / Damaged",
+      "count": "Stock Count",
+      "transfer_in": "Transfer In",
+      "transfer_out": "Transfer Out"
+    },
+    "adjust": {
+      "title": "Stock Adjustment",
+      "add_stock": "Add Stock",
+      "remove_stock": "Remove Stock",
+      "waste": "Waste / Damaged",
+      "count": "Stock Count",
+      "desc_add": "Add stock that was found, received without PO, or miscounted.",
+      "desc_remove": "Remove stock due to discrepancy, theft, or other loss.",
+      "desc_waste": "Write off expired, damaged or unsellable stock.",
+      "desc_count": "Set exact stock level from a physical count.",
+      "new_count": "New Stock Count",
+      "apply": "Apply Adjustment",
+      "current_stock": "Current stock",
+      "after_receive": "After receive"
+    }
+  },
+
+  "po": {
+    "title": "Purchase Orders",
+    "new": "New Purchase Order",
+    "edit": "Edit Purchase Order",
+    "detail": "Purchase Order Detail",
+    "receive": "Receive Stock",
+    "po_number": "PO Number",
+    "order_items": "Order Items",
+    "order_details": "Order Details",
+    "summary": "Summary",
+    "total_items": "Total Items",
+    "total_units": "Total Units",
+    "grand_total": "Grand Total",
+    "quantity_ordered": "Qty Ordered",
+    "quantity_received": "Qty Received",
+    "remaining": "Remaining",
+    "receive_all": "Receive All",
+    "fully_received": "Fully Received",
+    "add_product": "Add Product",
+    "unit_cost": "Unit Cost",
+    "line_total": "Line Total",
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "confirmed": "Confirmed",
+      "partially_received": "Partially Received",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    }
+  },
+
+  "pos": {
+    "title": "Point of Sale",
+    "cart": "Cart",
+    "empty_cart": "Cart is empty",
+    "add_products": "Add products from the list",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Checkout",
+    "payment": "Payment",
+    "total_due": "Total Due",
+    "cash_tendered": "Cash Tendered",
+    "change": "Change",
+    "confirm_payment": "Confirm Payment",
+    "order_completed": "Order Completed!",
+    "customer_type": {
+      "retail": "Retail",
+      "wholesale": "Wholesale"
+    },
+    "payment_method": {
+      "cash": "Cash",
+      "card": "Card",
+      "qr": "QR",
+      "transfer": "Transfer"
+    },
+    "out_of_stock": "Out of Stock",
+    "low_stock": "Low Stock",
+    "all_products": "All Products",
+    "select_unit": "Select Unit",
+    "quantity": "Quantity",
+    "unit_price": "Unit Price"
+  },
+
+  "order": {
+    "order_number": "Order Number",
+    "order_type": "Order Type",
+    "order_date": "Order Date",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "total": "Total",
+    "payment_method": "Payment Method",
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "served": "Served",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "type": {
+      "dine_in": "Dine In",
+      "takeaway": "Takeaway",
+      "delivery": "Delivery",
+      "online": "Online"
+    }
   },
 
   "status": {
@@ -70,17 +259,54 @@
     "inactive": "Inactive",
     "pending": "Pending",
     "completed": "Completed",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "received": "Received",
+    "failed": "Failed",
+    "refunded": "Refunded"
   },
 
   "messages": {
     "confirm_delete": "Are you sure you want to delete this?",
+    "confirm_cancel": "Are you sure you want to cancel this?",
     "saved_success": "Saved successfully",
+    "created_success": "Created successfully",
     "updated_success": "Updated successfully",
     "deleted_success": "Deleted successfully",
+    "cancelled_success": "Cancelled successfully",
+    "received_success": "Stock received successfully",
+    "adjusted_success": "Stock adjusted successfully",
     "error_occurred": "An error occurred",
-    "login_sucess": "Login successfully",
-    "logout_sucess": "Logout successfully",
-    "existName": "The name has already been taken."
+    "login_success": "Login successfully",
+    "logout_success": "Logout successfully",
+    "existName": "The name has already been taken.",
+    "no_data": "No data found",
+    "loading": "Loading...",
+    "insufficient_stock": "Insufficient stock",
+    "required_field": "This field is required",
+    "invalid_email": "Invalid email address",
+    "session_expired": "Session expired, please login again"
+  },
+
+  "table": {
+    "no_data": "No data available",
+    "rows_per_page": "Rows per page",
+    "of": "of",
+    "actions": "Actions"
+  },
+
+  "report": {
+    "revenue": "Revenue",
+    "orders": "Orders",
+    "total_sales": "Total Sales",
+    "total_orders": "Total Orders",
+    "avg_order": "Avg. Order Value",
+    "today": "Today",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "this_year": "This Year",
+    "custom": "Custom Range",
+    "payment_breakdown": "Payment Breakdown",
+    "sales_chart": "Sales Chart"
   }
 }
