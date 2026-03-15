@@ -108,33 +108,6 @@
       </v-card-text>
     </v-card>
 
-    <!-- Status tabs -->
-    <v-tabs
-      v-model="activeTab"
-      color="primary"
-      density="compact"
-      class="bg-grey-lighten-4 rounded-lg pa-1 mb-5"
-      hide-slider
-    >
-      <v-tab
-        v-for="s in statusTabs"
-        :key="s.value"
-        :value="s.value"
-        rounded="md"
-        class="text-none"
-      >
-        <v-icon :icon="s.icon" size="16" class="mr-2" />
-        {{ s.label }}
-        <v-chip
-          v-if="tabCount(s.value)"
-          size="x-small"
-          :color="s.color"
-          class="ml-2"
-        >
-          {{ tabCount(s.value) }}
-        </v-chip>
-      </v-tab>
-    </v-tabs>
 
     <!-- Reservations list -->
     <v-row v-if="!loading" dense>
@@ -366,8 +339,7 @@
   const saving = ref(false)
   const dialog = ref(false)
   const selectedItem = ref(null)
-  const activeTab = ref('all')
-
+  
   const filters = ref({
     date: new Date().toISOString().split('T')[0],
     status: null,
@@ -375,34 +347,6 @@
     search: ''
   })
 
-  const statusTabs = [
-    {
-      value: 'all',
-      label: 'All',
-      icon: 'mdi-calendar-month',
-      color: 'primary'
-    },
-    {
-      value: 'pending',
-      label: 'Pending',
-      icon: 'mdi-clock-outline',
-      color: 'warning'
-    },
-    {
-      value: 'confirmed',
-      label: 'Confirmed',
-      icon: 'mdi-check-circle',
-      color: 'success'
-    },
-    { value: 'seated', label: 'Seated', icon: 'mdi-seat', color: 'blue' },
-    { value: 'completed', label: 'Done', icon: 'mdi-check-all', color: 'grey' },
-    {
-      value: 'no_show',
-      label: 'No Show',
-      icon: 'mdi-account-off',
-      color: 'error'
-    }
-  ]
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },
@@ -444,32 +388,6 @@
     ]
   })
 
-  const tabCount = status => {
-    if (status === 'all') return 0
-    return reservations.value.filter(r => r.status === status).length
-  }
-
-  const filteredReservations = computed(() => {
-    let list = reservations.value
-
-    if (activeTab.value !== 'all')
-      list = list.filter(r => r.status === activeTab.value)
-    if (filters.value.status)
-      list = list.filter(r => r.status === filters.value.status)
-    if (filters.value.table_id)
-      list = list.filter(r => r.table_id === filters.value.table_id)
-    if (filters.value.date)
-      list = list.filter(r => r.reserved_at?.startsWith(filters.value.date))
-    if (filters.value.search) {
-      const q = filters.value.search.toLowerCase()
-      list = list.filter(
-        r =>
-          r.customer_name?.toLowerCase().includes(q) ||
-          r.customer_phone?.includes(q)
-      )
-    }
-    return list
-  })
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   const openCreate = () => {

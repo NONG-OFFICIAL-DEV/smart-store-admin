@@ -313,7 +313,7 @@
                 </v-text-field>
               </v-col>
 
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="form.logo_url"
                   label="Logo URL"
@@ -325,26 +325,15 @@
               </v-col>
 
               <!-- Color picker -->
-              <v-col cols="12" sm="4">
-                <v-text-field
+              <v-col cols="12" sm="6">
+                <v-color-input
                   v-model="form.primary_color"
-                  label="Brand Color"
+                  color-pip
+                  label="Color input"
                   variant="outlined"
                   density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-palette-outline"
-                  maxlength="7"
-                  placeholder="#FF5722"
-                >
-                  <template #append-inner>
-                    <input
-                      type="color"
-                      :value="form.primary_color || '#6366f1'"
-                      class="color-swatch"
-                      @input="form.primary_color = $event.target.value"
-                    />
-                  </template>
-                </v-text-field>
+                  pip-location="prepend-inner"
+                ></v-color-input>
               </v-col>
 
               <!-- Active toggle (edit only) -->
@@ -370,7 +359,7 @@
             </div>
 
             <v-row dense>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.currency"
                   :items="currencyOptions"
@@ -383,7 +372,7 @@
                   prepend-inner-icon="mdi-currency-usd"
                 />
               </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.locale"
                   :items="localeOptions"
@@ -394,19 +383,6 @@
                   density="comfortable"
                   rounded="lg"
                   prepend-inner-icon="mdi-translate"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <v-select
-                  v-model="form.timezone"
-                  :items="timezoneOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Timezone"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-clock-outline"
                 />
               </v-col>
             </v-row>
@@ -552,7 +528,6 @@
     { value: 'KHR', label: 'KHR — Cambodian Riel' },
     { value: 'EUR', label: 'EUR — Euro' },
     { value: 'GBP', label: 'GBP — British Pound' },
-    { value: 'THB', label: 'THB — Thai Baht' },
     { value: 'SGD', label: 'SGD — Singapore Dollar' },
     { value: 'MYR', label: 'MYR — Malaysian Ringgit' }
   ]
@@ -562,7 +537,6 @@
     { value: 'en-GB', label: 'English (UK)' },
     { value: 'km-KH', label: 'Khmer (KH)' },
     { value: 'zh-CN', label: 'Chinese (CN)' },
-    { value: 'th-TH', label: 'Thai (TH)' }
   ]
 
   const timezoneOptions = [
@@ -585,7 +559,7 @@
     // Business fields
     name: '',
     slug: '',
-    bu_type: '',
+    bu_type: null,
     plan: 'free',
     logo_url: '',
     primary_color: '#6366f1',

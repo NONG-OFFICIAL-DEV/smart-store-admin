@@ -163,7 +163,7 @@
 
   const handleLogout = async () => {
     await authStore.logout()
-    notif(t('messages.logout_sucess'), { type: 'success', color: 'primary' })
+    notif(t('messages.logout_success'), { type: 'success', color: 'primary' })
     router.push({ name: 'Login' })
   }
 </script>

@@ -1,7 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title icon="mdi-clock-check-outline">
-      Attendance
+    <custom-title
+      icon="mdi-clock-check-outline"
+      title="Attendance"
+      subtitle="Mange all staff attendance"
+    >
       <template #right>
         <v-btn
           color="primary"
@@ -198,7 +201,7 @@
       .split(' ')
       .map(n => n[0])
       .join('')
-      
+
   const openCheckIn = () => (attendanceDialog.value = true)
   const handleCheckIn = data => {
     console.log('Attendance saved:', data)

@@ -1,25 +1,31 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- Breadcrumb -->
-    <div class="d-flex align-center mb-5">
-      <v-btn
-        size="small"
-        icon="mdi-arrow-left"
-        variant="tonal"
-        class="mr-3"
-        @click="router.back()"
-      />
-      <div>
-        <div class="d-flex align-center gap-1 text-caption text-grey mb-1">
-          <span class="cursor-pointer" @click="router.push('/branches')">
-            Branches
-          </span>
-          <v-icon icon="mdi-chevron-right" size="12" />
-          <span>{{ store.branch?.name ?? 'Detail' }}</span>
-        </div>
-        <h2 class="text-h5 font-weight-bold">Branch Detail</h2>
-      </div>
-    </div>
+    <AppPageHeader
+      title="Branch Detail"
+      show-back
+      :breadcrumbs="[
+        { title: 'Branches', to: '/branches' },
+        { title: store.branch?.name ?? 'Detail' }
+      ]"
+    >
+      <template #title-after>
+        <v-chip
+          v-if="store.branch?.is_active"
+          color="success"
+          size="x-small"
+          variant="flat"
+        >
+          Active
+        </v-chip>
+      </template>
+
+      <template #right>
+        <v-btn prepend-icon="mdi-pencil" rounded="lg" class="bg-primary">
+          Edit Branch
+        </v-btn>
+      </template>
+    </AppPageHeader>
 
     <!-- Loading -->
     <div v-if="store.loading" class="d-flex justify-center py-16">
@@ -37,75 +43,125 @@
 
     <template v-else-if="store.branch">
       <!-- ── Branch Header Card ──────────────────────────────────────────── -->
-      <v-card rounded="xl" elevation="0" border class="mb-5">
-        <v-card-text class="pa-6">
-          <div class="d-flex align-start justify-space-between flex-wrap gap-4">
-            <div class="d-flex align-center gap-4">
-              <v-avatar
-                :color="typeColor(store.branch.type)"
-                size="56"
-                rounded="xl"
-                variant="tonal"
-              >
-                <v-icon :icon="typeIcon(store.branch.type)" size="28" />
-              </v-avatar>
-              <div>
-                <div class="d-flex align-center gap-2 mb-1">
-                  <span class="text-h6 font-weight-bold">
-                    {{ store.branch.name }}
-                  </span>
-                  <v-chip
-                    :color="store.branch.is_open ? 'success' : 'error'"
-                    size="x-small"
-                    variant="tonal"
-                  >
-                    {{ store.branch.is_open ? 'Open' : 'Closed' }}
-                  </v-chip>
-                  <v-chip
-                    :color="store.branch.is_active ? 'primary' : 'grey'"
-                    size="x-small"
-                    variant="tonal"
-                  >
-                    {{ store.branch.is_active ? 'Active' : 'Inactive' }}
-                  </v-chip>
-                </div>
-                <div class="text-caption text-grey d-flex align-center gap-1">
-                  <v-icon icon="mdi-map-marker-outline" size="14" />
-                  {{
-                    [
-                      store.branch.address_line1,
-                      store.branch.city,
-                      store.branch.country
-                    ]
-                      .filter(Boolean)
-                      .join(', ')
-                  }}
-                </div>
-                <div
-                  class="text-caption text-grey d-flex align-center gap-3 mt-1"
+      <v-card rounded="xl" elevation="0" border class="mb-6 overflow-hidden">
+        <v-card-text class="pa-0">
+          <v-row no-gutters>
+            <v-col cols="12" md="7" class="pa-6">
+              <div class="d-flex align-center gap-4">
+                <v-avatar
+                  :color="typeColor(store.branch.type)"
+                  size="64"
+                  rounded="xl"
+                  variant="tonal"
+                  class="elevation-0"
                 >
-                  <span v-if="store.branch.phone">
-                    <v-icon icon="mdi-phone-outline" size="13" class="mr-1" />
-                    {{ store.branch.phone }}
-                  </span>
-                  <span v-if="store.branch.email">
-                    <v-icon icon="mdi-email-outline" size="13" class="mr-1" />
-                    {{ store.branch.email }}
-                  </span>
+                  <v-icon :icon="typeIcon(store.branch.type)" size="32" />
+                </v-avatar>
+
+                <div class="flex-1 min-w-0">
+                  <div class="d-flex align-center flex-wrap gap-2 mb-1">
+                    <span class="text-h6 font-weight-black text-truncate">
+                      {{ store.branch.name }}
+                    </span>
+                    <div class="d-flex gap-1">
+                      <v-chip
+                        :color="store.branch.is_open ? 'success' : 'error'"
+                        size="x-small"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        {{ store.branch.is_open ? 'OPEN' : 'CLOSED' }}
+                      </v-chip>
+                      <v-chip
+                        :color="store.branch.is_active ? 'primary' : 'grey'"
+                        size="x-small"
+                        variant="tonal"
+                        class="font-weight-bold"
+                      >
+                        {{ store.branch.is_active ? 'ACTIVE' : 'INACTIVE' }}
+                      </v-chip>
+                    </div>
+                  </div>
+
+                  <div
+                    class="text-body-2 text-medium-emphasis d-flex align-center gap-1 mb-1"
+                  >
+                    <v-icon
+                      icon="mdi-map-marker-outline"
+                      size="16"
+                      color="primary"
+                    />
+                    {{ fullAddress }}
+                  </div>
+
+                  <div class="d-flex align-center gap-4 mt-2">
+                    <div
+                      v-if="store.branch.phone"
+                      class="text-caption text-grey-darken-1 d-flex align-center"
+                    >
+                      <v-icon icon="mdi-phone-outline" size="14" class="mr-1" />
+                      {{ store.branch.phone }}
+                    </div>
+                    <div
+                      v-if="store.branch.email"
+                      class="text-caption text-grey-darken-1 d-flex align-center"
+                    >
+                      <v-icon icon="mdi-email-outline" size="14" class="mr-1" />
+                      {{ store.branch.email }}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </v-col>
 
-            <!-- Edit button -->
-            <v-btn
-              variant="tonal"
-              prepend-icon="mdi-pencil"
-              rounded="lg"
-              @click="editDialog = true"
-            >
-              Edit Branch
-            </v-btn>
-          </div>
+            <v-divider vertical class="d-none d-md-block" />
+            <v-divider class="d-md-none" />
+
+            <v-col cols="12" md="5" class="pa-6 bg-grey-lighten-5">
+              <div class="text-overline font-weight-black text-primary mb-4">
+                Branch Settings
+              </div>
+
+              <v-row dense>
+                <v-col cols="6">
+                  <div class="setting-item">
+                    <div class="text-tiny text-medium-emphasis">Tax Rate</div>
+                    <div class="text-body-1 font-weight-black">
+                      {{ store.branch.tax_rate }}%
+                    </div>
+                  </div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="setting-item">
+                    <div class="text-tiny text-medium-emphasis">
+                      Srv. Charge
+                    </div>
+                    <div class="text-body-1 font-weight-black">
+                      {{ store.branch.service_charge_rate }}%
+                    </div>
+                  </div>
+                </v-col>
+                <v-col cols="6" class="mt-2">
+                  <div class="setting-item">
+                    <div class="text-tiny text-medium-emphasis">Type</div>
+                    <div class="text-body-2 text-capitalize">
+                      {{ store.branch.type }}
+                    </div>
+                  </div>
+                </v-col>
+                <v-col cols="6" class="mt-2">
+                  <div class="setting-item">
+                    <div class="text-tiny text-medium-emphasis">Slug</div>
+                    <div
+                      class="text-body-2 font-weight-medium text-grey-darken-1"
+                    >
+                      /{{ store.branch.slug }}
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
         </v-card-text>
       </v-card>
 
@@ -309,7 +365,7 @@
                 size="x-small"
                 variant="tonal"
                 rounded="lg"
-                @click="router.push('/menus')"
+                @click="router.push('/branch-menus')"
               >
                 Manage
               </v-btn>
@@ -432,49 +488,15 @@
           </v-card>
         </v-col>
       </v-row>
-
-      <!-- ── Branch Settings ────────────────────────────────────────────── -->
-      <v-card rounded="xl" elevation="0" border class="mt-5">
-        <v-card-title class="pa-5 pb-3">
-          <span class="text-body-1 font-weight-bold">Settings</span>
-        </v-card-title>
-        <v-card-text class="pt-0">
-          <v-row dense>
-            <v-col cols="6" sm="3">
-              <div class="text-caption text-grey">Tax Rate</div>
-              <div class="text-body-2 font-weight-medium">
-                {{ store.branch.tax_rate }}%
-              </div>
-            </v-col>
-            <v-col cols="6" sm="3">
-              <div class="text-caption text-grey">Service Charge</div>
-              <div class="text-body-2 font-weight-medium">
-                {{ store.branch.service_charge_rate }}%
-              </div>
-            </v-col>
-            <v-col cols="6" sm="3">
-              <div class="text-caption text-grey">Type</div>
-              <div class="text-body-2 font-weight-medium text-capitalize">
-                {{ store.branch.type }}
-              </div>
-            </v-col>
-            <v-col cols="6" sm="3">
-              <div class="text-caption text-grey">Slug</div>
-              <div class="text-body-2 font-weight-medium text-grey">
-                {{ store.branch.slug }}
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
     </template>
   </v-container>
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue'
+  import { onMounted, ref, computed } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
   import { useBranchStore } from '@/stores/branchStore'
+  import AppPageHeader from '@/components/customs/AppPageHeader.vue'
 
   const router = useRouter()
   const route = useRoute()
@@ -482,6 +504,11 @@
 
   const editDialog = ref(false)
 
+  const fullAddress = computed(() => {
+    return [store.branch.address_line1, store.branch.city, store.branch.country]
+      .filter(Boolean)
+      .join(', ')
+  })
   // ── Helpers ────────────────────────────────────────────────────────────────────
   const typeIcon = type =>
     ({

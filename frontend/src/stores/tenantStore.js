@@ -40,6 +40,7 @@ export const useTenantStore = defineStore('tenant', {
     async deleteTenant(id) {
       await deleteTenantApi(id)
       this.tenants = this.tenants.filter(item => item.id !== id)
+      this.fetchTenants()
     },
     // Toggle is_active — suspend or activate
     async toggleActive(id) {

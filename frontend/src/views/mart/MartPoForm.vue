@@ -1,47 +1,53 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center gap-3 mb-6">
-      <v-btn
-        icon="mdi-arrow-left"
-        variant="text"
-        rounded="lg"
-        @click="router.back()"
-      />
-      <div class="flex-grow-1">
-        <h1 class="text-h5 font-weight-bold">
-          {{ isEdit ? 'Edit Purchase Order' : 'New Purchase Order' }}
-        </h1>
-        <p class="text-caption text-medium-emphasis mt-1">
-          {{ isEdit ? po?.po_number : 'Mart stock replenishment' }}
-        </p>
-      </div>
-      <div class="d-flex gap-2">
-        <v-btn
-          variant="tonal"
-          rounded="lg"
-          :disabled="saving"
-          @click="router.back()"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          color="primary"
+    <!-- Breadcrumb -->
+    <AppPageHeader
+      :title="isEdit ? 'Edit Purchase Order' : 'New Purchase Order'"
+      show-back
+      :breadcrumbs="[
+        { title: 'Purchase Orders', to: '/purchase-order' },
+        { title: isEdit ? po?.po_number : 'Mart stock replenishment' }
+      ]"
+    >
+      <template #title-after>
+        <!-- <v-chip
+          v-if="store.branch?.is_active"
+          color="success"
+          size="x-small"
           variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-content-save"
-          :loading="saving"
-          @click="save"
         >
-          {{ isEdit ? 'Save Changes' : 'Create PO' }}
-        </v-btn>
-      </div>
-    </div>
+          Active
+        </v-chip> -->
+      </template>
+
+      <template #right>
+        <div class="d-flex gap-2">
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            :disabled="saving"
+            @click="router.back()"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-content-save"
+            :loading="saving"
+            @click="save"
+          >
+            {{ isEdit ? 'Save Changes' : 'Create PO' }}
+          </v-btn>
+        </div>
+      </template>
+    </AppPageHeader>
 
     <v-form ref="formRef">
-      <v-row>
+      <v-row dense>
         <!-- ── Left: PO Details ───────────────────────────────────────────── -->
-        <v-col cols="12" lg="4">
+        <v-col cols="12" lg="3">
           <v-card rounded="xl" border elevation="0" class="mb-4">
             <v-card-title class="pa-5 pb-3">
               <div class="text-body-1 font-weight-bold">Order Details</div>
@@ -87,14 +93,13 @@
 
                 <!-- Expected delivery -->
                 <v-col cols="12">
-                  <v-text-field
+                  <v-date-input
                     v-model="form.expected_delivery"
-                    type="date"
-                    label="Expected Delivery"
+                    label="Date of birth"
+                    prepend-icon=""
                     variant="outlined"
-                    density="comfortable"
-                    rounded="lg"
-                  />
+                    persistent-placeholder
+                  ></v-date-input>
                 </v-col>
 
                 <!-- Status (edit only) -->
@@ -168,7 +173,7 @@
         </v-col>
 
         <!-- ── Right: Line Items ──────────────────────────────────────────── -->
-        <v-col cols="12" lg="8">
+        <v-col cols="12" lg="9">
           <v-card rounded="xl" border elevation="0">
             <div class="d-flex align-center justify-space-between pa-5 pb-3">
               <div class="text-body-1 font-weight-bold">
@@ -429,6 +434,7 @@
   import { useAuthStore } from '@/stores/authStore'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import AppPageHeader from '@/components/customs/AppPageHeader.vue'
 
   const router = useRouter()
   const route = useRoute()

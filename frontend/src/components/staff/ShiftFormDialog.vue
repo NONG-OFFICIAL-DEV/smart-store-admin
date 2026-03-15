@@ -9,6 +9,7 @@
               :color="isEdit ? 'primary' : 'success'"
               size="40"
               rounded="lg"
+              class="me-2"
             >
               <v-icon :icon="isEdit ? 'mdi-pencil' : 'mdi-plus'" size="20" />
             </v-avatar>
@@ -187,22 +188,13 @@
       <v-divider />
 
       <v-card-actions class="pa-6 pt-4 gap-3">
-        <v-btn
-          block
-          variant="tonal"
-          rounded="lg"
-          size="large"
-          :disabled="loading"
-          @click="close"
-        >
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
           Cancel
         </v-btn>
         <v-btn
-          block
           :color="isEdit ? 'primary' : 'success'"
           variant="flat"
           rounded="lg"
-          size="large"
           :loading="loading"
           :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
           @click="submit"

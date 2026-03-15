@@ -1,27 +1,25 @@
 <template>
   <v-container fluid class="pa-0" v-if="product">
-    <custom-title>
-      <template #left>
-        <div class="d-flex align-center mb-4">
-          <v-btn
-            size="small"
-            icon="mdi-arrow-left"
-            @click="$router.back()"
-            variant="tonal"
-            class="mr-3"
-          />
-          <div>
-            <div class="d-flex align-center gap-1 text-caption text-grey mb-1">
-              <span class="cursor-pointer" @click="$router.back()">
-                Products
-              </span>
-              <v-icon icon="mdi-chevron-right" size="12" />
-              <span>Product Details</span>
-            </div>
-            <h2 class="text-h5 font-weight-bold">{{ product.name }}</h2>
-          </div>
-        </div>
+    <!-- Breadcrumb -->
+    <AppPageHeader
+      title="Product Details"
+      show-back
+      :breadcrumbs="[
+        { title: 'Products', to: '/Products' },
+        { title: product.name }
+      ]"
+    >
+      <template #title-after>
+        <!-- <v-chip
+          v-if="store.branch?.is_active"
+          color="success"
+          size="x-small"
+          variant="flat"
+        >
+          Active
+        </v-chip> -->
       </template>
+
       <template #right>
         <div class="d-flex gap-2">
           <v-btn
@@ -44,7 +42,7 @@
           </v-btn>
         </div>
       </template>
-    </custom-title>
+    </AppPageHeader>
 
     <v-row>
       <!-- ── Left: Product Info ──────────────────────────────────────────── -->
@@ -407,6 +405,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { useProductStore } from '@/stores/productStore'
   import { useProductVariantStore } from '@/stores/productVariantStore'
+  import AppPageHeader from '@/components/customs/AppPageHeader.vue'
   import ProductFormDialog from '@/components/products/ProductFormDialog.vue'
   import ProductVariantDialog from '@/components/products/ProductVariantDialog.vue'
   import ModifierLinkDialog from '@/components/products/ModifierLinkDialog.vue'

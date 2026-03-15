@@ -1,49 +1,48 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-bold">Stock Overview</h1>
-        <p class="text-caption text-medium-emphasis mt-1">
-          Current inventory levels for all mart products
-        </p>
-      </div>
-      <div class="d-flex gap-2">
-        <v-btn
-          variant="tonal"
-          rounded="lg"
-          prepend-icon="mdi-refresh"
-          :loading="martProductStore.loading"
-          @click="martProductStore.fetchProducts(true)"
-        >
-          Refresh
-        </v-btn>
-        <v-btn
-          color="warning"
-          variant="tonal"
-          rounded="lg"
-          prepend-icon="mdi-alert-circle-outline"
-        >
-          <!-- :to="{ name: 'MartLowStock' }" -->
-          Low Stock
-          <v-badge
-            v-if="martProductStore.lowStockCount > 0"
-            :content="martProductStore.lowStockCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-tune"
-          @click="adjustDialog = true"
-        >
-          Adjust Stock
-        </v-btn>
-      </div>
-    </div>
+    <custom-title
+      icon="mdi-package-variant"
+      title="Stock Overview"
+      subtitle="Current inventory levels for all mart products"
+    >
+      <template #right>
+        <div class="d-flex gap-2">
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            prepend-icon="mdi-refresh"
+            :loading="martProductStore.loading"
+            @click="martProductStore.fetchProducts(true)"
+          >
+            Refresh
+          </v-btn>
+          <v-btn
+            color="warning"
+            variant="tonal"
+            rounded="lg"
+            prepend-icon="mdi-alert-circle-outline"
+          >
+            <!-- :to="{ name: 'MartLowStock' }" -->
+            Low Stock
+            <v-badge
+              v-if="martProductStore.lowStockCount > 0"
+              :content="martProductStore.lowStockCount"
+              color="error"
+              floating
+            />
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-tune"
+            @click="adjustDialog = true"
+          >
+            Adjust Stock
+          </v-btn>
+        </div>
+      </template>
+    </custom-title>
 
     <!-- Summary cards -->
     <v-row dense class="mb-5">

@@ -42,26 +42,21 @@
         <v-form ref="formRef" @submit.prevent="submit">
           <!-- Tenant -->
           <div class="form-section">
-            <div class="form-section-label">Tenant</div>
-            <v-select
-              v-model="form.tenant_id"
-              :items="tenants"
-              item-title="name"
-              item-value="id"
-              label="Select Tenant"
-              variant="outlined"
-              rounded="lg"
-              :rules="rules.tenant_id"
-              prepend-inner-icon="mdi-domain"
-            />
-          </div>
-
-          <v-divider />
-
-          <!-- Branch Info -->
-          <div class="form-section">
-            <div class="form-section-label">Branch Info</div>
+            <div class="form-section-label">Tenant and Branch Info</div>
             <v-row dense>
+              <v-col cols="12" sm="8">
+                <v-select
+                  v-model="form.tenant_id"
+                  :items="tenants"
+                  item-title="name"
+                  item-value="id"
+                  label="Select Tenant"
+                  variant="outlined"
+                  rounded="lg"
+                  :rules="rules.tenant_id"
+                  prepend-inner-icon="mdi-domain"
+                />
+              </v-col>
               <v-col cols="12" sm="8">
                 <v-text-field
                   v-model="form.name"
@@ -260,7 +255,7 @@
                   rounded="lg"
                   border
                   elevation="0"
-                  class="px-4 py-3 d-flex align-center justify-space-between"
+                  class="px-4 py-0 d-flex align-center justify-space-between"
                 >
                   <div>
                     <div class="text-body-2 font-weight-medium">Open</div>
@@ -279,7 +274,7 @@
                   rounded="lg"
                   border
                   elevation="0"
-                  class="px-4 py-3 d-flex align-center justify-space-between"
+                  class="px-4 py-0 d-flex align-center justify-space-between"
                 >
                   <div>
                     <div class="text-body-2 font-weight-medium">Active</div>

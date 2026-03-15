@@ -1,7 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title icon="mdi-bank-transfer">
-      Payroll & Salaries
+    <custom-title
+      icon="mdi-bank-transfer"
+      title="Payroll & Salaries"
+      subtitle="Manage employee payments, salaries, and payroll records"
+    >
       <template #right>
         <div class="d-flex gap-2">
           <v-btn
@@ -17,7 +20,7 @@
             prepend-icon="mdi-cash-check"
             rounded="lg"
             class="text-none"
-            >
+          >
             <!-- @click="processPayroll" -->
             Process All
           </v-btn>

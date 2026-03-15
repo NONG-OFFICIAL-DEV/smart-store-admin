@@ -30,8 +30,7 @@ export const useStaffStore = defineStore('staff', {
     },
     async updateStaff(id, data) {
       const res = await updateStaffApi(id, data)
-      const index = this.staffList.findIndex(item => item.id === id)
-      if (index !== -1) this.staffList[index] = res.data.data
+      return res
     },
     async deleteStaff(id) {
       await deleteStaffApi(id)

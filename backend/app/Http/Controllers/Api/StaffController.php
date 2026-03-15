@@ -135,7 +135,7 @@ class StaffController extends Controller
                 'first_name'  => $request->first_name,
                 'last_name'   => $request->last_name,
                 'email'       => $request->email,
-                'password_hash' => bcrypt($request->password), 
+                'password_hash' => bcrypt($request->password),
                 'phone'       => $request->phone,
                 'is_active'   => true,
             ]);
@@ -167,7 +167,7 @@ class StaffController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'branch_id'    => 'sometimes|uuid',
             'role_id'      => 'sometimes|uuid',
             'hire_date'    => 'nullable|date',
@@ -179,7 +179,7 @@ class StaffController extends Controller
         ]);
 
         // Staff::store() with $id = UPDATE
-        return Staff::store($request, $id);
+        return Staff::store($validated, $id);
     }
 
     // ── Resolve tenant from logged in user ────────────────────────────────────

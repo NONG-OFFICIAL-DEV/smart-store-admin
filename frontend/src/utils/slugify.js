@@ -3,7 +3,7 @@
 
 export function slugify(str = '') {
   return str
-    .toLowerCase()
+    ?.toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, '')   // remove special chars
     .replace(/[\s_-]+/g, '-')   // spaces/underscores to hyphens

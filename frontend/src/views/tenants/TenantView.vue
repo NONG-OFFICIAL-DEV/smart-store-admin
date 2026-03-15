@@ -148,7 +148,6 @@
             <v-chip size="x-small" variant="tonal" color="grey" class="mr-1">
               {{ item.currency }}
             </v-chip>
-            <span class="text-grey">{{ item.timezone }}</span>
           </div>
         </template>
 

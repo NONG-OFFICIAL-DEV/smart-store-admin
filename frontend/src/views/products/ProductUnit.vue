@@ -1,34 +1,32 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="d-flex align-center gap-3 mb-6">
-      <v-btn
-        icon="mdi-arrow-left"
-        variant="text"
-        rounded="lg"
-        @click="router.back()"
-      />
-      <div class="flex-grow-1">
-        <div class="d-flex align-center gap-2">
-          <h1 class="text-h5 font-weight-bold">{{ productName }}</h1>
-          <v-chip size="small" color="primary" variant="tonal" rounded="lg">
-            Units
-          </v-chip>
-        </div>
-        <p class="text-caption text-medium-emphasis mt-1">
+    <AppPageHeader
+      title="Update or create new unit"
+      show-back
+      :breadcrumbs="[
+        { title: 'Products', to: '/products' },
+        { title: productName }
+      ]"
+    >
+      <template #title-after>
+        <v-chip color="success" size="x-small" variant="flat">
           Manage selling units — can, pack, box, pallet etc.
-        </p>
-      </div>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openCreate"
-      >
-        Add Unit
-      </v-btn>
-    </div>
+        </v-chip>
+      </template>
+
+      <template #right>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          Add Unit
+        </v-btn>
+      </template>
+    </AppPageHeader>
 
     <!-- Info banner -->
     <v-alert
@@ -232,6 +230,7 @@
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import ProductUnitDialog from '@/components/products/ProductUnitDialog.vue'
+  import AppPageHeader from '@/components/customs/AppPageHeader.vue'
 
   const route = useRoute()
   const router = useRouter()

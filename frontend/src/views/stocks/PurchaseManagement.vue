@@ -2,6 +2,7 @@
   <div>
     <custom-title
       title="Purchase Orders"
+      icon="mdi-cart-arrow-down"
       subtitle=" Manage supplier orders and stock receiving"
     >
       <template #right>

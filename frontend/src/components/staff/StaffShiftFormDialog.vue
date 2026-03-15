@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="model" max-width="520" persistent scrollable>
+  <v-dialog v-model="model" max-width="620" persistent scrollable>
     <v-card rounded="xl">
       <!-- ── Header ──────────────────────────────────────────────────────────── -->
       <v-card-title class="pa-6 pb-4">
@@ -9,6 +9,7 @@
               :color="isEdit ? 'primary' : 'success'"
               size="40"
               rounded="lg"
+              class="me-2"
             >
               <v-icon
                 :icon="isEdit ? 'mdi-pencil' : 'mdi-account-plus'"
@@ -38,7 +39,7 @@
         <v-form ref="formRef">
           <v-row dense>
             <!-- Shift — which shift definition -->
-            <v-col cols="12">
+            <v-col cols="6">
               <v-select
                 v-model="form.shift_id"
                 :items="shiftList.filter(s => s.is_active)"
@@ -67,7 +68,7 @@
             </v-col>
 
             <!-- Staff member -->
-            <v-col cols="12">
+            <v-col cols="6">
               <v-select
                 v-model="form.staff_id"
                 :items="staffList"
@@ -236,22 +237,13 @@
       <v-divider />
 
       <v-card-actions class="pa-6 pt-4 gap-3">
-        <v-btn
-          block
-          variant="tonal"
-          rounded="lg"
-          size="large"
-          :disabled="loading"
-          @click="close"
-        >
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
           Cancel
         </v-btn>
         <v-btn
-          block
           :color="isEdit ? 'primary' : 'success'"
           variant="flat"
           rounded="lg"
-          size="large"
           :loading="loading"
           :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-account-plus'"
           @click="submit"

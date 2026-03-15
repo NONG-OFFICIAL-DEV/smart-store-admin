@@ -207,7 +207,7 @@
         const user = response.data
         const route = user.is_super_admin ? '/admin-dashboard' : '/dashboard'
         router.push(route)
-        notif(t('messages.login_sucess'), { type: 'success' })
+        notif(t('messages.login_success'), { type: 'success' })
       }
     } catch (err) {
       const res = err.response?.data
