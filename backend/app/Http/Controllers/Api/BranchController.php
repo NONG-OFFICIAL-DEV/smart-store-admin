@@ -44,7 +44,8 @@ class BranchController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id) {
+    public function show(string $id)
+    {
         $branch = Branch::with([
             'tenant',
             'menus',                    // assigned menus via branch_menus
@@ -52,7 +53,7 @@ class BranchController extends Controller
             'staff.role',               // staff roles
             'tables',                   // tables in this branch
         ])
-        ->findOrFail($id);
+            ->findOrFail($id);
 
         // ── Today's stats ──────────────────────────────────────────────────
         $today = now()->startOfDay();
@@ -100,7 +101,18 @@ class BranchController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Branch::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Branch removed'
+        ]);
     }
 
     public function toggleOpen(string $id)
