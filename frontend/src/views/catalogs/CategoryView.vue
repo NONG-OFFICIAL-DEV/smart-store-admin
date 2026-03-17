@@ -67,6 +67,9 @@
             {{ item.description || '—' }}
           </span>
         </template>
+        <template #item.icon="{ item }">
+          <v-icon>{{ item.icon }}</v-icon>
+        </template>
 
         <!-- Status Column -->
         <template #item.is_active="{ item }">
@@ -139,6 +142,7 @@
   const headers = [
     { title: '#', key: 'no', sortable: false, width: '60px' },
     { title: 'Name', key: 'name', sortable: true },
+    { title: 'Icon', key: 'icon', sortable: true },
     { title: 'Description', key: 'description', sortable: false },
     { title: 'Status', key: 'is_active', sortable: true, width: '110px' },
     ...(isSuperAdmin()
