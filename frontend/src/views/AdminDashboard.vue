@@ -155,66 +155,8 @@
               height="180"
             />
             <div v-else class="chart-wrap">
-              <svg
-                viewBox="0 0 700 200"
-                preserveAspectRatio="none"
-                class="revenue-chart"
-              >
-                <defs>
-                  <linearGradient
-                    id="adminChartGrad"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stop-color="#1867C0"
-                      stop-opacity="0.25"
-                    />
-                    <stop offset="100%" stop-color="#1867C0" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-                <line
-                  v-for="y in [40, 80, 120, 160]"
-                  :key="y"
-                  x1="0"
-                  :y1="y"
-                  x2="700"
-                  :y2="y"
-                  stroke="currentColor"
-                  stroke-opacity="0.06"
-                  stroke-width="1"
-                />
-                <path :d="chartAreaPath" fill="url(#adminChartGrad)" />
-                <path
-                  :d="chartLinePath"
-                  fill="none"
-                  stroke="#1867C0"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <circle
-                  v-for="(pt, i) in chartPoints"
-                  :key="i"
-                  :cx="pt.x"
-                  :cy="pt.y"
-                  r="4"
-                  fill="white"
-                  stroke="#1867C0"
-                  stroke-width="2"
-                />
-              </svg>
-              <div class="chart-labels">
-                <span
-                  v-for="l in chartLabels"
-                  :key="l"
-                  class="text-caption text-medium-emphasis"
-                >
-                  {{ l }}
-                </span>
+              <div class="chart-wrap">
+                <canvas ref="chartCanvas" height="180" />
               </div>
             </div>
           </v-card-text>
@@ -625,9 +567,31 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useAdminDashboardStore } from '@/stores/adminDashboardStore'
+  import {
+    Chart,
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    Filler,
+    Tooltip
+  } from 'chart.js'
 
+  Chart.register(
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    Filler,
+    Tooltip
+  )
+
+  const chartCanvas = ref(null)
+  let chartInstance = null
   const store = useAdminDashboardStore()
 
   // ── Period ─────────────────────────────────────────────────────────────────────
@@ -704,31 +668,75 @@
   })
 
   // ── Revenue chart ──────────────────────────────────────────────────────────────
-  const chartLabels = computed(() => store.chart.map(r => r.label))
-  const chartValues = computed(() =>
-    store.chart.map(r => (chartMode.value === 'revenue' ? r.revenue : r.orders))
-  )
-  const chartPoints = computed(() => {
-    const vals = chartValues.value
-    if (!vals.length) return []
-    const w = 700,
-      h = 180,
-      pad = 20
-    const max = Math.max(...vals) || 1
-    return vals.map((v, i) => ({
-      x: pad + (i / Math.max(vals.length - 1, 1)) * (w - pad * 2),
-      y: h - pad - (v / max) * (h - pad * 2)
-    }))
-  })
-  const chartLinePath = computed(() =>
-    chartPoints.value
-      .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
-      .join(' ')
-  )
-  const chartAreaPath = computed(() => {
-    const pts = chartPoints.value
-    if (!pts.length) return ''
-    return `${chartLinePath.value} L${pts[pts.length - 1].x},200 L${pts[0].x},200 Z`
+  const buildChart = () => {
+    if (!chartCanvas.value) return
+    if (chartInstance) chartInstance.destroy()
+
+    const labels = store.chart.map(r => r.label)
+    const values = store.chart.map(r =>
+      chartMode.value === 'revenue' ? r.revenue : r.orders
+    )
+
+    chartInstance = new Chart(chartCanvas.value, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            borderColor: '#1867C0',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#1867C0',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            tension: 0.3,
+            fill: true,
+            backgroundColor: ctx => {
+              const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 180)
+              gradient.addColorStop(0, 'rgba(24,103,192,0.25)')
+              gradient.addColorStop(1, 'rgba(24,103,192,0)')
+              return gradient
+            }
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx =>
+                chartMode.value === 'revenue'
+                  ? `$${ctx.parsed.y.toLocaleString()}`
+                  : `${ctx.parsed.y} orders`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9e9e9e', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            ticks: {
+              color: '#9e9e9e',
+              font: { size: 11 },
+              callback: v =>
+                chartMode.value === 'revenue' ? `$${v.toLocaleString()}` : v
+            }
+          }
+        }
+      }
+    })
+  }
+
+  watch([() => store.chart, chartMode], async () => {
+    await nextTick()
+    buildChart()
   })
 
   // ── Tenant revenue bars ────────────────────────────────────────────────────────
@@ -740,22 +748,6 @@
       percent: Math.round((t.revenue / max) * 100)
     }))
   })
-
-  // ── Helpers ────────────────────────────────────────────────────────────────────
-  const orderStatusColor = s =>
-    ({
-      preparing: 'warning',
-      ready: 'success',
-      completed: 'grey',
-      cancelled: 'error'
-    })[s] ?? 'grey'
-  const orderStatusIcon = s =>
-    ({
-      preparing: 'mdi-chef-hat',
-      ready: 'mdi-check-circle',
-      completed: 'mdi-receipt',
-      cancelled: 'mdi-close-circle'
-    })[s] ?? 'mdi-circle'
 
   // ── Quick actions ──────────────────────────────────────────────────────────────
   const quickActions = [
@@ -804,9 +796,12 @@
   let liveInterval = null
   onMounted(async () => {
     await store.fetchAll(selectedPeriod.value.toLowerCase())
+    await nextTick()
+    buildChart()
   })
   onUnmounted(() => {
     if (liveInterval) clearInterval(liveInterval)
+    if (chartInstance) chartInstance.destroy()
   })
 </script>
 

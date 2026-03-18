@@ -22,6 +22,7 @@ export const useProductUnitStore = defineStore('productUnit', {
       try {
         const res = await getProductUnitsApi(productId)
         this.units = res.data.data
+        return res
       } finally {
         this.loading = false
       }

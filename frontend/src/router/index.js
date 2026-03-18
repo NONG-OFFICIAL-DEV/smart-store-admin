@@ -114,16 +114,6 @@ const routes = [
         meta: { requiresAuth: true }
       },
       // {
-      //   path: '/purchase/create',
-      //   name: 'PurchaseCreate',
-      //   component: () => import('@/components/PurchaseForm.vue')
-      // },
-      // {
-      //   path: '/purchase/:id/edit',
-      //   name: 'PurchaseEdit',
-      //   component: () => import('@/components/PurchaseForm.vue')
-      // },
-      // {
       //   path: '/purchases/:id/details',
       //   name: 'purchase-details',
       //   component: () => import('@/views/purchases/PurchaseDetails.vue')
@@ -267,6 +257,11 @@ const routes = [
       //   component: () => import('@/views/mart/MartProductPerformance.vue'),
       //   meta: { requiresAuth: true }
       // }
+      {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/views/NotFoundView.vue')
+      }
     ]
   }
 ]
@@ -277,30 +272,54 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  // ✅ Import INSIDE the callback — runs after app.use(pinia)
   const { useAuthStore } = await import('@/stores/authStore')
   const authStore = useAuthStore()
   const token = localStorage.getItem('token')
 
+  // ── 1. No token → force Login ──────────────────────────────────────────
   if (!token) {
     if (to.name === 'Login') return next()
     return next({ name: 'Login' })
   }
 
+  // ── 2. Fetch user if not loaded ────────────────────────────────────────
   if (!authStore.me?.id) {
     try {
       await authStore.fetchMe()
     } catch {
-      // ✅ fetchMe failed (401 expired token) → clear and redirect
       localStorage.removeItem('token')
       if (to.name === 'Login') return next()
       return next({ name: 'Login' })
     }
   }
 
-  if (to.name === 'Login') return next({ name: 'Dashboard' })
+  // ── 3. Logged-in user hits Login → redirect by role ───────────────────
+  if (to.name === 'Login') {
+    return next({ name: resolveHome(authStore) })
+  }
+
+  // ── 4. Unknown route → redirect by role ───────────────────────────────
+  if (to.name === 'NotFound') {
+    return next({ name: resolveHome(authStore) })
+  }
+
+  // ── 5. Route requires a specific permission ────────────────────────────
+  if (to.meta.permission && !authStore.can(to.meta.permission)) {
+    return next({ name: 'Forbidden' }) // or resolveHome(authStore)
+  }
+
+  // ── 6. Route is admin-only ─────────────────────────────────────────────
+  if (to.meta.adminOnly && !authStore.isSuperAdmin && !authStore.isOwner) {
+    return next({ name: resolveHome(authStore) })
+  }
 
   next()
 })
+
+// ── Helper: pick landing page based on role ────────────────────────────────
+function resolveHome(authStore) {
+  if (authStore.isOwner || authStore.isSuperAdmin) return 'AdminDashboard'
+  return 'Dashboard'
+}
 
 export default router

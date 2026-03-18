@@ -433,6 +433,7 @@
   import { useProductStore } from '@/stores/productStore'
   import { useAuthStore } from '@/stores/authStore'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
+  import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
 
@@ -445,6 +446,7 @@
   const productStore = useProductStore()
   const authStore = useAuthStore()
   const poStore = useMartPurchaseOrderStore()
+  const productUnit = useProductUnitStore()
 
   const formRef = ref(null)
   const saving = ref(false)
@@ -525,8 +527,7 @@
 
     if (!unitsCache[item.product_id]) {
       try {
-        const { getProductUnitsApi } = await import('@/api/productUnitService')
-        const res = await getProductUnitsApi(item.product_id)
+        const res = await productUnit.fetchUnits(item.product_id)
         unitsCache[item.product_id] = res.data.data ?? []
       } catch {
         unitsCache[item.product_id] = []
