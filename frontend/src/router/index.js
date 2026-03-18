@@ -118,12 +118,12 @@ const routes = [
       //   name: 'purchase-details',
       //   component: () => import('@/views/purchases/PurchaseDetails.vue')
       // },
-      // {
-      //   path: '/inventory-reports',
-      //   name: 'InventoryReport',
-      //   component: () => import('@/views/reports/InventoryReport.vue'),
-      //   meta: { requiresAuth: true }
-      // },
+      {
+        path: '/stock-reports',
+        name: 'InventoryReport',
+        component: () => import('@/views/reports/StockReport.vue'),
+        meta: { requiresAuth: true }
+      },
       {
         path: '/audit-logs',
         name: 'AuditLogs',
@@ -318,8 +318,8 @@ router.beforeEach(async (to, from, next) => {
 
 // ── Helper: pick landing page based on role ────────────────────────────────
 function resolveHome(authStore) {
-  if (authStore.isOwner || authStore.isSuperAdmin) return 'AdminDashboard'
-  return 'Dashboard'
+   return authStore.isOwner ? 'Dashboard' : 'AdminDashboard'
+  // || authStore.isSuperAdmin)
 }
 
 export default router
