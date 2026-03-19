@@ -196,7 +196,7 @@
           // show: can('reports.inventory')
         },
         {
-          path: '/inventory-reports',
+          path: '/stock-reports',
           title: t('menu.stock_reports'),
           icon: 'mdi-clipboard-list-outline'
           // show: can('reports.inventory')
