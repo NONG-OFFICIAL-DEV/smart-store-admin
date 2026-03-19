@@ -11,12 +11,12 @@
             LIVE OVERVIEW
           </span>
         </div>
-        <h1 class="text-h4 font-weight-black dashboard-title">
-          Good {{ greeting }}, {{ userName }} 👋
-        </h1>
-        <p class="text-body-2 text-medium-emphasis mt-1">
-          {{ today }} · {{ branches.length }} branches across your network
-        </p>
+        <custom-title
+          icon="mdi-view-dashboard-outline"
+          :title="`Good ${greeting}, ${userName} 👋`"
+          :subtitle="`${today} · ${branches.length} branches across your network`"
+        >
+      </custom-title>
       </div>
       <div class="d-flex align-center gap-3">
         <v-select
@@ -26,7 +26,6 @@
           density="compact"
           hide-details
           rounded="lg"
-          style="width: 120px"
           @update:model-value="onPeriodChange"
         />
         <v-btn
@@ -119,7 +118,10 @@
     <v-row dense>
       <!-- ── Revenue Chart ────────────────────────────────────────────────── -->
       <v-col cols="12" lg="8">
-       <RevenueChart :chart-data="store.chart" :loading="store.loading.chart" />
+        <RevenueChart
+          :chart-data="store.chart"
+          :loading="store.loading.chart"
+        />
         <!-- ── Branch Performance ──────────────────────────────────────────── -->
         <v-card rounded="xl" elevation="0" border>
           <v-card-title class="pa-5 pb-3">
@@ -580,14 +582,13 @@
   import { storeToRefs } from 'pinia'
   import { useDashboardStore } from '@/stores/dashboardStore'
   import { useAuthStore } from '@/stores/authStore'
-import RevenueChart from '@/components/dashboard/RevenueChart.vue'
+  import RevenueChart from '@/components/dashboard/RevenueChart.vue'
   const store = useDashboardStore()
   const authStore = useAuthStore()
 
   // ── Period ─────────────────────────────────────────────────────────────────────
   const periods = ['Today', 'Week', 'Month', 'Year']
-  const selectedPeriod = ref('Week')
-  const chartMode = ref('revenue')
+  const selectedPeriod = ref('Month')
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -615,40 +616,6 @@ import RevenueChart from '@/components/dashboard/RevenueChart.vue'
     'error'
   ]
   const branchColor = i => branchColors[i % branchColors.length]
-
-  // ── Chart ──────────────────────────────────────────────────────────────────────
-  const chartLabels = computed(() => store.chart.map(r => r.label))
-
-  const chartValues = computed(() =>
-    store.chart.map(r => (chartMode.value === 'revenue' ? r.revenue : r.orders))
-  )
-
-  const chartPoints = computed(() => {
-    const vals = chartValues.value
-    if (!vals.length) return []
-    const w = 700,
-      h = 180,
-      pad = 20
-    const max = Math.max(...vals) || 1
-    return vals.map((v, i) => ({
-      x: pad + (i / Math.max(vals.length - 1, 1)) * (w - pad * 2),
-      y: h - pad - (v / max) * (h - pad * 2)
-    }))
-  })
-
-  const chartLinePath = computed(() =>
-    chartPoints.value
-      .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
-      .join(' ')
-  )
-
-  const chartAreaPath = computed(() => {
-    const pts = chartPoints.value
-    if (!pts.length) return ''
-    const last = pts[pts.length - 1],
-      first = pts[0]
-    return `${chartLinePath.value} L${last.x},200 L${first.x},200 Z`
-  })
 
   // ── Donut ──────────────────────────────────────────────────────────────────────
   const totalOrdersToday = computed(() => store.stats?.total_orders_today ?? 0)
@@ -732,13 +699,8 @@ import RevenueChart from '@/components/dashboard/RevenueChart.vue'
   onMounted(async () => {
     await store.fetchAll(selectedPeriod.value.toLowerCase())
     store.fetchLiveOrders()
-    // Poll live orders every 30s
-    // liveInterval = setInterval(() => store.fetchLiveOrders(), 30_000)
   })
 
-  // onUnmounted(() => {
-  //   if (liveInterval) clearInterval(liveInterval)
-  // })
 </script>
 
 <style scoped>

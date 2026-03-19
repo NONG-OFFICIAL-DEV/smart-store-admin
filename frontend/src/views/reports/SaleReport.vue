@@ -441,7 +441,7 @@
   let donutChart = null
   let barChart = null
 
-  const period = ref('today')
+  const period = ref('month')
   const chartMode = ref('revenue')
   const exporting = ref(false)
   const tableLoading = ref(false)
@@ -1098,7 +1098,7 @@
   }
 
   onMounted(() => {
-    onPeriodChange()
+    loadAll()
   })
 </script>
 
