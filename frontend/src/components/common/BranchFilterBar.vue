@@ -130,7 +130,7 @@
   const props = defineProps({
     branches: { type: Array, default: () => [] },
     modelValue: { type: Array, default: () => [] }, // selected branch ids
-    period: { type: String, default: 'today' }, // controlled by parent
+    period: { type: String, default: 'month' }, // controlled by parent
     dateFrom: { type: String, default: null },
     dateTo: { type: String, default: null }
   })
