@@ -22,7 +22,6 @@ class MartProductController extends Controller
                 $q->where('product_type', 'retail')
                     ->orWhere('track_stock', true);
             })
-            // ->where('is_active', true)
             ->orderBy('name')
             ->get()
             ->map(fn($p) => [

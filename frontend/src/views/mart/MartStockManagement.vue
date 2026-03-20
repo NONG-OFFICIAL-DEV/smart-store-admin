@@ -163,19 +163,17 @@
           </div>
         </template>
 
-        <!-- Stock -->
         <template #item.stock_quantity="{ item }">
-          <div class="d-flex align-center gap-2">
-            <div>
-              <div
-                class="text-body-1 font-weight-black"
-                :class="stockClass(item)"
-              >
-                {{ item.stock_quantity }}
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                {{ item.unit ?? 'pcs' }}
-              </div>
+          <div :class="stockClass(item)">
+            <div
+              v-for="s in stockByUnits(item)"
+              :key="s.label"
+              class="text-body-2 font-weight-bold"
+            >
+              {{ s.qty }}
+              <span class="text-caption text-medium-emphasis">
+                {{ s.label }}
+              </span>
             </div>
           </div>
         </template>
@@ -334,8 +332,10 @@
 
               <!-- Big stock number -->
               <div class="stock-display" :class="stockClass(product)">
-                {{ product.stock_quantity }}
-                <span class="stock-unit">{{ product.unit ?? 'pcs' }}</span>
+                <div v-for="s in stockByUnits(product)" :key="s.label">
+                  {{ s.qty }}
+                  <span class="stock-unit">{{ s.label }}</span>
+                </div>
               </div>
 
               <!-- Progress toward reorder -->
@@ -620,6 +620,32 @@
     } finally {
       adjusting.value = false
     }
+  }
+
+  const stockByUnits = product => {
+    const units = [...(product.active_units ?? [])].sort(
+      (a, b) => b.qty_per_base - a.qty_per_base
+    ) // largest unit first
+
+    let remaining = product.stock_quantity
+    const result = []
+
+    for (const unit of units) {
+      if (unit.qty_per_base <= 1) {
+        // base unit — just show remainder
+        result.push({ label: unit.unit_label, qty: remaining })
+      } else {
+        const qty = Math.floor(remaining / unit.qty_per_base)
+        remaining = remaining % unit.qty_per_base
+        if (qty > 0) result.push({ label: unit.unit_label, qty })
+      }
+    }
+
+    // if no units defined, fall back
+    if (!result.length)
+      result.push({ label: product.unit ?? 'pcs', qty: product.stock_quantity })
+
+    return result
   }
 
   onMounted(() => martProductStore.fetchProducts())
