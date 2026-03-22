@@ -311,5 +311,9 @@
     "custom": "Custom Range",
     "payment_breakdown": "Payment Breakdown",
     "sales_chart": "Sales Chart"
+  },
+  "branches":{
+    "title":"Branches",
+    "subtitle":"Manage your branches"
   }
 }

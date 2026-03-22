@@ -1,41 +1,31 @@
-<!-- <custom-title
-  icon="mdi-warehouse"
-  title="Inventory & Stock Report"
-  subtitle="Mange stock report"
->
-  <template #right>
-    <v-btn
-      class="ms-2"
-      variant="outlined"
-      color="success"
-      prepend-icon="mdi-file-excel"
-    >
-      Export Excel
-    </v-btn>
-  </template>
-</custom-title> -->
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-6">
-      <div>
-        <h1 class="text-h5 font-weight-black">Inventory & Stock Report</h1>
-        <p class="text-caption text-medium-emphasis mt-1">
-          Current stock levels, values & movement history
-        </p>
-      </div>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="load"
-      >
-        Refresh
-      </v-btn>
-    </div>
-
+    <custom-title
+      icon="mdi-warehouse"
+      title="Inventory & Stock Report"
+      subtitle="Mange stock report"
+    >
+      <template #right>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-refresh"
+          :loading="loading"
+          @click="load"
+        >
+          Refresh
+        </v-btn>
+        <v-btn
+          class="ms-2"
+          variant="outlined"
+          color="success"
+          prepend-icon="mdi-file-excel"
+        >
+          Export Excel
+        </v-btn>
+      </template>
+    </custom-title>
     <!-- Branch + Period filter -->
     <BranchFilterBar
       v-model="branchIds"
@@ -582,7 +572,7 @@
   const { notif } = useAppUtils()
 
   const loading = ref(false)
-  const period = ref('all')
+  const period = ref('month')
   const dateFrom = ref('')
   const dateTo = ref('')
   const branchIds = ref([])

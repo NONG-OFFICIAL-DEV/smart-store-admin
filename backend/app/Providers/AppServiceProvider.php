@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Observers\ActivityLogObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
-use App\Models\{Product, Category, Branch, BranchMenu, MartPurchaseOrder, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, Shift, Supplier};
+use App\Models\{Product, Category, Branch, BranchMenu, MartPurchaseOrder, Tenant, Staff, Menu, Table, Order, OrderItem, Payment, ProductVariant, PurchaseOrder, Shift, Supplier};
 use App\Models\Scopes\TenantScope;
 
 class AppServiceProvider extends ServiceProvider
@@ -51,9 +51,10 @@ class AppServiceProvider extends ServiceProvider
             Table::class,
             Shift::class,
             Supplier::class,
-            MartPurchaseOrder::class
+            MartPurchaseOrder::class,
+            PurchaseOrder::class
         ];
-
+    // for using ouside GlobalScope
         foreach ($tenantModels as $model) {
             $model::addGlobalScope(new TenantScope());
         }

@@ -201,7 +201,7 @@ class MartPosController extends Controller
                     'change_given'   => $changeGiven,
                     'payment_id'     => $payment->id,
                     'items'          => $order->items,
-                    'receipt'        => $this->buildReceipt($order, $branch, $customerType),
+                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $customerType),
                 ],
             ], 201);
         });
@@ -283,29 +283,33 @@ class MartPosController extends Controller
         return response()->json(['success' => true, 'data' => $categories]);
     }
 
-    private function buildReceipt(Order $order, Branch $branch, string $customerType): array
+    private function buildReceipt(Order $order, Payment $payment, Branch $branch, string $customerType): array
     {
         return [
             'order_number'   => $order->order_number,
             'branch_name'    => $branch->name,
+            'branch_address' => $branch->address ?? null,
+            'branch_phone'   => $branch->phone   ?? null,
             'cashier'        => auth()->user()?->email,
             'customer_type'  => $customerType,
+            'date'           => now()->toDateTimeString(),
             'items'          => $order->items->map(fn($i) => [
                 'name'        => $i->product_name,
-                'unit'        => $i->unit_name,
+                'unit'        => $i->unit_name,   // ← snapshot from order_items
                 'qty'         => $i->quantity,
-                'unit_price'  => $i->unit_price,
-                'total_price' => $i->total_price,
+                'unit_price'  => (float) $i->unit_price,
+                'total_price' => (float) $i->total_price,
             ]),
-            'subtotal'       => $order->subtotal,
-            'discount'       => $order->discount_amount,
-            'tax'            => $order->tax_amount,
-            'total'          => $order->total_amount,
-            'payment_method' => $order->payment_method,
-            'printed_at'     => now()->toDateTimeString(),
+            'subtotal'        => (float) $order->subtotal,
+            'discount'        => (float) $order->discount_amount,
+            'tax'             => (float) $order->tax_amount,
+            'total'           => (float) $order->total_amount,
+            'payment_method'  => $payment->payment_method,
+            'cash_tendered'   => (float) ($payment->amount + ($payment->change_given ?? 0)),
+            'change_given'    => (float) ($payment->change_given ?? 0),
+            'printed_at'      => now()->format('d/m/Y H:i'),
         ];
     }
-
     /**
      * GET /api/v1/mart/reports/inventory
      */
@@ -329,7 +333,7 @@ class MartPosController extends Controller
             // ->where('tenant_id', $tenantId)
             ->where(function ($q) {
                 $q->where('product_type', 'retail')
-                  ->orWhere('track_stock', true);
+                    ->orWhere('track_stock', true);
             })
             // ->where('is_active', true)
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
@@ -410,7 +414,7 @@ class MartPosController extends Controller
             'category'    => $cat ?? 'Uncategorized',
             'count'       => $items->count(),
             'stock_value' => $items->sum('stock_value'),
-            'out_of_stock'=> $items->where('stock_status', 'out_of_stock')->count(),
+            'out_of_stock' => $items->where('stock_status', 'out_of_stock')->count(),
             'low_stock'   => $items->where('stock_status', 'low_stock')->count(),
         ])->values();
 
@@ -422,7 +426,7 @@ class MartPosController extends Controller
                     'low_stock'         => $lowStock,
                     'out_of_stock'      => $outOfStock,
                     'total_cost_value'  => round($totalCostValue, 2),
-                    'total_retail_value'=> round($totalRetailValue, 2),
+                    'total_retail_value' => round($totalRetailValue, 2),
                     'potential_profit'  => round($potentialProfit, 2),
                 ],
                 'products'          => $products,

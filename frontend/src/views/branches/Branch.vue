@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
-      title="Branches"
-      subtitle="Manage your branches"
+      :title="t('branches.title')"
+      :subtitle="t('branches.subtitle')"
       icon="mdi-map-marker-path"
     >
       <template #right>
@@ -26,7 +26,6 @@
           prepend-inner-icon="mdi-magnify"
           placeholder="Search name, city, phone..."
           variant="outlined"
-          density="compact"
           rounded="lg"
           hide-details
           clearable
@@ -39,6 +38,12 @@
           variant="tonal"
           rounded="lg"
         >
+          <!-- All option -->
+          <v-btn :value="null" size="small" class="text-none px-3">
+            <v-icon icon="mdi-view-grid-outline" size="15" class="mr-1" />
+            All
+          </v-btn>
+
           <v-btn
             v-for="t in branchTypes"
             :key="t.value"
@@ -235,7 +240,8 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import BranchDialog from '@/components/branches/BranchDialog.vue'
   import { useRouter } from 'vue-router'
-
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
   const router = useRouter()
 
   const { can, isSuperAdmin } = usePermission()

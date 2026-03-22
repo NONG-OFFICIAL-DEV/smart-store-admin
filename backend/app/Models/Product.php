@@ -83,6 +83,11 @@ class Product extends BaseModel
             ])
             : $request;
 
+        foreach (['is_available', 'is_featured', 'track_stock'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN);
+            }
+        }
         // ── Image upload ───────────────────────────────────────────────────────
         if ($request instanceof Request && $request->hasFile('image')) {
             if ($id) {

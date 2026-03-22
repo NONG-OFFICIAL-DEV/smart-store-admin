@@ -7,10 +7,20 @@ export const createProductApi = formData =>
   http.post('/v1/products', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
-export const updateProductApi = (id, formData) =>
-  http.put(`/v1/products/${id}`, formData, {
+export const updateProductApi = (id, formData) => {
+  // Convert boolean fields to 0/1 for multipart
+  if (formData instanceof FormData) {
+    ['is_available', 'is_featured', 'track_stock'].forEach(field => {
+      if (formData.has(field)) {
+        const val = formData.get(field)
+        formData.set(field, val === 'true' || val === true ? '1' : '0')
+      }
+    })
+  }
+  return http.put(`/v1/products/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
+}
 export const deleteProductApi = id => http.delete(`/v1/products/${id}`)
 
 export const attachModifierGroupsApi = (productId, modifierGroupIds) =>

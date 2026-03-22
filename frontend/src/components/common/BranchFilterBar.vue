@@ -1,6 +1,5 @@
 <template>
   <div class="period-tabs mb-5">
-    <!-- ── Branch Filter ──────────────────────────────────────────────────── -->
     <div class="branch-filter-wrap mb-4">
       <div class="d-flex align-center gap-2 mb-2">
         <v-icon icon="mdi-store-outline" size="16" color="primary" />
@@ -55,72 +54,57 @@
           />
           {{ branch.name }}
         </v-chip>
-        <span v-if="!branches.length" class="text-caption text-medium-emphasis">
-          No branches available
-        </span>
       </div>
+    </div>
 
-      <v-alert
-        v-if="selectedCount === 0"
-        type="warning"
-        variant="tonal"
-        density="compact"
+    <div class="d-flex align-center flex-wrap gap-3">
+      <v-btn-toggle
+        :model-value="period"
+        mandatory
         rounded="lg"
-        class="mt-2"
-        icon="mdi-alert-outline"
+        density="comfortable"
+        color="primary"
+        variant="outlined"
+        @update:model-value="onPeriodClick"
       >
-        No branch selected — select at least one to see data
-      </v-alert>
-    </div>
+        <v-btn value="today" size="small">Today</v-btn>
+        <v-btn value="yesterday" size="small">Yesterday</v-btn>
+        <v-btn value="week" size="small">Week</v-btn>
+        <v-btn value="month" size="small">Month</v-btn>
+        <v-btn value="last_month" size="small">Last Month</v-btn>
+        <v-btn value="custom" size="small">
+          <v-icon start size="14">mdi-calendar-range</v-icon>
+          Custom
+        </v-btn>
+      </v-btn-toggle>
 
-    <!-- ── Period Toggle ──────────────────────────────────────────────────── -->
-    <div class="d-flex align-center gap-3 flex-wrap">
-        <v-btn-toggle
-          :model-value="period"
-          mandatory
-          rounded="lg"
-          density="comfortable"
-          color="primary"
+      <template v-if="period === 'custom'">
+        <v-date-input
+          :model-value="dateFromValue"
+          label="From"
+          prepend-icon=""
+          prepend-inner-icon="mdi-calendar"
           variant="outlined"
-          @update:model-value="onPeriodClick"
-        >
-        <v-btn value="today"      size="small">Today</v-btn>
-        <v-btn value="yesterday"  size="small">Yesterday</v-btn>
-        <v-btn value="week"       size="small">This Week</v-btn>
-        <v-btn value="month"      size="small">This Month</v-btn>
-          <v-btn value="last_month" size="small">Last Month</v-btn>
-        <v-btn value="custom"     size="small">
-            <v-icon start size="14">mdi-calendar-range</v-icon>
-            Custom
-          </v-btn>
-        </v-btn-toggle>
+          density="compact"
+          rounded="lg"
+          hide-details
+          width="160"
+          @update:model-value="val => onDateChange('from', val)"
+        />
+        <v-date-input
+          :model-value="dateToValue"
+          label="To"
+          prepend-icon=""
+          prepend-inner-icon="mdi-calendar"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          width="160"
+          @update:model-value="val => onDateChange('to', val)"
+        />
+      </template>
     </div>
-
-        <!-- Custom date pickers -->
-    <div v-if="period === 'custom'" class="d-flex gap-3 mt-3">
-      <v-text-field
-            :model-value="dateFrom"
-        type="date"
-            label="From"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-        style="max-width: 180px"
-            @update:model-value="onDateChange('from', $event)"
-          />
-      <v-text-field
-            :model-value="dateTo"
-        type="date"
-            label="To"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-        style="max-width: 180px"
-            @update:model-value="onDateChange('to', $event)"
-          />
-        </div>
   </div>
 </template>
 
@@ -136,10 +120,12 @@
   })
 
   const emit = defineEmits([
-    'update:modelValue', // branch ids changed
-    'period-change', // period tab clicked → parent calls loadAll
-    'date-change' // custom dates changed → parent calls loadAll
+    'update:modelValue',
+    'period-change',
+    'date-change'
   ])
+
+  // --- Branch Logic ---
 
   // ── Branch selection ──────────────────────────────────────────────────────────
   const selectedIds = ref([...props.modelValue])
@@ -151,7 +137,6 @@
       props.branches.length > 0 &&
       selectedIds.value.length === props.branches.length
   )
-
   const isSelected = id => selectedIds.value.includes(id)
 
   const toggleBranch = id => {
@@ -162,7 +147,7 @@
       selectedIds.value = [...selectedIds.value, id]
     }
     emit('update:modelValue', selectedIds.value)
-    emit('period-change', props.period) // reload with new branch filter
+    emit('period-change', props.period)
   }
 
   const selectAll = () => {
@@ -194,44 +179,50 @@
   // ── Period ────────────────────────────────────────────────────────────────────
   // Period is fully controlled by parent via :period prop
   // We just emit up — parent updates its own ref → flows back down
+  // --- Date Handling ---
+  // Convert String props to Date objects for v-date-input
+  const dateFromValue = computed(() =>
+    props.dateFrom ? new Date(props.dateFrom) : null
+  )
+  const dateToValue = computed(() =>
+    props.dateTo ? new Date(props.dateTo) : null
+  )
+
   const onPeriodClick = val => {
     emit('period-change', val)
   }
 
-  // ── Custom dates ──────────────────────────────────────────────────────────────
   const onDateChange = (which, val) => {
-    const from = which === 'from' ? val : props.dateFrom
-    const to = which === 'to' ? val : props.dateTo
+    if (!val) return
+
+    // Format Date object back to YYYY-MM-DD string
+    const formattedDate = val.toISOString().split('T')[0]
+
+    const from = which === 'from' ? formattedDate : props.dateFrom
+    const to = which === 'to' ? formattedDate : props.dateTo
+
     emit('date-change', { from, to })
   }
 </script>
 
 <style scoped>
   .branch-filter-wrap {
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(var(--v-theme-surface-variant), 0.1);
     border: 1px solid rgba(0, 0, 0, 0.07);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 12px 16px;
   }
   .branch-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   .branch-chip {
     cursor: pointer;
-    transition: all 0.15s ease;
-    user-select: none;
-  }
-  .branch-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
   }
   .chip-selected {
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
-  }
-  .gap-2 {
-    gap: 8px;
+    box-shadow: 0 2px 6px rgba(var(--v-theme-primary), 0.3);
   }
   .gap-3 {
     gap: 12px;

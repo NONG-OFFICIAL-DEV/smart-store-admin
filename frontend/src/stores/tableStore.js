@@ -59,18 +59,50 @@ export const useTableStore = defineStore('table', {
       }
     },
 
-    // ── Download QR ────────────────────────────────────────────────────────────
+    // ── Download QR as PNG ────────────────────────────────────────────────────
     async downloadQr(table) {
       try {
+        // 1. Fetch the SVG blob from backend
         const res = await downloadQrCode(table.id)
-        const url = URL.createObjectURL(res.data)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `QR-Table-${table.table_number}.png`
-        link.click()
-        URL.revokeObjectURL(url)
+        const svgBlob = res.data
+
+        // 2. Read SVG as text
+        const svgText = await svgBlob.text()
+
+        // 3. Create an Image from the SVG
+        const svgDataUrl =
+          'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText)
+
+        const img = new Image()
+        img.src = svgDataUrl
+
+        await new Promise((resolve, reject) => {
+          img.onload = resolve
+          img.onerror = reject
+        })
+
+        // 4. Draw onto canvas at 2x resolution (high quality)
+        const scale = 4 // ← increase for higher DPI (4 = 4× size)
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+
+        const ctx = canvas.getContext('2d')
+        ctx.imageSmoothingEnabled = false // crisp QR pixels
+        ctx.scale(scale, scale)
+        ctx.drawImage(img, 0, 0)
+
+        // 5. Export as PNG and download
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `QR-Table-${table.table_number}.png`
+          link.click()
+          URL.revokeObjectURL(url)
+        }, 'image/png')
       } catch (err) {
-        console.error('Failed to download QR', err)
+        console.error('Failed to download QR as PNG', err)
       }
     }
   }

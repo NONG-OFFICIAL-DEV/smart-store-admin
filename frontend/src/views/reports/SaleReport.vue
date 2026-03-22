@@ -1,5 +1,5 @@
 <template>
-  <div class="report-page">
+  <div>
     <custom-title
       icon="mdi-note"
       title="Order Report"
@@ -1103,13 +1103,6 @@
 </script>
 
 <style scoped>
-  .period-tabs {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
   /* KPI cards */
   .kpi-card {
     transition: box-shadow 0.2s;

@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0 dashboard">
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between mb-7">
+    <div class="d-flex align-center justify-space-between mb-0">
       <div>
         <div class="d-flex align-center gap-2 mb-1">
           <div class="live-dot" />
