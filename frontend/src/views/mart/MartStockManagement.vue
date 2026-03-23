@@ -36,7 +36,7 @@
             variant="flat"
             rounded="lg"
             prepend-icon="mdi-tune"
-            @click="adjustDialog = true"
+            @click="openAdjust(null)"
           >
             Adjust Stock
           </v-btn>
@@ -416,6 +416,7 @@
     <StockAdjustDialog
       v-model="adjustDialog"
       :preset-product="adjustTarget"
+      :products="productsList"
       :loading="adjusting"
       @save="handleAdjust"
     />
@@ -442,6 +443,7 @@
   const viewMode = ref('table')
   const adjustDialog = ref(false)
   const adjustTarget = ref(null)
+  const productsList = ref([])
   const adjusting = ref(false)
 
   // ── Filter options ────────────────────────────────────────────────────────
@@ -597,6 +599,7 @@
   // ── Adjust ────────────────────────────────────────────────────────────────
   const openAdjust = product => {
     adjustTarget.value = product
+    productsList.value = martProductStore.products
     adjustDialog.value = true
   }
 

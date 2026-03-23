@@ -61,11 +61,7 @@
               <div class="form-section">
                 <!-- ── Image + Name/Category side by side ──────────────── -->
                 <div class="form-section-label">
-                  <v-icon
-                    icon="mdi-package-variant"
-                    size="13"
-                    class="mr-1"
-                  />
+                  <v-icon icon="mdi-package-variant" size="13" class="mr-1" />
                   Product Info
                 </div>
 
@@ -227,7 +223,7 @@
 
                     <!-- Tenant (super admin only) -->
                     <v-select
-                      v-if="tenants.length"
+                      v-if="tenants.length && isSuperAdmin()"
                       v-model="form.tenant_id"
                       :items="tenants"
                       item-title="name"
@@ -579,6 +575,8 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue'
+  import { usePermission } from '@/composables/usePermission'
+  const { isSuperAdmin } = usePermission()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },

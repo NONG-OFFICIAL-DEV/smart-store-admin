@@ -186,8 +186,8 @@
 <script setup>
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
-  import { usePermission } from '@/composables/usePermission'
   import { useTenantStore } from '@/stores/tenantStore'
+  import { usePermission } from '@/composables/usePermission'
   const { isSuperAdmin } = usePermission()
   const props = defineProps({
     modelValue: Boolean,

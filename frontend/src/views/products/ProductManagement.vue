@@ -96,14 +96,15 @@
 
     <!-- ── Table View ─────────────────────────────────────────────────────── -->
     <v-card v-if="viewMode === 'table'" rounded="xl" elevation="0" border>
-      <v-data-table
+      <v-data-table-server
         :headers="headers"
-        :items="filteredProducts"
-        :search="search"
-        :loading="loading"
+        :items="products"
+        :items-length="pagination.total || 0"
+        :items-per-page="pagination.per_page"
         item-value="id"
         rounded="xl"
         hover
+        @update:options="fetchOnOptions"
       >
         <!-- Image + Name -->
         <template #item.name="{ item }">
@@ -235,7 +236,7 @@
             </v-btn>
           </div>
         </template>
-      </v-data-table>
+      </v-data-table-server>
     </v-card>
 
     <!-- ── Grid View ──────────────────────────────────────────────────────── -->
@@ -346,6 +347,7 @@
 
     <!-- ── Product Form Dialog ────────────────────────────────────────────── -->
     <ProductFormDialog
+      v-if="dialog"
       v-model="dialog"
       :edit-item="editItem"
       :categories="categories"
@@ -373,7 +375,7 @@
   const productStore = useProductStore()
   const categoryStore = useCategoryStore()
   const tenantStore = useTenantStore()
-  const { products } = storeToRefs(productStore)
+  const { products, pagination } = storeToRefs(productStore)
   const { categories } = storeToRefs(categoryStore)
   const { tenants } = storeToRefs(tenantStore)
 
@@ -482,6 +484,15 @@
   const capitalize = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '')
   const formatPrice = v => `$${Number(v).toFixed(2)}`
 
+  // ── Function ──────────────────────────────────────────────────────────────────────
+  function fetchOnOptions({ page, itemsPerPage, sortBy }) {
+    productStore.fetchProducts({
+      page,
+      per_page: itemsPerPage,
+      sort_by: sortBy?.[0]?.key,
+      sort_dir: sortBy?.[0]?.order
+    })
+  }
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const goToUnits = p => {
     router.push({

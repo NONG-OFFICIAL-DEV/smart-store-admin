@@ -143,12 +143,12 @@
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
-  import { useProductStore } from '@/stores/productStore'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     presetProduct: { type: Object, default: null }, // pre-select a product
+    products: { type: Object, default: [] }, // all products
     presetType: { type: String, default: null } // pre-select a type
   })
   const emit = defineEmits(['update:modelValue', 'save'])
@@ -158,10 +158,9 @@
     set: v => emit('update:modelValue', v)
   })
   const formRef = ref(null)
-  const productStore = useProductStore()
 
   const productList = computed(() => {
-    const p = productStore.products
+    const p = props.products
     return Array.isArray(p) ? p : (p?.data ?? [])
   })
 
