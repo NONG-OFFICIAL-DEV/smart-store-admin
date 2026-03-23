@@ -53,11 +53,10 @@ class Product extends BaseModel
     ];
 
     // ── 3. Replace store() ────────────────────────────────────────────────────────
-    public static function store(array|Request $request, ?string $id = null)
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
     {
         $data = $request instanceof Request
             ? $request->only([
-                'tenant_id',
                 'category_id',
                 'sku',
                 'barcode',
@@ -82,7 +81,10 @@ class Product extends BaseModel
                 'unit',
             ])
             : $request;
-
+        // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
+        }
         foreach (['is_available', 'is_featured', 'track_stock'] as $field) {
             if (array_key_exists($field, $data)) {
                 $data[$field] = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN);

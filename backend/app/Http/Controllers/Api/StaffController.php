@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StaffController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -101,6 +105,8 @@ class StaffController extends Controller
 
     public function store(Request $request)
     {
+       $tenantId = $this->tenantResolver->resolve($request);
+
         $request->validate([
             // User fields — required only when creating new staff
             'first_name'  => 'required|string|max:80',
@@ -118,15 +124,6 @@ class StaffController extends Controller
             'pin_code'    => 'nullable|digits_between:4,6',
             'is_active'   => 'boolean',
         ]);
-
-        // ── Resolve tenant_id from who is logged in ───────────────────────────
-        $tenantId = $this->resolveTenantId($request);
-
-        if (!$tenantId) {
-            return response()->json([
-                'error' => 'Could not resolve tenant. Are you a tenant owner or admin?'
-            ], 403);
-        }
 
         return DB::transaction(function () use ($request, $tenantId) {
 
@@ -181,32 +178,6 @@ class StaffController extends Controller
         // Staff::store() with $id = UPDATE
         return Staff::store($validated, $id);
     }
-
-    // ── Resolve tenant from logged in user ────────────────────────────────────
-    // 3 cases:
-    //   1. Super admin → must pass tenant_id in request
-    //   2. Tenant owner → get from tenants.owner_user_id
-    //   3. Tenant admin → get from tenant_admins table
-    private function resolveTenantId(Request $request): ?string
-    {
-        $user = auth()->user();
-
-        // Case 1: Super Admin — they must specify which tenant
-        if ($user->is_super_admin) {
-            $request->validate([
-                'tenant_id' => 'required|uuid|exists:tenants,id',
-            ]);
-            return $request->tenant_id;
-        }
-
-        // Case 2: Tenant Owner
-        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
-        if ($ownedTenant) {
-            return $ownedTenant->id;
-        }
-
-        return null;
-    }
     /**
      * Display the specified resource.
      */
@@ -214,14 +185,6 @@ class StaffController extends Controller
     {
         //
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, string $id)
-    // {
-    //     return Staff::store($request, $id);
-    // }
 
     /**
      * Remove the specified resource from storage.

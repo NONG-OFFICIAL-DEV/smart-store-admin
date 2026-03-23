@@ -53,7 +53,17 @@
           >
             {{ currentType?.desc }}
           </v-alert>
-
+          <v-select
+            v-model="form.branch_id"
+            :items="branchList"
+            item-title="name"
+            item-value="id"
+            label="Branch *"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            :rules="[r.required]"
+          />
           <!-- Product (read-only if preset) -->
           <v-autocomplete
             v-model="form.product_id"
@@ -65,7 +75,6 @@
             density="comfortable"
             rounded="lg"
             :rules="[r.required]"
-            class="mb-2"
             :readonly="!!presetProduct"
             :bg-color="presetProduct ? 'grey-lighten-4' : undefined"
             @update:model-value="onProductChange"
@@ -149,7 +158,8 @@
     loading: { type: Boolean, default: false },
     presetProduct: { type: Object, default: null }, // pre-select a product
     products: { type: Object, default: [] }, // all products
-    presetType: { type: String, default: null } // pre-select a type
+    presetType: { type: String, default: null }, // pre-select a type
+    branchList: { type: Object, default: [] } // branch list
   })
   const emit = defineEmits(['update:modelValue', 'save'])
 
@@ -165,6 +175,7 @@
   })
 
   const form = reactive({
+    branch_id: null,
     product_id: null,
     movement_type: 'adjustment_in',
     quantity: null,
@@ -234,6 +245,7 @@
     open => {
       if (open) {
         form.product_id = props.presetProduct?.id ?? null
+        form.branch_id = props.branch_id?.id ?? null
         form.movement_type = props.presetType ?? 'adjustment_in'
         form.quantity = null
         form.notes = ''

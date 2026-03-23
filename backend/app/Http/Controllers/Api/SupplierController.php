@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -49,16 +53,7 @@ class SupplierController extends Controller
         ]);
 
         // ── Resolve tenant_id server side ─────────────────────────────────────
-        $user = auth()->user();
-
-        if ($user->is_super_admin) {
-            // Super admin MUST pass tenant_id in body
-            $request->validate(['tenant_id' => 'required|uuid|exists:tenants,id']);
-            $tenantId = $request->tenant_id;
-        } else {
-            // Tenant owner/admin → resolve automatically, ignore any tenant_id in request
-            $tenantId = $user->resolveTenantId($request);
-        }
+        $tenantId = $this->tenantResolver->resolve($request);
 
         $supplier = Supplier::create([
             'tenant_id'      => $tenantId,

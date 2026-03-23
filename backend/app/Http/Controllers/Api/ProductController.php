@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +42,9 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        return Product::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        return Product::store($request, null, $tenantId);
     }
 
     /**

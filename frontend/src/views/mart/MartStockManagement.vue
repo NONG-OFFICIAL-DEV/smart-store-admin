@@ -417,6 +417,7 @@
       v-model="adjustDialog"
       :preset-product="adjustTarget"
       :products="productsList"
+      :branch-list="branchList"
       :loading="adjusting"
       @save="handleAdjust"
     />
@@ -427,6 +428,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMartProductStore } from '@/stores/martProductStore'
+  import { useBranchStore } from '@/stores/branchStore'
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { adjustStockApi } from '@/api/martStockService'
@@ -435,6 +437,8 @@
   const router = useRouter()
   const martProductStore = useMartProductStore()
   const authStore = useAuthStore()
+  const branchStore = useBranchStore()
+
   const { notif } = useAppUtils()
 
   const search = ref('')
@@ -459,6 +463,10 @@
   ]
 
   // ── Filtered + sorted list ────────────────────────────────────────────────
+  const branchList = computed(() => {
+    const b = branchStore.branches
+    return Array.isArray(b) ? b : (b?.data ?? [])
+  })
   const filtered = computed(() => {
     let list = [...martProductStore.products]
 
@@ -651,7 +659,12 @@
     return result
   }
 
-  onMounted(() => martProductStore.fetchProducts())
+  onMounted(async () => {
+    await Promise.all([
+      martProductStore.fetchProducts(),
+      branchStore.fetchBranches?.()
+    ])
+  })
 </script>
 
 <style scoped>

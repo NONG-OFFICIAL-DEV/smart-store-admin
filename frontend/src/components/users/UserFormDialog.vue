@@ -122,7 +122,7 @@
             </v-col>
 
             <!-- Password (create only) -->
-            <!-- <v-col v-if="!isEdit" cols="12"> -->
+            <v-col cols="12">
               <v-text-field
                 v-model="form.password"
                 label="Password"
@@ -136,7 +136,7 @@
                 persistent-hint
                 @click:append-inner="showPassword = !showPassword"
               />
-            <!-- </v-col> -->
+            </v-col>
 
             <!-- Active toggle -->
             <v-col cols="12">

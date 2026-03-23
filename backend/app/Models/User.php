@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
-use Ramsey\Collection\Collection;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -201,34 +200,4 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    // ── Resolve tenant from logged in user ────────────────────────────────────
-    // 3 cases:
-    //   1. Super admin → must pass tenant_id in request
-    //   2. Tenant owner → get from tenants.owner_user_id
-    //   3. Tenant admin → get from tenant_admins table
-    public function resolveTenantId(Request $request): ?string
-    {
-        $user = auth()->user();
-
-        // Case 1: Super Admin — use tenant_id from request (query or body)
-        if ($user->is_super_admin) {
-            return $request->input('tenant_id'); // nullable — caller decides if required
-        }
-
-        // Case 2: Tenant Owner
-        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
-        if ($ownedTenant) {
-            return $ownedTenant->id;
-        }
-
-        // Case 3: Tenant Staff / Admin
-        $staffRecord = \App\Models\Staff::where('user_id', $user->id)
-            ->where('is_active', true)
-            ->first();
-        if ($staffRecord) {
-            return $staffRecord->tenant_id;
-        }
-
-        return null;
-    }
 }

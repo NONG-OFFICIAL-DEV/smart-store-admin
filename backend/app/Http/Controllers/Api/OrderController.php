@@ -11,11 +11,15 @@ use App\Models\OrderItemModifier;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -300,7 +304,7 @@ class OrderController extends Controller
         // ── Resolve allowed branch IDs for this user ──────────────────────────
         $allowedBranchIds = null;
         if (!$user->is_super_admin) {
-            $tenantId         = $user->resolveTenantId($request);
+            $tenantId = $this->tenantResolver->resolve($request);
             $allowedBranchIds = \App\Models\Branch::where('tenant_id', $tenantId)
                 ->pluck('id')
                 ->toArray();

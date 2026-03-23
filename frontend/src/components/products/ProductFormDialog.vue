@@ -150,7 +150,6 @@
                       variant="outlined"
                       density="compact"
                       rounded="lg"
-                      hide-details="auto"
                       :rules="[r.required, r.maxLen(200)]"
                       prepend-inner-icon="mdi-package-variant"
                       maxlength="200"

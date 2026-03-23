@@ -20,7 +20,7 @@
       </template>
     </custom-title>
 
-    <BranchFilterBar
+    <!-- <BranchFilterBar
       v-model="filters.branch_ids"
       :branches="branchStore.branches?.data || branchStore.branches || []"
       :period="period"
@@ -32,6 +32,15 @@
           loadAll()
         }
       "
+    /> -->
+    <BranchFilterBar
+      v-model="filters.branch_ids"
+      :branches="branchStore.branches?.data || branchStore.branches || []"
+      :period="period"
+      :date-from="filters.date_from"
+      :date-to="filters.date_to"
+      @period-change="onPeriodChange"
+      @date-change="onDateChange"
     />
 
     <!-- ══ KPI Cards ════════════════════════════════════════════════════════ -->
@@ -798,6 +807,12 @@
       loadAll()
     }
   }
+  const onDateChange = ({ from, to }) => {
+    filters.value.date_from = from
+    filters.value.date_to = to
+    period.value = 'custom'
+    if (from && to) loadAll()
+  }
 
   const loadAll = async () => {
     await Promise.all([
@@ -1099,6 +1114,7 @@
 
   onMounted(() => {
     loadAll()
+    // onPeriodChange('month')
   })
 </script>
 

@@ -131,6 +131,8 @@
               :error-messages="errors.password"
               :disabled="loading"
               validate-on="blur"
+              persistent-hint
+              hint="Enter your password"
               @click:append-inner="visible = !visible"
               @update:model-value="errors.password = ''"
             />

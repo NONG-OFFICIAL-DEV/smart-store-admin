@@ -15,6 +15,9 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
 
 class OrderExportController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * GET /api/v1/orders/export
      * Downloads an .xlsx file with 3 sheets:
@@ -24,6 +27,8 @@ class OrderExportController extends Controller
      */
     public function export(Request $request)
     {
+        $tenantId = $this->tenantResolver->resolve($request);
+
         // ── Build query (same filters as index) ───────────────────────────────
         $orders = Order::with([
             'branch:id,name',
@@ -33,7 +38,7 @@ class OrderExportController extends Controller
             ->when(
                 !auth()->user()->is_super_admin,
                 fn($q) =>
-                $q->where('tenant_id', auth()->user()->resolveTenantId())
+                $q->where('tenant_id', $tenantId)
             )
             ->when($request->branch_id,    fn($q) => $q->where('branch_id',      $request->branch_id))
             ->when($request->status,       fn($q) => $q->where('status',         $request->status))
