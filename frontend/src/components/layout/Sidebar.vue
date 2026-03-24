@@ -7,7 +7,7 @@
   const { t } = useI18n()
   const authStore = useAuthStore()
 
-  const props = defineProps({
+  defineProps({
     user: Object,
     rail: Boolean,
     logo_url: String
@@ -16,8 +16,6 @@
   const open = ref(['dashboard'])
 
   const can = code => authStore.can(code)
-  const isMart = computed(() => authStore.isMart)
-  const isFood = computed(() => authStore.isFood)
   // ── Menu Definition ───────────────────────────────────────────────────────────
   const menu = computed(() => [
     // ── 1. DASHBOARD ────────────────────────────────────────────────────────────
@@ -137,28 +135,33 @@
           path: '/stocks',
           title: t('menu.stock_overview'),
           icon: 'mdi-layers-triple-outline',
-          show: authStore.isFood || authStore.isSuperAdmin
+          show: authStore.isFood || authStore.isSuperAdmin,
+          badge: authStore.isSuperAdmin ? 'RS' : null
           // show: can('inventory.view')
         },
         {
           path: '/mart/stock',
           title: t('menu.stock_overview'),
           icon: 'mdi-layers-triple-outline',
-          show: authStore.isMart || authStore.isSuperAdmin
+          show: authStore.isMart || authStore.isSuperAdmin,
+          badge: authStore.isSuperAdmin ? 'Mart' : null
           // show: can('inventory.view')
         },
         {
           path: '/purchases',
           title: t('menu.purchase_order'),
           icon: 'mdi-cart-arrow-down',
-          show: authStore.isFood || authStore.isSuperAdmin
+          show: authStore.isFood || authStore.isSuperAdmin,
+          badge: authStore.isSuperAdmin ? 'RS' : null
+
           // show: can('inventory.view')
         },
         {
           path: '/mart/purchase-order',
           title: t('menu.purchase_order'),
           icon: 'mdi-cart-arrow-down',
-          show: authStore.isMart || authStore.isSuperAdmin
+          show: authStore.isMart || authStore.isSuperAdmin,
+          badge: authStore.isSuperAdmin ? 'Mart' : null
           // show: can('inventory.view')
         },
         {
@@ -415,7 +418,20 @@
               density="compact"
               class="sub-item"
               active-class="active-item"
-            />
+            >
+              <template #append>
+                <v-chip
+                  v-if="sublink.badge"
+                  size="x-small"
+                  :color="sublink.badge === 'Mart' ? 'indigo' : 'blue'"
+                  variant="tonal"
+                  rounded="lg"
+                  class="ml-2"
+                >
+                  {{ sublink.badge }}
+                </v-chip>
+              </template>
+            </v-list-item>
           </template>
         </v-list-group>
       </div>
