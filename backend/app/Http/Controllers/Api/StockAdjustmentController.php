@@ -15,45 +15,57 @@ class StockAdjustmentController extends Controller
     public function adjust(Request $request)
     {
         $request->validate([
-            'branch_id'     => 'required|uuid|exists:branches,id',
-            'product_id'    => 'required|uuid|exists:products,id',
-            'movement_type' => 'required|in:adjustment_in,adjustment_out,waste,count',
-            'quantity'      => 'required|numeric|min:0.001',
-            'notes'         => 'nullable|string|max:500',
+            'branch_id'       => 'required|uuid|exists:branches,id',
+            'product_id'      => 'required|uuid|exists:products,id',
+            'product_unit_id' => 'nullable|uuid|exists:product_units,id', // ← add
+            'movement_type'   => 'required|in:adjustment_in,adjustment_out,waste,count',
+            'quantity'        => 'required|numeric|min:0.001',
+            'notes'           => 'nullable|string|max:500',
         ]);
 
         return DB::transaction(function () use ($request) {
-            $product   = Product::findOrFail($request->product_id);
-            $staff     = auth()->user()->staff;
+            $product  = Product::findOrFail($request->product_id);
+            $staff    = auth()->user()->staff;
 
-            // For count: set absolute value. Others: add/subtract.
+            // ── Resolve qty in BASE units ─────────────────────────────────────
+            // If a unit is selected, multiply by qty_per_base
+            $qtyPerBase = 1;
+            if ($request->product_unit_id) {
+                $unit       = ProductUnit::findOrFail($request->product_unit_id);
+                $qtyPerBase = (float) $unit->qty_per_base;
+            }
+
+            // Requested qty converted to base units
+            $baseQty   = (float) $request->quantity * $qtyPerBase;
+
             $isOut     = in_array($request->movement_type, ['adjustment_out', 'waste']);
             $isCount   = $request->movement_type === 'count';
-
             $qtyBefore = (float) $product->stock_quantity;
 
             if ($isCount) {
-                $qtyAfter  = (float) $request->quantity;
-                $movement  = $qtyAfter - $qtyBefore;
+                // count: set absolute value (already in base units)
+                $qtyAfter = (float) $request->quantity;
+                $movement = $qtyAfter - $qtyBefore;
                 $product->update(['stock_quantity' => $qtyAfter]);
+
             } elseif ($isOut) {
-                if ($product->stock_quantity < $request->quantity) {
+                if ($product->stock_quantity < $baseQty) {
                     return response()->json([
                         'success' => false,
                         'message' => "Insufficient stock. Available: {$product->stock_quantity}",
                     ], 422);
                 }
-                $movement = -(float) $request->quantity;
+                $movement = -$baseQty;
                 $qtyAfter = $qtyBefore + $movement;
-                $product->decrement('stock_quantity', $request->quantity);
+                $product->decrement('stock_quantity', $baseQty);
+
             } else {
-                $movement = (float) $request->quantity;
+                $movement = $baseQty;
                 $qtyAfter = $qtyBefore + $movement;
-                $product->increment('stock_quantity', $request->quantity);
+                $product->increment('stock_quantity', $baseQty);
             }
 
             $log = StockMovement::create([
-                'id'             => Str::uuid(),
                 'branch_id'      => $request->branch_id,
                 'product_id'     => $product->id,
                 'movement_type'  => $request->movement_type,
@@ -66,14 +78,18 @@ class StockAdjustmentController extends Controller
             ]);
 
             return response()->json([
-                'success'          => true,
-                'data'             => [
-                    'product_id'   => $product->id,
-                    'product_name' => $product->name,
-                    'qty_before'   => $qtyBefore,
-                    'qty_after'    => $qtyAfter,
-                    'movement'     => $movement,
-                    'log'          => $log,
+                'success' => true,
+                'data'    => [
+                    'product_id'     => $product->id,
+                    'product_name'   => $product->name,
+                    'unit_used'      => $request->product_unit_id ? $unit->unit_label ?? $unit->unit_name : 'base',
+                    'qty_per_base'   => $qtyPerBase,
+                    'qty_requested'  => (float) $request->quantity,
+                    'qty_in_base'    => $baseQty,
+                    'qty_before'     => $qtyBefore,
+                    'qty_after'      => $qtyAfter,
+                    'movement'       => $movement,
+                    'log'            => $log,
                 ],
             ]);
         });
