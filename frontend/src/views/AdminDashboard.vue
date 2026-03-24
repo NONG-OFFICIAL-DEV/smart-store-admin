@@ -596,7 +596,7 @@
 
   // ── Period ─────────────────────────────────────────────────────────────────────
   const periods = ['Today', 'Week', 'Month', 'Year']
-  const selectedPeriod = ref('Week')
+  const selectedPeriod = ref('Month')
   const chartMode = ref('revenue')
 
   const today = new Date().toLocaleDateString('en-US', {
