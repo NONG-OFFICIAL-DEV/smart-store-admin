@@ -130,6 +130,8 @@ class AuthController extends Controller
                 'bu_name'        => $ownedTenant->name,
                 'bu_type'        => $ownedTenant->bu_type,
                 'logo_url'       => $ownedTenant->logo_url,
+                'currency'       => $ownedTenant->currency,
+                'locale'       => $ownedTenant->locale,
                 'branch_id'      => null,       // access ALL branches
                 'permissions'    => Permission::pluck('code')->toArray(),
             ]);

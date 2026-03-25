@@ -123,7 +123,7 @@
 
         <!-- Total -->
         <template #item.total_amount="{ item }">
-          <span class="font-weight-bold">{{ fmt(item.total_amount) }}</span>
+          <span class="font-weight-bold">{{ format(item.total_amount) }}</span>
         </template>
 
         <!-- Expected delivery -->
@@ -256,6 +256,8 @@
   import { useRouter } from 'vue-router'
   const poStore = useMartPurchaseOrderStore()
   const { notif, confirm } = useAppUtils()
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
 
   const router = useRouter()
   const receiveDialog = ref(false)
@@ -343,11 +345,7 @@
     ['confirmed', 'partially_received', 'submitted'].includes(o.status)
   const canCancel = o => !['received', 'cancelled'].includes(o.status)
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
+
   const fmtDate = v =>
     v
       ? new Date(v).toLocaleDateString('en-US', {

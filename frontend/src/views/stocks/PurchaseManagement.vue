@@ -263,6 +263,8 @@
   import PurchaseOrderDialog from '@/components/purchase-orders/PurchaseOrderDialog.vue'
   import PurchaseOrderDetailDialog from '@/components/purchase-orders/PurchaseOrderDetailDialog.vue'
   import PurchaseOrderReceiveDialog from '@/components/purchase-orders/PurchaseOrderReceiveDialog.vue'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
 
   const poStore = usePurchaseOrderStore()
   const supplierStore = useSupplierStore()
@@ -369,19 +371,7 @@
   const canReceive = o => ['confirmed', 'partially_received'].includes(o.status)
   const canCancel = o => !['received', 'cancelled'].includes(o.status)
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
-  const fmtDate = v =>
-    v
-      ? new Date(v).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        })
-      : '—'
+  const fmt = v => format(v)
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   let searchTimer = null

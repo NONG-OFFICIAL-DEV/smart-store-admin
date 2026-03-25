@@ -13,7 +13,8 @@ export const useAuthStore = defineStore('auth', {
     bu_name: null,
     branch_name: null,
     role_name: null,
-    logo_url: null
+    logo_url: null,
+    currency: null
   }),
   getters: {
     can: state => code => {
@@ -70,6 +71,7 @@ export const useAuthStore = defineStore('auth', {
       this.branch_name = d.branch_name ?? null
       // Staff
       this.role_name = d.role_name ?? null
+      this.currency = d.currency ?? null
     }
   }
 })
