@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
-      title="Categories"
-      subtitle="Manage your product groupings and display order"
+      :title="t('categories.title')"
+      :subtitle="t('categories.subtitle')"
       icon="mdi-format-list-bulleted-type"
     >
       <template #right>
@@ -133,7 +133,8 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import { usePermission } from '@/composables/usePermission'
   const { confirm, notif } = useAppUtils()
-
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
   // ── Store ──────────────────────────────────────────────────────────────────
   const categoryStore = useCategoryStore()
   const { can, isSuperAdmin } = usePermission()

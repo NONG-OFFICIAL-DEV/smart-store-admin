@@ -492,6 +492,8 @@
       "name": "Supplier Name",
       "phone": "Phone",
       "email": "Email",
+      "payment_terms": "payment terms",
+      "contact_person": "Contact Person",
       "address": "Address",
       "total_orders": "Total Orders",
       "total_spent": "Total Spent",

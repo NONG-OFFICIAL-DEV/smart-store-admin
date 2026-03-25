@@ -2,8 +2,8 @@
   <v-container fluid class="pa-0">
     <custom-title
       icon="mdi-tag-outline"
-      title="Products"
-      subtitle="Manage your product catalog, variants, and availability"
+      :title="t('products.title')"
+      :subtitle="t('products.subtitle')"
     >
       <template #right>
         <v-btn
@@ -13,7 +13,7 @@
           prepend-icon="mdi-plus"
           @click="openCreate"
         >
-          Add Product
+          {{ t('btn.add_product') }}
         </v-btn>
       </template>
     </custom-title>
@@ -409,15 +409,15 @@
   ]
 
   // ── Table headers ─────────────────────────────────────────────────────────────
-  const headers = [
-    { title: 'Product', key: 'name', sortable: true },
-    { title: 'Type', key: 'product_type', sortable: true },
-    { title: 'Price', key: 'base_price', sortable: true },
+  const headers = computed(() => [
+    { title: t('products.table.name'), key: 'name', sortable: true },
+    { title: t('products.table.type'), key: 'product_type', sortable: true },
+    { title: t('products.table.price'), key: 'base_price', sortable: true },
     { title: 'Prep Time', key: 'preparation_time', sortable: true },
     { title: 'Available', key: 'is_available', sortable: true },
     { title: 'Featured', key: 'is_featured', sortable: false },
     { title: '', key: 'actions', sortable: false, align: 'end' }
-  ]
+  ])
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const stats = computed(() => [

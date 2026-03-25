@@ -2,8 +2,8 @@
   <v-container fluid class="pa-0">
     <custom-title
       icon="mdi-truck-outline"
-      title="Supplier Management"
-      subtitle="Manage all suppliers for your business"
+      :title="$t('suppliers.title')"
+      :subtitle="$t('suppliers.subtitle')"
     >
       <template #right>
         <div class="d-flex gap-2">
@@ -29,7 +29,7 @@
         </div>
       </template>
     </custom-title>
-  
+
     <!-- Filter panel -->
     <v-expand-transition>
       <v-card
@@ -152,22 +152,28 @@
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import SupplierDialog from '@/components/SupplierDialog.vue'
-
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
   const store = useSupplierStore()
   const { confirm, notif } = useAppUtils()
 
   // ── Table ──────────────────────────────────────────────────────────────────────
   const opts = reactive({ page: 1, itemsPerPage: 15 })
 
-  const headers = [
-    { title: 'Supplier', key: 'name' },
-    { title: 'Contact', key: 'contact_person' },
-    { title: 'Phone', key: 'phone' },
-    { title: 'Email', key: 'email' },
-    { title: 'Payment Terms', key: 'payment_terms' },
-    { title: 'Status', key: 'is_active' },
-    { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
-  ]
+  const headers = computed(() => [
+    { title: t('suppliers.table.name'), key: 'name' },
+    { title: t('suppliers.table.contact_person'), key: 'contact_person' },
+    { title: t('suppliers.table.phone'), key: 'phone' },
+    { title: t('suppliers.table.email'), key: 'email' },
+    { title: t('suppliers.table.payment_terms'), key: 'payment_terms' },
+    { title: t('suppliers.table.status'), key: 'is_active' },
+    {
+      title: t('suppliers.table.actions'),
+      key: 'actions',
+      sortable: false,
+      align: 'end'
+    }
+  ])
 
   // ── Filter ─────────────────────────────────────────────────────────────────────
   const showFilter = ref(false)
