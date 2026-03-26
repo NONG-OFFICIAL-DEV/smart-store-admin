@@ -20,7 +20,7 @@ class StaffController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
 
         $query = Staff::query()
             ->with([

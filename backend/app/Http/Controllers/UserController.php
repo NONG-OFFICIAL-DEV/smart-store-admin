@@ -55,7 +55,7 @@ class UserController extends Controller
         }
 
         // ── Pagination ────────────────────────────────────────────────────────
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $users   = $query->paginate($perPage);
 
         // Append resolved type to each user

@@ -16,7 +16,7 @@ class TenantController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $query = Tenant::with('owner');
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");

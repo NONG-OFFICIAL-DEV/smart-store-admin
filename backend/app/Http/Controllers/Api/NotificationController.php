@@ -13,7 +13,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $query = Notification::query();
         if ($search = $request->get('search')) {
             $query->where('title', 'like', "%{$search}%")

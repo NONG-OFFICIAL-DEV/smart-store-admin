@@ -367,6 +367,7 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
+  import { useDataTable } from '@/composables/useServerTable'
 
   const router = useRouter()
   const { t } = useI18n()
@@ -380,7 +381,6 @@
   const { tenants } = storeToRefs(tenantStore)
 
   // ── UI state ──────────────────────────────────────────────────────────────────
-  const loading = ref(false)
   const search = ref('')
   const filterType = ref(null)
   const filterAvailable = ref(null)
@@ -485,14 +485,14 @@
   const formatPrice = v => `$${Number(v).toFixed(2)}`
 
   // ── Function ──────────────────────────────────────────────────────────────────────
-  function fetchOnOptions({ page, itemsPerPage, sortBy }) {
-    productStore.fetchProducts({
-      page,
-      per_page: itemsPerPage,
-      sort_by: sortBy?.[0]?.key,
-      sort_dir: sortBy?.[0]?.order
+  const { fetchOnOptions, refresh } = useDataTable(
+    productStore.fetchProducts, // ✅ your existing store action
+    () => ({
+      // ✅ reactive filters
+      search: search.value
+      // stock_filter: stockFilter.value,
     })
-  }
+  )
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const goToUnits = p => {
     router.push({
@@ -535,11 +535,10 @@
       options: { type: 'warning', color: 'warning', width: 400 },
       agree: async () => {
         await productStore.deleteProduct(product.id)
-
         notif(t('messages.deleted_success'), {
           type: 'success'
         })
-        await productStore.fetchProducts()
+        refresh()
       }
     })
   }

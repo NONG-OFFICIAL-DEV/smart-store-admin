@@ -25,8 +25,6 @@
 
       <!-- Data Table -->
       <v-data-table-server
-        v-model:items-per-page="filters.per_page"
-        v-model:page="filters.page"
         :headers="headers"
         :items="categoryStore.categories"
         :items-length="totalItems"
@@ -35,15 +33,8 @@
         no-data-text="No categories found"
         item-value="id"
         rounded="0"
-        @update:options="onTableOptions"
+        @update:options="fetchOnOptions"
       >
-        <!-- No. Column -->
-        <template #item.no="{ index }">
-          <span class="text-body-2 text-grey">
-            {{ (filters.page - 1) * filters.per_page + index + 1 }}
-          </span>
-        </template>
-
         <!-- Name Column -->
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2 py-1">
@@ -127,133 +118,80 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
-  import { useCategoryStore } from '@/stores/categoryStore'
-  import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
-  import { useAppUtils } from '@nong-official-dev/core'
-  import { usePermission } from '@/composables/usePermission'
-  const { confirm, notif } = useAppUtils()
-  import { useI18n } from 'vue-i18n'
-  const { t } = useI18n()
-  // ── Store ──────────────────────────────────────────────────────────────────
-  const categoryStore = useCategoryStore()
-  const { can, isSuperAdmin } = usePermission()
+import { ref, reactive, computed } from 'vue'
+import { useCategoryStore } from '@/stores/categoryStore'
+import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
+import { useAppUtils } from '@nong-official-dev/core'
+import { usePermission } from '@/composables/usePermission'
+import { useDataTable } from '@/composables/useServerTable' // ✅ your composable
+import { useI18n } from 'vue-i18n'
 
-  // ── Table Headers ──────────────────────────────────────────────────────────
-  const headers = [
-    { title: '#', key: 'no', sortable: false, width: '60px' },
-    { title: 'Name', key: 'name', sortable: true },
-    { title: 'Icon', key: 'icon', sortable: true },
-    { title: 'Description', key: 'description', sortable: false },
-    { title: 'Status', key: 'is_active', sortable: true, width: '110px' },
-    ...(isSuperAdmin()
-      ? [
-          {
-            title: 'Actions',
-            key: 'actions',
-            sortable: false,
-            width: '100px',
-            align: 'center'
-          }
-        ]
-      : [])
-  ]
+const { t } = useI18n()
+const { confirm } = useAppUtils()
+const { isSuperAdmin } = usePermission()
+const categoryStore = useCategoryStore()
 
-  // ── Filters & Pagination ───────────────────────────────────────────────────
-  const filters = reactive({
-    page: 1,
-    per_page: 10,
-    search: '',
-    sort_by: 'created_at',
-    sort_order: 'desc'
+// ── Headers ────────────────────────────────────────────────────────────────
+const headers = [
+  { title: 'Name', key: 'name', sortable: true },
+  { title: 'Icon', key: 'icon', sortable: true },
+  { title: 'Description', key: 'description', sortable: false },
+  { title: 'Status', key: 'is_active', sortable: true, width: '110px' },
+  ...(isSuperAdmin()
+    ? [{ title: 'Actions', key: 'actions', sortable: false, width: '100px', align: 'center' }]
+    : [])
+]
+
+// ── Filters ────────────────────────────────────────────────────────────────
+const search = ref('')
+
+// ── useDataTable ───────────────────────────────────────────────────────────
+const { fetchOnOptions, refresh } = useDataTable(
+  categoryStore.fetchCategories,
+  () => ({ search: search.value }) // ✅ reactive filters
+)
+
+const totalItems = computed(() => categoryStore.pagination?.total ?? 0)
+
+// ── Dialog ─────────────────────────────────────────────────────────────────
+const dialog = reactive({ show: false, category: null })
+
+const openCreateDialog = () => {
+  dialog.category = null
+  dialog.show = true
+}
+
+const openEditDialog = item => {
+  dialog.category = { ...item }
+  dialog.show = true
+}
+
+const onSaved = () => {
+  dialog.show = false
+  refresh() // ✅ use refresh instead of fetchData
+}
+
+const openDeleteConfirm = async item => {
+  confirm({
+    title: 'Delete Category',
+    message: `Are you sure you want to delete "${item.name}"?`,
+    options: { type: 'warning', width: 550 },
+    agree: async () => {
+      await categoryStore.deleteCategory(item.id)
+      refresh() // ✅ refresh after delete
+    },
+    cancel: () => {}
   })
+}
 
-  const totalItems = computed(() => categoryStore.pagination?.total ?? 0)
-
-  // ── Search debounce ────────────────────────────────────────────────────────
-  let searchTimer = null
-  const onSearch = () => {
-    clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => {
-      filters.page = 1
-      fetchData()
-    }, 400)
-  }
-
-  // ── Table options sync ─────────────────────────────────────────────────────
-  const onTableOptions = ({ page, itemsPerPage, sortBy }) => {
-    filters.page = page
-    filters.per_page = itemsPerPage
-    if (sortBy?.length) {
-      filters.sort_by = sortBy[0].key
-      filters.sort_order = sortBy[0].order
-    }
-    fetchData()
-  }
-
-  // ── Fetch ──────────────────────────────────────────────────────────────────
-  const fetchData = async () => {
-    await categoryStore.fetchCategories({ ...filters })
-  }
-
-  onMounted(fetchData)
-
-  // ── Create / Edit Dialog ───────────────────────────────────────────────────
-  const dialog = reactive({
-    show: false,
-    category: null
+// ── Helpers ────────────────────────────────────────────────────────────────
+const formatDate = date => {
+  if (!date) return '—'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric'
   })
+}
 
-  const openCreateDialog = () => {
-    dialog.category = null
-    dialog.show = true
-  }
-
-  const openEditDialog = item => {
-    dialog.category = { ...item }
-    dialog.show = true
-  }
-
-  const onSaved = () => {
-    dialog.show = false
-    fetchData()
-  }
-
-  const openDeleteConfirm = async item => {
-    confirm({
-      title: 'Delete Category',
-      message: `Are you sure you want to delete category "${item.name}"?`,
-      options: { type: 'warning', width: 550 },
-      agree: () => {
-        categoryStore.deleteCategory(item.id)
-      },
-      cancel: () => {}
-    })
-    fetchData()
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
-  const formatDate = date => {
-    if (!date) return '—'
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  const AVATAR_COLORS = [
-    'primary',
-    'secondary',
-    'success',
-    'info',
-    'warning',
-    'purple',
-    'teal',
-    'pink'
-  ]
-  const avatarColor = (name = '') => {
-    const index = name.charCodeAt(0) % AVATAR_COLORS.length
-    return AVATAR_COLORS[index]
-  }
+const AVATAR_COLORS = ['primary', 'secondary', 'success', 'info', 'warning', 'purple', 'teal', 'pink']
+const avatarColor = (name = '') => AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
 </script>

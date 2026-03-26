@@ -35,7 +35,7 @@ class MartPurchaseOrderController extends Controller
             )
             ->withCount('items')
             ->orderByDesc('created_at')
-            ->paginate($request->per_page ?? 15);
+            ->paginate($request->per_page ?? 10);
 
         return response()->json(['success' => true, 'data' => $query]);
     }

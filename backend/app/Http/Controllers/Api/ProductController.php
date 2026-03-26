@@ -17,7 +17,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('per_page', 15); // default 15, override via ?per_page=25
+        $perPage = (int) $request->get('per_page', 10); // default 10, override via ?per_page=25
         $perPage = min($perPage, 100); // cap at 100 to prevent abuse
 
         $query = Product::query();

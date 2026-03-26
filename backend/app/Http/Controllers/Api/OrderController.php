@@ -25,7 +25,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $query = Order::with([
             'items.product',
             'diningTable',
@@ -298,7 +298,7 @@ class OrderController extends Controller
 
     public function orderReport(Request $request)
     {
-        $perPage = min((int) $request->get('per_page', 15), 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
         $user    = auth()->user();
 
         // ── Resolve allowed branch IDs for this user ──────────────────────────
