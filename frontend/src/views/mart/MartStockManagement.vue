@@ -2,8 +2,8 @@
   <div>
     <custom-title
       icon="mdi-package-variant"
-      title="Stock Overview"
-      subtitle="Current inventory levels for all mart products"
+      :title="t('stock_overview.title')"
+      :subtitle="t('stock_overview.subtitle')"
     >
       <template #right>
         <div class="d-flex gap-2">
@@ -14,7 +14,7 @@
             :loading="martProductStore.loading"
             @click="martProductStore.fetchProducts(true)"
           >
-            Refresh
+            {{ t('btn.refresh') }}
           </v-btn>
           <v-btn
             color="warning"
@@ -24,6 +24,7 @@
           >
             <!-- :to="{ name: 'MartLowStock' }" -->
             Low Stock
+            <!-- {{ t('btn.low_stock') }} -->
             <v-badge
               v-if="martProductStore.lowStockCount > 0"
               :content="martProductStore.lowStockCount"
@@ -38,7 +39,7 @@
             prepend-icon="mdi-tune"
             @click="openAdjust(null)"
           >
-            Adjust Stock
+            {{ t('btn.adjust') }}
           </v-btn>
         </div>
       </template>
@@ -433,6 +434,8 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import { adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const router = useRouter()
   const martProductStore = useMartProductStore()
@@ -511,14 +514,14 @@
     const all = martProductStore.products
     return [
       {
-        label: 'Total Products',
+        label: t('stock_overview.summary.total'),
         icon: 'mdi-package-variant',
         color: 'primary',
         value: all.length,
         sub: 'mart items'
       },
       {
-        label: 'In Stock',
+        label: t('stock_overview.summary.in_stock'),
         icon: 'mdi-check-circle',
         color: 'success',
         value: all.filter(p => p.stock_quantity > (p.reorder_level ?? 0))
@@ -526,7 +529,7 @@
         sub: 'healthy level'
       },
       {
-        label: 'Low Stock',
+        label: t('stock_overview.summary.low_stock'),
         icon: 'mdi-alert',
         color: 'warning',
         value: all.filter(
@@ -538,7 +541,7 @@
         sub: 'needs reorder'
       },
       {
-        label: 'Out of Stock',
+        label: t('stock_overview.summary.out_of_stock'),
         icon: 'mdi-alert-circle',
         color: 'error',
         value: all.filter(p => p.stock_quantity <= 0).length,
@@ -548,15 +551,15 @@
   })
 
   // ── Table headers ─────────────────────────────────────────────────────────
-  const headers = [
-    { title: 'Product', key: 'name', sortable: true },
-    { title: 'Current Stock', key: 'stock_quantity', sortable: true },
-    { title: 'Reorder Level', key: 'reorder_level', sortable: true },
-    { title: 'Stock Level', key: 'stock_bar', sortable: false },
-    { title: 'Units', key: 'active_units', sortable: false },
-    { title: 'Status', key: 'status', sortable: false },
+  const headers = computed(() =>[
+    { title: t('stock_overview.table.product'), key: 'name', sortable: true },
+    { title: t('stock_overview.table.stock'), key: 'stock_quantity', sortable: true },
+    { title: t('stock_overview.table.reorder'), key: 'reorder_level', sortable: true },
+    { title: t('stock_overview.table.stock_bar'), key: 'stock_bar', sortable: false },
+    { title: t('stock_overview.table.units'), key: 'active_units', sortable: false },
+    { title: t('stock_overview.table.status'), key: 'status', sortable: false },
     { title: '', key: 'actions', sortable: false }
-  ]
+  ])
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const stockPercent = p => {

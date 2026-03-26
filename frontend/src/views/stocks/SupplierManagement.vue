@@ -15,7 +15,7 @@
             "
             @click="showFilter = !showFilter"
           >
-            Filter
+            {{t('btn.filter')}}
           </v-btn>
           <v-btn
             color="primary"
@@ -24,7 +24,7 @@
             prepend-icon="mdi-plus"
             @click="openAdd"
           >
-            Add Supplier
+            {{ t('btn.add_supplier') }}
           </v-btn>
         </div>
       </template>

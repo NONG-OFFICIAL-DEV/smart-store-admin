@@ -3,8 +3,8 @@
     <!-- Header -->
     <custom-title
       icon="mdi-cart-arrow-down"
-      title="Purchase Orders"
-      subtitle="Mart stock replenishment"
+      :title="t('purchase_order.title')"
+      :subtitle="t('purchase_order.subtitle')"
     >
       <template #right>
         <!-- <v-btn
@@ -23,7 +23,7 @@
           prepend-icon="mdi-plus"
           @click="openCreate"
         >
-          New PO
+        {{ t('btn.create_po') }}
         </v-btn>
       </template>
     </custom-title>
@@ -192,14 +192,6 @@
       </v-data-table-server>
     </v-card>
 
-    <!-- Create/Edit Dialog -->
-    <!-- <MartPoDialog
-      v-model="dialog"
-      :po="selectedPo"
-      :loading="saving"
-      @save="handleSave"
-    /> -->
-
     <!-- Receive Dialog -->
     <MartPoReceiveDialog
       v-model="receiveDialog"
@@ -250,14 +242,16 @@
   import { ref, computed, onMounted } from 'vue'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  //   import MartPoDialog from '@/components/mart/MartPoDialog.vue'
   import MartPoReceiveDialog from '@/components/mart/MartPoReceiveDialog.vue'
   import MartPoDetailDialog from '@/components/mart/MartPoDetailDialog.vue'
   import { useRouter } from 'vue-router'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useI18n } from 'vue-i18n'
+
   const poStore = useMartPurchaseOrderStore()
   const { notif, confirm } = useAppUtils()
-  import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { format } = useCurrency()
+  const { t } = useI18n()
 
   const router = useRouter()
   const receiveDialog = ref(false)
@@ -273,7 +267,7 @@
     branch_id: null,
     search: '',
     status: null,
-    per_page: 15,
+    per_page: 10,
     page: 1
   })
 
@@ -306,24 +300,24 @@
     const orders = poStore.orders
     return [
       {
-        label: 'Total POs',
+        label: t('purchase_order.summary.total'),
         value: poStore.pagination?.total ?? 0,
         color: 'primary'
       },
       {
-        label: 'Draft',
+        label: t('purchase_order.summary.draft'),
         value: orders.filter(o => o.status === 'draft').length,
         color: 'grey'
       },
       {
-        label: 'In Progress',
+        label: t('purchase_order.summary.in_progress'),
         value: orders.filter(o =>
           ['submitted', 'confirmed', 'partially_received'].includes(o.status)
         ).length,
         color: 'warning'
       },
       {
-        label: 'Received',
+        label: t('purchase_order.summary.received'),
         value: orders.filter(o => o.status === 'received').length,
         color: 'success'
       }
@@ -344,7 +338,6 @@
   const canReceive = o =>
     ['confirmed', 'partially_received', 'submitted'].includes(o.status)
   const canCancel = o => !['received', 'cancelled'].includes(o.status)
-
 
   const fmtDate = v =>
     v

@@ -14,17 +14,20 @@ class MartProductController extends Controller
      */
     public function index(Request $request)
     {
-        // $tenantId = auth()->user()->staff->tenant_id;
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = min($perPage, 100);
 
         $products = Product::with(['activeUnits'])
-            // ->where('tenant_id', $tenantId)
             ->where(function ($q) {
                 $q->where('product_type', 'retail')
                     ->orWhere('track_stock', true);
             })
             ->orderBy('name')
-            ->get()
-            ->map(fn($p) => [
+            ->paginate($perPage); // ✅ paginate here
+
+        // Transform AFTER pagination
+        $products->getCollection()->transform(function ($p) {
+            return [
                 'id'              => $p->id,
                 'name'            => $p->name,
                 'sku'             => $p->sku,
@@ -47,9 +50,10 @@ class MartProductController extends Controller
                     'is_base_unit'    => (bool)  $u->is_base_unit,
                     'barcode'         => $u->barcode,
                 ]),
-            ]);
+            ];
+        });
 
-        return response()->json(['data' => $products]);
+        return response()->json($products);
     }
 
     /**
