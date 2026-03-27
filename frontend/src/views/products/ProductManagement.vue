@@ -6,94 +6,140 @@
       :subtitle="t('products.subtitle')"
     >
       <template #right>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          @click="openCreate"
-        >
-          {{ t('btn.add_product') }}
-        </v-btn>
+        <div class="d-flex gap-2 align-center">
+          <v-btn
+            :color="showStats ? 'primary' : 'default'"
+            :variant="showStats ? 'flat' : 'tonal'"
+            rounded="lg"
+            prepend-icon="mdi-chart-bar"
+            @click="showStats = !showStats"
+            class="me-4"
+          >
+            Show State
+          </v-btn>
+          <v-btn
+            :color="showFilters ? 'primary' : 'default'"
+            :variant="showFilters ? 'flat' : 'tonal'"
+            rounded="lg"
+            :prepend-icon="
+              showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+            "
+            @click="showFilters = !showFilters"
+          >
+            {{ t('btn.filter') }}
+            <!-- badge shows how many filters are active -->
+            <v-badge
+              v-if="activeFilterCount > 0"
+              :content="activeFilterCount"
+              color="error"
+              floating
+            />
+          </v-btn>
+          <v-btn
+            class="ms-4"
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-plus"
+            @click="openCreate"
+          >
+            {{ t('btn.add_product') }}
+          </v-btn>
+        </div>
       </template>
     </custom-title>
 
-    <!-- ── Filters ── -->
-    <v-card rounded="xl" elevation="0" border class="mb-4">
-      <v-card-text class="pa-4">
-        <v-row dense align="center">
-          <v-col cols="12" sm="4">
-            <v-text-field
-              v-model="search"
-              placeholder="Search by name, SKU, barcode..."
-              prepend-inner-icon="mdi-magnify"
+    <!-- Collapsible filter panel -->
+    <v-expand-transition>
+      <v-card v-if="showFilters" rounded="xl" elevation="0" border class="mb-4">
+        <v-card-text class="pa-4">
+          <v-row dense align="center">
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model="search"
+                placeholder="Search by name, SKU, barcode..."
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                clearable
+                rounded="lg"
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <v-select
+                v-model="filterType"
+                :items="productTypeOptions"
+                label="Type"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                clearable
+                rounded="lg"
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <v-select
+                v-model="filterAvailable"
+                :items="availabilityOptions"
+                label="Availability"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                clearable
+                rounded="lg"
+              />
+            </v-col>
+            <v-col cols="12" sm="2" class="d-flex justify-end">
+              <v-btn-toggle
+                v-model="viewMode"
+                density="compact"
+                rounded="lg"
+                variant="outlined"
+              >
+                <v-btn value="table" icon="mdi-view-list" size="small" />
+                <v-btn value="grid" icon="mdi-view-grid" size="small" />
+              </v-btn-toggle>
+            </v-col>
+          </v-row>
+
+          <!-- ✅ clear all filters -->
+          <div v-if="activeFilterCount > 0" class="d-flex justify-end mt-2">
+            <v-btn
               variant="outlined"
-              density="comfortable"
-              hide-details
-              clearable
+              color="error"
+              prepend-icon="mdi-close"
               rounded="lg"
-            />
-          </v-col>
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="filterType"
-              :items="productTypeOptions"
-              label="Type"
-              variant="outlined"
-              density="comfortable"
-              hide-details
-              clearable
-              rounded="lg"
-            />
-          </v-col>
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="filterAvailable"
-              :items="availabilityOptions"
-              label="Availability"
-              variant="outlined"
-              density="comfortable"
-              hide-details
-              clearable
-              rounded="lg"
-            />
-          </v-col>
-          <v-col cols="12" sm="2" class="d-flex justify-end">
-            <v-btn-toggle
-              v-model="viewMode"
-              density="compact"
-              rounded="lg"
-              variant="outlined"
+              @click="clearFilters"
             >
-              <v-btn value="table" icon="mdi-view-list" size="small" />
-              <v-btn value="grid" icon="mdi-view-grid" size="small" />
-            </v-btn-toggle>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
-    <!-- ── Stats row ──────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border>
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div>
-                <p class="text-caption text-medium-emphasis">
-                  {{ stat.label }}
-                </p>
-                <p class="text-h6 font-weight-bold mt-1">{{ stat.value }}</p>
+              Clear filters
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-expand-transition>
+    <!-- Stats panel -->
+    <v-expand-transition>
+      <v-row v-if="showStats" dense class="mb-4">
+        <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
+          <v-card rounded="xl" elevation="0" border>
+            <v-card-text class="pa-4">
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <p class="text-caption text-medium-emphasis">
+                    {{ stat.label }}
+                  </p>
+                  <p class="text-h6 font-weight-bold mt-1">{{ stat.value }}</p>
+                </div>
+                <v-avatar :color="stat.color" size="40" rounded="lg">
+                  <v-icon :icon="stat.icon" size="20" />
+                </v-avatar>
               </div>
-              <v-avatar :color="stat.color" size="40" rounded="lg">
-                <v-icon :icon="stat.icon" size="20" />
-              </v-avatar>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-expand-transition>
     <!-- ── Table View ─────────────────────────────────────────────────────── -->
     <v-card v-if="viewMode === 'table'" rounded="xl" elevation="0" border>
       <v-data-table-server
@@ -387,7 +433,8 @@
   const viewMode = ref('table')
   const dialog = ref(false)
   const editItem = ref(null)
-
+  const showFilters = ref(false)
+  const showStats = ref(false)
   // ── Fetch on mount ────────────────────────────────────────────────────────────
   onMounted(async () => {
     await categoryStore.fetchCategories()
@@ -494,6 +541,21 @@
     })
   )
   // ── CRUD ──────────────────────────────────────────────────────────────────────
+  // ✅ count active filters for badge
+  const activeFilterCount = computed(() => {
+    let count = 0
+    if (search.value) count++
+    if (filterType.value) count++
+    if (filterAvailable.value) count++
+    return count
+  })
+
+  function clearFilters() {
+    search.value = ''
+    filterType.value = null
+    filterAvailable.value = null
+  }
+
   const goToUnits = p => {
     router.push({
       name: 'ProductUnits',

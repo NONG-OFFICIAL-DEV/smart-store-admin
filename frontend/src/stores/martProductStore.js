@@ -6,8 +6,7 @@ export const useMartProductStore = defineStore('martProduct', {
   state: () => ({
     products: [],
     pagination: {},
-    loading: false,
-    lastFetch: null
+    loading: false
   }),
 
   getters: {
@@ -27,17 +26,12 @@ export const useMartProductStore = defineStore('martProduct', {
   },
 
   actions: {
-    async fetchProducts(force = false) {
-      // Skip if fetched in last 60s and not forced
-      if (!force && this.lastFetch && Date.now() - this.lastFetch < 60_000)
-        return
-
+    async fetchProducts(filters = {}) {
       this.loading = true
       try {
-        const res = await api.get('v1/mart/products')
+        const res = await api.get('v1/mart/products', { params: filters })
         this.products = res.data.data
         this.pagination = res.data
-        this.lastFetch = Date.now()
       } finally {
         this.loading = false
       }

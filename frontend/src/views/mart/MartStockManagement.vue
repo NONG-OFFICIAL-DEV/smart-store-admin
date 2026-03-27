@@ -12,7 +12,7 @@
             rounded="lg"
             prepend-icon="mdi-refresh"
             :loading="martProductStore.loading"
-            @click="martProductStore.fetchProducts(true)"
+            @click="refresh()"
           >
             {{ t('btn.refresh') }}
           </v-btn>
@@ -124,20 +124,16 @@
       </v-card-text>
     </v-card>
 
-    <!-- Loading -->
-    <div v-if="martProductStore.loading" class="text-center py-16">
-      <v-progress-circular indeterminate color="primary" class="mb-3" />
-      <div class="text-caption text-medium-emphasis">Loading inventory...</div>
-    </div>
-
     <!-- ── TABLE VIEW ──────────────────────────────────────────────────── -->
-    <v-card v-else-if="viewMode === 'table'" rounded="lg" border elevation="0">
-      <v-data-table
+    <v-card v-if="viewMode === 'table'" rounded="lg" border elevation="0">
+      <v-data-table-server
         :headers="headers"
-        :items="filtered"
-        :search="search"
+        :items="martProductStore.products"
+        :items-length="totalItems"
+        no-data-text="No categories found"
         item-value="id"
-        :items-per-page="20"
+        rounded="0"
+        @update:options="fetchOnOptions"
       >
         <!-- Product -->
         <template #item.name="{ item }">
@@ -276,7 +272,7 @@
             <div class="text-body-2 text-grey">No products found</div>
           </div>
         </template>
-      </v-data-table>
+      </v-data-table-server>
     </v-card>
 
     <!-- ── GRID VIEW ───────────────────────────────────────────────────── -->
@@ -412,7 +408,6 @@
         </div>
       </div>
     </div>
-
     <!-- Adjust dialog -->
     <StockAdjustDialog
       v-model="adjustDialog"
@@ -436,6 +431,7 @@
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
+  import { useDataTable } from '@/composables/useServerTable' // ✅ your composable
 
   const router = useRouter()
   const martProductStore = useMartProductStore()
@@ -466,6 +462,8 @@
   ]
 
   // ── Filtered + sorted list ────────────────────────────────────────────────
+  const totalItems = computed(() => martProductStore.pagination?.total ?? 0)
+
   const branchList = computed(() => {
     const b = branchStore.branches
     return Array.isArray(b) ? b : (b?.data ?? [])
@@ -551,12 +549,28 @@
   })
 
   // ── Table headers ─────────────────────────────────────────────────────────
-  const headers = computed(() =>[
+  const headers = computed(() => [
     { title: t('stock_overview.table.product'), key: 'name', sortable: true },
-    { title: t('stock_overview.table.stock'), key: 'stock_quantity', sortable: true },
-    { title: t('stock_overview.table.reorder'), key: 'reorder_level', sortable: true },
-    { title: t('stock_overview.table.stock_bar'), key: 'stock_bar', sortable: false },
-    { title: t('stock_overview.table.units'), key: 'active_units', sortable: false },
+    {
+      title: t('stock_overview.table.stock'),
+      key: 'stock_quantity',
+      sortable: true
+    },
+    {
+      title: t('stock_overview.table.reorder'),
+      key: 'reorder_level',
+      sortable: true
+    },
+    {
+      title: t('stock_overview.table.stock_bar'),
+      key: 'stock_bar',
+      sortable: false
+    },
+    {
+      title: t('stock_overview.table.units'),
+      key: 'active_units',
+      sortable: false
+    },
     { title: t('stock_overview.table.status'), key: 'status', sortable: false },
     { title: '', key: 'actions', sortable: false }
   ])
@@ -606,7 +620,15 @@
       return 'mdi-alert'
     return 'mdi-check-circle'
   }
-
+  // ── useDataTable ───────────────────────────────────────────────────────────
+  const { fetchOnOptions, refresh } = useDataTable(
+    martProductStore.fetchProducts,
+    () => ({
+      search: search.value,
+      stock_filter: stockFilter.value,
+      sort_by: sortBy.value
+    })
+  )
   // ── Adjust ────────────────────────────────────────────────────────────────
   const openAdjust = product => {
     adjustTarget.value = product
@@ -628,7 +650,7 @@
       )
       notif('Stock adjusted', { type: 'success' })
       adjustDialog.value = false
-      martProductStore.fetchProducts(true)
+      refresh()
     } catch (e) {
       notif(e.response?.data?.message ?? 'Failed', { type: 'error' })
     } finally {
@@ -663,10 +685,7 @@
   }
 
   onMounted(async () => {
-    await Promise.all([
-      martProductStore.fetchProducts(),
-      branchStore.fetchBranches?.()
-    ])
+    await Promise.all([branchStore.fetchBranches?.()])
   })
 </script>
 

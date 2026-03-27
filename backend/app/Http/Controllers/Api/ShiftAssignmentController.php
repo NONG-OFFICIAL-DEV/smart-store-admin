@@ -11,12 +11,18 @@ class ShiftAssignmentController extends Controller
     // ── GET /api/v1/shift-assignments ─────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = StaffShift::query()->with([
-            'shift',           // shift name, start_time, end_time
-            'staff.user',      // staff full_name, email
-            'staff.role',      // role name
-            'branch',          // branch name
-        ]);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        $query = StaffShift::query()
+            ->with([
+                'shift',           // shift name, start_time, end_time
+                'staff.user',      // staff full_name, email
+                'staff.role',      // role name
+                'branch',          // branch name
+            ])
+            ->whereHas('staff', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            });
 
         // Filter by shift
         if ($request->filled('shift_id')) {
@@ -35,18 +41,20 @@ class ShiftAssignmentController extends Controller
 
         // Filter by date range
         if ($request->filled('date_from')) {
-            $query->where('shift_date', '>=', $request->date_from);
+            $query->whereDate('shift_date', '>=', $request->date_from);
         }
+
         if ($request->filled('date_to')) {
-            $query->where('shift_date', '<=', $request->date_to);
+            $query->whereDate('shift_date', '<=', $request->date_to);
         }
 
         // Filter by today
         if ($request->boolean('today')) {
-            $query->where('shift_date', today()->toDateString());
+            $query->whereDate('shift_date', today());
         }
 
-        $assignments = $query->orderBy('shift_date', 'desc')
+        $assignments = $query
+            ->orderBy('shift_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(min((int) $request->get('per_page', 20), 100));
 

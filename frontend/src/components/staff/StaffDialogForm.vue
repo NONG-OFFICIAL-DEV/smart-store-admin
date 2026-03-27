@@ -113,14 +113,7 @@
                       rounded="lg"
                       :rules="[r.required]"
                       prepend-inner-icon="mdi-shield-account-outline"
-                    >
-                      <template #item="{ props: p, item }">
-                        <v-list-item
-                          v-bind="p"
-                          :subtitle="item.raw?.description || ''"
-                        />
-                      </template>
-                    </v-select>
+                    ></v-select>
                   </v-col>
                   <v-col cols="12" sm="6">
                     <v-text-field
