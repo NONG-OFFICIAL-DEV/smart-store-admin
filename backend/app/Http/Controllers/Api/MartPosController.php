@@ -397,16 +397,22 @@ class MartPosController extends Controller
                 ->whereBetween('stock_movements.created_at', [$from, $to])
                 ->join('products', 'stock_movements.product_id', '=', 'products.id')
                 ->selectRaw("
-                    stock_movements.product_id,
-                    products.name           as product_name,
-                    products.image_url,
-                    SUM(CASE WHEN stock_movements.quantity > 0 THEN stock_movements.quantity ELSE 0 END) as total_in,
-                    SUM(CASE WHEN stock_movements.quantity < 0 THEN ABS(stock_movements.quantity) ELSE 0 END) as total_out
-                ")
+        stock_movements.product_id,
+        products.name        as product_name,
+        products.image_url,
+        SUM(CASE WHEN stock_movements.quantity > 0 THEN stock_movements.quantity ELSE 0 END)          as total_in,
+        SUM(CASE WHEN stock_movements.quantity < 0 THEN ABS(stock_movements.quantity) ELSE 0 END)     as total_out
+    ")
                 ->groupBy('stock_movements.product_id', 'products.name', 'products.image_url')
                 ->orderByDesc('total_out')
                 ->limit(20)
-                ->get();
+                ->get()
+                ->map(function ($row) {
+                    $row->image_url = $row->image_url
+                        ? asset('storage/' . $row->image_url)
+                        : null;
+                    return $row;
+                });
         }
 
         // ── Category breakdown ─────────────────────────────────────────────

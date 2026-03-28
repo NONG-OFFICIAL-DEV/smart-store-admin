@@ -59,6 +59,9 @@
           <div class="text-h5 font-weight-black text-indigo">
             {{ fmt(report.summary?.avg_po_value) }}
           </div>
+           <div class="text-caption text-medium-emphasis mt-1">
+            {{ report.summary?.total_pos ?? 0 }} purchase orders
+          </div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
@@ -254,7 +257,27 @@
 </template>
 
 <script setup>
-  import { ref, computed, nextTick, onMounted } from 'vue'
+  import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+  import {
+    Chart,
+    BarElement,
+    BarController,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+  } from 'chart.js'
+
+  // Register only what you need (tree-shakeable)
+  Chart.register(
+    BarElement,
+    BarController,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+  )
+
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useBranchStore } from '@/stores/branchStore'
@@ -385,10 +408,17 @@
     })
 
   // ── Chart ─────────────────────────────────────────────────────────────────
+  // ── Chart ─────────────────────────────────────────────────────────────────
   const drawChart = () => {
-    if (!chartCanvas.value || typeof window.Chart === 'undefined') return
-    if (chartInstance) chartInstance.destroy()
-    chartInstance = new window.Chart(chartCanvas.value, {
+    if (!chartCanvas.value) return
+    if (!report.value.chart?.length) return
+
+    if (chartInstance) {
+      chartInstance.destroy()
+      chartInstance = null
+    }
+
+    chartInstance = new Chart(chartCanvas.value, {
       type: 'bar',
       data: {
         labels: report.value.chart.map(c => c.label),
@@ -405,8 +435,14 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { y: { ticks: { callback: v => `$${v}` } } }
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: v => `$${v}` }
+          }
+        }
       }
     })
   }
@@ -437,6 +473,9 @@
   onMounted(async () => {
     await branchStore.fetchBranches() // ← correct: separate await
     onPeriodChange('month') // ← sets dates + loads
+  })
+  onUnmounted(() => {
+    if (chartInstance) chartInstance.destroy()
   })
 </script>
 

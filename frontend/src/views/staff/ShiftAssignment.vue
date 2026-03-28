@@ -18,7 +18,7 @@
 
   <v-container fluid class="pa-0">
     <!-- ── Stats ─────────────────────────────────────────────────────────────── -->
-    <v-row class="mb-5">
+    <v-row class="mb-5" dense>
       <v-col v-for="(stat, i) in stats" :key="i" cols="12" sm="6" lg="3">
         <v-card
           rounded="xl"

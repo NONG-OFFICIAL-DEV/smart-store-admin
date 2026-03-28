@@ -375,11 +375,10 @@
       </v-col>
     </v-row>
   </v-container>
-
   <!-- ── Product Edit Dialog ─────────────────────────────────────────────── -->
   <ProductFormDialog
     v-model="productDialog"
-    :product="product"
+    :edit-item="editItem"
     :loading="saving"
     @saved="handleProductSaved"
   />
@@ -426,6 +425,7 @@
 
   const saving = ref(false)
   const productDialog = ref(false)
+  const editItem = ref(null)
   const variantDialog = ref(false)
   const modifierLinkDialog = ref(false)
   const selectedVariant = ref(null)
@@ -455,6 +455,7 @@
 
   // ── Product Actions ───────────────────────────────────────────────────────────
   const openEditProduct = () => {
+    editItem.value = { ...product.value } // ← .value
     productDialog.value = true
   }
 
@@ -477,7 +478,7 @@
     saving.value = true
     try {
       payload.append('_method', 'PUT')
-      await productStore.updateProduct(payload.id, payload)
+      await productStore.updateProduct(product.value.id, payload)
       await productStore.fetchProductById(route.params.id)
       notif('Product updated', {
         type: 'success'

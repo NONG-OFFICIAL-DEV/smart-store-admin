@@ -402,7 +402,7 @@
         v-if="viewMode === 'table'"
         :headers="productHeaders"
         :items="filteredProducts"
-        :items-per-page="25"
+        :items-per-page="10"
         item-value="id"
       >
         <template #item.name="{ item }">

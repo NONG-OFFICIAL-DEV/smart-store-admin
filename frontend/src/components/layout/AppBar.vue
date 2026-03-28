@@ -22,14 +22,15 @@
         </template>
       </div>
     </v-app-bar-title>
-    <switcher-language :icon-btn="false" />
-
-    <v-btn class="text-none" stacked to="/notifications">
-      <v-badge color="error" :content="props.notifications_count">
-        <v-icon>mdi-bell-outline</v-icon>
-      </v-badge>
-    </v-btn>
     <template v-slot:append>
+      <switcher-language :icon-btn="false" />
+
+      <v-btn class="text-none" stacked to="/notifications">
+        <v-badge color="error" :content="props.notifications_count">
+          <v-icon>mdi-bell-outline</v-icon>
+        </v-badge>
+      </v-btn>
+
       <!-- Avatar menu -->
       <v-menu rounded="lg">
         <template #activator="{ props: menuProps }">
@@ -128,7 +129,7 @@
     notifications_count: Number,
     buName: String,
     branchName: String,
-    roleName: String,
+    roleName: String
   })
 
   const authStore = useAuthStore()
@@ -168,8 +169,16 @@
   }
 </script>
 <style scoped>
-.gap-1 { gap: 4px;  }
-.gap-2 { gap: 8px;  }
-.gap-3 { gap: 12px; }
-.min-w-0 { min-width: 0; }
+  .gap-1 {
+    gap: 4px;
+  }
+  .gap-2 {
+    gap: 8px;
+  }
+  .gap-3 {
+    gap: 12px;
+  }
+  .min-w-0 {
+    min-width: 0;
+  }
 </style>
