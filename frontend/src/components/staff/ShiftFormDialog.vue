@@ -44,7 +44,6 @@
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                :rules="[r.required]"
                 :disabled="isEdit"
                 prepend-inner-icon="mdi-domain"
                 hint="This shift will be available to all branches under this tenant"

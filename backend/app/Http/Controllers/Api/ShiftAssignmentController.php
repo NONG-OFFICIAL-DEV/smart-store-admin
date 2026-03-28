@@ -4,42 +4,64 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaffShift;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class ShiftAssignmentController extends Controller
 {
-    // ── GET /api/v1/shift-assignments ─────────────────────────────────────────
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
+
+    private function tenantId(): ?string
+    {
+        $user = auth()->user();
+        return $user->ownedTenant?->id
+            ?? $user->staff()->withoutGlobalScopes()->first()?->tenant_id;
+    }
+
+    private function isSuperAdmin(): bool
+    {
+        $user = auth()->user();
+        // ← swap this check to match your actual super admin flag
+        return $user->is_super_admin ?? false;
+    }
+
     public function index(Request $request)
     {
-        $tenantId = $this->tenantResolver->resolve($request);
-
         $query = StaffShift::query()
             ->with([
-                'shift',           // shift name, start_time, end_time
-                'staff.user',      // staff full_name, email
-                'staff.role',      // role name
-                'branch',          // branch name
-            ])
-            ->whereHas('staff', function ($q) use ($tenantId) {
-                $q->where('tenant_id', $tenantId);
-            });
+                'shift',
+                'staff.user',
+                'staff.role',
+                'branch',
+            ]);
 
-        // Filter by shift
+        // ── Tenant scoping ────────────────────────────────────────
+        if (! $this->isSuperAdmin()) {
+            $tenantId = $this->tenantId();
+
+            // StaffShift has no tenant_id, so scope through staff relation
+            $query->whereHas('staff', function ($q) use ($tenantId) {
+                $q->withoutGlobalScopes()
+                    ->where('tenant_id', $tenantId);
+            });
+        }
+        // super admin → no tenant filter, gets everything
+
+        // ── Filters ───────────────────────────────────────────────
         if ($request->filled('shift_id')) {
             $query->where('shift_id', $request->shift_id);
         }
 
-        // Filter by staff
         if ($request->filled('staff_id')) {
             $query->where('staff_id', $request->staff_id);
         }
 
-        // Filter by branch
         if ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
 
-        // Filter by date range
         if ($request->filled('date_from')) {
             $query->whereDate('shift_date', '>=', $request->date_from);
         }
@@ -48,7 +70,6 @@ class ShiftAssignmentController extends Controller
             $query->whereDate('shift_date', '<=', $request->date_to);
         }
 
-        // Filter by today
         if ($request->boolean('today')) {
             $query->whereDate('shift_date', today());
         }

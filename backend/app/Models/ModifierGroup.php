@@ -42,6 +42,7 @@ class ModifierGroup extends BaseModel
         /** @var \App\Models\User $user */
         $data['tenant_id'] = "52ae3db8-d6da-4ecb-b572-35113d50c23e";
         // Auth::user()->tenant_id;
+        // ;;;
         return parent::store($data, $id);
     }
 

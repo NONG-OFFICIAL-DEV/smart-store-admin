@@ -25,11 +25,10 @@ class Shift extends BaseModel
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────
-    public static function store(array|Request $request, ?string $id = null)
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
     {
         $data = $request instanceof Request
             ? $request->only([
-                'tenant_id',
                 'branch_id',
                 'name',
                 'shift_type',
@@ -39,7 +38,10 @@ class Shift extends BaseModel
                 'is_active',
             ])
             : $request;
-
+        // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
+        }
         return parent::store($data, $id);
     }
 
