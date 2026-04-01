@@ -51,7 +51,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'branch_id'        => 'required|uuid|exists:branches,id',
-            'table_id'         => 'nullable|uuid|exists:tables,id',
+            'table_id'         => 'nullable',
             'order_type'       => 'in:dine_in,takeaway,delivery,online',
             'notes'            => 'nullable|string|max:500',
             'items'            => 'required|array|min:1',

@@ -236,10 +236,7 @@ class MartPosController extends Controller
         $branch = Branch::findOrFail($request->branch_id);
 
         $products = Product::with(['activeUnits', 'category:id,name'])
-            ->where(function ($q) {
-                $q->where('product_type', 'retail')
-                    ->orWhere('track_stock', true);
-            })
+
             ->where('tenant_id', $branch->tenant_id)
             ->where('is_available', true)
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
@@ -270,10 +267,10 @@ class MartPosController extends Controller
 
         $categories = Category::whereHas('products', function ($q) use ($branch) {
             $q->where('tenant_id', $branch->tenant_id)
-                ->where(function ($q) {
-                    $q->where('product_type', 'retail')
-                        ->orWhere('track_stock', true);
-                })
+                // ->where(function ($q) {
+                //     $q->where('product_type', 'retail')
+                //         ->orWhere('track_stock', true);
+                // })
                 ->where('is_available', true);
         })
             ->where('is_active', true)
