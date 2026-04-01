@@ -88,6 +88,11 @@ class AuthController extends Controller
                 // ── Role flags at top level too so authStore can read immediately ──
                 'is_super_admin' => $user->is_super_admin,
                 'is_owner'       => (bool) Tenant::where('owner_user_id', $user->id)->exists(),
+                // ── ADD THESE ──────────────────────────────────────────────
+                'bu_type' => $user->is_super_admin ? null
+                    : (Tenant::where('owner_user_id', $user->id)->value('bu_type')
+                        ?? $user->staff()->withoutGlobalScopes()->with('tenant')->first()?->tenant?->bu_type),
+
             ]);
         } catch (JWTException $e) {
             return response()->json([
