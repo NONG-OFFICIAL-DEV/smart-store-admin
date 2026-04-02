@@ -1,6 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+    icon="mdi-account-group"
       title="Users"
       subtitle="Manage all user accounts across the platform"
     >
@@ -259,8 +260,6 @@
   const filterStatus = ref(null)
   const filterVerified = ref(null)
   const dialog = ref(false)
-  const deleteDialog = ref(false)
-  const deleteLoading = ref(false)
   const saving = ref(false)
   const editItem = ref(null)
 
@@ -415,7 +414,6 @@
   }
 
   const confirmDeleteUser = async data => {
-    deleteLoading.value = true
     try {
       confirm({
         title: 'Delete User?',
@@ -433,13 +431,10 @@
         },
         cancel: () => {}
       })
-      deleteDialog.value = false
     } catch {
       notif('Failed to delete', {
         type: 'error'
       })
-    } finally {
-      deleteLoading.value = false
     }
   }
 

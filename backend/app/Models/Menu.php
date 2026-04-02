@@ -20,7 +20,7 @@ class Menu extends BaseModel
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────
-    public static function store(array|Request $request, ?string $id = null)
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
     {
         $data = $request instanceof Request
             ? $request->only(['tenant_id', 'name', 'description', 'is_default', 'is_active'])
@@ -29,6 +29,10 @@ class Menu extends BaseModel
         // Only one default menu per tenant
         if (!empty($data['is_default']) && $data['is_default']) {
             static::where('tenant_id', $data['tenant_id'])->update(['is_default' => false]);
+        }
+        // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
         }
 
         return parent::store($data, $id);

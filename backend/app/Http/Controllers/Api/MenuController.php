@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Menu;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -33,7 +37,8 @@ class MenuController extends Controller
      */
     public function store(Request $request)
     {
-        return Menu::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Menu::store($request, null, $tenantId);
     }
 
     /**
@@ -49,7 +54,8 @@ class MenuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return Menu::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Menu::store($request, $id, $tenantId);
     }
 
     /**

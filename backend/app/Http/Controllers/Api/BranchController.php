@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Order;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +42,8 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        return Branch::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Branch::store($request, null, $tenantId);
     }
 
     /**
@@ -93,7 +98,8 @@ class BranchController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return Branch::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Branch::store($request, $id, $tenantId);
     }
 
     /**

@@ -25,11 +25,10 @@ class ModifierGroup extends BaseModel
         'max_selections'  => 'integer',
     ];
 
-    public static function store(array|Request $request, ?string $id = null)
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
     {
         $data = $request instanceof Request
             ? $request->only([
-                'tenant_id',
                 'name',
                 'selection_type',
                 'min_selections',
@@ -38,10 +37,10 @@ class ModifierGroup extends BaseModel
             ])
             : $request;
 
-        // ✅ Inject tenant_id server-side — remove 'tenant_id' from ->only() above
-        /** @var \App\Models\User $user */
-        $data['tenant_id'] = "52ae3db8-d6da-4ecb-b572-35113d50c23e";
-        // Auth::user()->tenant_id;
+          // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
+        }
         // ;;;
         return parent::store($data, $id);
     }

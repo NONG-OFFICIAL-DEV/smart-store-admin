@@ -38,7 +38,7 @@ class ShiftController extends Controller
     public function store(Request $request)
     {
         $tenantId = $this->tenantResolver->resolve($request);
-        return Shift::store($request,null,$tenantId);
+        return Shift::store($request, null, $tenantId);
     }
 
     /**
@@ -51,7 +51,8 @@ class ShiftController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return Shift::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Shift::store($request, $id, $tenantId);
     }
 
     /**
@@ -59,6 +60,17 @@ class ShiftController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Shift::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product removed'
+        ]);
     }
 }

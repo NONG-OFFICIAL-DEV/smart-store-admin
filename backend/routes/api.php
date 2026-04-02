@@ -67,6 +67,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\HospitalityPosController;
 use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\MartPurchaseOrderController;
 use App\Http\Controllers\Api\OrderExportController;
@@ -389,7 +390,16 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('activity',     [AdminDashboardController::class, 'activity']);
     });
 
-    // ── Mart Purchase Orders ───────────────────────────────────────────────────
+    // ── Hospitality  ───────────────────────────────────────────────────
+    Route::prefix('hospitality')->group(function () {
+        Route::prefix('/pos')->group(function () {
+            Route::get('products', [HospitalityPosController::class, 'productHospitalityPos']);
+            // Route::get('orders', [HospitalityPosController::class, 'index']);
+            // Route::post('orders', [HospitalityPosController::class, 'store']);
+            // Route::get('categories', [HospitalityPosController::class, 'categories']);
+        });
+    });
+    
     Route::prefix('mart')->group(function () {
 
         Route::get('purchase-orders', [MartPurchaseOrderController::class, 'index']);

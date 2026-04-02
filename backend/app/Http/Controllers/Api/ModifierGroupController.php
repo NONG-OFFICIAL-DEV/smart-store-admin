@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ModifierGroup;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class ModifierGroupController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -32,7 +36,8 @@ class ModifierGroupController extends Controller
      */
     public function store(Request $request)
     {
-        return ModifierGroup::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return ModifierGroup::store($request, null, $tenantId);
     }
 
     /**
@@ -48,7 +53,8 @@ class ModifierGroupController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return ModifierGroup::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return ModifierGroup::store($request, $id, $tenantId);
     }
 
     /**

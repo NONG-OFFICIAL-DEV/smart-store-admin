@@ -5,7 +5,7 @@
       <!-- Header -->
       <v-card-title class="d-flex align-center justify-space-between px-6 pt-5 pb-4">
         <div class="d-flex align-center gap-3">
-          <v-avatar :color="isEdit ? 'primary' : 'success'" variant="tonal" size="40" rounded="md">
+          <v-avatar :color="isEdit ? 'primary' : 'success'" variant="tonal" size="40" rounded="md" class="me-2">
             <v-icon :icon="isEdit ? 'mdi-pencil-outline' : 'mdi-plus'" size="20" />
           </v-avatar>
           <div>

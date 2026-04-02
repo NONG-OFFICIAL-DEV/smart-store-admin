@@ -46,6 +46,7 @@
             <v-row dense>
               <v-col cols="12" sm="8">
                 <v-select
+                  v-if="isSuperAdmin()"
                   v-model="form.tenant_id"
                   :items="tenants"
                   item-title="name"
@@ -334,6 +335,8 @@
 <script setup>
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useTenantStore } from '@/stores/tenantStore'
+  import { usePermission } from '@/composables/usePermission'
+  const { isSuperAdmin } = usePermission()
 
   const props = defineProps({
     modelValue: Boolean,

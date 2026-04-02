@@ -308,7 +308,7 @@
   import ModifierOptionDialog from '@/components/products/ModifierOptionDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
-
+  const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   const groupStore = useModifierGroupStore()
   const optionStore = useModifierOptionStore()
@@ -325,9 +325,8 @@
   const selectedGroup = ref(null)
   const selectedOption = ref(null)
   const activeGroupId = ref(null)
- 
-  const filters = ref({ selection_type: null, is_required: null })
 
+  const filters = ref({ selection_type: null, is_required: null })
 
   // ── Stats ────────────────────────────────────────────────────────────────────
   const stats = computed(() => {
@@ -403,19 +402,18 @@
         await groupStore.updateModifierGroup(payload.id, payload)
       } else {
         const newGroup = await groupStore.createModifierGroup(payload)
-        // Pre-load empty options for the new group so groupOptions() works immediately
         await optionStore.fetchModifierOptions(newGroup?.id ?? payload.id)
       }
-      showSnack(payload.id ? 'Group updated' : 'Group created')
-      notif(payload.id ? 'Group updated' : 'Group created', {
-        type: 'success'
-      })
+      notif(payload.id ? 'Group updated' : 'Group created', { type: 'success' })
       callbacks?.resolve?.()
     } catch (err) {
       callbacks?.reject?.(err)
-      notif('Failed to save group', {
-        type: 'error'
-      })
+
+      // ✅ Only show generic error for non-validation errors
+      // 422 = validation — the dialog handles those inline via serverErrors
+      if (err?.response?.status !== 422) {
+        notif('Failed to save group', { type: 'error' })
+      }
     } finally {
       groupSaving.value = false
     }

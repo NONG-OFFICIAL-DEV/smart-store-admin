@@ -36,6 +36,7 @@
             <!-- Tenant — shift belongs to tenant, shared across all branches -->
             <v-col cols="12">
               <v-select
+                v-if="isSuperAdmin()"
                 v-model="form.tenant_id"
                 :items="tenants"
                 item-value="id"
@@ -209,6 +210,8 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { useTenantStore } from '@/stores/tenantStore'
+  import { usePermission } from '@/composables/usePermission'
+  const { isSuperAdmin } = usePermission()
 
   const props = defineProps({
     modelValue: Boolean,

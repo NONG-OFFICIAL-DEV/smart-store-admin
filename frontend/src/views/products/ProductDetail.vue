@@ -504,27 +504,31 @@
     variantDialog.value = true
   }
 
-  const handleVariantSaved = async payload => {
-    try {
-      if (payload.id) {
-        await variantStore.updateProductVariant(payload.id, payload)
-      } else {
-        await variantStore.createProductVariant({
-          ...payload,
-          product_id: product.value.id
-        })
-      }
-
-      // callbacks?.resolve?.() // ← resolve first
-      notif(payload.id ? 'Variant updated' : 'Variant added', {
-        type: 'success'
+  const handleVariantSaved = async (payload, callbacks) => {
+  try {
+    if (payload.id) {
+      await variantStore.updateProductVariant(payload.id, payload)
+    } else {
+      await variantStore.createProductVariant({
+        ...payload,
+        product_id: product.value.id
       })
-      await productStore.fetchProductById(route.params.id)
-    } catch (err) {
-      // callbacks?.reject?.(err) // ← only on real error
+    }
+
+    await productStore.fetchProductById(route.params.id)
+    notif(payload.id ? 'Variant updated' : 'Variant added', { type: 'success' })
+
+    callbacks?.resolve?.()   // ← resolve the promise FIRST
+    // ❌ remove variantDialog.value = false — dialog closes itself in .then(() => close())
+
+  } catch (err) {
+    callbacks?.reject?.(err)
+
+    if (err?.response?.status !== 422) {
       notif('Failed to save variant', { type: 'error' })
     }
   }
+}
 
   const handleDeleteVariant = async variant => {
     confirm({

@@ -26,7 +26,7 @@ export const useProductVariantStore = defineStore('productVariant', {
     },
     async createProductVariant(data) {
       const res = await createProductVariantApi(data)
-      this.productVariants.unshift(res.data.data)
+      return res
     },
     async updateProductVariant(id, data) {
       const res = await updateProductVariantApi(id, data)
