@@ -94,7 +94,7 @@
         <!-- Retail price -->
         <template #item.retail_price="{ item }">
           <span class="font-weight-bold text-body-2">
-            {{ fmt(item.retail_price) }}
+            {{ format(item.retail_price) }}
           </span>
         </template>
 
@@ -104,7 +104,7 @@
             v-if="item.wholesale_price"
             class="text-body-2 text-success font-weight-bold"
           >
-            {{ fmt(item.wholesale_price) }}
+            {{ format(item.wholesale_price) }}
           </span>
           <span v-else class="text-caption text-medium-emphasis">—</span>
         </template>
@@ -116,7 +116,7 @@
               {{ marginPct(item.retail_price, item.cost_price) }}%
             </div>
             <div class="text-caption text-medium-emphasis">
-              cost {{ fmt(item.cost_price) }}
+              cost {{ format(item.cost_price) }}
             </div>
           </div>
           <span v-else class="text-caption text-medium-emphasis">—</span>
@@ -226,14 +226,15 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { useRoute } from 'vue-router'
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import ProductUnitDialog from '@/components/products/ProductUnitDialog.vue'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
+  const { format } = useCurrency()
   const route = useRoute()
-  const router = useRouter()
   const unitStore = useProductUnitStore()
   const { notif } = useAppUtils()
 
@@ -258,11 +259,6 @@
     { title: '', key: 'actions', sortable: false, width: '80' }
   ]
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
   const marginPct = (sell, cost) => (((sell - cost) / sell) * 100).toFixed(1)
 
   const openCreate = () => {
