@@ -50,6 +50,7 @@ class TenantController extends Controller
             'plan'          => 'nullable|in:free,starter,pro,enterprise',
             'timezone'      => 'nullable|string|max:60',
             'currency'      => 'nullable|string|size:3',
+            'bu_type'      => 'nullable|string',
             'locale'        => 'nullable|string|max:10',
             'primary_color' => 'nullable|string|max:7',
             'logo_url'      => 'nullable|url',
@@ -76,6 +77,7 @@ class TenantController extends Controller
                 'timezone'      => $request->timezone      ?? 'UTC',
                 'currency'      => $request->currency      ?? 'USD',
                 'locale'        => $request->locale        ?? 'en-US',
+                'bu_type'      => $request->bu_type      ?? null,
                 'primary_color' => $request->primary_color,
                 'logo_url'      => $request->logo_url,
                 'owner_user_id' => $owner->id,   // ← set explicitly, never from request

@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ingredient;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class IngredientController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +38,8 @@ class IngredientController extends Controller
      */
     public function store(Request $request)
     {
-        return Ingredient::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Ingredient::store($request, null, $tenantId);
     }
 
     /**
@@ -50,7 +55,8 @@ class IngredientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return Ingredient::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Ingredient::store($request, $id, $tenantId);
     }
 
     /**
@@ -58,6 +64,17 @@ class IngredientController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $record = Ingredient::find($id);
+
+        if (!$record) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $record->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category removed'
+        ]);
     }
 }

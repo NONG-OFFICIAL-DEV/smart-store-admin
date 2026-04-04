@@ -163,6 +163,7 @@ class AuthController extends Controller
             'branch_name' => $staff->branch?->name,
             'branch_id'      => $staff->branch_id,
             'role_name'    => $staff->role->name,
+            'currency'       => $staff->tenant?->currency,
             'permissions'    => $staff->role->permissions->pluck('code')->toArray(),
         ]);
     }

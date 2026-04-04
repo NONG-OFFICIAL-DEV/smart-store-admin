@@ -50,66 +50,6 @@ class Supplier extends BaseModel
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Ingredient
-// ─────────────────────────────────────────────────────────────────────────────
-class Ingredient extends BaseModel
-{
-    public $timestamps = false;
-
-    protected $fillable = [
-        'tenant_id', 'name', 'category', 'unit',
-        'unit_cost', 'reorder_point', 'reorder_quantity',
-        'preferred_supplier_id', 'barcode', 'is_active',
-    ];
-
-    protected $casts = [
-        'unit_cost'        => 'decimal:4',
-        'reorder_point'    => 'decimal:3',
-        'reorder_quantity' => 'decimal:3',
-        'is_active'        => 'boolean',
-    ];
-
-    public static function store(array|Request $request, ?string $id = null)
-    {
-        $data = $request instanceof Request
-            ? $request->only([
-                'tenant_id', 'name', 'category', 'unit',
-                'unit_cost', 'reorder_point', 'reorder_quantity',
-                'preferred_supplier_id', 'barcode', 'is_active',
-            ])
-            : $request;
-
-        return parent::store($data, $id);
-    }
-
-    public function tenant()
-    {
-        return $this->belongsTo(Tenant::class);
-    }
-
-    public function preferredSupplier()
-    {
-        return $this->belongsTo(Supplier::class, 'preferred_supplier_id');
-    }
-
-    public function stock()
-    {
-        return $this->hasMany(InventoryStock::class);
-    }
-
-    public function transactions()
-    {
-        return $this->hasMany(InventoryTransaction::class);
-    }
-
-    public function stockAtBranch(string $branchId): ?InventoryStock
-    {
-        return $this->stock()->where('branch_id', $branchId)->first();
-    }
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
 // InventoryStock
 // ─────────────────────────────────────────────────────────────────────────────
 class InventoryStock extends BaseModel

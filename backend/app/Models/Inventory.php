@@ -15,18 +15,38 @@ class Supplier extends BaseModel
     const UPDATED_AT  = null;
 
     protected $fillable = [
-        'tenant_id', 'name', 'contact_person', 'phone', 'email', 'address', 'payment_terms', 'is_active',
+        'tenant_id',
+        'name',
+        'contact_person',
+        'phone',
+        'email',
+        'address',
+        'payment_terms',
+        'is_active',
     ];
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function tenant()       { return $this->belongsTo(Tenant::class); }
-    public function ingredients()  { return $this->hasMany(Ingredient::class, 'preferred_supplier_id'); }
-    public function purchaseOrders() { return $this->hasMany(PurchaseOrder::class); }
-
-    public static function store(Request $request, $id = null)
+    public function tenant()
     {
-        $data = $request->only(['tenant_id', 'name', 'contact_person', 'phone', 'email', 'address', 'payment_terms', 'is_active']);
+        return $this->belongsTo(Tenant::class);
+    }
+    public function ingredients()
+    {
+        return $this->hasMany(Ingredient::class, 'preferred_supplier_id');
+    }
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
+    {
+        $data = $request->only(['name', 'contact_person', 'phone', 'email', 'address', 'payment_terms', 'is_active']);
+        // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
+        }
         if ($id) {
             $record = self::find($id);
             if (!$record) return response()->json(['error' => 'Supplier not found'], 404);
@@ -39,61 +59,7 @@ class Supplier extends BaseModel
 }
 
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Ingredient
-// ══════════════════════════════════════════════════════════════════════════════
 
-class Ingredient extends BaseModel
-{
-    protected $table  = 'ingredients';
-    const UPDATED_AT  = null;
-
-    protected $fillable = [
-        'tenant_id', 'name', 'category', 'unit', 'unit_cost',
-        'reorder_point', 'reorder_quantity', 'preferred_supplier_id', 'barcode', 'is_active',
-    ];
-
-    protected $casts = [
-        'unit_cost'        => 'decimal:4',
-        'reorder_point'    => 'decimal:3',
-        'reorder_quantity' => 'decimal:3',
-        'is_active'        => 'boolean',
-    ];
-
-    public function tenant()           { return $this->belongsTo(Tenant::class); }
-    public function preferredSupplier(){ return $this->belongsTo(Supplier::class, 'preferred_supplier_id'); }
-    public function stockRecords()     { return $this->hasMany(InventoryStock::class); }
-    public function transactions()     { return $this->hasMany(InventoryTransaction::class); }
-    public function recipes()          { return $this->hasMany(ProductRecipe::class); }
-
-    public function getStockForBranch(string $branchId): ?InventoryStock
-    {
-        return $this->stockRecords()->where('branch_id', $branchId)->first();
-    }
-
-    public function isLowStock(string $branchId): bool
-    {
-        $stock = $this->getStockForBranch($branchId);
-        if (!$stock || !$this->reorder_point) return false;
-        return $stock->quantity_on_hand <= $this->reorder_point;
-    }
-
-    public static function store(Request $request, $id = null)
-    {
-        $data = $request->only([
-            'tenant_id', 'name', 'category', 'unit', 'unit_cost',
-            'reorder_point', 'reorder_quantity', 'preferred_supplier_id', 'barcode', 'is_active',
-        ]);
-        if ($id) {
-            $record = self::find($id);
-            if (!$record) return response()->json(['error' => 'Ingredient not found'], 404);
-            $record->update($data);
-        } else {
-            $record = self::create($data);
-        }
-        return response()->json(['success' => true, 'data' => $record->fresh()], $id ? 200 : 201);
-    }
-}
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -106,7 +72,11 @@ class InventoryStock extends BaseModel
     public    $timestamps = false;
 
     protected $fillable = [
-        'branch_id', 'ingredient_id', 'quantity_on_hand', 'quantity_reserved', 'last_counted_at',
+        'branch_id',
+        'ingredient_id',
+        'quantity_on_hand',
+        'quantity_reserved',
+        'last_counted_at',
     ];
 
     protected $casts = [
@@ -115,8 +85,14 @@ class InventoryStock extends BaseModel
         'last_counted_at'   => 'datetime',
     ];
 
-    public function branch()     { return $this->belongsTo(Branch::class); }
-    public function ingredient() { return $this->belongsTo(Ingredient::class); }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class);
+    }
 
     /**
      * Adjust stock and create a ledger transaction.
@@ -133,7 +109,7 @@ class InventoryStock extends BaseModel
         ], $meta));
     }
 
-    public static function store(Request $request, $id = null)
+    public static function store(array|Request $request, ?string $id = null)
     {
         $data = $request->only(['branch_id', 'ingredient_id', 'quantity_on_hand', 'quantity_reserved', 'last_counted_at']);
         if ($id) {
@@ -161,26 +137,49 @@ class InventoryTransaction extends BaseModel
     public    $timestamps = false;
 
     protected $fillable = [
-        'branch_id', 'ingredient_id', 'transaction_type', 'quantity',
-        'unit_cost', 'reference_type', 'reference_id', 'notes', 'staff_id',
+        'branch_id',
+        'ingredient_id',
+        'transaction_type',
+        'quantity',
+        'unit_cost',
+        'reference_type',
+        'reference_id',
+        'notes',
+        'staff_id',
     ];
 
     protected $casts = [
         'quantity'  => 'decimal:4',
         'unit_cost' => 'decimal:4',
-        'created_at'=> 'datetime',
+        'created_at' => 'datetime',
     ];
 
-    public function branch()     { return $this->belongsTo(Branch::class); }
-    public function ingredient() { return $this->belongsTo(Ingredient::class); }
-    public function staff()      { return $this->belongsTo(Staff::class); }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class);
+    }
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class);
+    }
 
-    public static function store(Request $request, $id = null)
+    public static function store(array|Request $request, ?string $id = null)
     {
         return DB::transaction(function () use ($request, $id) {
             $data = $request->only([
-                'branch_id', 'ingredient_id', 'transaction_type', 'quantity',
-                'unit_cost', 'reference_type', 'reference_id', 'notes', 'staff_id',
+                'branch_id',
+                'ingredient_id',
+                'transaction_type',
+                'quantity',
+                'unit_cost',
+                'reference_type',
+                'reference_id',
+                'notes',
+                'staff_id',
             ]);
 
             if ($id) {
@@ -211,16 +210,30 @@ class ProductRecipe extends BaseModel
     public    $timestamps = false;
 
     protected $fillable = [
-        'product_id', 'variant_id', 'ingredient_id', 'quantity', 'unit', 'notes',
+        'product_id',
+        'variant_id',
+        'ingredient_id',
+        'quantity',
+        'unit',
+        'notes',
     ];
 
     protected $casts = ['quantity' => 'decimal:4'];
 
-    public function product()    { return $this->belongsTo(Product::class); }
-    public function variant()    { return $this->belongsTo(ProductVariant::class); }
-    public function ingredient() { return $this->belongsTo(Ingredient::class); }
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class);
+    }
 
-    public static function store(Request $request, $id = null)
+    public static function store(array|Request $request, ?string $id = null)
     {
         $data = $request->only(['product_id', 'variant_id', 'ingredient_id', 'quantity', 'unit', 'notes']);
         if ($id) {
@@ -244,8 +257,15 @@ class PurchaseOrder extends BaseModel
     protected $table = 'purchase_orders';
 
     protected $fillable = [
-        'tenant_id', 'branch_id', 'supplier_id', 'po_number', 'status',
-        'expected_delivery', 'total_amount', 'notes', 'created_by_staff_id',
+        'tenant_id',
+        'branch_id',
+        'supplier_id',
+        'po_number',
+        'status',
+        'expected_delivery',
+        'total_amount',
+        'notes',
+        'created_by_staff_id',
     ];
 
     protected $casts = [
@@ -253,11 +273,26 @@ class PurchaseOrder extends BaseModel
         'total_amount'      => 'decimal:2',
     ];
 
-    public function tenant()   { return $this->belongsTo(Tenant::class); }
-    public function branch()   { return $this->belongsTo(Branch::class); }
-    public function supplier() { return $this->belongsTo(Supplier::class); }
-    public function items()    { return $this->hasMany(PurchaseOrderItem::class); }
-    public function createdBy(){ return $this->belongsTo(Staff::class, 'created_by_staff_id'); }
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+    public function items()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+    public function createdBy()
+    {
+        return $this->belongsTo(Staff::class, 'created_by_staff_id');
+    }
 
     public static function generatePoNumber(): string
     {
@@ -267,14 +302,23 @@ class PurchaseOrder extends BaseModel
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
-    public static function store(Request $request, $id = null)
+    public static function store(array|Request $request, ?string $id = null, ?string $tenantId = null)
     {
-        return DB::transaction(function () use ($request, $id) {
+        return DB::transaction(function () use ($request, $id, $tenantId) {
             $data = $request->only([
-                'tenant_id', 'branch_id', 'supplier_id', 'status',
-                'expected_delivery', 'notes', 'created_by_staff_id',
+                'tenant_id',
+                'branch_id',
+                'supplier_id',
+                'status',
+                'expected_delivery',
+                'notes',
+                'created_by_staff_id',
             ]);
 
+            // ── Inject resolved tenant_id ──────────────────────────────────────────
+            if ($tenantId) {
+                $data['tenant_id'] = $tenantId;
+            }
             if ($id) {
                 $record = self::find($id);
                 if (!$record) return response()->json(['error' => 'Purchase order not found'], 404);
@@ -323,8 +367,13 @@ class PurchaseOrderItem extends BaseModel
     public    $timestamps = false;
 
     protected $fillable = [
-        'purchase_order_id', 'ingredient_id', 'quantity_ordered', 'quantity_received',
-        'unit_price', 'total_price', 'received_at',
+        'purchase_order_id',
+        'ingredient_id',
+        'quantity_ordered',
+        'quantity_received',
+        'unit_price',
+        'total_price',
+        'received_at',
     ];
 
     protected $casts = [
@@ -335,6 +384,12 @@ class PurchaseOrderItem extends BaseModel
         'received_at'       => 'datetime',
     ];
 
-    public function purchaseOrder() { return $this->belongsTo(PurchaseOrder::class); }
-    public function ingredient()    { return $this->belongsTo(Ingredient::class); }
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class);
+    }
 }

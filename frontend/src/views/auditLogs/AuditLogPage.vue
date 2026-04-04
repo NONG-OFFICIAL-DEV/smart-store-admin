@@ -8,7 +8,11 @@
     >
       <template #right>
         <BaseButtonFilter class="me-4" @click="toggleFilterForm" />
-        <v-btn color="green" prepend-icon="mdi-download" @click="toggleExportForm">
+        <v-btn
+          color="green"
+          prepend-icon="mdi-download"
+          @click="toggleExportForm"
+        >
           Export
         </v-btn>
       </template>
@@ -27,14 +31,28 @@
           />
         </v-col>
         <v-col cols="12" md="3">
-          <v-date-input v-model="formFilters.startDate" label="Start Date" clearable hide-details="auto" />
+          <v-date-input
+            v-model="formFilters.startDate"
+            label="Start Date"
+            clearable
+            hide-details="auto"
+          />
         </v-col>
         <v-col cols="12" md="3">
-          <v-date-input v-model="formFilters.endDate" label="End Date" clearable hide-details="auto" />
+          <v-date-input
+            v-model="formFilters.endDate"
+            label="End Date"
+            clearable
+            hide-details="auto"
+          />
         </v-col>
         <v-col cols="12" md="3" class="d-flex align-center gap-2">
           <v-btn variant="outlined" @click="resetFilter">Reset</v-btn>
-          <v-btn color="primary" prepend-icon="mdi-filter-outline" @click="applyFilter">
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-filter-outline"
+            @click="applyFilter"
+          >
             Apply Filter
           </v-btn>
         </v-col>
@@ -77,17 +95,24 @@
     </v-card>
 
     <!-- Audit Table -->
-    <v-data-table
+    <v-data-table-server
       :headers="headers"
-      :items="store.logs.data ?? []"
-      :loading="store.loading"
+      :items="logs ?? []"
+      :items-length="pagination.total || 0"
+      :items-per-page="pagination.per_page"
       class="elevation-0 rounded-lg"
+      hover
+      @update:options="fetchOnOptions"
     >
       <!-- User column -->
       <template #item.user_name="{ item }">
         <div class="d-flex flex-column">
           <span class="text-body-2 font-weight-medium">
-            {{ item.user_name || item.user?.first_name + ' ' + item.user?.last_name || '—' }}
+            {{
+              item.user_name ||
+              item.user?.first_name + ' ' + item.user?.last_name ||
+              '—'
+            }}
           </span>
           <span class="text-caption text-grey">{{ item.user_email }}</span>
         </div>
@@ -118,7 +143,9 @@
 
       <!-- IP Address -->
       <template #item.ip_address="{ item }">
-        <span class="text-caption font-weight-mono">{{ item.ip_address || '—' }}</span>
+        <span class="text-caption font-weight-mono">
+          {{ item.ip_address || '—' }}
+        </span>
       </template>
 
       <!-- Date -->
@@ -136,99 +163,125 @@
           @click="goToDetails(item.id)"
         />
       </template>
-    </v-data-table>
+    </v-data-table-server>
   </v-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useAuditLogStore } from '@/stores/auditLogStore'
-import { useDate } from '@/composables/useDate'
-import { useRouter } from 'vue-router'
+  import { ref, reactive, computed, onMounted } from 'vue'
+  import { useAuditLogStore } from '@/stores/auditLogStore'
+  import { useDate } from '@/composables/useDate'
+  import { useRouter } from 'vue-router'
+  import { storeToRefs } from 'pinia'
+  import { useDataTable } from '@/composables/useServerTable'
 
-const router = useRouter()
-const { formatDateTime } = useDate()
-const store = useAuditLogStore()
+  const router = useRouter()
+  const { formatDateTime } = useDate()
+  const store = useAuditLogStore()
+  const { logs, pagination } = storeToRefs(store)
 
-// ── UI state ───────────────────────────────────────────────────────────────────
-const showFilterForm = ref(false)
-const showExportForm = ref(false)
+  // ── UI state ───────────────────────────────────────────────────────────────────
+  const showFilterForm = ref(false)
+  const showExportForm = ref(false)
 
-const toggleFilterForm = () => {
-  showFilterForm.value = !showFilterForm.value
-  showExportForm.value = false
-}
-
-const toggleExportForm = () => {
-  showExportForm.value = !showExportForm.value
-  showFilterForm.value = false
-  clearExportErrors()
-}
-
-const goToDetails = id => router.push(`/audit-log/${id}`)
-
-// ── Action color helper ────────────────────────────────────────────────────────
-const actionColor = action => {
-  if (action.includes('login'))   return 'success'
-  if (action.includes('logout'))  return 'grey'
-  if (action.includes('created')) return 'primary'
-  if (action.includes('updated')) return 'warning'
-  if (action.includes('deleted')) return 'error'
-  return 'secondary'
-}
-
-// ── Filter ─────────────────────────────────────────────────────────────────────
-const formFilters = reactive({ keyword: null, startDate: null, endDate: null })
-
-const applyFilter = () => {
-  store.getAllAuditLogs({
-    keyword:   formFilters.keyword,
-    date_from: formFilters.startDate,
-    date_to:   formFilters.endDate,
-  })
-}
-
-const resetFilter = () => {
-  formFilters.keyword   = null
-  formFilters.startDate = null
-  formFilters.endDate   = null
-  store.getAllAuditLogs()
-}
-
-// ── Export ─────────────────────────────────────────────────────────────────────
-const exportDates  = reactive({ startDate: null, endDate: null })
-const exportErrors = reactive({ start: '', end: '' })
-
-const clearExportErrors = () => { exportErrors.start = ''; exportErrors.end = '' }
-const closeExportForm   = () => { showExportForm.value = false; clearExportErrors() }
-
-const isDateRangeValid = computed(() => {
-  clearExportErrors()
-  if (!exportDates.startDate || !exportDates.endDate) return false
-  if (new Date(exportDates.startDate) > new Date(exportDates.endDate)) {
-    exportErrors.end = 'End Date cannot be earlier than Start Date'
-    return false
+  const toggleFilterForm = () => {
+    showFilterForm.value = !showFilterForm.value
+    showExportForm.value = false
   }
-  return true
-})
 
-const handleExport = () => {
-  if (!isDateRangeValid.value) return
-  store.exportCSV({ date_from: exportDates.startDate, date_to: exportDates.endDate })
-  closeExportForm()
-}
+  const toggleExportForm = () => {
+    showExportForm.value = !showExportForm.value
+    showFilterForm.value = false
+    clearExportErrors()
+  }
 
-// ── Table headers ──────────────────────────────────────────────────────────────
-const headers = ref([
-  { title: 'User',        key: 'user_name',    sortable: false },
-  { title: 'Action',      key: 'action' },
-  { title: 'Description', key: 'description',  sortable: false },
-  { title: 'Entity',      key: 'entity_type',  sortable: false },
-  { title: 'IP Address',  key: 'ip_address',   sortable: false },
-  { title: 'Date',        key: 'created_at' },
-  { title: '',            key: 'actions',      sortable: false },
-])
+  const goToDetails = id => router.push(`/audit-log/${id}`)
 
-// ── Init ───────────────────────────────────────────────────────────────────────
-onMounted(() => store.getAllAuditLogs())
+  // ── Action color helper ────────────────────────────────────────────────────────
+  const actionColor = action => {
+    if (action.includes('login')) return 'success'
+    if (action.includes('logout')) return 'grey'
+    if (action.includes('created')) return 'primary'
+    if (action.includes('updated')) return 'warning'
+    if (action.includes('deleted')) return 'error'
+    return 'secondary'
+  }
+
+  // ── Filter ─────────────────────────────────────────────────────────────────────
+  const formFilters = reactive({
+    keyword: null,
+    startDate: null,
+    endDate: null
+  })
+
+  const applyFilter = () => {
+    store.getAllAuditLogs({
+      keyword: formFilters.keyword,
+      date_from: formFilters.startDate,
+      date_to: formFilters.endDate
+    })
+  }
+
+  const resetFilter = () => {
+    formFilters.keyword = null
+    formFilters.startDate = null
+    formFilters.endDate = null
+    store.getAllAuditLogs()
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────────
+  const exportDates = reactive({ startDate: null, endDate: null })
+  const exportErrors = reactive({ start: '', end: '' })
+
+  const clearExportErrors = () => {
+    exportErrors.start = ''
+    exportErrors.end = ''
+  }
+  const closeExportForm = () => {
+    showExportForm.value = false
+    clearExportErrors()
+  }
+
+  const isDateRangeValid = computed(() => {
+    clearExportErrors()
+    if (!exportDates.startDate || !exportDates.endDate) return false
+    if (new Date(exportDates.startDate) > new Date(exportDates.endDate)) {
+      exportErrors.end = 'End Date cannot be earlier than Start Date'
+      return false
+    }
+    return true
+  })
+
+  const handleExport = () => {
+    if (!isDateRangeValid.value) return
+    store.exportCSV({
+      date_from: exportDates.startDate,
+      date_to: exportDates.endDate
+    })
+    closeExportForm()
+  }
+
+  // ── Table headers ──────────────────────────────────────────────────────────────
+  const headers = ref([
+    { title: 'User', key: 'user_name', sortable: false },
+    { title: 'Action', key: 'action' },
+    { title: 'Description', key: 'description', sortable: false },
+    { title: 'Entity', key: 'entity_type', sortable: false },
+    { title: 'IP Address', key: 'ip_address', sortable: false },
+    { title: 'Date', key: 'created_at' },
+    { title: '', key: 'actions', sortable: false }
+  ])
+
+  // ── Init ───────────────────────────────────────────────────────────────────────
+  const { fetchOnOptions, refresh } = useDataTable(
+    store.getAllAuditLogs, // ✅ your existing store action
+    () => ({
+      // ✅ reactive filters
+      keyword: formFilters.keyword,
+      date_from: formFilters.startDate,
+      date_to: formFilters.endDate
+    })
+  )
+
+  // onMounted(() => store.getAllAuditLogs())
 </script>
