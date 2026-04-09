@@ -251,7 +251,7 @@ class MartPosController extends Controller
                         $u->where('barcode', $request->search)
                     )
             )
-            ->orderBy('sort_order')
+            ->orderBy('category_id')
             ->paginate(40);
 
         return response()->json(['success' => true, 'data' => $products]);
