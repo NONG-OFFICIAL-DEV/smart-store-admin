@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class StaffController extends Controller
 {
@@ -105,10 +106,10 @@ class StaffController extends Controller
 
     public function store(Request $request)
     {
-       $tenantId = $this->tenantResolver->resolve($request);
+        $tenantId = $this->tenantResolver->resolve($request);
 
         $request->validate([
-            // User fields — required only when creating new staff
+            // User fields
             'first_name'  => 'required|string|max:80',
             'last_name'   => 'required|string|max:80',
             'email'       => 'required|email|unique:users,email',
@@ -129,18 +130,18 @@ class StaffController extends Controller
 
             // ── Step 1: Create the user account ──────────────────────────────
             $user = User::create([
-                'first_name'  => $request->first_name,
-                'last_name'   => $request->last_name,
-                'email'       => $request->email,
+                'first_name'    => $request->first_name,
+                'last_name'     => $request->last_name,
+                'email'         => $request->email,
                 'password_hash' => bcrypt($request->password),
-                'phone'       => $request->phone,
-                'is_active'   => true,
+                'phone'         => $request->phone,
+                'is_active'     => true,
             ]);
 
-            // ── Step 2: Create the staff record ──────────────────────────────
+            // ── Step 2: Build staff payload ───────────────────────────────────
             $staffData = [
                 'user_id'     => $user->id,
-                'tenant_id'   => $tenantId,            // ← from auth, not request
+                'tenant_id'   => $tenantId,
                 'branch_id'   => $request->branch_id,
                 'role_id'     => $request->role_id,
                 'hire_date'   => $request->hire_date,
@@ -149,11 +150,14 @@ class StaffController extends Controller
                 'is_active'   => $request->boolean('is_active', true),
             ];
 
+            // ── Step 3: Validate + hash PIN if provided ───────────────────────
             if ($request->filled('pin_code')) {
-                $staffData['pin_code'] = hash('sha256', $request->pin_code);
+                $this->assertPinUnique($request->pin_code, $request->branch_id);
+                $staffData['pin_code'] = Hash::make($request->pin_code);
             }
 
-            $staff = Staff::store($staffData);   // pass array, not Request
+            // ── Step 4: Persist ───────────────────────────────────────────────
+            $staff = Staff::create($staffData);
 
             return response()->json([
                 'success' => true,
@@ -165,18 +169,35 @@ class StaffController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'branch_id'    => 'sometimes|uuid',
-            'role_id'      => 'sometimes|uuid',
-            'hire_date'    => 'nullable|date',
-            'hourly_rate'  => 'nullable|numeric|min:0',
-            'salary'       => 'nullable|numeric|min:0',
-            'pin_code'     => 'nullable|digits_between:4,6',
-            'is_active'    => 'boolean',
+            'branch_id'     => 'sometimes|uuid',
+            'role_id'       => 'sometimes|uuid',
+            'hire_date'     => 'nullable|date',
+            'hourly_rate'   => 'nullable|numeric|min:0',
+            'salary'        => 'nullable|numeric|min:0',
+            'pin_code'      => 'nullable|digits_between:4,6',
+            'is_active'     => 'boolean',
             'employee_code' => 'nullable|string|max:30',
         ]);
 
-        // Staff::store() with $id = UPDATE
-        return Staff::store($validated, $id);
+        $staff = Staff::findOrFail($id);
+
+        // ── Handle PIN: validate uniqueness + hash, or explicitly clear ───────────
+        if (array_key_exists('pin_code', $validated)) {
+            if (!is_null($validated['pin_code'])) {
+                // New PIN provided — check uniqueness against other staff in the same branch
+                $branchId = $validated['branch_id'] ?? $staff->branch_id;
+                $this->assertPinUnique($validated['pin_code'], $branchId, $staff->id);
+                $validated['pin_code'] = Hash::make($validated['pin_code']);
+            }
+            // null means caller explicitly wants to clear the PIN — leave as-is in $validated
+        }
+
+        $staff->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $staff->fresh()->load(['user', 'role', 'branch']),
+        ]);
     }
     /**
      * Display the specified resource.
@@ -208,5 +229,36 @@ class StaffController extends Controller
             'success' => true,
             'message' => 'Staff member deactivated successfully',
         ], 200);
+    }
+
+    // ── Remove PIN (admin resets it) ──────────────────────────────────────────────
+    public function removePin($id)
+    {
+        $staff = Staff::findOrFail($id);
+        $staff->update(['pin_code' => null]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'PIN removed successfully.',
+        ]);
+    }
+
+    // ── PIN uniqueness helper ─────────────────────────────────────────────────────
+    private function assertPinUnique(string $plainPin, string $branchId, ?string $excludeStaffId = null): void
+    {
+        $query = Staff::withoutGlobalScopes()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereNotNull('pin_code');
+
+        if ($excludeStaffId) {
+            $query->where('id', '!=', $excludeStaffId);
+        }
+
+        foreach ($query->cursor() as $existing) {
+            if (Hash::check($plainPin, $existing->pin_code)) {
+                abort(422, 'This PIN is already in use by another staff member in this branch.');
+            }
+        }
     }
 }

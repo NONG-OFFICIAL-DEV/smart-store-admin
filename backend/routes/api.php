@@ -83,20 +83,22 @@ Route::get('/test', function () {
     ]);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::middleware('auth:api')->get('/me', [AuthController::class, 'me']);
-Route::middleware('auth:api')->post('/logout', [AuthController::class, 'logout']);
+// ── Public routes (no auth needed) ──────────────────────────────────────────
+Route::post('/login',     [AuthController::class, 'login']);
+Route::post('/login-pin', [AuthController::class, 'loginByPin']); // ← moved OUT
 
+// ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware('jwt.auth')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get ('/me',      [AuthController::class, 'me']);
+    Route::post('/logout',  [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::put ('/set-pin', [AuthController::class, 'setPin']); // ← stays here (needs login first)
 
     Route::prefix('users')->group(function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::post('/', [UserController::class, 'store']);
-        Route::get('/{id}', [UserController::class, 'show']);
-        Route::put('/{id}', [UserController::class, 'update']);
+        Route::get('/',      [UserController::class, 'index']);
+        Route::post('/',     [UserController::class, 'store']);
+        Route::get('/{id}',  [UserController::class, 'show']);
+        Route::put('/{id}',  [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 });
@@ -399,7 +401,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
             // Route::get('categories', [HospitalityPosController::class, 'categories']);
         });
     });
-    
+
     Route::prefix('mart')->group(function () {
 
         Route::get('purchase-orders', [MartPurchaseOrderController::class, 'index']);
