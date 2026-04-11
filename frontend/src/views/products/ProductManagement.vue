@@ -446,7 +446,7 @@
   const showStats = ref(false)
   // ── Fetch on mount ────────────────────────────────────────────────────────────
   onMounted(async () => {
-    await categoryStore.fetchCategories()
+    await categoryStore.fetchCategories({ per_page: 1000 })
     await tenantStore.fetchTenants()
   })
 

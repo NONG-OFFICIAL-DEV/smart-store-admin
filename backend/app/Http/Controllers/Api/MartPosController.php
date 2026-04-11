@@ -252,7 +252,7 @@ class MartPosController extends Controller
                     )
             )
             ->orderBy('category_id')
-            ->paginate(40);
+            ->paginate(10000);
 
         return response()->json(['success' => true, 'data' => $products]);
     }
