@@ -214,7 +214,32 @@
       "new_count": "New Stock Count",
       "apply": "Apply Adjustment",
       "current_stock": "Current stock",
-      "after_receive": "After receive"
+      "after_receive": "After receive",
+      "subtitle": "Manual stock correction",
+      "type": "TYPE",
+      "branch": "Branch",
+      "branch_placeholder": "Select branch...",
+      "product": "Product",
+      "product_placeholder": "Search product...",
+      "unit": "Unit",
+      "unit_placeholder": "Select unit...",
+      "no_units": "No units defined",
+      "quantity": "Quantity",
+      "count_hint": "Sets stock to this exact value from physical count",
+      "notes": "Notes / Reason",
+      "notes_placeholder": "e.g. Physical count, damaged goods...",
+      "types": {
+        "add": "Add",
+        "remove": "Remove",
+        "waste": "Waste",
+        "count": "Stock Count"
+      },
+      "desc": {
+        "add": "Add stock found, received without PO, or miscounted.",
+        "remove": "Remove stock due to discrepancy, theft, or other loss.",
+        "waste": "Write off expired, damaged or unsellable stock.",
+        "count": "Set exact stock level from a physical count."
+      }
     }
   },
 
@@ -767,5 +792,49 @@
     "created_at": "Created At",
     "updated_at": "Updated At",
     "version": "Version"
+  },
+  "unit": {
+    "title_add": "Add Unit",
+    "title_edit": "Edit Unit",
+    "unit_name": "Unit Name",
+    "display_label": "Display Label",
+    "qty_per_base": "Qty per Base Unit",
+    "barcode": "Barcode",
+    "retail_price": "Retail Price",
+    "wholesale_price": "Wholesale Price",
+    "cost_price": "Cost Price",
+    "active": "Active",
+    "base_unit": "This is the base unit",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "add": "Add Unit",
+    "margin": "Margin",
+    "no_data": "No units yet",
+    "delete_confirm": "Are you sure delete \"{name}\"?",
+    "page_title": "Update or create new unit",
+    "manage_hint": "Manage selling units — can, pack, box, pallet etc.",
+    "add_unit": "Add Unit",
+    "add_first_unit": "Add First Unit",
+    "no_data_desc": "Add units like Can, Pack, Box to enable multi-unit selling",
+
+    "headers": {
+      "unit": "Unit",
+      "qty": "Qty / Base",
+      "barcode": "Barcode",
+      "retail": "Retail Price",
+      "wholesale": "Wholesale Price",
+      "margin": "Margin",
+      "active": "Active"
+    },
+
+    "base": "BASE",
+    "how_title": "How units work:",
+    "how_desc": "Stock is always tracked in the base unit (e.g. \"can\"). Selling a box of 24 deducts 24 cans from stock.",
+
+    "delete_title": "Delete Product Unit?",
+    "updated": "Unit updated",
+    "added": "Unit added",
+    "failed": "Failed to save unit",
+    "delete_failed": "Failed to delete"
   }
 }

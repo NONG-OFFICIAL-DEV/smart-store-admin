@@ -2,7 +2,7 @@
   <div>
     <!-- Header -->
     <AppPageHeader
-      title="Update or create new unit"
+      :title="t('unit.page_title')"
       show-back
       :breadcrumbs="[
         { title: 'Products', to: '/products' },
@@ -11,7 +11,7 @@
     >
       <template #title-after>
         <v-chip color="success" size="x-small" variant="flat">
-          Manage selling units — can, pack, box, pallet etc.
+          {{ t('unit.manage_hint') }}
         </v-chip>
       </template>
 
@@ -23,7 +23,7 @@
           prepend-icon="mdi-plus"
           @click="openCreate"
         >
-          Add Unit
+          {{ t('unit.add_unit') }}
         </v-btn>
       </template>
     </AppPageHeader>
@@ -36,10 +36,8 @@
       rounded="lg"
       class="mb-4"
     >
-      <strong>How units work:</strong>
-      Stock is always tracked in the
-      <strong>base unit</strong>
-      (e.g. "can"). Selling a box of 24 deducts 24 cans from stock.
+      <strong>{{ t('unit.how_title') }}</strong>
+      {{ t('unit.how_desc') }}
     </v-alert>
 
     <!-- Units table -->
@@ -68,7 +66,7 @@
               variant="tonal"
               rounded="lg"
             >
-              BASE
+              {{ t('unit.base') }}
             </v-chip>
           </div>
         </template>
@@ -162,10 +160,10 @@
               class="mb-3"
             />
             <div class="text-body-1 font-weight-medium text-grey">
-              No units yet
+              {{ t('unit.no_data') }}
             </div>
             <p class="text-caption text-grey mb-4">
-              Add units like Can, Pack, Box to enable multi-unit selling
+              {{ t('unit.no_data_desc') }}
             </p>
             <v-btn
               color="primary"
@@ -174,7 +172,7 @@
               prepend-icon="mdi-plus"
               @click="openCreate"
             >
-              Add First Unit
+              {{ t('unit.add_first_unit') }}
             </v-btn>
           </div>
         </template>
@@ -218,14 +216,14 @@
   const deleting = ref(false)
 
   const headers = [
-    { title: 'Unit', key: 'unit_name', sortable: false },
-    { title: 'Qty / Base', key: 'qty_per_base', sortable: false },
-    { title: 'Barcode', key: 'barcode', sortable: false },
-    { title: 'Retail Price', key: 'retail_price', sortable: false },
-    { title: 'Wholesale Price', key: 'wholesale_price', sortable: false },
-    { title: 'Margin', key: 'margin', sortable: false },
-    { title: 'Active', key: 'is_active', sortable: false },
-    { title: '', key: 'actions', sortable: false, width: '80' }
+    { title: t('unit.headers.unit'), key: 'unit_name' },
+    { title: t('unit.headers.qty'), key: 'qty_per_base' },
+    { title: t('unit.headers.barcode'), key: 'barcode' },
+    { title: t('unit.headers.retail'), key: 'retail_price' },
+    { title: t('unit.headers.wholesale'), key: 'wholesale_price' },
+    { title: t('unit.headers.margin'), key: 'margin' },
+    { title: t('unit.headers.active'), key: 'is_active' },
+    { title: '', key: 'actions' }
   ]
 
   const marginPct = (sell, cost) => (((sell - cost) / sell) * 100).toFixed(1)
@@ -249,6 +247,8 @@
         await unitStore.createUnit(productId.value, payload)
         notif('Unit added', { type: 'success' })
       }
+
+      dialog.value = false // ✅ IMPORTANT
     } catch (err) {
       const msg = err.response?.data?.message ?? 'Failed to save unit'
       notif(msg, { type: 'error' })

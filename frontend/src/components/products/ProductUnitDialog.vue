@@ -8,7 +8,7 @@
           </v-avatar>
           <div>
             <div class="text-body-1 font-weight-bold">
-              {{ isEdit ? 'Edit Unit' : 'Add Unit' }}
+              {{ isEdit ? t('unit.title_edit') : t('unit.title_add') }}
             </div>
             <div class="text-caption text-medium-emphasis">
               e.g. Can, 6-Pack, Box of 24
@@ -30,7 +30,7 @@
                 :loading="loadingNames"
                 item-title="title"
                 item-value="title"
-                label="Unit Name *"
+                :label="t('unit.unit_name') + ' *'"
                 placeholder="can, pack, box, kg..."
                 variant="outlined"
                 density="comfortable"
@@ -84,7 +84,7 @@
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="form.unit_label"
-                label="Display Label"
+                :label="t('unit.display_label')"
                 placeholder="Can, 6-Pack, Case of 24"
                 variant="outlined"
                 density="comfortable"
@@ -98,7 +98,7 @@
               <v-text-field
                 v-model.number="form.qty_per_base"
                 type="number"
-                label="Qty per Base Unit *"
+                :label="t('unit.qty_per_base') + ' *'"
                 min="0.001"
                 variant="outlined"
                 density="comfortable"
@@ -113,7 +113,7 @@
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="form.barcode"
-                label="Barcode"
+                :label="t('unit.barcode')"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
@@ -128,7 +128,7 @@
               <v-text-field
                 v-model.number="form.retail_price"
                 type="number"
-                label="Retail Price *"
+                :label="t('unit.retail_price') + ' *'"
                 min="0"
                 variant="outlined"
                 density="comfortable"
@@ -143,7 +143,7 @@
               <v-text-field
                 v-model.number="form.wholesale_price"
                 type="number"
-                label="Wholesale Price"
+                :label="t('unit.wholesale_price')"
                 min="0"
                 variant="outlined"
                 density="comfortable"
@@ -158,7 +158,7 @@
               <v-text-field
                 v-model.number="form.cost_price"
                 type="number"
-                label="Cost Price"
+                :label="t('unit.cost_price')"
                 min="0"
                 variant="outlined"
                 density="comfortable"
@@ -190,7 +190,7 @@
               <v-switch
                 v-model="form.is_base_unit"
                 color="success"
-                label="This is the base unit"
+                :label="t('unit.base_unit')"
                 density="compact"
                 hide-details
               />
@@ -201,7 +201,7 @@
               <v-switch
                 v-model="form.is_active"
                 color="primary"
-                label="Active"
+                :label="t('unit.active')"
                 density="compact"
                 hide-details
               />
@@ -213,7 +213,7 @@
       <v-divider />
       <v-card-actions class="pa-5 gap-3">
         <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
-          Cancel
+          {{ t('btn.cancel') }}
         </v-btn>
         <v-spacer />
         <v-btn
@@ -224,7 +224,7 @@
           prepend-icon="mdi-content-save"
           @click="save"
         >
-          {{ isEdit ? 'Save Changes' : 'Add Unit' }}
+          {{ isEdit ? t('unit.save') : t('unit.add') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -234,7 +234,9 @@
 <script setup>
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useProductUnitStore } from '@/stores/productUnitStore'
+  import { useI18n } from 'vue-i18n'
 
+  const { t } = useI18n()
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     unit: { type: Object, default: null },
@@ -388,6 +390,7 @@
   const save = async () => {
     const { valid } = await formRef.value.validate()
     if (!valid) return
+
     emit('save', {
       ...(isEdit.value ? { id: props.unit.id } : {}),
       ...form,
@@ -399,6 +402,8 @@
       cost_price: form.cost_price || null,
       barcode: form.barcode || null
     })
+
+    close() // ✅ FIX: close dialog after save
   }
 
   const close = () => {
