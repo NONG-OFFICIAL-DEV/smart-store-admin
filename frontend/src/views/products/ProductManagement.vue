@@ -459,7 +459,6 @@
     { title: t('products.table.name'), key: 'name', sortable: true },
     { title: t('products.table.type'), key: 'product_type', sortable: true },
     { title: t('products.table.price'), key: 'base_price', sortable: true },
-    { title: 'Prep Time', key: 'preparation_time', sortable: true },
     { title: 'Available', key: 'is_available', sortable: true },
     { title: 'Featured', key: 'is_featured', sortable: false },
     { title: '', key: 'actions', sortable: false, align: 'end' }
