@@ -200,14 +200,14 @@
         </template>
 
         <!-- Price -->
-        <template #item.base_price="{ item }">
+        <!-- <template #item.base_price="{ item }">
           <span class="font-weight-medium">
             {{ formatPrice(item.base_price) }}
           </span>
           <div v-if="item.cost_price" class="text-caption text-medium-emphasis">
             Cost: {{ formatPrice(item.cost_price) }}
           </div>
-        </template>
+        </template> -->
 
         <!-- Available -->
         <template #item.is_available="{ item }">
@@ -473,7 +473,7 @@
   const headers = computed(() => [
     { title: t('products.table.name'), key: 'name', sortable: true },
     { title: t('products.table.type'), key: 'product_type', sortable: true },
-    { title: t('products.table.price'), key: 'base_price', sortable: true },
+    // { title: t('products.table.price'), key: 'base_price', sortable: true },
     { title: 'Available', key: 'is_available', sortable: true },
     { title: 'Featured', key: 'is_featured', sortable: false },
     { title: '', key: 'actions', sortable: false, align: 'end' }

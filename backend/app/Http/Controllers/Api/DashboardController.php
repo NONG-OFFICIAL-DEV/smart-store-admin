@@ -109,7 +109,7 @@ class DashboardController extends Controller
                     'id'      => $b->id,
                     'name'    => $b->name,
                     'city'    => $b->city ?? $b->address,
-                    'revenue' => (float) $branchRevenue,
+                    'revenue' => $branchRevenue,
                     'orders'  => $b->today_orders,
                     'growth'  => $prevRevenue > 0
                         ? round((($branchRevenue - $prevRevenue) / $prevRevenue) * 100, 1)
@@ -139,8 +139,9 @@ class DashboardController extends Controller
                 'kpis' => [
                     [
                         'label' => 'Total Revenue',
-                        'value' => '$' . number_format($revenue, 2),
+                        'value' => $revenue,
                         'raw'   => $revenue,
+                        'isCurrency' => true,
                         'icon'  => 'mdi-cash-multiple',
                         'color' => 'primary',
                         'trend' => $trend($revenue, $prevRevenue),
@@ -148,6 +149,7 @@ class DashboardController extends Controller
                     [
                         'label' => 'Total Orders',
                         'value' => number_format($orderCount),
+                        'isCurrency' => false,
                         'raw'   => $orderCount,
                         'icon'  => 'mdi-receipt-outline',
                         'color' => 'success',
@@ -155,7 +157,8 @@ class DashboardController extends Controller
                     ],
                     [
                         'label' => 'Avg Order Value',
-                        'value' => '$' . number_format($avgOrder, 2),
+                        'value' => $avgOrder,
+                        'isCurrency' => true,
                         'raw'   => $avgOrder,
                         'icon'  => 'mdi-calculator-variant',
                         'color' => 'warning',
@@ -165,6 +168,7 @@ class DashboardController extends Controller
                         'label' => 'Active Products',
                         'value' => number_format($activeProducts),
                         'raw'   => $activeProducts,
+                        'isCurrency' => false,
                         'icon'  => 'mdi-package-variant',
                         'color' => 'secondary',
                         'trend' => 0,

@@ -15,8 +15,7 @@
           icon="mdi-view-dashboard-outline"
           :title="`Good ${greeting}, ${userName} 👋`"
           :subtitle="`${today} · ${branches.length} branches across your network`"
-        >
-      </custom-title>
+        ></custom-title>
       </div>
       <div class="d-flex align-center gap-3">
         <v-select
@@ -91,7 +90,12 @@
                   i === 0 ? 'text-white' : ''
                 ]"
               >
-                {{ kpi.value }}
+                {{
+                  kpi.isCurrency
+                    ? format(kpi.value)
+                    : kpi.value
+                }}
+                
               </div>
               <div
                 :class="[
@@ -578,14 +582,15 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
-  import { storeToRefs } from 'pinia'
+  import { ref, computed, onMounted } from 'vue'
   import { useDashboardStore } from '@/stores/dashboardStore'
   import { useAuthStore } from '@/stores/authStore'
   import RevenueChart from '@/components/dashboard/RevenueChart.vue'
   const store = useDashboardStore()
   const authStore = useAuthStore()
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
+  const { format } = useCurrency()
   // ── Period ─────────────────────────────────────────────────────────────────────
   const periods = ['Today', 'Week', 'Month', 'Year']
   const selectedPeriod = ref('Month')
@@ -700,7 +705,6 @@
     await store.fetchAll(selectedPeriod.value.toLowerCase())
     store.fetchLiveOrders()
   })
-
 </script>
 
 <style scoped>
