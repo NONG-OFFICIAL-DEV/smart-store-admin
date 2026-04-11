@@ -404,9 +404,9 @@
 
   const stockStatusLabel = item => {
     const qty = parseFloat(item.quantity_on_hand)
-    if (qty <= 0) return 'Out of Stock'
-    if (isLowStock(item)) return 'Low Stock'
-    return 'In Stock'
+    if (qty <= 0) return t('stock_overview.table.out_stock')
+    if (isLowStock(item)) return t('stock_overview.table.low_stock')
+    return t('stock_overview.table.in_stock')
   }
 
   const stockStatusChipColor = item => {

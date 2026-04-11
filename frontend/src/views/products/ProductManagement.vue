@@ -57,7 +57,7 @@
             <v-col cols="12" sm="4">
               <v-text-field
                 v-model="search"
-                placeholder="Search by name, SKU, barcode..."
+                :placeholder="t('products.filter.placeholder')"
                 prepend-inner-icon="mdi-magnify"
                 variant="outlined"
                 density="comfortable"
@@ -103,18 +103,27 @@
             </v-col>
           </v-row>
 
-          <!-- ✅ clear all filters -->
-          <div v-if="activeFilterCount > 0" class="d-flex justify-end mt-2">
+          <v-col cols="12" class="d-flex justify-end gap-2 mt-2">
+            <v-btn
+              color="primary"
+              rounded="lg"
+              prepend-icon="mdi-filter"
+              class="me-4"
+              @click="applyFilters"
+            >
+              {{ t('btn.apply') }}
+            </v-btn>
+
             <v-btn
               variant="outlined"
               color="error"
-              prepend-icon="mdi-close"
               rounded="lg"
+              prepend-icon="mdi-close"
               @click="clearFilters"
             >
-              Clear filters
+              {{t('btn.clear')}}
             </v-btn>
-          </div>
+          </v-col>
         </v-card-text>
       </v-card>
     </v-expand-transition>
@@ -454,6 +463,12 @@
     { title: 'Unavailable', value: false }
   ]
 
+  const appliedFilters = ref({
+    search: '',
+    product_type: null,
+    is_available: null
+  })
+
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = computed(() => [
     { title: t('products.table.name'), key: 'name', sortable: true },
@@ -493,26 +508,7 @@
   ])
 
   // ── Filtered ──────────────────────────────────────────────────────────────────
-  const filteredProducts = computed(() => {
-    return products.value.filter(p => {
-      if (filterType.value && p.product_type !== filterType.value) return false
-      if (
-        filterAvailable.value !== null &&
-        filterAvailable.value !== undefined &&
-        p.is_available !== filterAvailable.value
-      )
-        return false
-      if (search.value) {
-        const q = search.value.toLowerCase()
-        return (
-          p.name.toLowerCase().includes(q) ||
-          (p.sku || '').toLowerCase().includes(q) ||
-          (p.barcode || '').toLowerCase().includes(q)
-        )
-      }
-      return true
-    })
-  })
+  const filteredProducts = computed(() => products.value)
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const typeColor = type =>
@@ -533,9 +529,9 @@
   const { fetchOnOptions, refresh } = useDataTable(
     productStore.fetchProducts, // ✅ your existing store action
     () => ({
-      // ✅ reactive filters
-      search: search.value
-      // stock_filter: stockFilter.value,
+      search: appliedFilters.value.search,
+      product_type: appliedFilters.value.product_type,
+      is_available: appliedFilters.value.is_available
     })
   )
   // ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -548,10 +544,28 @@
     return count
   })
 
+  function applyFilters() {
+    appliedFilters.value = {
+      search: search.value,
+      product_type: filterType.value,
+      is_available: filterAvailable.value
+    }
+
+    refresh() // 🔥 trigger API
+  }
+
   function clearFilters() {
     search.value = ''
     filterType.value = null
     filterAvailable.value = null
+
+    appliedFilters.value = {
+      search: '',
+      product_type: null,
+      is_available: null
+    }
+
+    refresh() // 🔥 reload without filters
   }
 
   const goToUnits = p => {

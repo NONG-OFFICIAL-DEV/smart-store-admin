@@ -450,11 +450,12 @@
   const adjusting = ref(false)
 
   // ── Filter options ────────────────────────────────────────────────────────
-  const stockFilterOptions = [
-    { value: 'out', label: 'Out of stock' },
-    { value: 'low', label: 'Low stock' },
-    { value: 'ok', label: 'In stock' }
-  ]
+  const stockFilterOptions = computed(() => [
+    { value: 'out', label: t('stock_overview.table.out_stock') },
+    { value: 'low', label: t('stock_overview.table.low_stock') },
+    { value: 'ok', label: t('stock_overview.table.in_stock') }
+  ])
+
   const sortOptions = [
     { value: 'name', label: 'Name A–Z' },
     { value: 'stock_asc', label: 'Stock: Low first' },
@@ -556,16 +557,16 @@
       key: 'stock_quantity',
       sortable: true
     },
-    {
-      title: t('stock_overview.table.reorder'),
-      key: 'reorder_level',
-      sortable: true
-    },
-    {
-      title: t('stock_overview.table.stock_bar'),
-      key: 'stock_bar',
-      sortable: false
-    },
+    // {
+    //   title: t('stock_overview.table.reorder'),
+    //   key: 'reorder_level',
+    //   sortable: true
+    // },
+    // {
+    //   title: t('stock_overview.table.stock_bar'),
+    //   key: 'stock_bar',
+    //   sortable: false
+    // },
     {
       title: t('stock_overview.table.units'),
       key: 'active_units',
@@ -602,10 +603,10 @@
   }
 
   const statusLabel = p => {
-    if (p.stock_quantity <= 0) return 'Out of Stock'
+    if (p.stock_quantity <= 0) return t('stock_overview.table.out_stock')
     if (p.reorder_level && p.stock_quantity <= p.reorder_level)
-      return 'Low Stock'
-    return 'In Stock'
+      return t('stock_overview.table.low_stock')
+    return t('stock_overview.table.in_stock')
   }
 
   const statusColor = p => {

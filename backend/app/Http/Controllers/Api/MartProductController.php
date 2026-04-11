@@ -14,41 +14,80 @@ class MartProductController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->get('per_page', 10);
-        $perPage = min($perPage, 100);
+        $perPage = min((int) $request->get('per_page', 10), 100);
 
-        $products = Product::with(['activeUnits'])
+        $query = Product::with(['activeUnits'])
+
             ->where(function ($q) {
                 $q->where('product_type', 'retail')
                     ->orWhere('track_stock', true);
             })
-            ->orderBy('name')
-            ->paginate($perPage); // ✅ paginate here
 
-        // Transform AFTER pagination
+            // ✅ SEARCH (name + sku + barcode)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->search;
+
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%");
+                });
+            })
+
+            // ✅ CATEGORY
+            ->when($request->filled('category_id'), function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            })
+
+            // ✅ PRODUCT TYPE
+            ->when($request->filled('product_type'), function ($q) use ($request) {
+                $q->where('product_type', $request->product_type);
+            })
+
+            // ✅ SORT
+            ->when($request->filled('sort_by'), function ($q) use ($request) {
+                $sort = $request->sort_by;
+                $direction = $request->get('sort_dir', 'asc');
+
+                $allowed = ['name', 'base_price', 'created_at'];
+
+                if (in_array($sort, $allowed)) {
+                    $q->orderBy($sort, $direction);
+                }
+            }, function ($q) {
+                $q->orderBy('name');
+            });
+
+        $products = $query->paginate($perPage);
+
         $products->getCollection()->transform(function ($p) {
             return [
-                'id'              => $p->id,
-                'name'            => $p->name,
-                'sku'             => $p->sku,
-                'image_url'       => $p->image_url,
-                'unit'            => $p->unit,
-                'stock_quantity'  => (float) $p->stock_quantity,
-                'reorder_level'   => $p->reorder_level !== null ? (float) $p->reorder_level : null,
-                'cost_price'      => (float) $p->cost_price,
-                'retail_price'    => (float) $p->retail_price,
+                'id' => $p->id,
+                'name' => $p->name,
+                'sku' => $p->sku,
+                'barcode' => $p->barcode,
+                'image_url' => $p->image_url,
+                'unit' => $p->unit,
+                'stock_quantity' => (float) $p->stock_quantity,
+                'reorder_level' => $p->reorder_level !== null ? (float) $p->reorder_level : null,
+                'cost_price' => (float) $p->cost_price,
+                'base_price' => (float) $p->base_price,
+                'retail_price' => (float) $p->retail_price,
                 'wholesale_price' => (float) $p->wholesale_price,
-                'product_type'    => $p->product_type,
-                'active_units'    => $p->activeUnits->map(fn($u) => [
-                    'id'              => $u->id,
-                    'unit_name'       => $u->unit_name,
-                    'unit_label'      => $u->unit_label,
-                    'qty_per_base'    => (float) $u->qty_per_base,
-                    'cost_price'      => (float) $u->cost_price,
-                    'retail_price'    => (float) $u->retail_price,
+                'product_type' => $p->product_type,
+                'is_available' => (bool) $p->is_available,
+                'is_featured' => (bool) $p->is_featured,
+
+                'active_units' => $p->activeUnits->map(fn($u) => [
+                    'id' => $u->id,
+                    'unit_name' => $u->unit_name,
+                    'unit_label' => $u->unit_label,
+                    'qty_per_base' => (float) $u->qty_per_base,
+                    'cost_price' => (float) $u->cost_price,
+                    'retail_price' => (float) $u->retail_price,
                     'wholesale_price' => (float) $u->wholesale_price,
-                    'is_base_unit'    => (bool)  $u->is_base_unit,
-                    'barcode'         => $u->barcode,
+                    'is_base_unit' => (bool) $u->is_base_unit,
+                    'barcode' => $u->barcode,
                 ]),
             ];
         });

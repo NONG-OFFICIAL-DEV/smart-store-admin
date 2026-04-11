@@ -497,6 +497,7 @@
     "empty": "No products found",
     "empty_sub": "Add your first product to get started",
     "filter": {
+      "placeholder": "Search products...",
       "all_types": "All Types",
       "all_categories": "All Categories",
       "all_status": "All Status"
@@ -572,7 +573,10 @@
       "status": "Status",
       "cost_value": "Cost Value",
       "retail_value": "Retail Value",
-      "actions": "Actions"
+      "actions": "Actions",
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_stock":"Out of Stock"
     },
     "empty": "No products in inventory",
     "empty_sub": "Add products and set stock levels to see inventory",
