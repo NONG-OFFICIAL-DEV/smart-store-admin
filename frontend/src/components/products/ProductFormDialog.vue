@@ -575,7 +575,10 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { usePermission } from '@/composables/usePermission'
+  import { useAppUtils } from '@nong-official-dev/core'
+
   const { isSuperAdmin } = usePermission()
+  const { confirm, notif } = useAppUtils()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -666,20 +669,55 @@
     if (file?.type.startsWith('image/')) processFile(file)
   }
 
-  const processFile = file => {
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Image must be under 2MB')
+  const resizeImage = file =>
+    new Promise(resolve => {
+      const img = new Image()
+      const reader = new FileReader()
+
+      reader.onload = e => {
+        img.src = e.target.result
+      }
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+
+        const MAX_WIDTH = 1000
+        const scale = MAX_WIDTH / img.width
+
+        canvas.width = MAX_WIDTH
+        canvas.height = img.height * scale
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        canvas.toBlob(
+          blob => {
+            resolve(blob)
+          },
+          'image/jpeg',
+          0.8 // quality (80%)
+        )
+      }
+
+      reader.readAsDataURL(file)
+    })
+
+  const processFile = async file => {
+    if (file.size > 5 * 1024 * 1024) {
+      notif('Image must be under 5MB', { type: 'error', color: 'error' })
       return
     }
-    imageFile.value = file
+
+    const resized = await resizeImage(file)
+
+    imageFile.value = resized
     form.value.image_url = null
 
-    // ✅ Use native FileReader — works reliably in Vue
     const reader = new FileReader()
-    reader.addEventListener('load', () => {
-      imagePreview.value = reader.result // string base64
-    })
-    reader.readAsDataURL(file)
+    reader.onload = () => {
+      imagePreview.value = reader.result
+    }
+    reader.readAsDataURL(resized)
   }
 
   const onUrlChange = val => {
