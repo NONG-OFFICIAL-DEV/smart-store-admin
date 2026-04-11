@@ -60,6 +60,11 @@ class Tenant extends BaseModel
         return $this->hasMany(Branch::class);
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'category_tenant');
+    }
+
     public function staff()
     {
         return $this->hasMany(Staff::class);

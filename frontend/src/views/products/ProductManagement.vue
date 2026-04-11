@@ -438,7 +438,6 @@
   // ── Fetch on mount ────────────────────────────────────────────────────────────
   onMounted(async () => {
     await categoryStore.fetchCategories()
-    await productStore.fetchProducts()
     await tenantStore.fetchTenants()
   })
 

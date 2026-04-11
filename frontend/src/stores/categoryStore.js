@@ -20,12 +20,11 @@ export const useCategoryStore = defineStore('category', {
     },
     async createCategory(data) {
       const res = await createCategoryApi(data)
-      this.categories.unshift(res.data.data)
+      return res
     },
     async updateCategory(id, data) {
       const res   = await updateCategoryApi(id, data)
-      const index = this.categories.findIndex(item => item.id === id)
-      if (index !== -1) this.categories[index] = res.data.data
+      return res
     },
     async deleteCategory(id) {
       await deleteCategoryApi(id)

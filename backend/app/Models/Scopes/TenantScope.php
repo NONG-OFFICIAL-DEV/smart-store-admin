@@ -44,6 +44,9 @@ class TenantScope implements Scope
                 ->where('tenant_id', $tenantId)
                 ->pluck('id');
             $builder->whereIn("{$table}.branch_id", $branchIds);
+        } elseif ($table === 'categories') {
+            // ✅ categories use pivot table instead of tenant_id column
+            $builder->whereHas('tenants', fn($q) => $q->where('tenant_id', $tenantId));
         }
     }
 }

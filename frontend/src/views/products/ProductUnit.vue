@@ -188,39 +188,6 @@
       :loading="saving"
       @save="handleSave"
     />
-
-    <!-- Delete Confirm -->
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card rounded="xl" border elevation="0">
-        <v-card-title class="pa-5">
-          <div class="d-flex align-center gap-3">
-            <v-avatar color="error" variant="tonal" size="40" rounded="lg">
-              <v-icon icon="mdi-delete-outline" />
-            </v-avatar>
-            <div>
-              <div class="text-body-1 font-weight-bold">Delete Unit?</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ deleteTarget?.unit_label || deleteTarget?.unit_name }}
-              </div>
-            </div>
-          </div>
-        </v-card-title>
-        <v-card-actions class="pa-5 gap-3">
-          <v-btn variant="tonal" rounded="lg" @click="deleteDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            rounded="lg"
-            :loading="deleting"
-            @click="doDelete"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -228,7 +195,9 @@
   import { ref, computed, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
   import { useProductUnitStore } from '@/stores/productUnitStore'
-  import { useAppUtils } from '@/composables/useAppUtils'
+  import { useAppUtils } from '@nong-official-dev/core'
+  import { useI18n } from 'vue-i18n'
+
   import ProductUnitDialog from '@/components/products/ProductUnitDialog.vue'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
@@ -236,7 +205,8 @@
   const { format } = useCurrency()
   const route = useRoute()
   const unitStore = useProductUnitStore()
-  const { notif } = useAppUtils()
+  const { confirm, notif } = useAppUtils()
+  const { t } = useI18n()
 
   const productId = computed(() => route.params.id)
   const productName = computed(() => route.query.name ?? 'Product')
@@ -244,7 +214,6 @@
   const dialog = ref(false)
   const deleteDialog = ref(false)
   const selectedUnit = ref(null)
-  const deleteTarget = ref(null)
   const saving = ref(false)
   const deleting = ref(false)
 
@@ -280,7 +249,6 @@
         await unitStore.createUnit(productId.value, payload)
         notif('Unit added', { type: 'success' })
       }
-      dialog.value = false
     } catch (err) {
       const msg = err.response?.data?.message ?? 'Failed to save unit'
       notif(msg, { type: 'error' })
@@ -295,15 +263,21 @@
     })
   }
 
-  const confirmDelete = u => {
-    deleteTarget.value = u
-    deleteDialog.value = true
-  }
-  const doDelete = async () => {
+  const confirmDelete = async item => {
     deleting.value = true
     try {
-      await unitStore.deleteUnit(productId.value, deleteTarget.value.id)
-      notif('Unit deleted', { type: 'success' })
+      confirm({
+        title: 'Delete Product Unit?',
+        message: `Are you sure delete "${item.unit_name}"?`,
+        options: { type: 'warning', color: 'warning', width: 400 },
+        agree: async () => {
+          await unitStore.deleteUnit(productId.value, item.id)
+          notif(t('messages.deleted_success'), {
+            type: 'success'
+          })
+          unitStore.fetchUnits(productId.value)
+        }
+      })
       deleteDialog.value = false
     } catch (err) {
       notif(err.response?.data?.message ?? 'Failed to delete', {

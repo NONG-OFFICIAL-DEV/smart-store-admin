@@ -14,7 +14,7 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $perPage = min((int) $request->get('per_page', 10), 100);
-        $query = Category::query();
+        $query = Category::query()->with('tenants');
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
@@ -31,25 +31,43 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // CategoryController.php
     public function store(Request $request)
     {
-        return Category::store($request);
+        $category = Category::create($request->only([
+            'parent_id',
+            'name',
+            'description',
+            'image_url',
+            'icon',
+            'color',
+            'sort_order',
+            'is_active',
+        ]));
+
+        $category->tenants()->sync($request->input('tenant_ids', []));
+
+        return response()->json($category->load('tenants'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        return Category::store($request, $id);
+        $category = Category::findOrFail($id);
+
+        $category->update($request->only([
+            'parent_id',
+            'name',
+            'description',
+            'image_url',
+            'icon',
+            'color',
+            'sort_order',
+            'is_active',
+        ]));
+
+        $category->tenants()->sync($request->input('tenant_ids', []));
+
+        return response()->json($category->load('tenants'), 200);
     }
 
     /**

@@ -65,4 +65,10 @@ class Category extends BaseModel
     {
         return $this->hasMany(Product::class)->orderBy('sort_order');
     }
+
+    // ─── Relationships ────────────────────────────────────────────────────────
+    public function tenants()
+    {
+        return $this->belongsToMany(Tenant::class, 'category_tenant');
+    }
 }
