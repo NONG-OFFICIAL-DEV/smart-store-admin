@@ -17,22 +17,6 @@
             {{ t('btn.refresh') }}
           </v-btn>
           <v-btn
-            color="warning"
-            variant="tonal"
-            rounded="lg"
-            prepend-icon="mdi-alert-circle-outline"
-          >
-            <!-- :to="{ name: 'MartLowStock' }" -->
-            Low Stock
-            <!-- {{ t('btn.low_stock') }} -->
-            <v-badge
-              v-if="martProductStore.lowStockCount > 0"
-              :content="martProductStore.lowStockCount"
-              color="error"
-              floating
-            />
-          </v-btn>
-          <v-btn
             color="primary"
             variant="flat"
             rounded="lg"

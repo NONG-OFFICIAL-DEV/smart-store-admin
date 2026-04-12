@@ -76,6 +76,7 @@ use App\Http\Controllers\Api\StockAdjustmentController;
 use App\Http\Controllers\Api\MartProductController;
 use App\Http\Controllers\Api\MartProductPerformanceController;
 use App\Http\Controllers\Api\MartPurchaseReportController;
+use App\Http\Controllers\ReceiptController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -85,6 +86,7 @@ Route::get('/test', function () {
 
 // ── Public routes (no auth needed) ──────────────────────────────────────────
 Route::post('/login',     [AuthController::class, 'login']);
+Route::get('/get-receipt',     [ReceiptController::class, 'index']);
 Route::post('/login-pin', [AuthController::class, 'loginByPin']); // ← moved OUT
 
 // ── Protected routes ─────────────────────────────────────────────────────────

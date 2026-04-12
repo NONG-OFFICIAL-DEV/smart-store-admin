@@ -483,7 +483,7 @@
   const stats = computed(() => [
     {
       label: 'Total Products',
-      value: products.value.length,
+      value: pagination.value.total || 0,
       icon: 'mdi-package-variant',
       color: 'primary'
     },
