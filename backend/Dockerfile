@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libzip-dev \
     libpq-dev \
+    libicu-dev \
     unzip \
     git \
     curl \
@@ -15,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     redis-server \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install pdo_mysql pdo_pgsql gd zip pcntl \
+ && docker-php-ext-install pdo_mysql pdo_pgsql gd zip pcntl intl \
  && rm -rf /var/lib/apt/lists/*
 
 RUN pecl install redis && docker-php-ext-enable redis
