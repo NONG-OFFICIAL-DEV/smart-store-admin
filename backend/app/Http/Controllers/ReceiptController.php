@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Mike42\Escpos\Printer;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\GdEscposImage;
 
 class ReceiptController extends Controller
 {
-    private string $printerName = 'Diamond_Printer';
+    private string $printerIp   = '192.168.1.114';
+    private int    $printerPort = 9100;
     private string $fontPath;
 
     public function __construct()
@@ -27,25 +28,28 @@ class ReceiptController extends Controller
         }
 
         try {
-            $tmpFile   = tempnam(sys_get_temp_dir(), 'receipt_');
-            $connector = new FilePrintConnector($tmpFile);
+            // 🔥 Direct network printing (NO lp, NO temp file)
+            $connector = new NetworkPrintConnector($this->printerIp, $this->printerPort);
             $printer   = new Printer($connector);
 
             $this->buildReceipt($printer, $data);
 
-            $printer->feed(3);
+            // 🔥 important
+            $printer->feed(5);
             $printer->cut();
             $printer->close();
 
-            $output = shell_exec("lp -d {$this->printerName} " . escapeshellarg($tmpFile) . " 2>&1");
-            Log::info('lp output: ' . $output);
-
-            unlink($tmpFile);
-
-            return response()->json(['success' => true, 'message' => 'Printed!']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Printed successfully via network'
+            ]);
         } catch (\Exception $e) {
             Log::error('Print error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
