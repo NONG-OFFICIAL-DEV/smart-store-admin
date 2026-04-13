@@ -88,7 +88,9 @@ Route::get('/test', function () {
 Route::post('/login',     [AuthController::class, 'login']);
 Route::get('/get-receipt',     [ReceiptController::class, 'index']);
 Route::post('/login-pin', [AuthController::class, 'loginByPin']); // ← moved OUT
-
+// routes/api.php
+Route::post('/print-receipt', [ReceiptController::class, 'print']);
+Route::post('/print-receipt-image', [ReceiptController::class, 'printImage']);
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware('jwt.auth')->group(function () {
     Route::get ('/me',      [AuthController::class, 'me']);

@@ -3,69 +3,210 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\Printer;
+use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use Mike42\Escpos\GdEscposImage;
 
 class ReceiptController extends Controller
 {
-    private string $printerIp   = '192.168.1.114'; // <-- change this
-    private int    $printerPort = 9100;
+    private string $printerName = 'Diamond_Printer';
+    private string $fontPath;
 
-    // GET /test-print  →  prints a test receipt
-    public function index()
+    public function __construct()
     {
-        $ESC = "\x1b";
-        $GS  = "\x1d";
-
-        $r  = $ESC . "\x40";
-
-        $r .= $ESC . "\x61\x01";
-        $r .= $ESC . "\x45\x01";
-        $r .= $ESC . "\x21\x30";
-        $r .= "MY STORE\n";
-        $r .= $ESC . "\x21\x00";
-        $r .= $ESC . "\x45\x00";
-        $r .= "--------------------------------\n";
-
-        $r .= $ESC . "\x61\x00";
-        $r .= "Order  : #0001\n";
-        $r .= "Date   : " . now()->format('d/m/Y H:i') . "\n";
-        $r .= "--------------------------------\n";
-
-        $r .= str_pad("Americano x2",  22) . str_pad("$5.00",  10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= str_pad("Croissant x1",  22) . str_pad("$2.50",  10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= str_pad("Green Tea x1",  22) . str_pad("$2.50",  10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= "--------------------------------\n";
-        $r .= str_pad("Subtotal:",     22) . str_pad("$10.00", 10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= str_pad("Tax (10%):",    22) . str_pad("$1.00",  10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= "--------------------------------\n";
-        $r .= $ESC . "\x45\x01";
-        $r .= str_pad("TOTAL:",        22) . str_pad("$11.00", 10, ' ', STR_PAD_LEFT) . "\n";
-        $r .= $ESC . "\x45\x00";
-        $r .= $ESC . "\x61\x01";
-        $r .= "\nThank you!\n";
-        $r .= "Please come again\n";
-        $r .= "\n\n\n";
-        $r .= $GS  . "\x56\x00";
-
-        $result = $this->sendToPrinter($r);
-
-        return response()->json($result, $result['success'] ? 200 : 500);
+        $this->fontPath = storage_path('fonts/Hanuman/static/Hanuman-Regular.ttf');
     }
 
-    private function sendToPrinter(string $data): array
+    public function print(Request $request)
     {
-        $errno  = 0;
-        $errstr = '';
+        $data = $request->json()->all();
 
-        // 3 second connection timeout — won't hang PHP
-        $fp = fsockopen($this->printerIp, $this->printerPort, $errno, $errstr, 3);
-
-        if (!$fp) {
-            return ['success' => false, 'message' => "Printer error ($errno): $errstr"];
+        if (empty($data)) {
+            return response()->json(['success' => false, 'message' => 'No data received'], 400);
         }
 
-        fwrite($fp, $data);
-        fclose($fp);
+        try {
+            $tmpFile   = tempnam(sys_get_temp_dir(), 'receipt_');
+            $connector = new FilePrintConnector($tmpFile);
+            $printer   = new Printer($connector);
 
-        return ['success' => true, 'message' => 'Printed successfully'];
+            $this->buildReceipt($printer, $data);
+
+            $printer->feed(3);
+            $printer->cut();
+            $printer->close();
+
+            $output = shell_exec("lp -d {$this->printerName} " . escapeshellarg($tmpFile) . " 2>&1");
+            Log::info('lp output: ' . $output);
+
+            unlink($tmpFile);
+
+            return response()->json(['success' => true, 'message' => 'Printed!']);
+        } catch (\Exception $e) {
+            Log::error('Print error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function buildReceipt(Printer $printer, array $data): void
+    {
+        $branchName  = $data['branch_name']  ?? 'My Store';
+        $branchPhone = $data['branch_phone'] ?? '';
+        $orderNumber = $data['order_number'] ?? '-';
+        $printedAt   = $data['printed_at']   ?? now()->format('d/m/Y H:i');
+        $cashier     = $data['cashier']      ?? '-';
+        $subtotal    = number_format(floatval($data['subtotal'] ?? 0), 2);
+        $total       = number_format(floatval($data['total']    ?? 0), 2);
+        $discount    = floatval($data['discount'] ?? 0);
+        $tax         = floatval($data['tax']      ?? 0);
+        $cash        = floatval($data['cash_tendered'] ?? 0);
+        $change      = floatval($data['change_given']  ?? 0);
+
+        $customerType = ($data['customer_type'] ?? '') === 'wholesale' ? 'Wholesale' : 'Retail';
+
+        $payLabel = [
+            'cash'     => 'Cash',
+            'card'     => 'Card',
+            'qr_code'  => 'QR Code',
+            'qr'       => 'QR',
+            'online'   => 'Transfer',
+            'transfer' => 'Transfer',
+        ][$data['payment_method'] ?? ''] ?? ($data['payment_method'] ?? '-');
+
+        $line  = str_repeat('-', 32) . "\n";
+        $dline = str_repeat('=', 32) . "\n";
+
+        // ── Header ──────────────────────────────────────
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        if ($this->hasKhmer($branchName)) {
+            $this->printKhmer($printer, $branchName);
+        } else {
+            $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
+            $printer->text($branchName . "\n");
+            $printer->selectPrintMode();
+        }
+
+        if ($branchPhone) {
+            $printer->text("Tel: " . $branchPhone . "\n");
+        }
+
+        // ── Order Info ──────────────────────────────────
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->text($line);
+        $printer->text("Order # : " . $orderNumber . "\n");
+        $printer->text("Date    : " . $printedAt . "\n");
+
+        if ($this->hasKhmer($cashier)) {
+            $printer->text("Cashier : ");
+            $this->printKhmer($printer, $cashier);
+        } else {
+            $printer->text("Cashier : " . $cashier . "\n");
+        }
+
+        $printer->text("Type    : " . $customerType . "\n");
+        $printer->text($line);
+
+        // ── Items ───────────────────────────────────────
+        foreach ($data['items'] ?? [] as $item) {
+            $name       = $item['name']  ?? '';
+            $qty        = $item['qty']   ?? 0;
+            $unitPrice  = number_format(floatval($item['unit_price']  ?? 0), 2);
+            $totalPrice = number_format(floatval($item['total_price'] ?? 0), 2);
+
+            // Render item name — as image if contains Khmer
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            if ($this->hasKhmer($name)) {
+                $this->printKhmer($printer, $name);
+            } else {
+                $printer->text($name . "\n");
+            }
+
+            // Qty and price always plain text
+            $calc = "  " . $qty . " x $" . $unitPrice;
+            $printer->text(
+                str_pad($calc, 22) .
+                    str_pad("$" . $totalPrice, 10, ' ', STR_PAD_LEFT) . "\n"
+            );
+        }
+
+        // ── Totals ──────────────────────────────────────
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->text($line);
+        $printer->text(str_pad("Subtotal:", 22) . str_pad("$" . $subtotal, 10, ' ', STR_PAD_LEFT) . "\n");
+
+        if ($discount > 0) {
+            $printer->text(str_pad("Discount:", 22) . str_pad("-$" . number_format($discount, 2), 10, ' ', STR_PAD_LEFT) . "\n");
+        }
+        if ($tax > 0) {
+            $printer->text(str_pad("Tax:", 22) . str_pad("$" . number_format($tax, 2), 10, ' ', STR_PAD_LEFT) . "\n");
+        }
+
+        $printer->text($dline);
+        $printer->setEmphasis(true);
+        $printer->text(str_pad("TOTAL:", 22) . str_pad("$" . $total, 10, ' ', STR_PAD_LEFT) . "\n");
+        $printer->setEmphasis(false);
+        $printer->text($dline);
+
+        // ── Payment ─────────────────────────────────────
+        $printer->text(str_pad("Payment:", 22) . str_pad($payLabel, 10, ' ', STR_PAD_LEFT) . "\n");
+        if ($cash > 0) {
+            $printer->text(str_pad("Cash:", 22) . str_pad("$" . number_format($cash, 2), 10, ' ', STR_PAD_LEFT) . "\n");
+        }
+        if ($change > 0) {
+            $printer->text(str_pad("Change:", 22) . str_pad("$" . number_format($change, 2), 10, ' ', STR_PAD_LEFT) . "\n");
+        }
+
+        // ── Footer ──────────────────────────────────────
+        $printer->text($line);
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text("Thank you for your purchase!\n");
+        $this->printKhmer($printer, "អរគុណសម្រាប់ការទិញ!");
+    }
+
+    // Check if text contains Khmer characters
+    private function hasKhmer(string $text): bool
+    {
+        return preg_match('/[\x{1780}-\x{17FF}]/u', $text) === 1;
+    }
+
+    private function printKhmer(Printer $printer, string $text): void
+    {
+        try {
+            $img = $this->createKhmerImage($text, $this->fontPath);
+
+            $escposImage = new GdEscposImage();
+            $escposImage->readImageFromGdResource($img);
+
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $printer->bitImage($escposImage);
+
+            imagedestroy($img);
+        } catch (\Exception $e) {
+            Log::error('Khmer print error: ' . $e->getMessage());
+            $printer->text("(Khmer error)\n");
+        }
+    }
+
+    private function createKhmerImage(string $text, string $fontPath)
+    {
+        $tmpPng = tempnam(sys_get_temp_dir(), 'khmer_') . '.png';
+        $script = base_path('render-khmer.cjs');
+
+        shell_exec(
+            "node " .
+                escapeshellarg($script) . " " .
+                escapeshellarg($text) . " " .
+                escapeshellarg($tmpPng) . " " .
+                escapeshellarg($fontPath) . " 2>&1"
+        );
+
+        if (!file_exists($tmpPng)) {
+            throw new \Exception('Node.js canvas failed to create Khmer image');
+        }
+
+        $img = imagecreatefrompng($tmpPng);
+        unlink($tmpPng);
+        return $img;
     }
 }
