@@ -45,6 +45,11 @@
       icon: 'mdi-store-outline',
       show: can('branches.view')
     },
+    {
+      path: '/operation',
+      title: t('menu.operation'),
+      icon: 'mdi-cash-register'
+    },
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
       title: authStore.isSuperAdmin

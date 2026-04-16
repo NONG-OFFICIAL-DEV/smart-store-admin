@@ -42,7 +42,8 @@
     "stock_reports": "Stock Reports",
     "product_performance": "Product Performance",
     "sales_report": "Sales Report",
-    "profit_loss": "Profit & Loss"
+    "profit_loss": "Profit & Loss",
+    "operation": "Operations"
   },
 
   "btn": {
