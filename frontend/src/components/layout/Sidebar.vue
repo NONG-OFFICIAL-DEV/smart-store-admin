@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import logo from '/logo.png'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/authStore'

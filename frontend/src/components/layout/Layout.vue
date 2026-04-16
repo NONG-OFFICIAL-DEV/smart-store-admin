@@ -16,13 +16,13 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
   import { useRouter } from 'vue-router'
 
-  const rail = ref(false)
+  const rail = ref(localStorage.getItem('sidebar-rail') === 'true')
   const authStore = useAuthStore()
   const router = useRouter()
 
@@ -42,6 +42,10 @@
       authStore.logout()
       router.push({ name: 'Login' })
     }
+  })
+
+  watch(rail, val => {
+    localStorage.setItem('sidebar-rail', val)
   })
 
   function toggleRail() {

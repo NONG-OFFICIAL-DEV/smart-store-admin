@@ -19,210 +19,195 @@
       </template>
     </custom-title>
     <!-- ── Filters ─────────────────────────────────────────────────────────────── -->
-    <v-row dense align="center" class="mb-4">
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="search"
-          prepend-inner-icon="mdi-magnify"
-          placeholder="Search name, city, phone..."
-          variant="outlined"
-          rounded="lg"
-          hide-details
-          clearable
-        />
-      </v-col>
-      <v-col cols="12" sm="auto">
-        <v-btn-toggle
-          v-model="typeFilter"
-          color="primary"
-          variant="tonal"
-          rounded="lg"
-        >
-          <!-- All option -->
-          <v-btn :value="null" size="small" class="text-none px-3">
-            <v-icon icon="mdi-view-grid-outline" size="15" class="mr-1" />
-            All
-          </v-btn>
 
-          <v-btn
-            v-for="t in branchTypes"
-            :key="t.value"
-            :value="t.value"
-            size="small"
-            class="text-none px-3"
-          >
-            <v-icon :icon="t.icon" size="15" class="mr-1" />
-            {{ t.label }}
-          </v-btn>
-        </v-btn-toggle>
-      </v-col>
-    </v-row>
+    <div class="d-flex align-center gap-3 mb-4 flex-wrap">
+      <v-text-field
+        v-model="search"
+        placeholder="Search branch name or city..."
+        prepend-inner-icon="mdi-magnify"
+        variant="outlined"
+        density="compact"
+        hide-details
+        rounded="lg"
+        style="max-width: 300px"
+      />
+      <v-select
+        v-model="filterType"
+        :items="typeOptions"
+        placeholder="All types"
+        variant="outlined"
+        density="compact"
+        hide-details
+        rounded="lg"
+        clearable
+        style="max-width: 160px"
+      />
+      <v-select
+        v-model="filterStatus"
+        :items="['Active', 'Inactive']"
+        placeholder="All status"
+        variant="outlined"
+        density="compact"
+        hide-details
+        rounded="lg"
+        clearable
+        style="max-width: 140px"
+      />
+    </div>
 
-    <!-- ── Table ───────────────────────────────────────────────────────────────── -->
-    <v-card rounded="lg" elevation="0" border>
-      <v-data-table
-        :headers="headers"
-        :items="filteredBranches"
-        :loading="branchStore.loading"
-        item-value="id"
-        hover
+    <!-- Card grid -->
+    <v-row dense>
+      <v-col
+        v-for="branch in filteredBranches"
+        :key="branch.id"
+        cols="12"
+        sm="6"
+        lg="4"
       >
-        <!-- Name + Address -->
-        <template #item.name="{ item }">
-          <div class="d-flex align-center gap-3 py-2">
-            <v-avatar
-              :color="typeColor(item.type)"
-              variant="tonal"
-              rounded="lg"
-              size="38"
-            >
-              <v-icon :icon="typeIcon(item.type)" size="18" />
-            </v-avatar>
-            <div>
-              <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
-              <div class="text-caption text-grey">
-                {{ item.address_line1 }}
-                <span v-if="item.address_line2">
-                  , {{ item.address_line2 }}
-                </span>
+        <v-card rounded="lg" elevation="0" border hover>
+          <!-- Top: avatar + name -->
+          <v-card-text class="pb-2">
+            <div class="d-flex align-start gap-3">
+              <v-avatar
+                :color="typeColor(branch.type)"
+                variant="tonal"
+                rounded="lg"
+                size="40"
+              >
+                <v-icon :icon="typeIcon(branch.type)" size="20" />
+              </v-avatar>
+              <div style="min-width: 0">
+                <div class="text-body-2 font-weight-bold text-truncate">
+                  {{ branch.name }}
+                </div>
+                <div class="text-caption text-grey text-truncate">
+                  {{ branch.address_line1 }}
+                </div>
               </div>
             </div>
-          </div>
-        </template>
 
-        <!-- Tenant -->
-        <template #item.tenant.name="{ item }">
-          <v-chip
-            v-if="item.tenant"
-            size="small"
-            variant="tonal"
-            color="primary"
-            prepend-icon="mdi-domain"
-          >
-            {{ item.tenant.name }}
-          </v-chip>
-          <span v-else class="text-grey">—</span>
-        </template>
-
-        <!-- Type -->
-        <template #item.type="{ item }">
-          <v-chip
-            :color="typeColor(item.type)"
-            :prepend-icon="typeIcon(item.type)"
-            size="small"
-            variant="tonal"
-            class="text-capitalize"
-          >
-            {{ item.type?.replace('_', ' ') }}
-          </v-chip>
-        </template>
-
-        <!-- Location -->
-        <template #item.city="{ item }">
-          <div class="d-flex align-center gap-1">
-            <v-icon icon="mdi-map-marker-outline" size="14" color="grey" />
-            <div>
-              <div class="text-body-2">{{ item.city }}</div>
-              <div class="text-caption text-grey">{{ item.country }}</div>
+            <!-- Badges -->
+            <div class="d-flex gap-2 flex-wrap mt-3">
+              <v-chip
+                :color="typeColor(branch.type)"
+                size="x-small"
+                variant="tonal"
+                class="text-capitalize"
+              >
+                {{ branch.type?.replace('_', ' ') }}
+              </v-chip>
+              <v-chip
+                :color="branch.is_open ? 'success' : 'error'"
+                size="x-small"
+                variant="tonal"
+                :prepend-icon="
+                  branch.is_open ? 'mdi-circle' : 'mdi-circle-outline'
+                "
+              >
+                {{ branch.is_open ? 'Open' : 'Closed' }}
+              </v-chip>
+              <v-chip
+                :color="branch.is_active ? 'primary' : 'default'"
+                size="x-small"
+                variant="tonal"
+              >
+                {{ branch.is_active ? 'Active' : 'Inactive' }}
+              </v-chip>
             </div>
-          </div>
-        </template>
+          </v-card-text>
 
-        <!-- Contact -->
-        <template #item.phone="{ item }">
-          <div>
+          <v-divider />
+
+          <!-- Meta info -->
+          <v-card-text class="py-2">
             <div
-              v-if="item.phone"
-              class="d-flex align-center gap-1 text-body-2"
+              class="d-flex align-center gap-2 text-caption text-medium-emphasis mb-1"
             >
-              <v-icon icon="mdi-phone-outline" size="13" color="grey" />
-              {{ item.phone }}
+              <v-icon icon="mdi-map-marker-outline" size="13" />
+              {{ branch.city }}, {{ branch.country }}
             </div>
             <div
-              v-if="item.email"
-              class="d-flex align-center gap-1 text-caption text-grey"
+              v-if="branch.phone"
+              class="d-flex align-center gap-2 text-caption text-medium-emphasis mb-1"
+            >
+              <v-icon icon="mdi-phone-outline" size="13" />
+              {{ branch.phone }}
+            </div>
+            <div
+              v-if="branch.email"
+              class="d-flex align-center gap-2 text-caption text-medium-emphasis"
             >
               <v-icon icon="mdi-email-outline" size="13" />
-              {{ item.email }}
+              {{ branch.email }}
             </div>
-            <span v-if="!item.phone && !item.email" class="text-grey">—</span>
-          </div>
-        </template>
+          </v-card-text>
 
-        <!-- Open -->
-        <template #item.is_open="{ item }">
-          <v-chip
-            :color="item.is_open ? 'success' : 'error'"
-            size="small"
-            variant="tonal"
-            :prepend-icon="item.is_open ? 'mdi-door-open' : 'mdi-door-closed'"
+          <v-divider />
+
+          <!-- Footer: tenant + actions -->
+          <v-card-actions
+            class="px-3 py-2"
+            style="background: rgba(0, 0, 0, 0.02)"
           >
-            {{ item.is_open ? 'Open' : 'Closed' }}
-          </v-chip>
-        </template>
-
-        <!-- Status -->
-        <template #item.is_active="{ item }">
-          <v-chip
-            :color="item.is_active ? 'success' : 'error'"
-            size="small"
-            variant="tonal"
-          >
-            {{ item.is_active ? 'Active' : 'Inactive' }}
-          </v-chip>
-        </template>
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <v-btn
-            v-if="can('branches.details')"
-            icon="mdi-arrow-right-circle"
-            size="small"
-            variant="text"
-            color="primary"
-            @click="router.push(`/branches/${item.id}`)"
-          />
-          <v-btn
-            v-if="isSuperAdmin()"
-            icon="mdi-pencil-outline"
-            variant="text"
-            size="small"
-            @click="openEdit(item)"
-          />
-          <v-btn
-            v-if="isSuperAdmin()"
-            icon="mdi-delete-outline"
-            variant="text"
-            size="small"
-            color="error"
-            @click="handleDelete(item)"
-          />
-        </template>
-
-        <!-- Empty -->
-        <template #no-data>
-          <div class="text-center py-12">
-            <v-icon
-              icon="mdi-store-off-outline"
-              size="56"
-              color="grey-lighten-1"
-              class="mb-3"
-            />
-            <p class="text-h6 text-medium-emphasis mb-1">No branches found</p>
-            <v-btn
-              color="primary"
+            <v-chip
+              v-if="branch.tenant && isSuperAdmin()"
+              size="x-small"
               variant="tonal"
-              prepend-icon="mdi-plus"
-              class="mt-2"
-              @click="openCreate"
+              color="primary"
+              prepend-icon="mdi-domain"
             >
-              Add First Branch
-            </v-btn>
-          </div>
-        </template>
-      </v-data-table>
-    </v-card>
+              {{ branch.tenant.name }}
+            </v-chip>
+            <v-spacer />
+            <v-btn
+              v-if="can('branches.details')"
+              icon="mdi-arrow-right-circle"
+              size="small"
+              variant="text"
+              color="primary"
+              @click="router.push(`/branches/${branch.id}`)"
+            />
+            <v-btn
+              v-if="isSuperAdmin()"
+              icon="mdi-pencil-outline"
+              size="small"
+              variant="text"
+              @click="openEdit(branch)"
+            />
+            <v-btn
+              v-if="isSuperAdmin()"
+              icon="mdi-delete-outline"
+              size="small"
+              variant="text"
+              color="error"
+              @click="handleDelete(branch)"
+            />
+          </v-card-actions>
+        </v-card>
+      </v-col>
 
+      <!-- Empty state -->
+      <v-col v-if="!filteredBranches.length" cols="12">
+        <div class="text-center py-12">
+          <v-icon
+            icon="mdi-store-off-outline"
+            size="56"
+            color="grey-lighten-1"
+            class="mb-3"
+          />
+          <p class="text-h6 text-medium-emphasis mb-1">No branches found</p>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            prepend-icon="mdi-plus"
+            class="mt-2"
+            @click="openCreate"
+          >
+            Add first branch
+          </v-btn>
+        </div>
+      </v-col>
+    </v-row>
     <!-- Branch Dialog — keep your existing component name -->
     <BranchDialog
       v-if="dialog.show"
@@ -263,6 +248,16 @@
     { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee-outline' },
     { value: 'kiosk', label: 'Kiosk', icon: 'mdi-storefront-outline' },
     { value: 'food_truck', label: 'Food Truck', icon: 'mdi-truck-outline' }
+  ]
+  const typeOptions = [
+    'retail',
+    'minimart',
+    'wholesale',
+    'restaurant',
+    'cafe',
+    'bakery',
+    'kiosk',
+    'food_truck'
   ]
 
   // ── Normalise branches — handle both array and paginated {data:[]} ────────────
