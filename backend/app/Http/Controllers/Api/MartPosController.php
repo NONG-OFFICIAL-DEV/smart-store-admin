@@ -73,7 +73,7 @@ class MartPosController extends Controller
                 } else {
                     $unitPrice  = (float) ($product->selling_price ?? $product->base_price ?? 0);
                     $qtyPerBase = 1;
-                    $unitName   = $product->unit ?? 'pcs';
+                    $unitName   = $product->unit_name ?? 'pcs';
                 }
 
                 // ── Stock check ────────────────────────────────────────────────

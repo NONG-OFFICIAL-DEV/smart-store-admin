@@ -175,11 +175,6 @@ class DashboardController extends Controller
                     ],
                 ],
                 'branches'      => $branches->values(),
-                'orders_by_type' => [
-                    ['label' => 'Dine-in',   'count' => (int)($byType['dine_in']   ?? 0), 'color' => '#1867C0'],
-                    ['label' => 'Takeaway',  'count' => (int)($byType['takeaway']  ?? 0), 'color' => '#00897B'],
-                    ['label' => 'Delivery',  'count' => (int)($byType['delivery']  ?? 0), 'color' => '#FB8C00'],
-                ],
                 'total_orders_today' => Order::whereIn('branch_id', $branchIds)
                     ->whereDate('created_at', today())
                     ->whereNotIn('status', ['cancelled'])
