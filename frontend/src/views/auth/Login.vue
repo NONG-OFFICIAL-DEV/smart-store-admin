@@ -21,7 +21,7 @@
             class="text-h6 font-weight-black"
             style="letter-spacing: -0.3px"
           >
-            BrewDesk
+            {{ t('app.name') }}
           </span>
         </div>
 
@@ -73,7 +73,7 @@
           max-width="500"
         >
           <!-- Header -->
-          <div class="text-start mb-10 fade-in">
+          <div class="text-start mb-8 fade-in">
             <div class="form-header">
               <div class="form-title">Sign in</div>
               <div class="form-sub">
@@ -81,6 +81,33 @@
               </div>
             </div>
           </div>
+
+          <!-- Mode toggle -->
+          <v-btn-toggle
+            v-model="loginMode"
+            mandatory
+            density="compact"
+            rounded="lg"
+            variant="outlined"
+            class="mb-8 w-100"
+          >
+            <v-btn
+              value="pin"
+              size="small"
+              class="text-none flex-grow-1"
+              prepend-icon="mdi-dialpad"
+            >
+              {{ t('login.pin') }}
+            </v-btn>
+            <v-btn
+              value="password"
+              size="small"
+              class="text-none flex-grow-1"
+              prepend-icon="mdi-lock-outline"
+            >
+              {{ t('login.password') }}
+            </v-btn>
+          </v-btn-toggle>
 
           <!-- General error -->
           <v-slide-y-transition>
@@ -96,12 +123,17 @@
             </v-alert>
           </v-slide-y-transition>
 
-          <!-- Form -->
-          <v-form ref="formRef" class="fade-in" @submit.prevent="handleLogin">
-            <label class="text-caption ml-1">Email Address</label>
+          <!-- ── Password form ── -->
+          <v-form
+            v-if="loginMode === 'password'"
+            ref="formRef"
+            class="fade-in"
+            @submit.prevent="handleLogin"
+          >
+            <label class="text-caption ml-1">{{ t('login.email') }}</label>
             <v-text-field
               v-model="email"
-              placeholder="name@company.com"
+              :placeholder="t('login.emailPlaceholder')"
               variant="outlined"
               rounded="lg"
               prepend-inner-icon="mdi-email-outline"
@@ -114,12 +146,10 @@
               @update:model-value="errors.email = ''"
             />
 
-            <div class="d-flex align-center justify-space-between mt-4">
-              <label class="text-caption ml-1">Password</label>
-            </div>
+            <label class="text-caption ml-1">{{ t('login.password') }}</label>
             <v-text-field
               v-model="password"
-              placeholder="••••••••"
+              :placeholder="t('login.passwordPlaceholder')"
               variant="outlined"
               rounded="lg"
               :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
@@ -132,7 +162,7 @@
               :disabled="loading"
               validate-on="blur"
               persistent-hint
-              hint="Enter your password"
+              :hint="t('login.passwordHint')"
               @click:append-inner="visible = !visible"
               @update:model-value="errors.password = ''"
             />
@@ -146,9 +176,104 @@
               elevation="0"
               :loading="loading"
             >
-              Sign In to Dashboard
+             {{ t('login.signIn') }}
             </v-btn>
           </v-form>
+
+          <!-- ── PIN form ── -->
+          <v-form
+            v-else
+            ref="pinFormRef"
+            class="fade-in"
+            @submit.prevent="handlePinLogin"
+          >
+            <label class="text-caption ml-1">{{ t('login.pin') }}</label>
+            <v-otp-input
+              v-model="pin"
+              length="4"
+              type="password"
+              variant="outlined"
+              class="mt-1 mb-2"
+              :disabled="loading"
+              :error="!!errors.pin"
+              @finish="handlePinLogin"
+            />
+            <div v-if="errors.pin" class="text-caption text-error ml-1 mb-2">
+              {{ errors.pin }}
+            </div>
+
+            <!-- PIN numpad -->
+            <div class="pin-pad mt-4">
+              <v-row no-gutters justify="center">
+                <v-col
+                  v-for="key in [
+                    '1',
+                    '2',
+                    '3',
+                    '4',
+                    '5',
+                    '6',
+                    '7',
+                    '8',
+                    '9',
+                    '',
+                    '0',
+                    '⌫'
+                  ]"
+                  :key="key"
+                  cols="4"
+                  class="pa-1"
+                >
+                  <v-btn
+                    v-if="key !== ''"
+                    block
+                    variant="tonal"
+                    rounded="lg"
+                    size="large"
+                    class="text-h6 font-weight-medium"
+                    :disabled="loading || (key !== '⌫' && pin.length >= 6)"
+                    @click="
+                      key === '⌫' ? (pin = pin.slice(0, -1)) : (pin += key)
+                    "
+                  >
+                    {{ key }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </div>
+
+            <v-btn
+              type="submit"
+              color="primary"
+              block
+              class="mt-4 py-7 text-none submit-btn"
+              rounded="lg"
+              elevation="0"
+              :loading="loading"
+              :disabled="pin.length < 4"
+            >
+             {{ t('login.signInPin') }}
+            </v-btn>
+          </v-form>
+          <!-- Language switcher -->
+          <div
+            class="d-flex align-center justify-center gap-2 mt-6 pt-4 border-top"
+          >
+            <span class="text-caption text-medium-emphasis">
+              {{ t('common.language') }}
+            </span>
+            <v-btn-toggle
+              v-model="locale"
+              mandatory
+              density="compact"
+              rounded="pill"
+              variant="outlined"
+              @update:model-value="switchLocale"
+            >
+              <v-btn value="en" size="x-small" class="text-none px-3">EN</v-btn>
+              <v-btn value="km" size="x-small" class="text-none px-3">KH</v-btn>
+            </v-btn-toggle>
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -162,7 +287,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useI18n } from 'vue-i18n'
 
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { notif } = useAppUtils()
   const router = useRouter()
   const store = useAuthStore()
@@ -173,8 +298,10 @@
   const loading = ref(false)
   const visible = ref(false)
 
-  const errors = reactive({ email: '', password: '', general: '' })
+  const loginMode = ref('pin')
+  const pin = ref('')
 
+  const errors = reactive({ email: '', password: '', pin: '', general: '' })
   const features = [
     'Multi-branch POS & order management',
     'Real-time inventory tracking',
@@ -192,6 +319,44 @@
     v => v.length >= 6 || 'Password must be at least 6 characters'
   ]
 
+  function switchLocale(lang) {
+    locale.value = lang
+    localStorage.setItem('locale', lang)
+  }
+
+  async function handlePinLogin() {
+    if (pin.value.length < 4) return
+    errors.pin = ''
+    errors.general = ''
+    loading.value = true
+    try {
+      const response = await store.loginByPin(pin.value)
+      if (response) {
+        const user = response.data
+        const route = user.is_super_admin ? '/admin-dashboard' : '/dashboard'
+        router.push(route)
+        notif(t('messages.login_success'), { type: 'success' })
+      }
+    } catch (err) {
+      const res = err.response?.data
+      const code = res?.status
+
+      if (code === 'invalid_pin') {
+        errors.pin = res.message ?? 'Incorrect PIN. Please try again.'
+      } else if (code === 'account_locked') {
+        errors.general = 'Account locked due to too many attempts.'
+      } else if (err.response?.status === 429) {
+        errors.general = 'Too many attempts. Please wait a moment.'
+      } else if (!err.response) {
+        errors.general = 'Cannot connect to server. Check your connection.'
+      } else {
+        errors.general = res?.message ?? 'An unexpected error occurred.'
+      }
+    } finally {
+      loading.value = false
+      pin.value = '' // always clear PIN after attempt
+    }
+  }
   // ── Submit ─────────────────────────────────────────────────────────────────
   const handleLogin = async () => {
     errors.email = errors.password = errors.general = ''

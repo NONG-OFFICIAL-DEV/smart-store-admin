@@ -43,6 +43,18 @@ export const useAuthStore = defineStore('auth', {
       }
       return response
     },
+
+    async loginByPin(pin_code, branch_id = null) {
+      const response = await authService.loginByPin(pin_code, branch_id)
+      if (response.data.status === 'success') {
+        this.token = response.data.token
+        this.user = response.data.user
+        localStorage.setItem('token', response.data.token)
+        await this.fetchMe()
+      }
+      return response
+    },
+
     async logout() {
       // optional: call API to invalidate JWT on backend
       await authService.userLogout().catch(() => {})

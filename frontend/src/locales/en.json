@@ -97,7 +97,33 @@
     "retry": "Retry",
     "proceed": "Proceed"
   },
-
+  "app": {
+    "name": "BrewDesk",
+    "footer": "BrewDesk — Enterprise Edition"
+  },
+  "login": {
+    "tagline": "RETAIL & RESTAURANT OS",
+    "title1": "One platform.",
+    "title2": "Every branch.",
+    "description": "Manage your POS, inventory, staff and reports across all locations from a single dashboard.",
+    "signIn": "Sign in",
+    "sub": "Enter your credentials to access your workspace",
+    "pin": "PIN Code",
+    "password": "Password",
+    "email": "Email Address",
+    "emailPlaceholder": "name@company.com",
+    "passwordPlaceholder": "••••••••",
+    "passwordHint": "Enter your password",
+    "signInBtn": "Sign In to Dashboard",
+    "pinCode": "PIN Code",
+    "signInPin": "Sign In with PIN"
+  },
+  "features": {
+    "feature1": "Multi-branch management",
+    "feature2": "Real-time reports",
+    "feature3": "Inventory tracking",
+    "feature4": "Staff management"
+  },
   "form": {
     "name": "Name",
     "description": "Description",
@@ -577,7 +603,7 @@
       "actions": "Actions",
       "in_stock": "In Stock",
       "low_stock": "Low Stock",
-      "out_stock":"Out of Stock"
+      "out_stock": "Out of Stock"
     },
     "empty": "No products in inventory",
     "empty_sub": "Add products and set stock levels to see inventory",
@@ -796,7 +822,8 @@
     "grand_total": "Grand Total",
     "created_at": "Created At",
     "updated_at": "Updated At",
-    "version": "Version"
+    "version": "Version",
+    "language": "Language"
   },
   "unit": {
     "title_add": "Add Unit",

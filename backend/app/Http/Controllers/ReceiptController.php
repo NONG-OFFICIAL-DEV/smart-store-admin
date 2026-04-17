@@ -5,13 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Mike42\Escpos\Printer;
-use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\GdEscposImage;
+use Mike42\Escpos\PrintConnectors\CupsPrintConnector;
 
 class ReceiptController extends Controller
 {
-    private string $printerIp   = '192.168.1.114';
-    private int    $printerPort = 9100;
     private string $fontPath;
 
     public function __construct()
@@ -28,20 +26,19 @@ class ReceiptController extends Controller
         }
 
         try {
-            // 🔥 Direct network printing (NO lp, NO temp file)
-            $connector = new NetworkPrintConnector($this->printerIp, $this->printerPort);
+            // ✅ USB via CUPS
+            $connector = new CupsPrintConnector("Diamond_Printer");
             $printer   = new Printer($connector);
 
             $this->buildReceipt($printer, $data);
 
-            // 🔥 important
             $printer->feed(5);
             $printer->cut();
             $printer->close();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Printed successfully via network'
+                'message' => 'Printed via USB (CUPS)'
             ]);
         } catch (\Exception $e) {
             Log::error('Print error: ' . $e->getMessage());

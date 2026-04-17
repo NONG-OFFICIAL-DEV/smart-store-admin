@@ -87,12 +87,12 @@
             </div>
 
             <!-- Badges -->
-            <div class="d-flex gap-2 flex-wrap mt-3">
+            <div class="d-flex gap-2 flex-wrap mt-3 m">
               <v-chip
                 :color="typeColor(branch.type)"
                 size="x-small"
                 variant="tonal"
-                class="text-capitalize"
+                class="text-capitalize me-1"
               >
                 {{ branch.type?.replace('_', ' ') }}
               </v-chip>
@@ -100,6 +100,7 @@
                 :color="branch.is_open ? 'success' : 'error'"
                 size="x-small"
                 variant="tonal"
+                class="me-1"
                 :prepend-icon="
                   branch.is_open ? 'mdi-circle' : 'mdi-circle-outline'
                 "
@@ -234,21 +235,12 @@
   const branchStore = useBranchStore()
 
   const search = ref('')
-  const typeFilter = ref(null)
+  const filterType = ref(null)
+  const filterStatus = ref(null)
 
   const dialog = reactive({ show: false, branch: null })
 
   // ── Branch types ──────────────────────────────────────────────────────────────
-  const branchTypes = [
-    {
-      value: 'restaurant',
-      label: 'Restaurant',
-      icon: 'mdi-silverware-fork-knife'
-    },
-    { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee-outline' },
-    { value: 'kiosk', label: 'Kiosk', icon: 'mdi-storefront-outline' },
-    { value: 'food_truck', label: 'Food Truck', icon: 'mdi-truck-outline' }
-  ]
   const typeOptions = [
     'retail',
     'minimart',
@@ -266,19 +258,6 @@
     return Array.isArray(b) ? b : (b?.data ?? [])
   })
 
-  // ── Headers — tenant column only for super admin ──────────────────────────────
-  const headers = computed(() => [
-    { title: 'Branch', key: 'name', sortable: true },
-    ...(isSuperAdmin()
-      ? [{ title: 'Tenant', key: 'tenant.name', sortable: false }]
-      : []),
-    { title: 'Type', key: 'type', sortable: true },
-    { title: 'Contact', key: 'phone', sortable: false },
-    { title: 'Open', key: 'is_open', sortable: false },
-    { title: 'Status', key: 'is_active', sortable: false },
-    { title: 'Actions', key: 'actions', sortable: false }
-  ])
-
   // ── Filtered ──────────────────────────────────────────────────────────────────
   const filteredBranches = computed(() => {
     let list = allBranches.value
@@ -292,8 +271,8 @@
           b.email?.toLowerCase().includes(q)
       )
     }
-    if (typeFilter.value) {
-      list = list.filter(b => b.type === typeFilter.value)
+    if (filterType.value) {
+      list = list.filter(b => b.type === filterType.value)
     }
     return list
   })

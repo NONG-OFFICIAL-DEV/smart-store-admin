@@ -26,6 +26,8 @@ document.addEventListener(
   },
   { passive: false }
 )
+const savedLocale = localStorage.getItem('locale')
+if (savedLocale) i18n.global.locale.value = savedLocale
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
 axios.defaults.headers.common['Content-Type'] = 'application/json'
