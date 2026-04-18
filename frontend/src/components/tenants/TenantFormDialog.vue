@@ -128,6 +128,20 @@
                     Generate
                   </v-btn>
                 </v-col>
+                <v-col cols="12" sm="8">
+                  <v-text-field
+                    v-model="form.owner_pin_code"
+                    label="POS PIN (4–6 digits)"
+                    :type="showPin ? 'text' : 'password'"
+                    variant="outlined"
+                    rounded="lg"
+                    prepend-inner-icon="mdi-numeric"
+                    :append-inner-icon="showPin ? 'mdi-eye-off' : 'mdi-eye'"
+                    :rules="[r.pin]"
+                    maxlength="6"
+                    @click:append-inner="showPin = !showPin"
+                  />
+                </v-col>
               </v-row>
 
               <!-- Credential preview — shown after generate -->
@@ -477,7 +491,7 @@
   const credentialGenerated = ref(false)
   const transferDialog = ref(false)
   const transferEmail = ref('')
-
+  const showPin = ref(false)
   const model = computed({
     get: () => props.modelValue,
     set: v => emit('update:modelValue', v)
@@ -536,7 +550,7 @@
     { value: 'en-US', label: 'English (US)' },
     { value: 'en-GB', label: 'English (UK)' },
     { value: 'km-KH', label: 'Khmer (KH)' },
-    { value: 'zh-CN', label: 'Chinese (CN)' },
+    { value: 'zh-CN', label: 'Chinese (CN)' }
   ]
 
   const timezoneOptions = [
@@ -556,6 +570,7 @@
     owner_email: '',
     owner_phone: '',
     owner_password: '',
+    owner_pin_code: '',
     // Business fields
     name: '',
     slug: '',
@@ -623,7 +638,8 @@
   const r = {
     required: v => !!v || 'Required',
     email: v => /.+@.+\..+/.test(v) || 'Invalid email',
-    minPassword: v => !v || v.length >= 6 || 'Minimum 6 characters'
+    minPassword: v => !v || v.length >= 6 || 'Minimum 6 characters',
+    pin: v => !v || /^\d{4,6}$/.test(v) || 'PIN must be 4–6 digits'
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────────

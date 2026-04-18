@@ -185,57 +185,41 @@ class AuthController extends Controller
             return response()->json(['error' => 'Failed to logout, token invalid'], 500);
         }
     }
-
     // Login by PIN (POS / quick login)
     // POST /api/auth/login-pin
-    // Body: { "pin_code": "1122", "branch_id": "<uuid>" }   (branch_id optional — narrows search)
+    // Body: { "user_id": "<uuid>", "pin_code": "1122" }
     public function loginByPin(Request $request)
     {
         // ── Validate ──────────────────────────────────────────────────────────
         $request->validate([
-            'pin_code'  => 'required|string|min:4|max:6',
             'branch_id' => 'nullable|uuid|exists:branches,id',
+            'pin_code' => 'required|string|min:4|max:6',
         ]);
 
-        // ── Find active staff in this branch that match the PIN ───────────────
-        // We load a small set (active staff of the branch) then verify hash in PHP
-        // because bcrypt hashes cannot be searched directly in SQL.
-        $staffQuery = \App\Models\Staff::withoutGlobalScopes()
-            ->with(['user', 'role.permissions', 'tenant', 'branch'])
+        // ── Find user directly by ID — no loop needed ─────────────────────────
+        $user = User::where('id', $request->user_id)
             ->where('is_active', true)
-            ->whereNotNull('pin_code');
+            ->whereNotNull('pin_code')
+            ->first();
 
-        if ($request->filled('branch_id')) {
-            $staffQuery->where('branch_id', $request->branch_id);
-        }
-
-        $matchedStaff = null;
-
-        // Iterate and verify hashed pin — stop at first match
-        foreach ($staffQuery->cursor() as $staff) {
-            if (Hash::check($request->pin_code, $staff->pin_code)) {
-                $matchedStaff = $staff;
-                break;
-            }
-        }
-
-        if (!$matchedStaff) {
+        if (!$user || !Hash::check($request->pin_code, $user->pin_code)) {
             return response()->json([
                 'status'  => 'invalid_pin',
-                'message' => 'PIN code is incorrect or not assigned to any active staff.',
+                'message' => 'PIN code is incorrect or not assigned to any active user.',
             ], 401);
         }
 
-        $user = $matchedStaff->user;
+        // Get all active staff in this branch with a PIN
+        $staff = \App\Models\Staff::with(['user', 'role.permissions', 'tenant', 'branch'])
+            ->where('branch_id', $request->branch_id)
+            ->where('is_active', true)
+            ->whereHas('user', fn($q) => $q->where('is_active', true)
+                ->whereNotNull('pin_code'))
+            ->get()
+            ->first(fn($s) => Hash::check($request->pin_code, $s->user->pin_code));
 
-        if (!$user || !$user->is_active) {
-            return response()->json([
-                'status'  => 'account_inactive',
-                'message' => 'This account has been deactivated. Please contact support.',
-            ], 403);
-        }
 
-        // ── Generate JWT for this user ────────────────────────────────────────
+        // ── Generate JWT ──────────────────────────────────────────────────────
         try {
             $token = JWTAuth::fromUser($user);
         } catch (JWTException $e) {
@@ -249,12 +233,18 @@ class AuthController extends Controller
         $user->update(['last_login_at' => now()]);
         $user = $user->fresh();
 
+        // ── Resolve user type (super_admin / owner / staff) ───────────────────
+        $isOwner      = (bool) $user->ownedTenant;
+        $isSuperAdmin = (bool) $user->is_super_admin;
+        $isStaff      = !$isSuperAdmin && !$isOwner && $staff !== null;
+
         // ── Activity log ──────────────────────────────────────────────────────
         ActivityLog::log(
             action: 'auth.login_pin',
             entity: null,
             payload: null,
-            description: "Staff {$user->email} logged in via PIN (branch: {$matchedStaff->branch_id})"
+            description: "User {$user->email} logged in via PIN"
+                . ($staff ? " (branch: {$staff->branch_id})" : ''),
         );
 
         return response()->json([
@@ -273,21 +263,20 @@ class AuthController extends Controller
                 'is_active'     => $user->is_active,
                 'last_login_at' => $user->last_login_at,
             ],
-            'is_super_admin' => false,
-            'is_owner'       => false,
-            'is_staff'       => true,
-            'tenant_id'      => $matchedStaff->tenant_id,
-            'bu_name'        => $matchedStaff->tenant?->name,
-            'bu_type'        => $matchedStaff->tenant?->bu_type,
-            'logo_url'       => $matchedStaff->tenant?->logo_url,
-            'branch_id'      => $matchedStaff->branch_id,
-            'branch_name'    => $matchedStaff->branch?->name,
-            'role_name'      => $matchedStaff->role?->name,
-            'currency'       => $matchedStaff->tenant?->currency,
-            'permissions'    => $matchedStaff->role?->permissions->pluck('code')->toArray() ?? [],
+            'is_super_admin' => $isSuperAdmin,
+            'is_owner'       => $isOwner,
+            'is_staff'       => $isStaff,
+            'tenant_id'      => $staff?->tenant_id ?? $user->ownedTenant?->id,
+            'bu_name'        => $staff?->tenant?->name ?? $user->ownedTenant?->name,
+            'bu_type'        => $staff?->tenant?->bu_type ?? $user->ownedTenant?->bu_type,
+            'logo_url'       => $staff?->tenant?->logo_url ?? $user->ownedTenant?->logo_url,
+            'branch_id'      => $staff?->branch_id,
+            'branch_name'    => $staff?->branch?->name,
+            'role_name'      => $staff?->role?->name,
+            'currency'       => $staff?->tenant?->currency ?? $user->ownedTenant?->currency,
+            'permissions'    => $staff?->role?->permissions->pluck('code')->toArray() ?? [],
         ]);
     }
-
     // ─────────────────────────────────────────────────────────────────────────────
     // SET PIN — lets a staff member set/change their own PIN after normal login
     // PUT /api/auth/set-pin

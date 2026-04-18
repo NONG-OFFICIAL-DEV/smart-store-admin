@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -38,12 +39,14 @@ class User extends Authenticatable implements JWTSubject
         'last_login_at',
         'email_verified_at',
         'is_super_admin',
-        'is_admin'
+        'is_admin',
+        'pin_code'
     ];
 
     // ── Hidden ────────────────────────────────────────────────────────────────
     protected $hidden = [
         'password_hash',
+        'pin_code',
     ];
 
     // ── Casts ─────────────────────────────────────────────────────────────────
@@ -87,12 +90,18 @@ class User extends Authenticatable implements JWTSubject
                 'avatar_url',
                 'preferred_language',
                 'is_active',
+                'pin_code'
             ])
             : $request;
 
         // Hash password if provided
         if ($request instanceof Request && $request->filled('password')) {
             $data['password_hash'] = bcrypt($request->password);
+        }
+
+        // Hash PIN if provided
+        if ($request instanceof Request && $request->filled('pin_code')) {
+            $data['pin_code'] = bcrypt($request->pin_code);
         }
 
         if ($id) {
@@ -108,6 +117,17 @@ class User extends Authenticatable implements JWTSubject
         return response()->json(['success' => true, 'data' => $record], 201);
     }
 
+    public function setPin(string $pin): void
+    {
+        $this->update([
+            'pin_code' => bcrypt($pin)
+        ]);
+    }
+
+    public function verifyPin(string $pin): bool
+    {
+        return Hash::check($pin, $this->pin_code);
+    }
 
     // ── Relationships ─────────────────────────────────────────────────────────
     public function staff()
@@ -199,5 +219,4 @@ class User extends Authenticatable implements JWTSubject
             'role'   => null,
         ];
     }
-
 }

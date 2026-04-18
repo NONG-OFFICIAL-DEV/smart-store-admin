@@ -44,6 +44,7 @@ class TenantController extends Controller
             'owner_email'      => 'required|email|unique:users,email',
             'owner_password'   => 'required|string|min:6',
             'owner_phone'      => 'nullable|string|max:30',
+            "owner_pin_code"   => 'nullable|string|size:4', // new validation for PIN
 
             // ── Tenant info ───────────────────────────────────
             'name'          => 'required|string|max:150',
@@ -65,6 +66,7 @@ class TenantController extends Controller
                 'email'      => $request->owner_email,
                 'password'   => $request->owner_password, // cast: 'hashed' in User model
                 'phone'      => $request->owner_phone,
+                'pin_code'   => $request->owner_pin_code,
                 'is_active'  => true,
             ]);
 
