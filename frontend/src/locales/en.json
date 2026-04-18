@@ -111,7 +111,7 @@
     "pin": "PIN Code",
     "password": "Password",
     "email": "Email Address",
-    "emailPlaceholder": "name@company.com",
+    "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "••••••••",
     "passwordHint": "Enter your password",
     "signInBtn": "Sign In to Dashboard",

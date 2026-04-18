@@ -147,7 +147,7 @@
             />
 
             <label class="text-caption ml-1">{{ t('login.password') }}</label>
-            <!-- <v-text-field
+            <v-text-field
               v-model="password"
               :placeholder="t('login.passwordPlaceholder')"
               variant="outlined"
@@ -165,7 +165,7 @@
               :hint="t('login.passwordHint')"
               @click:append-inner="visible = !visible"
               @update:model-value="errors.password = ''"
-            /> -->
+            />
 
             <v-btn
               type="submit"
