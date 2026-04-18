@@ -48,7 +48,7 @@
 
   const switchLanguage = lang => {
     locale.value = lang
-    localStorage.setItem('locale', lang)
+    localStorage.setItem('lang', lang)
 
     // Set Vuetify language if configured
     if (proxy?.$vuetify?.locale) {
@@ -80,7 +80,7 @@
   })
 
   onMounted(() => {
-    const savedLang = localStorage.getItem('locale')
+    const savedLang = localStorage.getItem('lang')
     if (savedLang) {
       locale.value = savedLang
       if (proxy?.$vuetify?.locale) {

@@ -35,7 +35,7 @@
         instance.appContext.config.globalProperties.$i18n.locale
       const newLocale = currentLocale === 'en' ? 'km' : 'en'
       instance.appContext.config.globalProperties.$i18n.locale = newLocale
-      localStorage.setItem('locale', newLocale)
+      localStorage.setItem('lang', newLocale)
     }
   }
 
@@ -47,7 +47,7 @@
     // app.config.globalProperties.$confirm = confirmRef.value?.open
 
     // Restore saved language preference
-    const savedLang = localStorage.getItem('locale')
+    const savedLang = localStorage.getItem('lang')
     if (savedLang) {
       instance.appContext.config.globalProperties.$i18n.locale = savedLang
     }

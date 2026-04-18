@@ -75,9 +75,9 @@
           <!-- Header -->
           <div class="text-start mb-8 fade-in">
             <div class="form-header">
-              <div class="form-title">Sign in</div>
+              <div class="form-title">{{ t('login.signIn') }}</div>
               <div class="form-sub">
-                Enter your credentials to access your workspace
+               {{ t('login.sub') }}
               </div>
             </div>
           </div>
@@ -162,6 +162,7 @@
               :disabled="loading"
               validate-on="blur"
               persistent-hint
+              :hint="t('login.passwordHint')"
               @click:append-inner="visible = !visible"
               @update:model-value="errors.password = ''"
             />
@@ -320,7 +321,7 @@
 
   function switchLocale(lang) {
     locale.value = lang
-    localStorage.setItem('locale', lang)
+    localStorage.setItem('lang', lang)
   }
 
   async function handlePinLogin() {
