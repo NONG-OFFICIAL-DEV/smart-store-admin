@@ -131,7 +131,7 @@
             @submit.prevent="handleLogin"
           >
             <label class="text-caption ml-1">{{ t('login.email') }}</label>
-            <!-- <v-text-field
+            <v-text-field
               v-model="email"
               :placeholder="t('login.emailPlaceholder')"
               variant="outlined"
@@ -144,7 +144,7 @@
               :disabled="loading"
               validate-on="blur"
               @update:model-value="errors.email = ''"
-            /> -->
+            />
 
             <label class="text-caption ml-1">{{ t('login.password') }}</label>
             <!-- <v-text-field
