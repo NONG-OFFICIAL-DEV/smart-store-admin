@@ -162,7 +162,6 @@
               :disabled="loading"
               validate-on="blur"
               persistent-hint
-              :hint="t('login.passwordHint')"
               @click:append-inner="visible = !visible"
               @update:model-value="errors.password = ''"
             />
