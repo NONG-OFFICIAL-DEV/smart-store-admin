@@ -21,7 +21,7 @@ class ProductController extends Controller
         $perPage = (int) $request->get('per_page', 10); // default 10, override via ?per_page=25
         $perPage = min($perPage, 100); // cap at 100 to prevent abuse
 
-        $query = Product::query();
+        $query = Product::with(['category:id,name']);
 
         // Optional: global search
         if ($search = $request->get('search')) {

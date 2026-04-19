@@ -479,14 +479,14 @@
     { title: t('products.table.name'), key: 'name', sortable: true },
     { title: t('products.table.type'), key: 'product_type', sortable: true },
     {
+      title: t('products.table.category'),
+      key: 'category.name',
+      sortable: false
+    },
+    {
       title: t('products.table.available'),
       key: 'is_available',
       sortable: true
-    },
-    {
-      title: t('products.table.featured'),
-      key: 'is_featured',
-      sortable: false
     },
     {
       title: t('products.table.actions'),
