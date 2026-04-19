@@ -29,8 +29,8 @@ class ProductController extends Controller
         }
 
         // Optional: sorting
-        $sortBy    = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortBy    = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
         $query->orderBy($sortBy, $sortOrder);
 
         $items = $query->paginate($perPage);
