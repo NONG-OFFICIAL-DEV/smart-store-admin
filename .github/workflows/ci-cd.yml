@@ -118,6 +118,9 @@ jobs:
             set -e
             cd ~/smart-store
 
+            echo ">>> PRE CLEANUP (avoid disk full)"
+            docker system prune -a -f
+            
             echo ">>> Pull only changed images"
 
             # if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
@@ -158,5 +161,8 @@ jobs:
             #     exit 1
             #   fi
             # fi
+
+            echo ">>> POST CLEANUP"
+            docker system prune -f
 
             echo ">>> Deploy complete ✅"
