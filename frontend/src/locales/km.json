@@ -43,7 +43,12 @@
     "product_performance": "ដំណើរការផលិតផល",
     "sales_report": "របាយការណ៍លក់",
     "profit_loss": "ចំណេញ និងខាត",
-    "operation": "ប្រតិបត្តិការណ៍"
+    "operation": "ប្រតិបត្តិការណ៍",
+    "dining": "តុញ៉ាំនៅហាង",
+    "reservations": "ការកក់តុ",
+    "ingredients": "គ្រឿងផ្សំ",
+    "modifiers": "ការកែតម្រូវ",
+    "branch_menus": "មុខម្ហូបសាខា"
   },
 
   "btn": {
@@ -784,8 +789,16 @@
       "top_products": "ផលិតផលលក់ដាច់ ១០",
       "recent_orders": "កម្មង់ថ្មីៗ"
     },
+    "state":{
+      "revenue": "ចំណូល",
+      "orders": "កម្មង់",
+      "avg_order_value": "តម្លៃកម្មង់មធ្យម",
+      "completed": "បានបញ្ចប់"
+    },
     "empty": "គ្មានកម្មង់សម្រាប់រយៈពេលនេះ",
-    "empty_sub": "សូមជ្រើសរើសចន្លោះកាលបរិច្ឆេទផ្សេង"
+    "empty_sub": "សូមជ្រើសរើសចន្លោះកាលបរិច្ឆេទផ្សេង",
+    "revenue_over_time": "ចំណូលតាមពេលវេលា",
+    "order_types": "ប្រភេទកម្មង់"
   },
 
   "purchase_report": {

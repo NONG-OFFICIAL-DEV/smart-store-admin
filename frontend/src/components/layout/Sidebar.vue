@@ -79,28 +79,28 @@
         },
         {
           path: '/ingredients',
-          title: 'Ingredients',
+          title: t('menu.ingredients'),
           icon: 'mdi-tree',
           show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/product-modifier-groups',
-          title: 'Modifiers',
+          title: t('menu.modifiers'),
           icon: 'mdi-tune-variant',
           show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/menu-management',
-          title: 'Menus',
+          title: t('menu.menus'),
           icon: 'mdi-menu',
           show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
         },
         {
           path: '/branch-menus',
-          title: 'Branch Menus',
+          title: t('menu.branch_menus'),
           icon: 'mdi-book-open-variant',
           show: authStore.isFood || authStore.isSuperAdmin
           // show: can('products.view')
@@ -110,20 +110,20 @@
 
     // ── 5. DINING ───────────────────────────────────────────────────────────────
     {
-      title: 'Dining',
+      title: t('menu.dining'),
       icon: 'mdi-silverware-fork-knife',
       // show: can('tables.view') || can('reservations.view'),
       show: authStore.isFood || authStore.isSuperAdmin,
       subLinks: [
         {
           path: '/dining-table',
-          title: 'Tables',
+          title: t('menu.tables'),
           icon: 'mdi-table-chair'
           // show: can('tables.view')
         },
         {
           path: '/reservations',
-          title: 'Reservations',
+          title: t('menu.reservations'),
           icon: 'mdi-calendar-check-outline'
           // show: can('reservations.view')
         }

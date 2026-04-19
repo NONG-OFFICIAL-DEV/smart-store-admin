@@ -67,14 +67,14 @@
         variant="outlined"
         @update:model-value="onPeriodClick"
       >
-        <v-btn value="today" size="small">Today</v-btn>
-        <v-btn value="yesterday" size="small">Yesterday</v-btn>
-        <v-btn value="week" size="small">Week</v-btn>
-        <v-btn value="month" size="small">Month</v-btn>
-        <v-btn value="last_month" size="small">Last Month</v-btn>
+        <v-btn value="today" size="small">{{t('common.today')}}</v-btn>
+        <v-btn value="yesterday" size="small">{{t('common.yesterday')}}</v-btn>
+        <v-btn value="week" size="small">{{t('common.this_week')}}</v-btn>
+        <v-btn value="month" size="small">{{t('common.this_month')}}</v-btn>
+        <v-btn value="last_month" size="small">{{t('common.last_month')}}</v-btn>
         <v-btn value="custom" size="small">
           <v-icon start size="14">mdi-calendar-range</v-icon>
-          Custom
+          {{t('common.custom_range')}}
         </v-btn>
       </v-btn-toggle>
 
@@ -110,6 +110,8 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
 
   const props = defineProps({
     branches: { type: Array, default: () => [] },

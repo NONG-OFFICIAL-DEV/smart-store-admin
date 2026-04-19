@@ -2,8 +2,8 @@
   <div>
     <custom-title
       icon="mdi-note"
-      title="Order Report"
-      subtitle="Sales analytics &amp; order history"
+      :title="t('order_report.title')"
+      :subtitle="t('order_report.subtitle')"
     >
       <template #right>
         <v-btn
@@ -19,20 +19,6 @@
         </v-btn>
       </template>
     </custom-title>
-
-    <!-- <BranchFilterBar
-      v-model="filters.branch_ids"
-      :branches="branchStore.branches?.data || branchStore.branches || []"
-      :period="period"
-      @period-change="onPeriodChange"
-      @date-change="
-        ({ from, to }) => {
-          filters.date_from = from
-          filters.date_to = to
-          loadAll()
-        }
-      "
-    /> -->
     <BranchFilterBar
       v-model="filters.branch_ids"
       :branches="branchStore.branches?.data || branchStore.branches || []"
@@ -83,7 +69,7 @@
         <v-card rounded="xl" border elevation="0" class="pa-5">
           <div class="d-flex align-center justify-space-between mb-4">
             <div>
-              <div class="text-body-1 font-weight-bold">Revenue Over Time</div>
+              <div class="text-body-1 font-weight-bold">{{ t('order_report.revenue_over_time') }}</div>
               <div class="text-caption text-medium-emphasis">
                 {{ periodLabel(period) }}
               </div>
@@ -97,8 +83,8 @@
               color="primary"
               size="x-small"
             >
-              <v-btn value="revenue" size="x-small">Revenue</v-btn>
-              <v-btn value="orders" size="x-small">Orders</v-btn>
+              <v-btn value="revenue" size="x-small">{{ t('order_report.state.revenue') }}</v-btn>
+              <v-btn value="orders" size="x-small">{{ t('order_report.state.orders') }}</v-btn>
             </v-btn-toggle>
           </div>
           <div style="height: 240px">
@@ -110,7 +96,7 @@
       <!-- Order Type Breakdown -->
       <v-col cols="12" md="4">
         <v-card rounded="xl" border elevation="0" class="pa-5">
-          <div class="text-body-1 font-weight-bold mb-1">Order Types</div>
+          <div class="text-body-1 font-weight-bold mb-1">{{ t('order_report.order_types') }}</div>
           <div class="text-caption text-medium-emphasis mb-4">
             Distribution breakdown
           </div>
@@ -136,50 +122,6 @@
                 <span class="text-caption">{{ t.label }}</span>
               </div>
               <span class="text-caption font-weight-bold">{{ t.count }}</span>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ══ Payment + Status Bar ══════════════════════════════════════════════ -->
-    <v-row dense class="mb-5">
-      <!-- Payment Methods -->
-      <v-col cols="12" md="6">
-        <v-card rounded="xl" border elevation="0" class="pa-5">
-          <div class="text-body-1 font-weight-bold mb-4">Payment Methods</div>
-          <div style="height: 200px">
-            <canvas ref="barChartRef" />
-          </div>
-        </v-card>
-      </v-col>
-
-      <!-- Status Summary -->
-      <v-col cols="12" md="6">
-        <v-card rounded="xl" border elevation="0" class="pa-5">
-          <div class="text-body-1 font-weight-bold mb-4">Order Status</div>
-          <div class="status-list">
-            <div
-              v-for="s in statusStats"
-              :key="s.status"
-              class="status-row mb-3"
-            >
-              <div class="d-flex justify-space-between mb-1">
-                <div class="d-flex align-center gap-2">
-                  <v-icon :icon="s.icon" :color="s.color" size="16" />
-                  <span class="text-body-2 text-capitalize">
-                    {{ s.status }}
-                  </span>
-                </div>
-                <span class="text-body-2 font-weight-bold">{{ s.count }}</span>
-              </div>
-              <v-progress-linear
-                :model-value="s.pct"
-                :color="s.color"
-                rounded
-                height="6"
-                bg-color="grey-lighten-3"
-              />
             </div>
           </div>
         </v-card>
@@ -339,7 +281,7 @@
 
         <template #item.total_amount="{ item }">
           <span class="font-weight-bold text-body-2">
-            {{ fmt(item.total_amount) }}
+            {{ format(item.total_amount) }}
           </span>
         </template>
 
@@ -389,7 +331,7 @@
               {{ pagination?.total ?? 0 }} orders
             </div>
             <div class="text-body-2 font-weight-bold text-success">
-              Total: {{ fmt(stats?.total_revenue ?? 0) }}
+              Total: {{ format(stats?.total_revenue ?? 0) }}
             </div>
           </div>
         </template>
@@ -404,6 +346,7 @@
   import { ref, computed, onMounted, watch, nextTick } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
   import { useBranchStore } from '@/stores/branchStore'
+  import { useI18n } from 'vue-i18n'
 
   import { useAppUtils } from '@/composables/useAppUtils'
   import OrderDetailDialog from '@/components/orders/OrderDetailDialog.vue'
@@ -438,10 +381,13 @@
     Legend,
     Filler
   )
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
 
   const { notif } = useAppUtils()
   const branchStore = useBranchStore()
   const orderStore = useOrderStore()
+  const { t } = useI18n()
   // ── Refs ──────────────────────────────────────────────────────────────────────
   const lineChartRef = ref(null)
   const donutChartRef = ref(null)
@@ -490,21 +436,21 @@
 
   const periodLabel = p =>
     ({
-      today: 'Today',
-      yesterday: 'Yesterday',
-      week: 'This Week',
-      month: 'This Month',
-      last_month: 'Last Month',
-      day_before: '2 Days Ago',
-      last_week: 'Last Week',
-      month_before: '2 Months Ago',
-      custom: 'Custom Range',
-      prev_custom: 'Previous Range'
+      today: t('common.today'),
+      yesterday: t('common.yesterday'),
+      week: t('common.this_week'),
+      month: t('common.this_month'),
+      last_month: t('common.last_month'),
+      day_before: t('common.day_before'),
+      last_week: t('common.last_week'),
+      month_before: t('common.month_before'),
+      custom: t('common.custom'),
+      prev_custom: t('common.prev_custom')
     })[p] ?? p
 
   const periodDates = p => {
     const today = new Date()
-    const fmt = d => d.toISOString().slice(0, 10)
+    const format = d => d.toISOString().slice(0, 10)
     const add = (d, n) => {
       const x = new Date(d)
       x.setDate(x.getDate() + n)
@@ -513,29 +459,29 @@
 
     switch (p) {
       case 'today':
-        return { from: fmt(today), to: fmt(today) }
+        return { from: format(today), to: format(today) }
       case 'yesterday': {
         const y = add(today, -1)
-        return { from: fmt(y), to: fmt(y) }
+        return { from: format(y), to: format(y) }
       }
       case 'week': {
         const mon = new Date(today)
         mon.setDate(today.getDate() - today.getDay() + 1)
-        return { from: fmt(mon), to: fmt(today) }
+        return { from: format(mon), to: format(today) }
       }
       case 'month': {
         const first = new Date(today.getFullYear(), today.getMonth(), 1)
-        return { from: fmt(first), to: fmt(today) }
+        return { from: format(first), to: format(today) }
       }
       case 'last_month': {
         const first = new Date(today.getFullYear(), today.getMonth() - 1, 1)
         const last = new Date(today.getFullYear(), today.getMonth(), 0)
-        return { from: fmt(first), to: fmt(last) }
+        return { from: format(first), to: format(last) }
       }
       case 'custom':
         return { from: filters.value.date_from, to: filters.value.date_to }
       default:
-        return { from: fmt(today), to: fmt(today) }
+        return { from: format(today), to: format(today) }
     }
   }
 
@@ -569,9 +515,9 @@
 
     return [
       {
-        label: 'Revenue',
-        value: fmt(s.total_revenue ?? 0),
-        prev: fmt(ps?.total_revenue ?? 0),
+        label: t('order_report.state.revenue'),
+        value: format(s.total_revenue ?? 0),
+        prev: format(ps?.total_revenue ?? 0),
         change: pct(s.total_revenue, ps?.total_revenue),
         changePositive: up(s.total_revenue, ps?.total_revenue),
         icon: 'mdi-cash-multiple',
@@ -579,7 +525,7 @@
         bg: '#e8f5e9'
       },
       {
-        label: 'Orders',
+        label: t('order_report.state.orders'),
         value: s.total_orders ?? 0,
         prev: ps?.total_orders ?? 0,
         change: pct(s.total_orders, ps?.total_orders),
@@ -589,9 +535,9 @@
         bg: '#e3f2fd'
       },
       {
-        label: 'Avg Order Value',
-        value: fmt(s.total_orders ? s.total_revenue / s.total_orders : 0),
-        prev: fmt(ps?.total_orders ? ps.total_revenue / ps.total_orders : 0),
+        label: t('order_report.state.avg_order_value'),
+        value: format(s.total_orders ? s.total_revenue / s.total_orders : 0),
+        prev: format(ps?.total_orders ? ps.total_revenue / ps.total_orders : 0),
         change: pct(
           s.total_orders ? s.total_revenue / s.total_orders : 0,
           ps?.total_orders ? ps.total_revenue / ps.total_orders : 0
@@ -605,7 +551,7 @@
         bg: '#e1f5fe'
       },
       {
-        label: 'Completed',
+        label: t('order_report.state.completed'),
         value: s.completed ?? 0,
         prev: ps?.completed ?? 0,
         change: pct(s.completed, ps?.completed),
@@ -613,36 +559,6 @@
         icon: 'mdi-check-circle-outline',
         color: 'warning',
         bg: '#fff8e1'
-      }
-    ]
-  })
-
-  // ── Status stats ───────────────────────────────────────────────────────────────
-  const statusStats = computed(() => {
-    const s = stats.value
-    if (!s) return []
-    const total = s.total_orders || 1
-    return [
-      {
-        status: 'completed',
-        count: s.completed ?? 0,
-        color: 'success',
-        icon: 'mdi-check-circle',
-        pct: ((s.completed ?? 0) / total) * 100
-      },
-      {
-        status: 'pending',
-        count: s.pending ?? 0,
-        color: 'warning',
-        icon: 'mdi-clock-outline',
-        pct: ((s.pending ?? 0) / total) * 100
-      },
-      {
-        status: 'cancelled',
-        count: s.cancelled ?? 0,
-        color: 'error',
-        icon: 'mdi-close-circle',
-        pct: ((s.cancelled ?? 0) / total) * 100
       }
     ]
   })
@@ -658,16 +574,16 @@
 
     const diff = (a, b, isCurrency = false) => {
       const d = a - b
-      return isCurrency ? fmt(Math.abs(d)) : Math.abs(d)
+      return isCurrency ? format(Math.abs(d)) : Math.abs(d)
     }
     const up = (a, b) => a >= b
 
     return [
       {
         label: 'Revenue',
-        current: fmt(s.total_revenue ?? 0),
-        previous: fmt(ps.total_revenue ?? 0),
-        diff: fmt(Math.abs((s.total_revenue ?? 0) - (ps.total_revenue ?? 0))),
+        current: format(s.total_revenue ?? 0),
+        previous: format(ps.total_revenue ?? 0),
+        diff: format(Math.abs((s.total_revenue ?? 0) - (ps.total_revenue ?? 0))),
         up: up(s.total_revenue, ps.total_revenue)
       },
       {
@@ -723,11 +639,7 @@
   ]
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
+
   const fmtDate = v =>
     v
       ? new Date(v).toLocaleDateString('en-US', {
