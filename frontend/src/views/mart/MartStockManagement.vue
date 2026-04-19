@@ -396,7 +396,6 @@
     <StockAdjustDialog
       v-model="adjustDialog"
       :preset-product="adjustTarget"
-      :products="productsList"
       :branch-list="branchList"
       :loading="adjusting"
       @save="handleAdjust"

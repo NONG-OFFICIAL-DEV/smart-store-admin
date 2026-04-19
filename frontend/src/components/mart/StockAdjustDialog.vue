@@ -219,13 +219,12 @@
 
   const { t } = useI18n()
   const productStore = useProductStore()
-  const { products } = storeToRefs(productStore)
+  const { options } = storeToRefs(productStore)
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     presetProduct: { type: Object, default: null },
-    // products: { type: Array, default: () => [] },
     presetType: { type: String, default: null },
     branchList: { type: Array, default: () => [] }
   })
@@ -284,7 +283,7 @@
 
   // ── Lists ──────────────────────────────────────────────────────────────────
   const productList = computed(() => {
-    const p = products.value
+    const p = options.value
     return Array.isArray(p) ? p : (p?.data ?? [])
   })
 
@@ -370,9 +369,8 @@
   }
 
   onMounted(() => {
-    productStore.fetchProducts({
-      per_page: -1,
-      include: 'active_units'
+    productStore.fetchOptions({
+      per_page: -1
     })
   })
 </script>

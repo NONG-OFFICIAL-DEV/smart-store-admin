@@ -11,15 +11,21 @@ import {
 export const useProductStore = defineStore('product', {
   state: () => ({
     products: [],
+    options: [],
     product: null,
     pagination: {}
   }),
 
   actions: {
-    async fetchProducts(filters) {
-      const res = await getAllProductsApi(filters)
+    async fetchProducts(params = {}) {
+      const res = await getAllProductsApi(params)
       this.products = res.data.data
       this.pagination = res.data
+      return res.data.data
+    },
+    async fetchOptions(params = {}) {
+      const res = await getAllProductsApi(params)
+      this.options = res.data.data ?? []
     },
     async fetchProductById(id) {
       const res = await getProductByIdApi(id)
