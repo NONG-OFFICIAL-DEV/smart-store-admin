@@ -2,24 +2,13 @@
   <v-container fluid class="pa-0" v-if="product">
     <!-- Breadcrumb -->
     <AppPageHeader
-      title="Product Details"
+      :title="t('products.detailTitle')"
       show-back
       :breadcrumbs="[
         { title: 'Products', to: '/Products' },
         { title: product.name }
       ]"
     >
-      <template #title-after>
-        <!-- <v-chip
-          v-if="store.branch?.is_active"
-          color="success"
-          size="x-small"
-          variant="flat"
-        >
-          Active
-        </v-chip> -->
-      </template>
-
       <template #right>
         <div class="d-flex gap-2">
           <v-btn
@@ -28,7 +17,7 @@
             rounded="lg"
             @click="openEditProduct"
           >
-            Edit
+            {{ t('btn.edit') }}
           </v-btn>
           <v-btn
             color="error"
@@ -38,7 +27,7 @@
             class="ms-2"
             @click="handleDeleteProduct"
           >
-            Delete
+            {{ t('btn.delete') }}
           </v-btn>
         </div>
       </template>
@@ -105,7 +94,9 @@
             <!-- Pricing -->
             <div class="mb-4 pa-3 rounded-lg bg-grey-lighten-5">
               <div class="d-flex justify-space-between align-center mb-1">
-                <span class="text-caption text-grey">Base Price</span>
+                <span class="text-caption text-grey">
+                  {{ t('products.basePrice') }}
+                </span>
                 <span class="text-h6 font-weight-bold text-primary">
                   ${{ Number(product.base_price).toFixed(2) }}
                 </span>
@@ -114,7 +105,9 @@
                 v-if="product.cost_price"
                 class="d-flex justify-space-between align-center"
               >
-                <span class="text-caption text-grey">Cost Price</span>
+                <span class="text-caption text-grey">
+                  {{ t('products.costPrice') }}
+                </span>
                 <span class="text-body-2">
                   ${{ Number(product.cost_price).toFixed(2) }}
                 </span>
@@ -185,9 +178,11 @@
         <v-card rounded="xl" border elevation="0" class="mb-4">
           <div class="d-flex align-center justify-space-between px-5 pt-5 pb-3">
             <div>
-              <p class="text-body-1 font-weight-semibold mb-0">Variants</p>
+              <p class="text-body-1 font-weight-semibold mb-0">
+                {{ t('products.variant.title') }}
+              </p>
               <p class="text-caption text-grey mb-0">
-                Size, flavor or other variations
+                {{ t('products.variant.subtitle') }}
               </p>
             </div>
             <v-btn
@@ -198,7 +193,7 @@
               rounded="lg"
               @click="openCreateVariant"
             >
-              Add Variant
+              {{ t('products.variant.addTitle') }}
             </v-btn>
           </div>
           <v-divider />
@@ -387,6 +382,7 @@
   <ProductVariantDialog
     v-model="variantDialog"
     :variant="selectedVariant"
+    :base-price="product?.base_price"
     :product-id="product?.id"
     @saved="handleVariantSaved"
   />
@@ -505,30 +501,31 @@
   }
 
   const handleVariantSaved = async (payload, callbacks) => {
-  try {
-    if (payload.id) {
-      await variantStore.updateProductVariant(payload.id, payload)
-    } else {
-      await variantStore.createProductVariant({
-        ...payload,
-        product_id: product.value.id
+    try {
+      if (payload.id) {
+        await variantStore.updateProductVariant(payload.id, payload)
+      } else {
+        await variantStore.createProductVariant({
+          ...payload,
+          product_id: product.value.id
+        })
+      }
+
+      await productStore.fetchProductById(route.params.id)
+      notif(payload.id ? 'Variant updated' : 'Variant added', {
+        type: 'success'
       })
-    }
 
-    await productStore.fetchProductById(route.params.id)
-    notif(payload.id ? 'Variant updated' : 'Variant added', { type: 'success' })
+      callbacks?.resolve?.() // ← resolve the promise FIRST
+      // ❌ remove variantDialog.value = false — dialog closes itself in .then(() => close())
+    } catch (err) {
+      callbacks?.reject?.(err)
 
-    callbacks?.resolve?.()   // ← resolve the promise FIRST
-    // ❌ remove variantDialog.value = false — dialog closes itself in .then(() => close())
-
-  } catch (err) {
-    callbacks?.reject?.(err)
-
-    if (err?.response?.status !== 422) {
-      notif('Failed to save variant', { type: 'error' })
+      if (err?.response?.status !== 422) {
+        notif('Failed to save variant', { type: 'error' })
+      }
     }
   }
-}
 
   const handleDeleteVariant = async variant => {
     confirm({

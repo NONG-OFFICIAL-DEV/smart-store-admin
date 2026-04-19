@@ -95,7 +95,8 @@
     "approve": "Approve",
     "reject": "Reject",
     "retry": "Retry",
-    "proceed": "Proceed"
+    "proceed": "Proceed",
+    "stats": "Stats"
   },
   "app": {
     "name": "BrewDesk",
@@ -524,6 +525,8 @@
     "newTitle": "New Product",
     "editSubtitle": "Update product details",
     "newSubtitle": "Create a new product",
+    "detailTitle": "Product Detail",
+    "basePrice": "Base Price",
     "table": {
       "name": "Product Name",
       "sku": "SKU",
@@ -542,7 +545,8 @@
       "placeholder": "Search products...",
       "all_types": "All Types",
       "all_categories": "All Categories",
-      "all_status": "All Status"
+      "all_status": "All Status",
+      "stock":"Stock Status"
     },
     "type": {
       "retail": "Retail",
@@ -626,6 +630,21 @@
       "available": "Available",
       "featured": "Featured",
       "unavailable": "Unavailable"
+    },
+    "variant": {
+      "title": "Variants",
+      "subtitle": "Manage product variants and pricing",
+      "addTitle": "Add Variant",
+      "editTitle": "Edit Variant",
+      "name": "Variant Name",
+      "priceAdjustment": "Price Adjustment",
+      "priceAdjustmentHint": "Increase or decrease from base price",
+      "skuSuffix": "SKU Suffix",
+      "skuSuffixHint": "Optional code appended to product SKU",
+      "finalPrice": "Final Price",
+      "base": "Base",
+      "sortOrder": "Sort Order",
+      "isDefault": "Set as default"
     }
   },
 

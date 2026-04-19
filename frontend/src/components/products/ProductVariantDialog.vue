@@ -1,17 +1,22 @@
 <template>
-  <v-dialog v-model="model" max-width="520" persistent scrollable>
+  <v-dialog v-model="model" max-width="480" persistent scrollable>
     <v-card rounded="xl" border elevation="0">
+      <!-- ── Header ────────────────────────────────────────────────────── -->
       <v-card-title class="d-flex align-center justify-space-between pa-5 pb-4">
         <div class="d-flex align-center gap-3">
           <v-avatar color="primary" variant="tonal" size="40" rounded="lg">
-            <v-icon icon="mdi-package-variant" size="20" />
+            <v-icon icon="mdi-shape-plus" size="20" />
           </v-avatar>
           <div>
             <div class="text-body-1 font-weight-bold">
-              {{ isEdit ? 'Edit Unit' : 'Add Unit' }}
+              {{
+                isEdit
+                  ? t('products.variant.editTitle')
+                  : t('products.variant.addTitle')
+              }}
             </div>
             <div class="text-caption text-medium-emphasis">
-              e.g. Can, 6-Pack, Box of 24
+              {{ t('products.variant.subtitle') }}
             </div>
           </div>
         </div>
@@ -19,187 +24,100 @@
       </v-card-title>
       <v-divider />
 
+      <!-- ── Body ──────────────────────────────────────────────────────── -->
       <v-card-text class="pa-5">
         <v-form ref="formRef">
           <v-row dense>
-            <!-- Unit name -->
-            <v-col cols="12" sm="6">
-              <v-combobox
-                v-model="form.unit_name"
-                :items="unitNameOptions"
-                :loading="loadingNames"
-                item-title="title"
-                item-value="title"
-                label="Unit Name *"
-                placeholder="can, pack, box, kg..."
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                :rules="[r.required]"
-                clearable
-                return-object
-                @update:modelValue="onUnitNameChange"
-              >
-                <template #item="{ item, props: iProps }">
-                  <v-list-item v-bind="iProps" :subtitle="item.raw?.subtitle">
-                    <template #append>
-                      <v-chip
-                        v-if="item.raw?.source === 'db'"
-                        size="x-small"
-                        color="primary"
-                        variant="tonal"
-                        rounded="lg"
-                      >
-                        existing
-                      </v-chip>
-                      <v-chip
-                        v-else
-                        size="x-small"
-                        color="grey"
-                        variant="tonal"
-                        rounded="lg"
-                      >
-                        common
-                      </v-chip>
-                    </template>
-                  </v-list-item>
-                </template>
-                <template #no-data>
-                  <v-list-item>
-                    <v-list-item-title class="text-caption">
-                      Press
-                      <kbd>Enter</kbd>
-                      to use "
-                      <strong>{{ form.unit_name }}</strong>
-                      "
-                    </v-list-item-title>
-                  </v-list-item>
-                </template>
-              </v-combobox>
-            </v-col>
-
-            <!-- Unit label -->
-            <v-col cols="12" sm="6">
+            <!-- Variant Name -->
+            <v-col cols="12">
               <v-text-field
-                v-model="form.unit_label"
-                label="Display Label"
-                placeholder="Can, 6-Pack, Case of 24"
+                v-model="form.name"
+                :label="t('products.variant.name')"
+                placeholder="e.g. Small, Medium, Large / Red, Blue"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                hint="Shown to cashier on POS"
-              />
-            </v-col>
-
-            <!-- Qty per base -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.qty_per_base"
-                type="number"
-                label="Qty per Base Unit *"
-                min="0.001"
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                :rules="[r.required, r.positive]"
-                hint="e.g. 24 for a box of 24 cans"
-                prepend-inner-icon="mdi-numeric"
-              />
-            </v-col>
-
-            <!-- Barcode -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="form.barcode"
-                label="Barcode"
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                prepend-inner-icon="mdi-barcode"
-                hint="Scan or type barcode"
+                prepend-inner-icon="mdi-tag-outline"
+                :rules="[r.required, r.maxLen(80)]"
+                maxlength="80"
                 clearable
               />
             </v-col>
 
-            <!-- Retail price -->
-            <v-col cols="12" sm="4">
+            <!-- Price Adjustment -->
+            <v-col cols="12" sm="6">
               <v-text-field
-                v-model.number="form.retail_price"
+                v-model.number="form.price_adjustment"
                 type="number"
-                label="Retail Price *"
-                min="0"
+                :label="t('products.variant.priceAdjustment')"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                :rules="[r.required]"
-                prepend-inner-icon="mdi-currency-usd"
+                prepend-inner-icon="mdi-plus-minus"
+                step="0.01"
+                :hint="t('products.variant.priceAdjustmentHint')"
+                :rules="[r.isNumber]"
               />
             </v-col>
 
-            <!-- Wholesale price -->
-            <v-col cols="12" sm="4">
+            <!-- SKU Suffix -->
+            <v-col cols="12" sm="6">
               <v-text-field
-                v-model.number="form.wholesale_price"
-                type="number"
-                label="Wholesale Price"
-                min="0"
+                v-model="form.sku_suffix"
+                :label="t('products.variant.skuSuffix')"
+                placeholder="e.g. -SM, -RED"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                prepend-inner-icon="mdi-currency-usd"
+                prepend-inner-icon="mdi-identifier"
+                :rules="[r.maxLen(20)]"
+                maxlength="20"
                 clearable
+                :hint="t('products.variant.skuSuffixHint')"
               />
             </v-col>
 
-            <!-- Cost price -->
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model.number="form.cost_price"
-                type="number"
-                label="Cost Price"
-                min="0"
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                prepend-inner-icon="mdi-currency-usd"
-                hint="For margin tracking"
-                clearable
-              />
-            </v-col>
-
-            <!-- Margin preview -->
-            <v-col v-if="form.retail_price && form.cost_price" cols="12">
+            <!-- Price adjustment preview -->
+            <v-col v-if="basePrice && form.price_adjustment !== 0" cols="12">
               <v-alert
                 density="compact"
                 variant="tonal"
                 rounded="lg"
-                :color="margin > 0 ? 'success' : 'error'"
+                :color="form.price_adjustment >= 0 ? 'success' : 'warning'"
               >
-                Margin:
-                <strong>{{ margin.toFixed(1) }}%</strong>
-                (profit {{ fmt(form.retail_price - form.cost_price) }} per unit)
+                {{ t('products.variant.finalPrice') }}:
+                <strong>{{ format(finalPrice) }}</strong>
+                <span class="text-caption ml-1">
+                  ({{ t('products.variant.base') }} {{ format(basePrice) }}
+                  {{ form.price_adjustment >= 0 ? '+' : ''
+                  }}{{ format(form.price_adjustment) }})
+                </span>
               </v-alert>
             </v-col>
 
-            <v-col cols="12"><v-divider class="my-1" /></v-col>
-
-            <!-- Is base unit -->
+            <!-- Sort Order -->
             <v-col cols="12" sm="6">
-              <v-switch
-                v-model="form.is_base_unit"
-                color="success"
-                label="This is the base unit"
-                density="compact"
+              <v-text-field
+                v-model.number="form.sort_order"
+                type="number"
+                :label="t('products.variant.sortOrder')"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                prepend-inner-icon="mdi-sort"
+                min="0"
                 hide-details
               />
             </v-col>
 
-            <!-- Is active -->
+            <v-col cols="12"><v-divider class="my-1" /></v-col>
+
+            <!-- Is Default -->
             <v-col cols="12" sm="6">
               <v-switch
-                v-model="form.is_active"
+                v-model="form.is_default"
                 color="primary"
-                label="Active"
+                :label="t('products.variant.isDefault')"
                 density="compact"
                 hide-details
               />
@@ -209,9 +127,11 @@
       </v-card-text>
 
       <v-divider />
+
+      <!-- ── Actions ───────────────────────────────────────────────────── -->
       <v-card-actions class="pa-5 gap-3">
         <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
-          Cancel
+          {{ t('btn.cancel') }}
         </v-btn>
         <v-spacer />
         <v-btn
@@ -222,7 +142,7 @@
           prepend-icon="mdi-content-save"
           @click="save"
         >
-          {{ isEdit ? 'Save Changes' : 'Add Unit' }}
+          {{ isEdit ? t('btn.save') : t('btn.create') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -231,146 +151,52 @@
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
-  import { useProductUnitStore } from '@/stores/productUnitStore'
+  import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
+
+  const { t } = useI18n({ useScope: 'global' })
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    unit: { type: Object, default: null },
+    variant: { type: Object, default: null }, // existing variant for edit
+    basePrice: { type: String, default: null }, // product base_price for preview
     loading: { type: Boolean, default: false }
   })
+
   const emit = defineEmits(['update:modelValue', 'save'])
 
   const formRef = ref(null)
-  const loadingNames = ref(false)
-  const dbUnits = ref([])
-  const productUnitStore = useProductUnitStore()
 
   const model = computed({
     get: () => props.modelValue,
     set: v => emit('update:modelValue', v)
   })
 
-  const isEdit = computed(() => !!props.unit?.id)
-
-  // ── Common units ──────────────────────────────────────────────────────────
-  const commonUnits = [
-    { title: 'pcs', unit_label: 'Pcs', qty_per_base: 1, source: 'common' },
-    { title: 'can', unit_label: 'Can', qty_per_base: 1, source: 'common' },
-    {
-      title: 'bottle',
-      unit_label: 'Bottle',
-      qty_per_base: 1,
-      source: 'common'
-    },
-    { title: 'pack', unit_label: 'Pack', qty_per_base: 6, source: 'common' },
-    { title: 'box', unit_label: 'Box', qty_per_base: 24, source: 'common' },
-    {
-      title: 'carton',
-      unit_label: 'Carton',
-      qty_per_base: 24,
-      source: 'common'
-    },
-    { title: 'case', unit_label: 'Case', qty_per_base: 12, source: 'common' },
-    { title: 'kg', unit_label: 'kg', qty_per_base: 1, source: 'common' },
-    { title: 'g', unit_label: 'g', qty_per_base: 1, source: 'common' },
-    { title: 'litre', unit_label: 'Litre', qty_per_base: 1, source: 'common' },
-    { title: 'dozen', unit_label: 'Dozen', qty_per_base: 12, source: 'common' },
-    { title: 'bag', unit_label: 'Bag', qty_per_base: 1, source: 'common' }
-  ]
-
-  const unitNameOptions = computed(() => {
-    const dbTitles = new Set(dbUnits.value.map(u => u.title))
-    const extras = commonUnits.filter(u => !dbTitles.has(u.title))
-    return [
-      ...dbUnits.value.map(u => ({
-        ...u,
-        source: 'db',
-        subtitle: `× ${u.qty_per_base} · used in your products`
-      })),
-      ...extras.map(u => ({
-        ...u,
-        source: 'common',
-        subtitle: `× ${u.qty_per_base}`
-      }))
-    ]
-  })
-
-  // ── Fetch unit names ───────────────────────────────────────────────────────
-  const fetchUnitNames = async () => {
-    loadingNames.value = true
-    try {
-      const res = await productUnitStore.fetchUnitName()
-      dbUnits.value = (res.data.data ?? []).map(u => ({
-        title: u.title,
-        unit_label: u.unit_label,
-        qty_per_base: u.qty_per_base
-      }))
-    } catch {
-      dbUnits.value = []
-    } finally {
-      loadingNames.value = false
-    }
-  }
-
-  // ── On unit name change — always update label & qty reactively ─────────────
-  const onUnitNameChange = val => {
-    console.log(val);
-    
-    if (!val) {
-      form.unit_name = null
-      form.unit_label = ''
-      form.qty_per_base = 1
-      return
-    }
-
-    // ✅ always object now
-    form.unit_name = val
-    form.unit_label = val.unit_label ?? ''
-    form.qty_per_base = val.qty_per_base ?? 1
-  }
+  const isEdit = computed(() => !!props.variant?.id)
 
   // ── Form ───────────────────────────────────────────────────────────────────
   const defaultForm = () => ({
-    unit_name: '',
-    unit_label: '',
-    qty_per_base: 1,
-    barcode: null,
-    retail_price: 0,
-    wholesale_price: null,
-    cost_price: null,
-    is_base_unit: false,
-    is_active: true,
+    name: '',
+    price_adjustment: 0,
+    sku_suffix: null,
+    is_default: false,
     sort_order: 0
   })
 
   const form = reactive(defaultForm())
 
-  const margin = computed(() => {
-    if (!form.retail_price || !form.cost_price) return 0
-    return ((form.retail_price - form.cost_price) / form.retail_price) * 100
-  })
-
-  // ── Watchers ───────────────────────────────────────────────────────────────
-  watch(
-    () => props.unit,
-    val => {
-      if (val) Object.assign(form, { ...defaultForm(), ...val })
-      else Object.assign(form, defaultForm())
-    },
-    { immediate: true }
+  // ── Final price preview ────────────────────────────────────────────────────
+  const finalPrice = computed(
+    () => Number(props.basePrice ?? 0) + Number(form.price_adjustment ?? 0)
   )
 
+  // ── Watch variant prop (edit mode) ─────────────────────────────────────────
   watch(
-    () => props.unit,
+    () => props.variant,
     val => {
       if (val) {
-        const found = unitNameOptions.value.find(u => u.title === val.unit_name)
-
-        Object.assign(form, {
-          ...defaultForm(),
-          ...val,
-          unit_name: found || { title: val.unit_name }
-        })
+        Object.assign(form, { ...defaultForm(), ...val })
       } else {
         Object.assign(form, defaultForm())
       }
@@ -380,41 +206,43 @@
 
   // ── Rules ──────────────────────────────────────────────────────────────────
   const r = {
-    required: v => !!v || 'Required',
-    positive: v => v > 0 || 'Must be > 0'
+    required: v =>
+      (v !== null && v !== '' && v !== undefined) ||
+      t('products.rule.required'),
+    isNumber: v =>
+      (!v && v !== 0) || !isNaN(Number(v)) || t('products.rule.isNumber'),
+    maxLen: n => v => !v || v.length <= n || t('products.rule.maxLen', { n })
   }
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
-
-  // ── Close — always reset ───────────────────────────────────────────────────
+  // ── Close ──────────────────────────────────────────────────────────────────
   const close = () => {
     model.value = false
-    Object.assign(form, defaultForm()) // ✅ always reset
+    Object.assign(form, defaultForm())
     formRef.value?.reset()
   }
 
   // ── Save ───────────────────────────────────────────────────────────────────
+  // ProductVariantDialog — save method
   const save = async () => {
     const { valid } = await formRef.value.validate()
     if (!valid) return
 
-    emit('save', {
-      ...(isEdit.value ? { id: props.unit.id } : {}),
-      ...form,
-      unit_name:
-        typeof form.unit_name === 'object'
-          ? form.unit_name.title
-          : form.unit_name,
-      wholesale_price: form.wholesale_price || null,
-      cost_price: form.cost_price || null,
-      barcode: form.barcode || null
+    await new Promise((resolve, reject) => {
+      emit(
+        'saved',
+        {
+          ...(isEdit.value ? { id: props.variant.id } : {}),
+          name: form.name,
+          price_adjustment: Number(form.price_adjustment ?? 0),
+          sku_suffix: form.sku_suffix || null,
+          is_default: form.is_default || false,
+          sort_order: Number(form.sort_order ?? 0)
+        },
+        { resolve, reject } // ← pass callbacks
+      )
     })
-
-    close() // ✅ clear form after emit
+      .then(() => close()) // ← close only on success
+      .catch(() => {}) // ← stay open on error
   }
 </script>
 

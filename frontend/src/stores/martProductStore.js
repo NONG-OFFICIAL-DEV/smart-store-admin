@@ -5,6 +5,7 @@ import api from '@/api/api'
 export const useMartProductStore = defineStore('martProduct', {
   state: () => ({
     products: [],
+    options: [],
     pagination: {},
     loading: false
   }),
@@ -26,12 +27,21 @@ export const useMartProductStore = defineStore('martProduct', {
   },
 
   actions: {
-    async fetchProducts(filters = {}) {
+    async fetchMartProducts(filters = {}) {
       this.loading = true
       try {
         const res = await api.get('v1/mart/products', { params: filters })
         this.products = res.data.data
         this.pagination = res.data
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchMartProductOptions(filters = {}) {
+      this.loading = true
+      try {
+        const res = await api.get('v1/mart/products', { params: filters })
+        this.options = res.data.data
       } finally {
         this.loading = false
       }

@@ -17,9 +17,13 @@ export function useCurrency() {
     return formatCurrency(value)
   }
 
+  function currencySymbol() {
+    return currency.value === 'KHR' ? '៛' : '$'
+  }
+
   function formatNoSymbol(value) {
     return formatCurrencyNoSymbol(value, locale.value)
   }
 
-  return { format, formatNoSymbol, currency, locale }
+  return { format, formatNoSymbol, currency, locale, currencySymbol }
 }

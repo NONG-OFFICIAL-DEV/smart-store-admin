@@ -469,7 +469,7 @@
       await adjustStockApi({ branch_id: authStore.branch_id, ...payload })
       notif('Stock adjusted', { type: 'success' })
       adjustDialog.value = false
-      martProductStore.fetchProducts(true)
+      martProductStore.fetchMartProducts(true)
       load()
     } catch (e) {
       notif(e.response?.data?.message ?? 'Failed', { type: 'error' })
@@ -480,7 +480,7 @@
 
   onMounted(() => {
     load()
-    martProductStore.fetchProducts()
+    martProductStore.fetchMartProducts()
   })
 </script>
 

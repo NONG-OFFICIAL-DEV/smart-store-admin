@@ -134,8 +134,13 @@
                 density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
-                prepend-inner-icon="mdi-currency-usd"
-              />
+              >
+                <template #prepend-inner>
+                  <span>
+                    {{ currencySymbol() }}
+                  </span>
+                </template>
+              </v-text-field>
             </v-col>
 
             <!-- Wholesale price -->
@@ -148,9 +153,14 @@
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                prepend-inner-icon="mdi-currency-usd"
                 clearable
-              />
+              >
+                <template #prepend-inner>
+                  <span>
+                    {{ currencySymbol() }}
+                  </span>
+                </template>
+              </v-text-field>
             </v-col>
 
             <!-- Cost price -->
@@ -163,10 +173,15 @@
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
-                prepend-inner-icon="mdi-currency-usd"
                 hint="For margin tracking"
                 clearable
-              />
+              >
+                <template #prepend-inner>
+                  <span>
+                    {{ currencySymbol() }}
+                  </span>
+                </template>
+              </v-text-field>
             </v-col>
 
             <!-- Margin preview -->
@@ -209,7 +224,6 @@
           </v-row>
         </v-form>
       </v-card-text>
-
       <v-divider />
       <v-card-actions class="pa-5 gap-3">
         <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
@@ -235,6 +249,8 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { currencySymbol } = useCurrency()
 
   const { t } = useI18n()
   const props = defineProps({

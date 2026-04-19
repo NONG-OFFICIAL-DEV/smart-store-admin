@@ -190,7 +190,6 @@
           </v-row>
         </v-form>
       </v-card-text>
-
       <v-divider />
       <v-card-actions class="pa-5 gap-3">
         <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
@@ -212,14 +211,12 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch ,onMounted} from 'vue'
-  import { storeToRefs } from 'pinia'
+  import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useProductStore } from '@/stores/productStore'
+  import { useMartProductStore } from '@/stores/martProductStore'
 
   const { t } = useI18n()
-  const productStore = useProductStore()
-  const { options } = storeToRefs(productStore)
+  const martProductStore = useMartProductStore()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -283,7 +280,7 @@
 
   // ── Lists ──────────────────────────────────────────────────────────────────
   const productList = computed(() => {
-    const p = options.value
+    const p = martProductStore.options
     return Array.isArray(p) ? p : (p?.data ?? [])
   })
 
@@ -369,7 +366,7 @@
   }
 
   onMounted(() => {
-    productStore.fetchOptions({
+    martProductStore.fetchMartProductOptions({
       per_page: -1
     })
   })

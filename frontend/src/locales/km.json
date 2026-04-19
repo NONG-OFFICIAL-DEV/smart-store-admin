@@ -95,7 +95,8 @@
     "approve": "យល់ព្រម",
     "reject": "បដិសេធ",
     "retry": "ព្យាយាមម្តងទៀត",
-    "proceed": "បន្ត"
+    "proceed": "បន្ត",
+    "stats": "ស្ថិតិ"
   },
   "app": {
     "name": "BrewDesk",
@@ -429,7 +430,7 @@
     "not_found": "រកមិនឃើញកំណត់ត្រា",
     "popup_blocked": "ការបិទ Popup។ សូមអនុញ្ញាត Popup សម្រាប់គេហទំព័រនេះ"
   },
-  "validation":{
+  "validation": {
     "required": "ត្រូវការបញ្ចូល",
     "email": "អ៊ីមែលមិនត្រឹមត្រូវ",
     "min_length": "យ៉ាងហោចណាស់ {n} តួអក្សរ",
@@ -516,6 +517,8 @@
     "newTitle": "បង្កើតផលិតផលថ្មី",
     "editSubtitle": "កែប្រែព័ត៌មានលម្អិតរបស់ផលិតផល",
     "newSubtitle": "បង្កើតផលិតផលថ្មីមួយ",
+    "detailTitle": "ព័ត៌មានលម្អិតផលិតផល",
+    "basePrice": "តម្លៃមូលដ្ឋាន",
     "table": {
       "name": "ឈ្មោះផលិតផល",
       "sku": "SKU",
@@ -534,7 +537,8 @@
       "placeholder": "ស្វែងរកឈ្មោះផលិតផល",
       "all_types": "ប្រភេទទាំងអស់",
       "all_categories": "ប្រភេទទំនិញទាំងអស់",
-      "all_status": "ស្ថានភាពទាំងអស់"
+      "all_status": "ស្ថានភាពទាំងអស់",
+      "stock":"ស្ថានភាពស្តុក"
     },
     "type": {
       "retail": "លក់រាយ",
@@ -624,6 +628,21 @@
       "inStock": "មានស្តុក",
       "lowStock": "ស្តុកទាប",
       "outOfStock": "អស់ស្តុក"
+    },
+    "variant": {
+      "title": "ជម្រើស",
+      "addTitle": "បន្ថែមជម្រើស",
+      "editTitle": "កែប្រែជម្រើស",
+      "subtitle": "កំណត់ជម្រើសផលិតផល",
+      "name": "ឈ្មោះជម្រើស",
+      "priceAdjustment": "បន្ថែម/បន្ថយតម្លៃ",
+      "priceAdjustmentHint": "បូក ឬ ដកពីតម្លៃដើម",
+      "skuSuffix": "លេខកូដបន្ថែម (SKU)",
+      "skuSuffixHint": "លេខកូដបន្ថែមទៅ SKU ផលិតផល",
+      "finalPrice": "តម្លៃចុងក្រោយ",
+      "base": "តម្លៃដើម",
+      "sortOrder": "លំដាប់បង្ហាញ",
+      "isDefault": "កំណត់ជាលំនាំដើម"
     }
   },
 
