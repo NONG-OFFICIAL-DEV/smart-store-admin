@@ -121,7 +121,7 @@
               prepend-icon="mdi-close"
               @click="clearFilters"
             >
-              {{t('btn.clear')}}
+              {{ t('btn.clear') }}
             </v-btn>
           </v-col>
         </v-card-text>
@@ -242,6 +242,7 @@
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <v-btn
+              v-if="authStore.isMart || isSuperAdmin()"
               icon="mdi-package-variant"
               size="small"
               variant="text"
@@ -423,7 +424,11 @@
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { useDataTable } from '@/composables/useServerTable'
+  import { useAuthStore } from '@/stores/authStore'
+  import { usePermission } from '@/composables/usePermission'
 
+  const { isSuperAdmin } = usePermission()
+  const authStore = useAuthStore()
   const router = useRouter()
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
@@ -473,34 +478,46 @@
   const headers = computed(() => [
     { title: t('products.table.name'), key: 'name', sortable: true },
     { title: t('products.table.type'), key: 'product_type', sortable: true },
-    // { title: t('products.table.price'), key: 'base_price', sortable: true },
-    { title: 'Available', key: 'is_available', sortable: true },
-    { title: 'Featured', key: 'is_featured', sortable: false },
-    { title: '', key: 'actions', sortable: false, align: 'end' }
+    {
+      title: t('products.table.available'),
+      key: 'is_available',
+      sortable: true
+    },
+    {
+      title: t('products.table.featured'),
+      key: 'is_featured',
+      sortable: false
+    },
+    {
+      title: t('products.table.actions'),
+      key: 'actions',
+      sortable: false,
+      align: 'start'
+    }
   ])
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const stats = computed(() => [
     {
-      label: 'Total Products',
+      label: t('products.stats.total'),
       value: pagination.value.total || 0,
       icon: 'mdi-package-variant',
       color: 'primary'
     },
     {
-      label: 'Available',
+      label: t('products.stats.available'),
       value: products.value.filter(p => p.is_available).length,
       icon: 'mdi-check-circle',
       color: 'success'
     },
     {
-      label: 'Featured',
+      label: t('products.stats.featured'),
       value: products.value.filter(p => p.is_featured).length,
       icon: 'mdi-star',
       color: 'warning'
     },
     {
-      label: 'Unavailable',
+      label: t('products.stats.unavailable'),
       value: products.value.filter(p => !p.is_available).length,
       icon: 'mdi-close-circle',
       color: 'error'

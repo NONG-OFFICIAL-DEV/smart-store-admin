@@ -438,7 +438,16 @@
     "not_found": "Record not found",
     "popup_blocked": "Popup blocked. Please allow popups for this site."
   },
-
+  "validation": {
+    "required": "This field is required",
+    "email": "Invalid email address",
+    "min_length": "Minimum {n} characters required",
+    "max_length": "Maximum {n} characters allowed",
+    "min_value": "Minimum value is {n}",
+    "max_value": "Maximum value is {n}",
+    "match": "Values do not match",
+    "unique": "This value is already taken"
+  },
   "table": {
     "no_data": "No data available",
     "no_data_sub": "Try adjusting your search or filters",
@@ -511,6 +520,10 @@
   "products": {
     "title": "Products",
     "subtitle": "Manage your product catalog, variants, and availability",
+    "editTitle": "Edit Product",
+    "newTitle": "New Product",
+    "editSubtitle": "Update product details",
+    "newSubtitle": "Create a new product",
     "table": {
       "name": "Product Name",
       "sku": "SKU",
@@ -519,7 +532,9 @@
       "stock": "Stock",
       "status": "Status",
       "type": "Type",
-      "actions": "Actions"
+      "actions": "Actions",
+      "available": "Available",
+      "featured": "Featured"
     },
     "empty": "No products found",
     "empty_sub": "Add your first product to get started",
@@ -535,7 +550,83 @@
       "beverage": "Beverage",
       "combo": "Combo"
     },
-    "units_count": "{n} unit | {n} units"
+    "units_count": "{n} unit | {n} units",
+    "buType": {
+      "restaurant": "Restaurant",
+      "coffee_shop": "Coffee Shop",
+      "mart": "Mart"
+    },
+
+    "tab": {
+      "basic": "Basic",
+      "pricing": "Pricing",
+      "details": "Details"
+    },
+    "section": {
+      "productInfo": "Product Info",
+      "additionalInfo": "Additional Info",
+      "pricing": "Pricing",
+      "productDetails": "Product Details",
+      "preview": "Preview"
+    },
+    "productType": {
+      "food": "Food",
+      "beverage": "Beverage",
+      "retail": "Retail",
+      "combo": "Combo"
+    },
+    "field": {
+      "productName": "Product Name *",
+      "type": "Type *",
+      "category": "Category *",
+      "tenant": "Tenant *",
+      "available": "Available",
+      "availableHint": "Visible in menu",
+      "featured": "Featured",
+      "featuredHint": "Highlighted",
+      "barcode": "Barcode",
+      "description": "Description",
+      "basePrice": "Base Price *",
+      "costPrice": "Cost Price",
+      "grossMargin": "Gross Margin",
+      "profitUnit": "Profit / unit",
+      "taxCategory": "Tax Category",
+      "taxCategoryPlaceholder": "standard, reduced, exempt",
+      "sortOrder": "Sort Order",
+      "prepTime": "Prep Time",
+      "min": "min",
+      "calories": "Calories"
+    },
+    "image": {
+      "upload": "Upload",
+      "pasteUrl": "Or paste URL"
+    },
+    "hint": {
+      "variantsInfo": "Variants & Modifier Groups can be managed from the product detail page after saving."
+    },
+    "preview": {
+      "productName": "Product Name",
+      "noSku": "No SKU"
+    },
+    "rule": {
+      "required": "Required",
+      "nonNegative": "Must be 0 or greater",
+      "nonNegativeInt": "Must be positive integer",
+      "maxLen": "Max {n} characters"
+    },
+    "error": {
+      "fixErrors": "Please fix errors before saving"
+    },
+    "alert": {
+      "retail": "Unit tiers, barcodes & pricing are managed from the product detail page.",
+      "food": "Variants, modifiers & pricing are managed from the product detail page."
+    },
+    "stats": {
+      "total": "Total Products",
+      "available": "Available",
+      "featured": "Featured",
+      "unavailable": "Unavailable"
+    }
   },
 
   "suppliers": {

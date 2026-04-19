@@ -212,16 +212,20 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch } from 'vue'
+  import { ref, reactive, computed, watch ,onMounted} from 'vue'
+  import { storeToRefs } from 'pinia'
   import { useI18n } from 'vue-i18n'
+  import { useProductStore } from '@/stores/productStore'
 
   const { t } = useI18n()
+  const productStore = useProductStore()
+  const { products } = storeToRefs(productStore)
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     presetProduct: { type: Object, default: null },
-    products: { type: Array, default: () => [] },
+    // products: { type: Array, default: () => [] },
     presetType: { type: String, default: null },
     branchList: { type: Array, default: () => [] }
   })
@@ -280,7 +284,7 @@
 
   // ── Lists ──────────────────────────────────────────────────────────────────
   const productList = computed(() => {
-    const p = props.products
+    const p = products.value
     return Array.isArray(p) ? p : (p?.data ?? [])
   })
 
@@ -364,6 +368,13 @@
     model.value = false
     formRef.value?.reset()
   }
+
+  onMounted(() => {
+    productStore.fetchProducts({
+      per_page: -1,
+      include: 'active_units'
+    })
+  })
 </script>
 
 <style scoped>
