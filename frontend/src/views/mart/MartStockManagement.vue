@@ -275,7 +275,6 @@
 
     <!-- Adjust dialog -->
     <StockAdjustDialog
-      v-if="adjustDialog"
       v-model="adjustDialog"
       :preset-product="adjustTarget"
       :branch-list="branchList"
