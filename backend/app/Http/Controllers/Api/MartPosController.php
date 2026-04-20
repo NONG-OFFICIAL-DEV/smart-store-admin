@@ -267,10 +267,6 @@ class MartPosController extends Controller
 
         $categories = Category::whereHas('products', function ($q) use ($branch) {
             $q->where('tenant_id', $branch->tenant_id)
-                // ->where(function ($q) {
-                //     $q->where('product_type', 'retail')
-                //         ->orWhere('track_stock', true);
-                // })
                 ->where('is_available', true);
         })
             ->where('is_active', true)

@@ -13,8 +13,6 @@ class HospitalityPosController extends Controller
     // Products with their units — for POS product grid in hospitality module (restaurant, cafe, etc.)
     public function productHospitalityPos(Request $request)
     {
-        // $tenantId = auth()->user()->staff->tenant_id;
-        // $branch = auth()->user()->staff->branch_id;
 
         $request->validate([
             'branch_id'   => 'required|uuid|exists:branches,id',
@@ -46,26 +44,4 @@ class HospitalityPosController extends Controller
         return response()->json(['success' => true, 'data' => $products]);
     }
 
-    // public function categories(Request $request)
-    // {
-    //     $request->validate([
-    //         'branch_id' => 'required|uuid|exists:branches,id',
-    //     ]);
-
-    //     $branch = Branch::findOrFail($request->branch_id);
-
-    //     $categories = Category::whereHas('products', function ($q) use ($branch) {
-    //         $q->where('tenant_id', $branch->tenant_id)
-    //             // ->where(function ($q) {
-    //             //     $q->where('product_type', 'retail')
-    //             //         ->orWhere('track_stock', true);
-    //             // })
-    //             ->where('is_available', true);
-    //     })
-    //         ->where('is_active', true)
-    //         ->orderBy('sort_order')
-    //         ->get(['id', 'name', 'icon', 'color', 'image_url', 'sort_order']);
-
-    //     return response()->json(['success' => true, 'data' => $categories]);
-    // }
 }

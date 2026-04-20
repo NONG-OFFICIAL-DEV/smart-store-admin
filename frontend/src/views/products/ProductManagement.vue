@@ -15,7 +15,7 @@
             @click="showStats = !showStats"
             class="me-4"
           >
-            Show State
+            {{t('btn.stats')}}
           </v-btn>
           <v-btn
             :color="showFilters ? 'primary' : 'default'"

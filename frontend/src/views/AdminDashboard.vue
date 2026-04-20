@@ -485,7 +485,7 @@
             density="compact"
             side="end"
             class="pa-4"
-            truncate-line="both"
+            truncate-line="start"
           >
             <v-timeline-item
               v-for="event in store.activity"
@@ -806,6 +806,10 @@
 </script>
 
 <style scoped>
+  .v-timeline--vertical.v-timeline {
+      row-gap: 0px;
+      height: 80%;
+  }
   .kpi-card--hero {
     background: linear-gradient(135deg, #1867c0 0%, #1565c0 100%) !important;
     box-shadow: 0 8px 24px rgba(24, 103, 192, 0.3) !important;
