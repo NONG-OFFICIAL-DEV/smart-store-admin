@@ -15,7 +15,7 @@
           :disabled="!stats"
           @click="exportExcel"
         >
-          Export Excel
+          {{ t('btn.export') }}
         </v-btn>
       </template>
     </custom-title>
@@ -31,7 +31,7 @@
 
     <!-- ══ KPI Cards ════════════════════════════════════════════════════════ -->
     <v-row dense class="mb-5">
-      <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="3">
+      <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="4">
         <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
           <div class="d-flex align-center justify-space-between mb-3">
             <div class="kpi-icon-wrap" :style="`background:${kpi.bg}`">
@@ -56,7 +56,8 @@
             {{ kpi.label }}
           </div>
           <div class="text-caption mt-1" style="opacity: 0.55; font-size: 10px">
-            vs {{ periodLabel(previousPeriod) }}: {{ kpi.prev }}
+            {{ t('common.vs') }} {{ periodLabel(previousPeriod) }}:
+            {{ kpi.prev }}
           </div>
         </v-card>
       </v-col>
@@ -65,11 +66,13 @@
     <!-- ══ Charts Row ═══════════════════════════════════════════════════════ -->
     <v-row dense class="mb-5">
       <!-- Revenue Over Time -->
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="12">
         <v-card rounded="xl" border elevation="0" class="pa-5">
           <div class="d-flex align-center justify-space-between mb-4">
             <div>
-              <div class="text-body-1 font-weight-bold">{{ t('order_report.revenue_over_time') }}</div>
+              <div class="text-body-1 font-weight-bold">
+                {{ t('order_report.revenue_over_time') }}
+              </div>
               <div class="text-caption text-medium-emphasis">
                 {{ periodLabel(period) }}
               </div>
@@ -83,8 +86,12 @@
               color="primary"
               size="x-small"
             >
-              <v-btn value="revenue" size="x-small">{{ t('order_report.state.revenue') }}</v-btn>
-              <v-btn value="orders" size="x-small">{{ t('order_report.state.orders') }}</v-btn>
+              <v-btn value="revenue" size="x-small">
+                {{ t('order_report.state.revenue') }}
+              </v-btn>
+              <v-btn value="orders" size="x-small">
+                {{ t('order_report.state.orders') }}
+              </v-btn>
             </v-btn-toggle>
           </div>
           <div style="height: 240px">
@@ -92,80 +99,7 @@
           </div>
         </v-card>
       </v-col>
-
-      <!-- Order Type Breakdown -->
-      <v-col cols="12" md="4">
-        <v-card rounded="xl" border elevation="0" class="pa-5">
-          <div class="text-body-1 font-weight-bold mb-1">{{ t('order_report.order_types') }}</div>
-          <div class="text-caption text-medium-emphasis mb-4">
-            Distribution breakdown
-          </div>
-          <div
-            style="
-              height: 200px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
-            <canvas ref="donutChartRef" />
-          </div>
-          <!-- Legend -->
-          <div class="mt-3">
-            <div
-              v-for="t in orderTypeStats"
-              :key="t.label"
-              class="d-flex align-center justify-space-between mb-1"
-            >
-              <div class="d-flex align-center gap-2">
-                <div class="legend-dot" :style="`background:${t.color}`" />
-                <span class="text-caption">{{ t.label }}</span>
-              </div>
-              <span class="text-caption font-weight-bold">{{ t.count }}</span>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
     </v-row>
-
-    <!-- ══ Period Comparison Banner ══════════════════════════════════════════ -->
-    <v-card
-      rounded="xl"
-      border
-      elevation="0"
-      class="pa-5 mb-5 comparison-banner"
-    >
-      <div class="text-body-1 font-weight-bold mb-4">
-        Period Comparison
-        <span class="text-caption text-medium-emphasis ml-2">
-          {{ periodLabel(period) }} vs {{ periodLabel(previousPeriod) }}
-        </span>
-      </div>
-      <v-row dense>
-        <v-col v-for="c in comparisonRows" :key="c.label" cols="6" sm="3">
-          <div class="compare-cell pa-3 rounded-lg">
-            <div class="text-caption text-medium-emphasis mb-2">
-              {{ c.label }}
-            </div>
-            <div class="d-flex align-end gap-2 mb-1">
-              <span class="text-h6 font-weight-bold">{{ c.current }}</span>
-              <v-chip
-                size="x-small"
-                rounded="lg"
-                :color="c.up ? 'success' : 'error'"
-                variant="tonal"
-                class="mb-1"
-              >
-                {{ c.up ? '▲' : '▼' }} {{ c.diff }}
-              </v-chip>
-            </div>
-            <div class="text-caption" style="opacity: 0.5">
-              Prev: {{ c.previous }}
-            </div>
-          </div>
-        </v-col>
-      </v-row>
-    </v-card>
 
     <!-- ══ Filters + Table ══════════════════════════════════════════════════ -->
     <v-card rounded="xl" border elevation="0" class="mb-4">
@@ -183,20 +117,6 @@
           @update:model-value="onSearch"
         />
         <v-select
-          v-model="filters.status"
-          :items="statusOptions"
-          item-title="label"
-          item-value="value"
-          placeholder="Status"
-          variant="outlined"
-          density="compact"
-          rounded="lg"
-          hide-details
-          clearable
-          style="max-width: 150px"
-          @update:model-value="loadOrders"
-        />
-        <v-select
           v-model="filters.order_type"
           :items="orderTypeOptions"
           item-title="label"
@@ -207,7 +127,7 @@
           rounded="lg"
           hide-details
           clearable
-          style="max-width: 150px"
+          style="max-width: 250px"
           @update:model-value="loadOrders"
         />
         <v-spacer />
@@ -275,7 +195,7 @@
 
         <template #item.items_count="{ item }">
           <v-chip size="x-small" variant="tonal" rounded="lg">
-            {{ item.items?.length ?? 0 }} items
+            {{ item.items?.length ?? 0 }} {{t('order_report.headers.items')}}
           </v-chip>
         </template>
 
@@ -324,17 +244,6 @@
             @click="viewOrder(item)"
           />
         </template>
-
-        <template #top>
-          <div class="d-flex align-center justify-space-between px-4 py-3">
-            <div class="text-caption text-medium-emphasis">
-              {{ pagination?.total ?? 0 }} orders
-            </div>
-            <div class="text-body-2 font-weight-bold text-success">
-              Total: {{ format(stats?.total_revenue ?? 0) }}
-            </div>
-          </div>
-        </template>
       </v-data-table-server>
     </v-card>
 
@@ -351,6 +260,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import OrderDetailDialog from '@/components/orders/OrderDetailDialog.vue'
   import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
+
   import {
     Chart,
     LineElement,
@@ -382,7 +292,7 @@
     Filler
   )
   import { useCurrency } from '@/composables/useCurrency_v2.js'
-  const { format } = useCurrency()
+  const { format, currencySymbol } = useCurrency()
 
   const { notif } = useAppUtils()
   const branchStore = useBranchStore()
@@ -549,16 +459,6 @@
         icon: 'mdi-tag-outline',
         color: 'info',
         bg: '#e1f5fe'
-      },
-      {
-        label: t('order_report.state.completed'),
-        value: s.completed ?? 0,
-        prev: ps?.completed ?? 0,
-        change: pct(s.completed, ps?.completed),
-        changePositive: up(s.completed, ps?.completed),
-        icon: 'mdi-check-circle-outline',
-        color: 'warning',
-        bg: '#fff8e1'
       }
     ]
   })
@@ -566,60 +466,8 @@
   // ── Order type stats ───────────────────────────────────────────────────────────
   const orderTypeStats = ref([])
 
-  // ── Comparison rows ────────────────────────────────────────────────────────────
-  const comparisonRows = computed(() => {
-    const s = stats.value
-    const ps = prevStats.value
-    if (!s || !ps) return []
-
-    const diff = (a, b, isCurrency = false) => {
-      const d = a - b
-      return isCurrency ? format(Math.abs(d)) : Math.abs(d)
-    }
-    const up = (a, b) => a >= b
-
-    return [
-      {
-        label: 'Revenue',
-        current: format(s.total_revenue ?? 0),
-        previous: format(ps.total_revenue ?? 0),
-        diff: format(Math.abs((s.total_revenue ?? 0) - (ps.total_revenue ?? 0))),
-        up: up(s.total_revenue, ps.total_revenue)
-      },
-      {
-        label: 'Orders',
-        current: s.total_orders ?? 0,
-        previous: ps.total_orders ?? 0,
-        diff: Math.abs((s.total_orders ?? 0) - (ps.total_orders ?? 0)),
-        up: up(s.total_orders, ps.total_orders)
-      },
-      {
-        label: 'Completed',
-        current: s.completed ?? 0,
-        previous: ps.completed ?? 0,
-        diff: Math.abs((s.completed ?? 0) - (ps.completed ?? 0)),
-        up: up(s.completed, ps.completed)
-      },
-      {
-        label: 'Cancelled',
-        current: s.cancelled ?? 0,
-        previous: ps.cancelled ?? 0,
-        diff: Math.abs((s.cancelled ?? 0) - (ps.cancelled ?? 0)),
-        up: !up(s.cancelled, ps.cancelled) // fewer is better
-      }
-    ]
-  })
-
   // ── Options ───────────────────────────────────────────────────────────────────
-  const statusOptions = [
-    { value: null, label: 'All Status' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'preparing', label: 'Preparing' },
-    { value: 'ready', label: 'Ready' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' }
-  ]
+
   const orderTypeOptions = [
     { value: null, label: 'All Types' },
     { value: 'dine_in', label: 'Dine In' },
@@ -628,13 +476,12 @@
     { value: 'walk_in', label: 'Walk In' }
   ]
   const headers = [
-    { title: 'Order', key: 'order_number', sortable: false },
-    { title: 'Customer', key: 'customer', sortable: false },
-    { title: 'Items', key: 'items_count', sortable: false },
-    { title: 'Total', key: 'total_amount', sortable: true },
-    { title: 'Payment', key: 'payment_method', sortable: false },
-    { title: 'Status', key: 'status', sortable: false },
-    { title: 'Date', key: 'created_at', sortable: true },
+    { title: t('order_report.headers.order_number'), key: 'order_number', sortable: false },
+    { title: t('order_report.headers.customer'), key: 'customer', sortable: false },
+    { title: t('order_report.headers.items'), key: 'items_count', sortable: false },
+    { title: t('order_report.headers.total'), key: 'total_amount', sortable: true },
+    { title: t('order_report.headers.payment'), key: 'payment_method', sortable: false },
+    { title: t('order_report.headers.date'), key: 'created_at', sortable: true },
     { title: '', key: 'actions', sortable: false, width: '48' }
   ]
 
@@ -876,18 +723,22 @@
       const dt = new Date(d.label)
       return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     })
+
     const values =
       chartMode.value === 'revenue'
         ? chartData.value.map(d => d.revenue)
         : chartData.value.map(d => d.orders)
 
     lineChart = new Chart(lineChartRef.value, {
-      type: 'line',
+      type: 'bar',
       data: {
         labels,
         datasets: [
           {
-            label: chartMode.value === 'revenue' ? 'Revenue ($)' : 'Orders',
+            label:
+              chartMode.value === 'revenue'
+                ? `Revenue (${currencySymbol()})`
+                : 'Orders',
             data: values,
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59,130,246,0.08)',
@@ -907,8 +758,11 @@
           tooltip: { mode: 'index', intersect: false }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
-          y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
+          y: {
+            beginAtZero: true,
+            ticks: { callback: v => `${format(v)}` }
+          },
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
         }
       }
     })

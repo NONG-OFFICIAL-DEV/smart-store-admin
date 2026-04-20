@@ -296,6 +296,7 @@ class OrderController extends Controller
         ];
     }
 
+    // order report with filters + stats for mart store
     public function orderReport(Request $request)
     {
         $perPage = min((int) $request->get('per_page', 10), 100);
@@ -304,64 +305,44 @@ class OrderController extends Controller
         // ── Resolve allowed branch IDs for this user ──────────────────────────
         $allowedBranchIds = null;
         if (!$user->is_super_admin) {
-            $tenantId = $this->tenantResolver->resolve($request);
+            $tenantId         = $this->tenantResolver->resolve($request);
             $allowedBranchIds = \App\Models\Branch::where('tenant_id', $tenantId)
                 ->pluck('id')
                 ->toArray();
         }
 
-        // ── Branch IDs requested by the frontend ──────────────────────────────
-        // Comes in as branch_ids[] array
+        // ── Branch IDs requested by the frontend (branch_ids[] array) ─────────
         $requestedBranchIds = $request->input('branch_ids', []);
 
         // ── Final branch filter: intersection of allowed + requested ──────────
-        // If user sent branch_ids → use those (but only ones they're allowed to see)
-        // If user sent nothing    → show all allowed branches
         if (!empty($requestedBranchIds) && $allowedBranchIds !== null) {
             $finalBranchIds = array_intersect($requestedBranchIds, $allowedBranchIds);
         } elseif (!empty($requestedBranchIds)) {
-            // super admin filtering by specific branches
-            $finalBranchIds = $requestedBranchIds;
+            $finalBranchIds = $requestedBranchIds; // super admin scoping to specific branches
         } else {
             $finalBranchIds = $allowedBranchIds; // all tenant branches
         }
 
+        // ── Shared date/branch closure to avoid repeating filters ─────────────
+        $applyBaseFilters = function ($q) use ($finalBranchIds, $request) {
+            $q->when($finalBranchIds,      fn($q) => $q->whereIn('branch_id', $finalBranchIds))
+                ->when($request->date_from,  fn($q) => $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay()))
+                ->when($request->date_to,    fn($q) => $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay()));
+        };
+
+        // ── Paginated order list ───────────────────────────────────────────────
         $query = Order::with([
             'branch:id,name',
             'customer:id,name,phone',
             'items',
-            'payments'
+            'payments',
         ])
-            ->when(
-                $finalBranchIds,
-                fn($q) =>
-                $q->whereIn('branch_id', $finalBranchIds)
-            )
-            ->when(
-                $request->status,
-                fn($q) =>
-                $q->where('status', $request->status)
-            )
-            ->when(
-                $request->order_type,
-                fn($q) =>
-                $q->where('order_type', $request->order_type)
-            )
-            ->when(
-                $request->payment_method,
-                fn($q) =>
-                $q->where('payment_method', $request->payment_method)
-            )
-            ->when(
-                $request->date_from,
-                fn($q) =>
-                $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay())
-            )
-            ->when(
-                $request->date_to,
-                fn($q) =>
-                $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay())
-            )
+            ->when($finalBranchIds,       fn($q) => $q->whereIn('branch_id', $finalBranchIds))
+            ->when($request->status,      fn($q) => $q->where('status', $request->status))
+            ->when($request->order_type,  fn($q) => $q->where('order_type', $request->order_type))
+            ->when($request->payment_method, fn($q) => $q->where('payment_method', $request->payment_method))
+            ->when($request->date_from,   fn($q) => $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay()))
+            ->when($request->date_to,     fn($q) => $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay()))
             ->when(
                 $request->search,
                 fn($q) =>
@@ -380,28 +361,16 @@ class OrderController extends Controller
 
         $orders = $query->paginate($perPage);
 
-        // ── Stats (same branch filter, no pagination) ─────────────────────────
-        $statsQuery = Order::when(
-            $finalBranchIds,
-            fn($q) =>
-            $q->whereIn('branch_id', $finalBranchIds)
-        )
-            ->when(
-                $request->date_from,
-                fn($q) =>
-                $q->where('created_at', '>=', \Carbon\Carbon::parse($request->date_from)->startOfDay())
-            )
-            ->when(
-                $request->date_to,
-                fn($q) =>
-                $q->where('created_at', '<=', \Carbon\Carbon::parse($request->date_to)->endOfDay())
-            );
+        // ── Stats base query (non-cancelled, branch + date filters) ───────────
+        $statsQuery = Order::where('status', '!=', 'cancelled');
+        $applyBaseFilters($statsQuery);
+
+        $totalOrders  = (clone $statsQuery)->count();
+        $totalRevenue = (clone $statsQuery)->sum('total_amount');
+
         $stats = [
-            'total_orders'  => (clone $statsQuery)->count(),
-            'total_revenue' => (clone $statsQuery)->where('status', '!=', 'cancelled')->sum('total_amount'),
-            'pending'       => (clone $statsQuery)->where('status', 'pending')->count(),
-            'completed'     => (clone $statsQuery)->where('status', 'completed')->count(),
-            'cancelled'     => (clone $statsQuery)->where('status', 'cancelled')->count(),
+            'total_orders'     => $totalOrders,
+            'total_revenue'    => round($totalRevenue, 2),
         ];
 
         return response()->json([
