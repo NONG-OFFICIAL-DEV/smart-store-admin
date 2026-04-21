@@ -37,7 +37,7 @@
     "menus": "មុខម្ហូប",
     "promotions": "ការផ្សព្វផ្សាយ",
     "catalog": "កាតាឡុក",
-    "orders_analytics": "វិភាគការកម្មង់",
+    "orders_analytics": "វិភាគការការលក់",
     "purchase_reports": "របាយការណ៍ការទិញ",
     "stock_reports": "របាយការណ៍ស្តុក",
     "product_performance": "ដំណើរការផលិតផល",
@@ -543,7 +543,7 @@
       "all_types": "ប្រភេទទាំងអស់",
       "all_categories": "ប្រភេទទំនិញទាំងអស់",
       "all_status": "ស្ថានភាពទាំងអស់",
-      "stock":"ស្ថានភាពស្តុក"
+      "stock": "ស្ថានភាពស្តុក"
     },
     "type": {
       "retail": "លក់រាយ",
@@ -774,7 +774,7 @@
   },
 
   "order_report": {
-    "title": "របាយការណ៍កម្មង់",
+    "title": "របាយការណ៍ការលក់",
     "subtitle": "ការវិភាគការលក់ និងទិដ្ឋភាពចំណូល",
     "summary": {
       "total_revenue": "ចំណូលសរុប",
@@ -789,16 +789,27 @@
       "top_products": "ផលិតផលលក់ដាច់ ១០",
       "recent_orders": "កម្មង់ថ្មីៗ"
     },
-    "state":{
+    "state": {
       "revenue": "ចំណូល",
       "orders": "កម្មង់",
       "avg_order_value": "តម្លៃកម្មង់មធ្យម",
-      "completed": "បានបញ្ចប់"
+      "completed": "បានបញ្ចប់",
+      "profit": "ចំណេញ"
+    },
+    "headers": {
+      "order_number": "លេខកម្មង់",
+      "customer": "អតិថិជន",
+      "items": "មុខទំនិញ",
+      "total": "សរុប",
+      "payment": "ការបង់ប្រាក់",
+      "status": "ស្ថានភាព",
+      "date": "កាលបរិច្ឆេទ"
     },
     "empty": "គ្មានកម្មង់សម្រាប់រយៈពេលនេះ",
     "empty_sub": "សូមជ្រើសរើសចន្លោះកាលបរិច្ឆេទផ្សេង",
     "revenue_over_time": "ចំណូលតាមពេលវេលា",
-    "order_types": "ប្រភេទកម្មង់"
+    "order_types": "ប្រភេទកម្មង់",
+    "period_comparison": "ការប្រៀបធៀបរយៈពេល"
   },
 
   "purchase_report": {
@@ -944,7 +955,12 @@
     "created_at": "បានបង្កើត",
     "updated_at": "បានធ្វើបច្ចុប្បន្នភាព",
     "version": "កំណែ",
-    "language": "ភាសា"
+    "language": "ភាសា",
+    "vs": "ជាមួយនឹង",
+    "previous": "មុន",
+    "prev_custom": "មុន (កំណត់)",
+    "selected": "បានជ្រើសរើស",
+    "all_selected": "បានជ្រើសរើសទាំងអស់"
   },
   "unit": {
     "title_add": "បន្ថែមឯកតា",

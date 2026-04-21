@@ -107,7 +107,7 @@
                     {{ item.product?.name ?? item.name }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ formatCurrency(item.unit_price) }} × {{ item.quantity }}
+                    {{ format(item.unit_price) }} × {{ item.quantity }}
                   </div>
                   <div v-if="item.note" class="text-caption text-info">
                     Note: {{ item.note }}
@@ -115,7 +115,7 @@
                 </div>
               </div>
               <div class="text-body-2 font-weight-bold">
-                {{ formatCurrency(item.unit_price * item.quantity) }}
+                {{ format(item.unit_price * item.quantity) }}
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@
             <div class="d-flex justify-space-between mb-2">
               <span class="text-body-2 text-medium-emphasis">Subtotal</span>
               <span class="text-body-2">
-                {{ formatCurrency(order.subtotal) }}
+                {{ format(order.subtotal) }}
               </span>
             </div>
             <div
@@ -136,7 +136,7 @@
             >
               <span class="text-body-2 text-medium-emphasis">Discount</span>
               <span class="text-body-2 text-error">
-                -{{ formatCurrency(order.discount_amount) }}
+                -{{ format(order.discount_amount) }}
               </span>
             </div>
             <div
@@ -145,7 +145,7 @@
             >
               <span class="text-body-2 text-medium-emphasis">Tax</span>
               <span class="text-body-2">
-                {{ formatCurrency(order.tax_amount) }}
+                {{ format(order.tax_amount) }}
               </span>
             </div>
             <div
@@ -156,14 +156,14 @@
                 Service Charge
               </span>
               <span class="text-body-2">
-                {{ formatCurrency(order.service_charge) }}
+                {{ format(order.service_charge) }}
               </span>
             </div>
             <v-divider class="my-3" />
             <div class="d-flex justify-space-between">
               <span class="text-body-1 font-weight-bold">Total</span>
               <span class="text-body-1 font-weight-bold text-primary">
-                {{ formatCurrency(order.total_amount) }}
+                {{ format(order.total_amount) }}
               </span>
             </div>
             <div
@@ -172,7 +172,7 @@
             >
               <span class="text-body-2 text-medium-emphasis">Tendered</span>
               <span class="text-body-2">
-                {{ formatCurrency(order.amount_tendered) }}
+                {{ format(order.amount_tendered) }}
               </span>
             </div>
             <div
@@ -181,7 +181,7 @@
             >
               <span class="text-body-2 text-medium-emphasis">Change</span>
               <span class="text-body-2 text-success">
-                {{ formatCurrency(order.change_amount) }}
+                {{ format(order.change_amount) }}
               </span>
             </div>
           </div>
@@ -191,7 +191,9 @@
       <v-divider />
 
       <v-card-actions class="pa-5 pt-4 gap-3">
-        <v-btn variant="tonal" rounded="lg" @click="close">Close</v-btn>
+        <v-btn variant="tonal" rounded="lg" @click="close">
+          {{ t('btn.close') }}
+        </v-btn>
         <v-spacer />
         <v-btn
           variant="outlined"
@@ -209,7 +211,12 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useI18n } from 'vue-i18n'
+
+  const { t } = useI18n()
   const store = useOrderStore()
+  const { format } = useCurrency()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -263,12 +270,6 @@
       completed: 'success',
       cancelled: 'error'
     })[s] ?? 'grey'
-
-  const formatCurrency = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
 
   const formatDate = v =>
     v

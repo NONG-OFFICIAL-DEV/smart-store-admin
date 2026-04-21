@@ -794,8 +794,18 @@
     "state": {
       "revenue": "Revenue",
       "orders": "Orders",
-      "avg_order_value":"Avg. Order Value",
-      "completed": "Completed"
+      "avg_order_value": "Avg. Order Value",
+      "completed": "Completed",
+      "profit": "Profit"
+    },
+    "headers": {
+      "order_number": "Order #",
+      "customer": "Customer",
+      "items": "Items",
+      "total": "Total",
+      "payment": "Payment",
+      "status": "Status",
+      "date": "Date"
     },
     "empty": "No orders for this period",
     "empty_sub": "Try selecting a different date range",
@@ -946,7 +956,12 @@
     "created_at": "Created At",
     "updated_at": "Updated At",
     "version": "Version",
-    "language": "Language"
+    "language": "Language",
+    "vs": "vs",
+    "previous": "Previous",
+    "prev_custom": "Previous {n}",
+    "select": "Select",
+    "all_selected": "Deselect All"
   },
   "unit": {
     "title_add": "Add Unit",

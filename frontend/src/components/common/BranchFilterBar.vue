@@ -7,11 +7,11 @@
           class="text-caption font-weight-bold text-uppercase"
           style="letter-spacing: 1px"
         >
-          Branches
+          {{t('menu.branches')}}
         </span>
         <v-spacer />
         <span class="text-caption text-medium-emphasis">
-          {{ selectedCount }} / {{ totalCount }} selected
+          {{ selectedCount }} / {{ totalCount }} {{t('common.selected')}}
         </span>
         <v-btn
           v-if="!allSelected"
@@ -21,7 +21,7 @@
           rounded="lg"
           @click="selectAll"
         >
-          Select All
+          {{t('btn.select_all')}}
         </v-btn>
         <v-btn
           v-else
@@ -31,7 +31,7 @@
           rounded="lg"
           @click="clearAll"
         >
-          Clear
+         {{t('btn.clear')}}
         </v-btn>
       </div>
 
@@ -81,7 +81,7 @@
       <template v-if="period === 'custom'">
         <v-date-input
           :model-value="dateFromValue"
-          label="From"
+          :label="t('common.from')"
           prepend-icon=""
           prepend-inner-icon="mdi-calendar"
           variant="outlined"
@@ -93,7 +93,7 @@
         />
         <v-date-input
           :model-value="dateToValue"
-          label="To"
+          :label="t('common.to')"
           prepend-icon=""
           prepend-inner-icon="mdi-calendar"
           variant="outlined"
