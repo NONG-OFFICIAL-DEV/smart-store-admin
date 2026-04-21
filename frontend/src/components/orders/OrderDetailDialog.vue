@@ -34,30 +34,15 @@
 
       <v-card-text class="pa-0">
         <!-- Loading -->
-        <div v-if="loading" class="d-flex justify-center py-12">
-          <v-progress-circular indeterminate color="primary" />
-        </div>
 
-        <template v-else-if="order">
+        <template v-if="order">
           <!-- ── Info Row ──────────────────────────────────────────────────── -->
           <div class="pa-5 pb-4">
             <v-row dense>
-              <!-- <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">Order number</div>
-                <div class="text-body-2 font-weight-medium">
-                  {{ order.order_number }}
-                </div>
-              </v-col> -->
               <v-col cols="6" sm="3">
                 <div class="text-caption text-medium-emphasis">Type</div>
                 <div class="text-body-2 font-weight-medium capitalize">
                   {{ order.order_type?.replace('_', ' ') ?? '—' }}
-                </div>
-              </v-col>
-              <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">Payment</div>
-                <div class="text-body-2 font-weight-medium capitalize">
-                  {{ order.payment_method?.replace('_', ' ') ?? '—' }}
                 </div>
               </v-col>
               <v-col cols="6" sm="3">
@@ -104,7 +89,7 @@
                 </v-avatar>
                 <div>
                   <div class="text-body-2 font-weight-medium">
-                    {{ item.product?.name ?? item.name }}
+                    {{ item.product_name }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
                     {{ format(item.unit_price) }} × {{ item.quantity }}
@@ -230,17 +215,11 @@
   })
 
   const order = ref(null)
-  const loading = ref(false)
 
   const fetchOrder = async () => {
     if (!props.orderId) return
-    loading.value = true
-    try {
-      const res = await store.fetchOrderById(props.orderId)
-      order.value = res.data.data
-    } finally {
-      loading.value = false
-    }
+    const res = await store.fetchOrderById(props.orderId)
+    order.value = res.data.data
   }
 
   watch(
