@@ -17,7 +17,6 @@ return new class extends Migration
         });
 
         Schema::table('order_items', function (Blueprint $table) {
-            $table->string('unit_name', 100)->nullable()->after('product_name');
             $table->decimal('qty_per_base', 10, 4)->default(1)->after('unit_name');
             $table->enum('customer_type', ['retail', 'wholesale', 'lid_exchange'])
                 ->default('retail')->after('quantity');
@@ -36,7 +35,6 @@ return new class extends Migration
         });
         Schema::table('order_items', function (Blueprint $table) {
            $table->dropColumn([
-                'unit_name',
                 'qty_per_base',
                 'customer_type',
                 'is_lid_exchange',
