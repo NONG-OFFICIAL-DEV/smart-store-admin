@@ -46,9 +46,8 @@ class ProductUnit extends Model
     // ── Price based on customer type ──────────────────────────────────────────
     public function priceFor(string $customerType = 'retail'): float
     {
-        if ($customerType === 'wholesale' && $this->wholesale_price) {
-            return (float) $this->wholesale_price;
-        }
-        return (float) $this->retail_price;
+        return $customerType === 'wholesale'
+            ? (float) ($this->wholesale_price ?? $this->retail_price)
+            : (float) $this->retail_price;
     }
 }

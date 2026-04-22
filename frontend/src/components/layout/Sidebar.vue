@@ -53,7 +53,7 @@
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
       title: authStore.isSuperAdmin
-        ? 'Catalog / Products'
+        ? t('menu.products')
         : authStore.isMart
           ? t('menu.products')
           : t('menu.catalog'),
