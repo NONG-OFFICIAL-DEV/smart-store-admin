@@ -263,7 +263,7 @@ class MartPosController extends Controller
                 // ── Resolve price ──────────────────────────────────────────
                 if ($isLidExchange) {
                     $unitPrice  = (float) ($item['topup_amount'] ?? 0);
-                    $qtyPerBase = 1;
+                    $qtyPerBase = $productUnit ? (float) $productUnit->qty_per_base : 1;
                     $unitName   = $productUnit?->unit_label
                             ?? $productUnit?->unit_name
                             ?? $product->unit
