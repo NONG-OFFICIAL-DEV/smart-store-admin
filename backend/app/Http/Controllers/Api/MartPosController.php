@@ -207,6 +207,220 @@ class MartPosController extends Controller
         });
     }
 
+  
+    // ── POST /api/v1/mart/pos/orders ──────────────────────────────────────────
+    public function storeOrders(Request $request)
+    {
+        $request->validate([
+            'branch_id'                   => 'required|uuid|exists:branches,id',
+            'payment_method'              => 'required|in:cash,card,qr,transfer',
+            'customer_type'               => 'nullable|in:retail,wholesale,mixed',
+            'cash_tendered'               => 'nullable|numeric|min:0',
+            'notes'                       => 'nullable|string|max:500',
+            'discount_amount'             => 'nullable|numeric|min:0',
+            'items'                       => 'required|array|min:1',
+            'items.*.product_id'          => 'required|uuid|exists:products,id',
+            'items.*.product_unit_id'     => 'nullable|uuid|exists:product_units,id',
+            'items.*.quantity'            => 'required|integer|min:1',
+            'items.*.customer_type'       => 'nullable|in:retail,wholesale,lid_exchange',
+            'items.*.topup_amount'        => 'nullable|numeric|min:0',
+        ]);
+
+        $branch       = Branch::with('tenant')->findOrFail($request->branch_id);
+        $cashier      = auth()->user();
+        $staff        = $cashier->staff;
+        $customerType = $request->customer_type ?? 'retail';
+
+        $paymentMethodMap = [
+            'cash'     => 'cash',
+            'card'     => 'card',
+            'qr'       => 'qr_code',
+            'transfer' => 'online',
+        ];
+
+        return DB::transaction(function () use (
+            $request,
+            $branch,
+            $cashier,
+            $staff,
+            $customerType,
+            $paymentMethodMap
+        ) {
+            $subtotal    = 0;
+            $itemsData   = [];
+            $stockErrors = [];
+
+            foreach ($request->items as $item) {
+                $product     = Product::findOrFail($item['product_id']);
+                $productUnit = isset($item['product_unit_id'])
+                    ? ProductUnit::findOrFail($item['product_unit_id'])
+                    : null;
+
+                // ── Per-item customer type ─────────────────────────────────
+                $itemCustomerType = $item['customer_type'] ?? $customerType;
+                $isLidExchange    = $itemCustomerType === 'lid_exchange';
+
+                // ── Resolve price ──────────────────────────────────────────
+                if ($isLidExchange) {
+                    $unitPrice  = (float) ($item['topup_amount'] ?? 0);
+                    $qtyPerBase = 1;
+                    $unitName   = $productUnit?->unit_label
+                            ?? $productUnit?->unit_name
+                            ?? $product->unit
+                            ?? 'pcs';
+                } elseif ($productUnit) {
+                    $unitPrice  = $productUnit->priceFor($itemCustomerType);
+                    $qtyPerBase = (float) $productUnit->qty_per_base;
+                    $unitName   = $productUnit->unit_label ?? $productUnit->unit_name;
+                } else {
+                    $unitPrice  = (float) ($product->selling_price ?? $product->base_price ?? 0);
+                    $qtyPerBase = 1;
+                    $unitName   = $product->unit ?? 'pcs';
+                }
+
+                // ── Stock check ────────────────────────────────────────────
+                $baseQtyNeeded = $item['quantity'] * $qtyPerBase;
+                if ((float) $product->stock_quantity < $baseQtyNeeded) {
+                    $available     = floor($product->stock_quantity / $qtyPerBase);
+                    $stockErrors[] = "'{$product->name}' ({$unitName}): only {$available} available";
+                    continue;
+                }
+
+                $totalPrice = $unitPrice * $item['quantity'];
+                $subtotal  += $totalPrice;
+
+                $itemsData[] = [
+                    'product_id'      => $product->id,
+                    'product_name'    => $product->name,
+                    'unit_name'       => $unitName,
+                    'qty_per_base'    => $qtyPerBase,
+                    'quantity'        => $item['quantity'],
+                    'unit_price'      => $unitPrice,
+                    'discount_amount' => 0,
+                    'total_price'     => $totalPrice,
+                    'status'          => 'served',
+                    'customer_type'   => $itemCustomerType,
+                    'is_lid_exchange' => $isLidExchange,
+                    'topup_amount'    => $isLidExchange ? $unitPrice : null,
+                    '_product'        => $product,
+                    '_base_qty'       => $baseQtyNeeded,
+                    '_customer_type'  => $itemCustomerType,
+                ];
+            }
+
+            if (!empty($stockErrors)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient stock',
+                    'errors'  => $stockErrors,
+                ], 422);
+            }
+
+            // ── Detect order-level customer type ───────────────────────────
+            $orderCustomerTypes = array_unique(array_column($itemsData, '_customer_type'));
+            $orderCustomerType  = count($orderCustomerTypes) > 1
+                ? 'mixed'
+                : ($orderCustomerTypes[0] ?? $customerType);
+
+            // ── Totals ─────────────────────────────────────────────────────
+            $discountAmount = (float) ($request->discount_amount ?? 0);
+            $taxRate        = (float) ($branch->tenant->tax_rate ?? 0);
+            $taxAmount      = round(($subtotal - $discountAmount) * $taxRate, 2);
+            $totalAmount    = $subtotal - $discountAmount + $taxAmount;
+
+            // ── Create order ───────────────────────────────────────────────
+            $order = Order::create([
+                'branch_id'             => $branch->id,
+                'cashier_id'            => $staff?->id,
+                'order_type'            => 'takeaway',
+                'status'                => 'completed',
+                'source'                => 'pos',
+                'customer_type'         => $orderCustomerType,
+                'subtotal'              => $subtotal,
+                'tax_amount'            => $taxAmount,
+                'service_charge_amount' => 0,
+                'discount_amount'       => $discountAmount,
+                'total_amount'          => $totalAmount,
+                'notes'                 => $request->notes,
+                'completed_at'          => now(),
+            ]);
+
+            // ── Create items + deduct stock + log movement ─────────────────
+            foreach ($itemsData as $itemData) {
+                $product          = $itemData['_product'];
+                $baseQty          = $itemData['_base_qty'];
+                $itemCustomerType = $itemData['_customer_type'];
+
+                unset($itemData['_product'], $itemData['_base_qty'], $itemData['_customer_type']);
+
+                OrderItem::create(['order_id' => $order->id, ...$itemData]);
+
+                $qtyBefore = (float) $product->stock_quantity;
+                $qtyAfter  = $qtyBefore - $baseQty;
+                $product->decrement('stock_quantity', $baseQty);
+
+                StockMovement::create([
+                    'branch_id'      => $branch->id,
+                    'product_id'     => $product->id,
+                    'movement_type'  => 'sale',
+                    'quantity'       => -$baseQty,
+                    'qty_before'     => $qtyBefore,
+                    'qty_after'      => $qtyAfter,
+                    'reference_type' => 'order',
+                    'reference_id'   => $order->id,
+                    'notes'          => "POS sale · {$itemCustomerType}",
+                ]);
+            }
+
+            // ── Create payment record ──────────────────────────────────────
+            $cashTendered = (float) ($request->cash_tendered ?? $totalAmount);
+            $changeGiven  = $request->payment_method === 'cash'
+                ? max(0, $cashTendered - $totalAmount)
+                : null;
+
+            $payment = Payment::create([
+                'order_id'       => $order->id,
+                'branch_id'      => $branch->id,
+                'staff_id'       => $staff?->id,
+                'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
+                'amount'         => $totalAmount,
+                'change_given'   => $changeGiven,
+                'currency'       => 'USD',
+                'status'         => 'completed',
+                'paid_at'        => now(),
+            ]);
+
+            // ── Order status history ───────────────────────────────────────
+            OrderStatusHistory::create([
+                'order_id'    => $order->id,
+                'from_status' => null,
+                'to_status'   => 'completed',
+                'notes'       => "POS sale · {$cashier->email} · {$orderCustomerType}",
+            ]);
+
+            $order->load('items');
+
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'id'             => $order->id,
+                    'order_number'   => $order->order_number,
+                    'customer_type'  => $orderCustomerType,
+                    'subtotal'       => $order->subtotal,
+                    'discount'       => $order->discount_amount,
+                    'tax'            => $order->tax_amount,
+                    'total_amount'   => $order->total_amount,
+                    'payment_method' => $request->payment_method,
+                    'cash_tendered'  => $cashTendered,
+                    'change_given'   => $changeGiven,
+                    'payment_id'     => $payment->id,
+                    'items'          => $order->items,
+                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType),
+                ],
+            ], 201);
+        });
+    }
+
     public function index(Request $request)
     {
         $request->validate([

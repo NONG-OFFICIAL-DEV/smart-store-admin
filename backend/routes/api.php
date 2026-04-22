@@ -428,6 +428,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
             Route::get('products', [MartPosController::class, 'products']);
             Route::get('orders', [MartPosController::class, 'index']);
             Route::post('orders', [MartPosController::class, 'store']);
+            Route::post('customer-orders', [MartPosController::class, 'storeOrders']);
             Route::get('categories', [MartPosController::class, 'categories']);
         });
         Route::get('/reports/inventory', [MartPosController::class, 'reportStock']);
