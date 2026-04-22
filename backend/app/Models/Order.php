@@ -31,6 +31,7 @@ class Order extends BaseModel
         'source',
         'estimated_ready_at',
         'completed_at',
+        'customer_type',
     ];
 
     protected $casts = [
@@ -61,6 +62,7 @@ class Order extends BaseModel
                 'notes',
                 'coupon_code',
                 'source',
+                'customer_type',
             ])
             : $request;
 

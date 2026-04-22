@@ -15,6 +15,11 @@ class OrderItem extends BaseModel
         'order_id', 'product_id', 'variant_id', 'product_name',
         'quantity', 'unit_price', 'discount_amount', 'total_price',
         'status', 'notes', 'course',
+        'unit_name',   
+        'qty_per_base',
+        'customer_type',   
+        'is_lid_exchange', 
+        'topup_amount',    
     ];
 
     protected $casts = [
@@ -22,6 +27,9 @@ class OrderItem extends BaseModel
         'unit_price'      => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total_price'     => 'decimal:2',
+        'qty_per_base'    => 'decimal:3',   
+        'is_lid_exchange' => 'boolean',     
+        'topup_amount'    => 'decimal:2',   
         'course'          => 'integer',
     ];
 
@@ -29,11 +37,24 @@ class OrderItem extends BaseModel
     {
         $data = $request instanceof Request
             ? $request->only([
-                'order_id', 'product_id', 'variant_id', 'product_name',
-                'quantity', 'unit_price', 'discount_amount', 'total_price',
-                'status', 'notes', 'course',
-            ])
-            : $request;
+                'order_id',
+                'product_id',
+                'variant_id',
+                'product_name',
+                'unit_name',        
+                'qty_per_base',     
+                'quantity',
+                'unit_price',
+                'discount_amount',
+                'total_price',
+                'status',
+                'notes',
+                'course',
+                'customer_type',    
+                'is_lid_exchange',  
+                'topup_amount',     
+        ])
+        : $request;
 
         return parent::store($data, $id);
     }
