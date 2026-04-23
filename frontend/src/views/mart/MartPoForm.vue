@@ -2,11 +2,11 @@
   <div>
     <!-- Breadcrumb -->
     <AppPageHeader
-      :title="isEdit ? 'Edit Purchase Order' : 'New Purchase Order'"
+      :title="isEdit ? t('po.edit') : t('po.new')"
       show-back
       :breadcrumbs="[
-        { title: 'Purchase Orders', to: '/purchase-order' },
-        { title: isEdit ? po?.po_number : 'Mart stock replenishment' }
+        { title: t('po.title'), to: '/purchase-order' },
+        { title: isEdit ? po?.po_number : t('po.subtitle') }
       ]"
     >
       <template #title-after>
@@ -28,7 +28,7 @@
             :disabled="saving"
             @click="router.back()"
           >
-            Cancel
+            {{ t('btn.cancel') }}
           </v-btn>
           <v-btn
             color="primary"
@@ -38,146 +38,100 @@
             :loading="saving"
             @click="save"
           >
-            {{ isEdit ? 'Save Changes' : 'Create PO' }}
+            {{ isEdit ? t('btn.save_changes') : t('btn.create_po') }}
           </v-btn>
         </div>
       </template>
     </AppPageHeader>
 
     <v-form ref="formRef">
+      <!-- ── Left: PO Details ───────────────────────────────────────────── -->
+      <v-card rounded="xl" border elevation="0" class="mb-4">
+        <v-card-title class="pa-5 pb-3">
+          <div class="text-body-1 font-weight-bold">{{ t('po.order_details') }}</div>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-5">
+          <v-row dense>
+            <v-col cols="3">
+              <v-select
+                v-model="form.branch_id"
+                :items="branchList"
+                item-title="name"
+                item-value="id"
+                :label="t('po.field.branch')"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                :rules="[r.required]"
+              />
+            </v-col>
+
+            <!-- Supplier -->
+            <v-col cols="3">
+              <v-select
+                v-model="form.supplier_id"
+                :items="supplierList"
+                item-title="name"
+                item-value="id"
+                :label="t('po.field.supplier')"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                :rules="[r.required]"
+              >
+                <template #no-data>
+                  <div class="pa-3 text-caption text-medium-emphasis">
+                    No suppliers found
+                  </div>
+                </template>
+              </v-select>
+            </v-col>
+            <!-- Expected delivery -->
+            <v-col cols="3">
+              <v-date-input
+                v-model="form.expected_delivery"
+                :label="t('po.field.date')"
+                prepend-icon=""
+                variant="outlined"
+                persistent-placeholder
+              ></v-date-input>
+            </v-col>
+            <!-- Status (edit only) -->
+            <v-col v-if="isEdit" cols="3">
+              <v-select
+                v-model="form.status"
+                :items="editableStatuses"
+                item-title="label"
+                item-value="value"
+                :label="t('po.field.status')"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+              />
+            </v-col>
+            <v-col cols="3" lg="3">
+              <v-textarea
+                v-model="form.notes"
+                :label="t('po.field.note')"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                rows="1"
+                auto-grow
+                placeholder="Optional remarks..."
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
       <v-row dense>
-        <!-- ── Left: PO Details ───────────────────────────────────────────── -->
-        <v-col cols="12" lg="3">
-          <v-card rounded="xl" border elevation="0" class="mb-4">
-            <v-card-title class="pa-5 pb-3">
-              <div class="text-body-1 font-weight-bold">Order Details</div>
-            </v-card-title>
-            <v-divider />
-            <v-card-text class="pa-5">
-              <v-row dense>
-                <!-- Branch -->
-                <v-col cols="12">
-                  <v-select
-                    v-model="form.branch_id"
-                    :items="branchList"
-                    item-title="name"
-                    item-value="id"
-                    label="Branch *"
-                    variant="outlined"
-                    density="comfortable"
-                    rounded="lg"
-                    :rules="[r.required]"
-                  />
-                </v-col>
-
-                <!-- Supplier -->
-                <v-col cols="12">
-                  <v-select
-                    v-model="form.supplier_id"
-                    :items="supplierList"
-                    item-title="name"
-                    item-value="id"
-                    label="Supplier *"
-                    variant="outlined"
-                    density="comfortable"
-                    rounded="lg"
-                    :rules="[r.required]"
-                  >
-                    <template #no-data>
-                      <div class="pa-3 text-caption text-medium-emphasis">
-                        No suppliers found
-                      </div>
-                    </template>
-                  </v-select>
-                </v-col>
-
-                <!-- Expected delivery -->
-                <v-col cols="12">
-                  <v-date-input
-                    v-model="form.expected_delivery"
-                    label="Date of birth"
-                    prepend-icon=""
-                    variant="outlined"
-                    persistent-placeholder
-                  ></v-date-input>
-                </v-col>
-
-                <!-- Status (edit only) -->
-                <v-col v-if="isEdit" cols="12">
-                  <v-select
-                    v-model="form.status"
-                    :items="editableStatuses"
-                    item-title="label"
-                    item-value="value"
-                    label="Status"
-                    variant="outlined"
-                    density="comfortable"
-                    rounded="lg"
-                  />
-                </v-col>
-
-                <!-- Notes -->
-                <v-col cols="12">
-                  <v-textarea
-                    v-model="form.notes"
-                    label="Notes"
-                    variant="outlined"
-                    density="comfortable"
-                    rounded="lg"
-                    rows="3"
-                    auto-grow
-                    placeholder="Optional remarks..."
-                  />
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
-
-          <!-- Order Summary card -->
-          <v-card rounded="xl" border elevation="0">
-            <v-card-title class="pa-5 pb-3">
-              <div class="text-body-1 font-weight-bold">Summary</div>
-            </v-card-title>
-            <v-divider />
-            <v-card-text class="pa-5">
-              <div class="d-flex justify-space-between mb-2">
-                <span class="text-body-2 text-medium-emphasis">
-                  Total Items
-                </span>
-                <span class="text-body-2 font-weight-bold">
-                  {{ form.items.length }}
-                </span>
-              </div>
-              <div class="d-flex justify-space-between mb-2">
-                <span class="text-body-2 text-medium-emphasis">
-                  Total Units
-                </span>
-                <span class="text-body-2 font-weight-bold">
-                  {{
-                    form.items.reduce(
-                      (s, i) => s + (i.quantity_ordered || 0),
-                      0
-                    )
-                  }}
-                </span>
-              </div>
-              <v-divider class="my-3" />
-              <div class="d-flex justify-space-between align-center">
-                <span class="text-body-1 font-weight-bold">Grand Total</span>
-                <span class="text-h6 font-weight-black text-primary">
-                  {{ fmt(orderTotal) }}
-                </span>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
         <!-- ── Right: Line Items ──────────────────────────────────────────── -->
         <v-col cols="12" lg="9">
           <v-card rounded="xl" border elevation="0">
             <div class="d-flex align-center justify-space-between pa-5 pb-3">
               <div class="text-body-1 font-weight-bold">
-                Order Items
+                {{ t('po.order_items') }}
                 <v-chip
                   size="x-small"
                   color="primary"
@@ -196,7 +150,7 @@
                 prepend-icon="mdi-plus"
                 @click="addItem"
               >
-                Add Product
+                {{t('po.add_product')}}
               </v-btn>
             </div>
             <v-divider />
@@ -234,35 +188,35 @@
                   <span
                     class="text-caption font-weight-bold text-medium-emphasis"
                   >
-                    PRODUCT
+                    {{t('po.header.product')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
                     class="text-caption font-weight-bold text-medium-emphasis"
                   >
-                    UNIT
+                    {{t('po.header.unit')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
                     class="text-caption font-weight-bold text-medium-emphasis"
                   >
-                    QTY
+                    {{t('po.header.qty')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
                     class="text-caption font-weight-bold text-medium-emphasis"
                   >
-                    UNIT COST
+                    {{t('po.header.unit_cost')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2" class="text-right">
                   <span
                     class="text-caption font-weight-bold text-medium-emphasis"
                   >
-                    TOTAL
+                    {{t('po.header.total')}}
                   </span>
                 </v-col>
               </v-row>
@@ -283,7 +237,7 @@
                       :items="productList"
                       item-title="name"
                       item-value="id"
-                      label="Product *"
+                      :label="t('po.field.product')"
                       variant="outlined"
                       density="compact"
                       rounded="lg"
@@ -318,7 +272,7 @@
                       :items="unitsFor(item.product_id)"
                       item-title="unit_label"
                       item-value="id"
-                      label="Unit"
+                      :label="t('po.field.unit')"
                       variant="outlined"
                       density="compact"
                       rounded="lg"
@@ -334,7 +288,7 @@
                     <v-text-field
                       v-model.number="item.quantity_ordered"
                       type="number"
-                      label="Qty *"
+                      :label="t('po.field.qty')"
                       min="0.001"
                       variant="outlined"
                       density="compact"
@@ -348,21 +302,21 @@
                     <v-text-field
                       v-model.number="item.unit_cost"
                       type="number"
-                      label="Unit Cost *"
+                      :label="t('po.field.unit_cost')"
                       min="0"
                       variant="outlined"
                       density="compact"
                       rounded="lg"
                       hide-details
-                      prefix="$"
-                    />
+                      :prefix="currencySymbol()"
+                      />
                   </v-col>
 
                   <!-- Line total + remove -->
                   <v-col cols="6" sm="2">
                     <div class="d-flex align-center justify-end gap-2">
                       <div class="text-body-2 font-weight-black text-primary">
-                        {{ fmt(item.quantity_ordered * item.unit_cost) }}
+                        {{ format(item.quantity_ordered * item.unit_cost) }}
                       </div>
                       <v-btn
                         icon="mdi-delete-outline"
@@ -415,9 +369,48 @@
                 class="mt-2"
                 @click="addItem"
               >
-                Add Another Product
+                {{ t('btn.add_product') }}
               </v-btn>
             </div>
+          </v-card>
+        </v-col>
+        <v-col>
+          <!-- Order Summary card -->
+          <v-card rounded="xl" border elevation="0">
+            <v-card-title class="pa-5 pb-3">
+              <div class="text-body-1 font-weight-bold">{{ t('po.summary') }}</div>
+            </v-card-title>
+            <v-divider />
+            <v-card-text class="pa-5">
+              <div class="d-flex justify-space-between mb-2">
+                <span class="text-body-2 text-medium-emphasis">
+                  {{ t('po.total_items') }}
+                </span>
+                <span class="text-body-2 font-weight-bold">
+                  {{ form.items.length }}
+                </span>
+              </div>
+              <div class="d-flex justify-space-between mb-2">
+                <span class="text-body-2 text-medium-emphasis">
+                  {{ t('po.total_units') }}
+                </span>
+                <span class="text-body-2 font-weight-bold">
+                  {{
+                    form.items.reduce(
+                      (s, i) => s + (i.quantity_ordered || 0),
+                      0
+                    )
+                  }}
+                </span>
+              </div>
+              <v-divider class="my-3" />
+              <div class="d-flex justify-space-between align-center">
+                <span class="text-body-1 font-weight-bold">{{ t('po.grand_total') }}</span>
+                <span class="text-h6 font-weight-black text-primary">
+                  {{ format(orderTotal) }}
+                </span>
+              </div>
+            </v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -436,10 +429,14 @@
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const router = useRouter()
   const route = useRoute()
   const { notif } = useAppUtils()
+  const { t } = useI18n()
+  const { format ,currencySymbol} = useCurrency()
 
   const supplierStore = useSupplierStore()
   const branchStore = useBranchStore()
@@ -624,11 +621,7 @@
   })
 
   const r = { required: v => !!v || 'Required' }
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
+
 </script>
 
 <style scoped>

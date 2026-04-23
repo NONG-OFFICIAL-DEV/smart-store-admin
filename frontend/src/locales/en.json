@@ -317,6 +317,25 @@
       "date": "Date",
       "actions": "Actions"
     },
+    "field": {
+      "branch": "Branch *",
+      "supplier": "Supplier *",
+      "date": "Date",
+      "note": "Notes",
+      "status": "Status",
+      "product": "Product *",
+      "unit": "Unit *",
+      "qty": "Quantity *",
+      "unint_cost": "Unit Cost *"
+    },
+    "header": {
+      "product": "PRODUCT",
+      "category": "Category",
+      "unit": "UNIT",
+      "qty": "QTY",
+      "unit_cost": "UNIT COST",
+      "total": "LINE TOTAL"
+    },
     "empty": "No purchase orders found",
     "empty_sub": "Create your first purchase order to start receiving stock"
   },
