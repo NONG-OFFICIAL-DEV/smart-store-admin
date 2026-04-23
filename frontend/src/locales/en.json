@@ -965,6 +965,7 @@
   },
   "unit": {
     "title_add": "Add Unit",
+    "subtitle_add": "e.g. Can, 6-Pack, Box of 24",
     "title_edit": "Edit Unit",
     "unit_name": "Unit Name",
     "display_label": "Display Label",
@@ -979,6 +980,7 @@
     "save": "Save Changes",
     "add": "Add Unit",
     "margin": "Margin",
+    "profit_unit": "Profit {value} per unit",
     "no_data": "No units yet",
     "delete_confirm": "Are you sure delete \"{name}\"?",
     "page_title": "Update or create new unit",

@@ -11,7 +11,7 @@
               {{ isEdit ? t('unit.title_edit') : t('unit.title_add') }}
             </div>
             <div class="text-caption text-medium-emphasis">
-              e.g. Can, 6-Pack, Box of 24
+            {{ t('unit.subtitle_add') }}
             </div>
           </div>
         </div>
@@ -192,9 +192,9 @@
                 rounded="lg"
                 :color="margin > 0 ? 'success' : 'error'"
               >
-                Margin:
+                {{t('unit.margin')}}:
                 <strong>{{ margin.toFixed(1) }}%</strong>
-                (profit {{ fmt(form.retail_price - form.cost_price) }} per unit)
+                ({{ t('unit.profit_unit', { value: format(form.retail_price - form.cost_price) }) }})
               </v-alert>
             </v-col>
 
@@ -250,7 +250,7 @@
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useI18n } from 'vue-i18n'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
-  const { currencySymbol } = useCurrency()
+  const { currencySymbol ,format } = useCurrency()
 
   const { t } = useI18n()
   const props = defineProps({
