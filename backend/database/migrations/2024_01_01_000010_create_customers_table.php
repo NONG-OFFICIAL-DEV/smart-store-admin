@@ -42,9 +42,6 @@ return new class extends Migration
             $table->string('address_line1', 255);
             $table->string('address_line2', 255)->nullable();
             $table->string('city', 100);
-            $table->string('state', 100)->nullable();
-            $table->string('postal_code', 20)->nullable();
-            $table->char('country', 2)->default('US');
             $table->decimal('latitude', 9, 6)->nullable();
             $table->decimal('longitude', 9, 6)->nullable();
             $table->boolean('is_default')->default(false);

@@ -11,9 +11,14 @@ class CustomerAddress extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'customer_id', 'label', 'address_line1', 'address_line2',
-        'city', 'state', 'postal_code', 'country',
-        'latitude', 'longitude', 'is_default',
+        'customer_id',
+        'label',
+        'address_line1',
+        'address_line2',
+        'city',
+        'latitude',
+        'longitude',
+        'is_default',
     ];
 
     protected $casts = [
@@ -26,16 +31,21 @@ class CustomerAddress extends BaseModel
     {
         $data = $request instanceof Request
             ? $request->only([
-                'customer_id', 'label', 'address_line1', 'address_line2',
-                'city', 'state', 'postal_code', 'country',
-                'latitude', 'longitude', 'is_default',
+                'customer_id',
+                'label',
+                'address_line1',
+                'address_line2',
+                'country',
+                'latitude',
+                'longitude',
+                'is_default',
             ])
             : $request;
 
         // Only one default address per customer
         if (!empty($data['is_default']) && $data['is_default']) {
             static::where('customer_id', $data['customer_id'])
-                  ->update(['is_default' => false]);
+                ->update(['is_default' => false]);
         }
 
         return parent::store($data, $id);

@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Promotion;
+use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 
 class PromotionController extends Controller
 {
+    public function __construct(
+        private TenantResolver $tenantResolver
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +38,9 @@ class PromotionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        return Promotion::store($request, null, $tenantId);
     }
 
     /**
@@ -42,7 +48,12 @@ class PromotionController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $promotion = Promotion::findOrFail($id);
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Promotion retrieved successfully.',
+            'data'    => $promotion,
+        ], 200);
     }
 
     /**
@@ -50,7 +61,8 @@ class PromotionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $tenantId = $this->tenantResolver->resolve($request);
+        return Promotion::store($request, $id , $tenantId);
     }
 
     /**
@@ -58,6 +70,12 @@ class PromotionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $promotion = Promotion::findOrFail($id);
+        $promotion->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Promotion deleted successfully.',
+        ], 200);
     }
 }

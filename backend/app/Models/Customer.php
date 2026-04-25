@@ -22,7 +22,7 @@ class Customer extends BaseModel
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────
-    public static function store(array|Request $request, ?string $id = null)
+    public static function store(array|Request $request, ?string $id = null ,?string $tenantId = null)
     {
         $data = $request instanceof Request
             ? $request->only([
@@ -31,6 +31,10 @@ class Customer extends BaseModel
                 'marketing_opt_in', 'preferred_language', 'source', 'is_active',
             ])
             : $request;
+        // ── Inject resolved tenant_id ──────────────────────────────────────────
+        if ($tenantId) {
+            $data['tenant_id'] = $tenantId;
+        }
 
         return parent::store($data, $id);
     }

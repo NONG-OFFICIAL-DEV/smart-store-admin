@@ -50,6 +50,11 @@
       title: t('menu.operation'),
       icon: 'mdi-cash-register'
     },
+    {
+      path: '/loyalty',
+      title: t('menu.promotions'),
+      icon: 'mdi-gift-outline',
+    },
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
       title: authStore.isSuperAdmin

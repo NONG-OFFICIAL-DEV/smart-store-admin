@@ -34,7 +34,7 @@ class CouponController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return Coupon::store($request);
     }
 
     /**
@@ -42,7 +42,12 @@ class CouponController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $coupon = Coupon::findOrFail($id);
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Coupon retrieved successfully.',
+            'data'    => $coupon,
+        ], 200);
     }
 
     /**
@@ -50,7 +55,7 @@ class CouponController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        return Coupon::store($request, $id);
     }
 
     /**
@@ -58,6 +63,12 @@ class CouponController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $coupon = Coupon::findOrFail($id);
+        $coupon->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Coupon deleted successfully.',
+        ], 200);
     }
 }

@@ -134,7 +134,7 @@ const stats = computed(() => ({
       <template #right>
         <v-btn
           v-if="activeTab === 'promotions'"
-          color="brown-darken-3"
+          color="primary"
           rounded="lg"
           elevation="2"
           prepend-icon="mdi-plus"
@@ -144,7 +144,7 @@ const stats = computed(() => ({
         </v-btn>
         <v-btn
           v-else-if="activeTab === 'coupons'"
-          color="brown-darken-3"
+          color="primary"
           rounded="lg"
           elevation="2"
           prepend-icon="mdi-plus"

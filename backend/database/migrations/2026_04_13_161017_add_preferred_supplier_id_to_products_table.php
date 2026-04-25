@@ -12,17 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->foreignId('preferred_supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
-            $table->timestamp('preferred_supplier_assigned_at')->nullable(); // optional but cheap to add now
+            $table->uuid('preferred_supplier_id')->nullable();
+
+            $table->foreign('preferred_supplier_id')
+                ->references('id')
+                ->on('suppliers')
+                ->nullOnDelete();
+
+            $table->timestamp('preferred_supplier_assigned_at')->nullable();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
+            $table->dropForeign(['preferred_supplier_id']);
             $table->dropColumn('preferred_supplier_id');
             $table->dropColumn('preferred_supplier_assigned_at');
         });

@@ -93,10 +93,10 @@ Route::post('/print-receipt', [ReceiptController::class, 'print']);
 Route::post('/print-receipt-image', [ReceiptController::class, 'printImage']);
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware('jwt.auth')->group(function () {
-    Route::get ('/me',      [AuthController::class, 'me']);
+    Route::get('/me',      [AuthController::class, 'me']);
     Route::post('/logout',  [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::put ('/set-pin', [AuthController::class, 'setPin']); // ← stays here (needs login first)
+    Route::put('/set-pin', [AuthController::class, 'setPin']); // ← stays here (needs login first)
 
     Route::prefix('users')->group(function () {
         Route::get('/',      [UserController::class, 'index']);
@@ -336,8 +336,13 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
         Route::get('loyalty',             [LoyaltyTransactionController::class, 'byCustomer']);
         Route::post('loyalty/add',        [CustomerController::class, 'addPoints']);
         Route::post('loyalty/redeem',     [CustomerController::class, 'redeemPoints']);
-        Route::apiResource('addresses',   CustomerAddressController::class)->shallow();
+        // Only index + store nested
+        Route::apiResource('addresses', CustomerAddressController::class)
+            ->only(['index', 'store']);
     });
+    // show / update / destroy shallow — no customer segment
+    Route::apiResource('addresses', CustomerAddressController::class)
+        ->only(['show', 'update', 'destroy']);
 
     // ── Loyalty Transactions ──────────────────────────────────────────────────
     Route::apiResource('loyalty-transactions', LoyaltyTransactionController::class)

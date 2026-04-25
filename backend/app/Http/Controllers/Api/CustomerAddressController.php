@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\CustomerAddress;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class CustomerAddressController extends Controller
             $query->where('address_line', 'like', "%{$search}%")
                 ->orWhere('city', 'like', "%{$search}%");
         }
-        $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_order', 'desc'));
+        $query->orderBy($request->get('sort_by', 'city'), $request->get('sort_order', 'desc'));
         $items = $query->paginate($perPage);
 
         return response()->json([
@@ -32,9 +33,11 @@ class CustomerAddressController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, Customer $customer)
     {
-        //
+        return CustomerAddress::store(
+            array_merge($request->all(), ['customer_id' => $customer->id])
+        );
     }
 
     /**
@@ -48,9 +51,12 @@ class CustomerAddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, CustomerAddress $address)
     {
-        //
+        return CustomerAddress::store(
+            array_merge($request->all(), ['customer_id' => $address->customer_id]),
+            $address->id
+        );
     }
 
     /**
@@ -58,6 +64,12 @@ class CustomerAddressController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $customerAddress = CustomerAddress::findOrFail($id);
+        $customerAddress->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Customer deleted successfully.',
+        ], 200);
     }
 }

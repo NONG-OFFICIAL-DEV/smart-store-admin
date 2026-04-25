@@ -171,7 +171,7 @@ class MartPosController extends Controller
                 'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
                 'amount'         => $totalAmount,
                 'change_given'   => $changeGiven,
-                'currency'       => 'USD',
+                'currency' => $branch->tenant->currency ?? 'USD',
                 'status'         => 'completed',
                 'paid_at'        => now(),
             ]);
@@ -207,7 +207,7 @@ class MartPosController extends Controller
         });
     }
 
-  
+
     // ── POST /api/v1/mart/pos/orders ──────────────────────────────────────────
     public function storeOrders(Request $request)
     {
@@ -385,7 +385,7 @@ class MartPosController extends Controller
                 'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
                 'amount'         => $totalAmount,
                 'change_given'   => $changeGiven,
-                'currency'       => 'USD',
+                'currency' => $branch->tenant->currency ?? 'USD',
                 'status'         => 'completed',
                 'paid_at'        => now(),
             ]);
@@ -465,7 +465,7 @@ class MartPosController extends Controller
                         $u->where('barcode', $request->search)
                     )
             )
-            ->orderBy('category_id')
+            ->orderBy('sort_order')
             ->paginate(10000);
 
         return response()->json(['success' => true, 'data' => $products]);

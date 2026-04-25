@@ -263,6 +263,12 @@ const routes = [
         component: () => import('@/views/loyalty/Loyalty.vue'),
         meta: { requiresAuth: true }
       },
+      {
+        path: '/customers',
+        name: 'Customers',
+        component: () => import('@/views/customers/CustomerList.vue'),
+        meta: { requiresAuth: true }
+      },
       // {
       //   path: '/mart/reports/product-performance',
       //   name: 'MartProductPerformance',

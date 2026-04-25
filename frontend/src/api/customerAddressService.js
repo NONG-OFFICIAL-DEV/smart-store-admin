@@ -1,7 +1,20 @@
 import http from './api'
 
-export const getAllCustomerAddressesApi  = (filters) => http.get('/customer-addresses', { params: filters })
-export const getCustomerAddressByIdApi   = (id)      => http.get(`/customer-addresses/${id}`)
-export const createCustomerAddressApi    = (data)    => http.post('/customer-addresses', data)
-export const updateCustomerAddressApi    = (id, data)=> http.put(`/customer-addresses/${id}`, data)
-export const deleteCustomerAddressApi    = (id)      => http.delete(`/customer-addresses/${id}`)
+// Addresses are nested under customers: /v1/customers/{customerId}/addresses
+// Shallow routes allow update/delete directly on /v1/addresses/{id}
+
+export const getAllCustomerAddressesApi = (customerId, filters) =>
+  http.get(`/v1/customers/${customerId}/addresses`, { params: filters })
+
+export const getCustomerAddressByIdApi = (customerId, id) =>
+  http.get(`/v1/customers/${customerId}/addresses/${id}`)
+
+export const createCustomerAddressApi = (customerId, data) =>
+  http.post(`/v1/customers/${customerId}/addresses`, data)
+
+// Shallow — update & delete go direct to /addresses/{id}
+export const updateCustomerAddressApi = (id, data) =>
+  http.put(`/v1/addresses/${id}`, data)
+
+export const deleteCustomerAddressApi = (id) =>
+  http.delete(`/v1/addresses/${id}`)

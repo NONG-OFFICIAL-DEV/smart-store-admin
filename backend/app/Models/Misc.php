@@ -6,67 +6,6 @@ use Illuminate\Http\Request;
 
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CustomerAddress
-// ══════════════════════════════════════════════════════════════════════════════
-
-class CustomerAddress extends BaseModel
-{
-    protected $table      = 'customer_addresses';
-    public    $timestamps = false;
-
-    protected $fillable = [
-        'customer_id',
-        'label',
-        'address_line1',
-        'address_line2',
-        'city',
-        'state',
-        'postal_code',
-        'country',
-        'latitude',
-        'longitude',
-        'is_default',
-    ];
-
-    protected $casts = ['is_default' => 'boolean'];
-
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class);
-    }
-
-    public static function store(array|Request $request, $id = null)
-    {
-        $data = $request->only([
-            'customer_id',
-            'label',
-            'address_line1',
-            'address_line2',
-            'city',
-            'state',
-            'postal_code',
-            'country',
-            'latitude',
-            'longitude',
-            'is_default',
-        ]);
-        if ($id) {
-            $record = self::find($id);
-            if (!$record) return response()->json(['error' => 'Address not found'], 404);
-            $record->update($data);
-        } else {
-            // If set as default, clear other defaults for this customer
-            if (!empty($data['is_default'])) {
-                self::where('customer_id', $data['customer_id'])->update(['is_default' => false]);
-            }
-            $record = self::create($data);
-        }
-        return response()->json(['success' => true, 'data' => $record->fresh()], $id ? 200 : 201);
-    }
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════════
 // BranchProductOverride
 // ══════════════════════════════════════════════════════════════════════════════
 
