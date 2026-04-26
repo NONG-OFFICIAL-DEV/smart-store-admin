@@ -75,17 +75,9 @@
               class="d-flex align-center justify-space-between mb-3"
             >
               <div class="d-flex align-center gap-3">
-                <v-avatar
-                  :image="item.product?.image_url"
-                  color="grey-lighten-3"
-                  size="40"
-                  rounded="md"
-                >
-                  <v-icon
-                    v-if="!item.product?.image_url"
-                    icon="mdi-food"
-                    size="18"
-                  />
+                <v-avatar color="grey-lighten-3" size="40" rounded="md">
+                  <v-img v-if="item.image_url" :src="item.image_url" cover />
+                  <v-icon v-else icon="mdi-food" size="18" />
                 </v-avatar>
                 <div>
                   <div class="text-body-2 font-weight-medium">
@@ -93,6 +85,7 @@
                   </div>
                   <div class="text-caption text-medium-emphasis">
                     {{ format(item.unit_price) }} × {{ item.quantity }}
+                    <span v-if="item.unit_name">({{ item.unit_name }})</span>
                   </div>
                   <div v-if="item.note" class="text-caption text-info">
                     Note: {{ item.note }}
@@ -222,16 +215,12 @@
     order.value = res.data.data
   }
 
+  // Replace both watches with this single one
   watch(
-    () => props.orderId,
-    val => {
-      if (val) fetchOrder()
-    }
-  )
-  watch(
-    () => props.modelValue,
-    val => {
-      if (!val) order.value = null
+    () => [props.modelValue, props.orderId],
+    ([isOpen, id]) => {
+      if (isOpen && id) fetchOrder()
+      if (!isOpen) order.value = null
     }
   )
 

@@ -261,7 +261,6 @@ class OrderController extends Controller
             'queue_number'           => $order->queue_number,
             'order_type'             => $order->order_type,
             'status'                 => $order->status,
-            // formatOrder()
             'table' => $order->relationLoaded('diningTable') && $order->diningTable ? [
                 'id'     => $order->diningTable->id,
                 'number' => $order->diningTable->table_number,
@@ -277,8 +276,10 @@ class OrderController extends Controller
             'items'                  => $order->items->map(fn($item) => [
                 'id'           => $item->id,
                 'product_name' => $item->product_name,
+                'image_url' => $item->product->image_url,
                 'quantity'     => $item->quantity,
                 'unit_price'   => (float) $item->unit_price,
+                'unit_name'   =>  $item->unit_name,
                 'total_price'  => (float) $item->total_price,
                 'status'       => $item->status,
                 'notes'        => $item->notes,
