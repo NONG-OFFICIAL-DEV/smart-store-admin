@@ -14,7 +14,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class CoffeePosOrderController extends Controller
+class CoffeePOSorderController extends Controller
 {
     // ── POST /api/v1/coffee/pos/orders ────────────────────────────────────
     public function coffeeOrders(Request $request)

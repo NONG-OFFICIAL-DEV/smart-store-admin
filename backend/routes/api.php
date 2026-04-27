@@ -67,7 +67,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
-use App\Http\Controllers\Api\CoffeePosOrderController;
+use App\Http\Controllers\Api\CoffeePOSorderController;
 use App\Http\Controllers\Api\HospitalityPosController;
 use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\MartPurchaseOrderController;
@@ -445,7 +445,7 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::prefix('coffee')->group(function () {
         // /api/v1/coffee/pos/orders
         Route::prefix('/pos')->group(function () {
-            Route::post('orders', [CoffeePosOrderController::class, 'coffeeOrders']);
+            Route::post('orders', [CoffeePOSorderController::class, 'coffeeOrders']);
         });
     });
 

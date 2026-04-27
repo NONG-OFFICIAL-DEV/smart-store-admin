@@ -245,8 +245,8 @@
                           : 'text-error'
                       "
                     >
-                      {{ variant.price_adjustment >= 0 ? '+' : '' }}${{
-                        Number(variant.price_adjustment).toFixed(2)
+                      {{ variant.price_adjustment >= 0 ? '+' : '' }}{{
+                        format(variant.price_adjustment)
                       }}
                     </span>
                     <span v-if="variant.sku_suffix">
@@ -406,6 +406,8 @@
   import ModifierLinkDialog from '@/components/products/ModifierLinkDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
 
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
