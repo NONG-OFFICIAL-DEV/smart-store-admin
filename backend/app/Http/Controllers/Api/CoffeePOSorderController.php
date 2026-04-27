@@ -26,6 +26,7 @@ class CoffeePOSorderController extends Controller
             'discount_amount'        => 'nullable|numeric|min:0',
             'items'                  => 'required|array|min:1',
             'items.*.product_id'     => 'required|uuid|exists:products,id',
+            'items.*.variant_id'     => 'nullable|uuid|exists:product_variants,id',
             'items.*.quantity'       => 'required|integer|min:1',
             'items.*.price'          => 'nullable|numeric|min:0',
             'items.*.note'           => 'nullable|string|max:200',
@@ -54,20 +55,44 @@ class CoffeePOSorderController extends Controller
             $itemsData = [];
 
             foreach ($request->items as $item) {
-                $product   = Product::findOrFail($item['product_id']);
-                $unitPrice = (float) ($product->base_price ?? $item['price'] ?? 0);
+                $product = Product::findOrFail($item['product_id']);
 
-                // ── Parse customizations — display only, never hits DB ─────
+                // ── Resolve variant ────────────────────────────────────────────────
+                $variant  = isset($item['variant_id'])
+                    ? ProductVariant::find($item['variant_id'])
+                    : null;
+
+                // Base price + variant adjustment
+                $unitPrice = (float) $product->base_price
+                    + (float) ($variant?->price_adjustment ?? 0);
+
+                // Fall back to client price only if DB has nothing
+                if ($unitPrice <= 0) {
+                    $unitPrice = (float) ($item['price'] ?? 0);
+                }
+
+                // ── Parse customizations — display only, never hits DB ────────────
                 $customizationsSnapshot = $this->parseCustomizations(
                     $item['customizations'] ?? null
                 );
+
+                // Inject variant into customizations snapshot for print ticket
+                // so barista sees "Size: M" on the order ticket
+                if ($variant) {
+                    array_unshift($customizationsSnapshot, [
+                        'label' => 'Size',
+                        'value' => $variant->name,
+                    ]);
+                }
 
                 $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal  += $totalPrice;
 
                 $itemsData[] = [
                     'product_id'      => $product->id,
+                    'variant_id'      => $variant?->id,       // snapshot FK
                     'product_name'    => $product->name,
+                    'variant_name'    => $variant?->name,      // snapshot label
                     'unit_name'       => $product->unit ?? 'cup',
                     'quantity'        => $item['quantity'],
                     'unit_price'      => $unitPrice,
@@ -75,7 +100,7 @@ class CoffeePOSorderController extends Controller
                     'total_price'     => $totalPrice,
                     'notes'           => $item['note'] ?? null,
                     'status'          => 'served',
-                    '_customizations' => $customizationsSnapshot, // temp — print only
+                    '_customizations' => $customizationsSnapshot,
                 ];
             }
 
