@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import authService from '../api/auth'
+import { PLANS } from '@/constants/plan'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -14,6 +15,7 @@ export const useAuthStore = defineStore('auth', {
     branch_name: null,
     role_name: null,
     logo_url: null,
+    plan: null,
     currency: null
   }),
   getters: {
@@ -22,6 +24,16 @@ export const useAuthStore = defineStore('auth', {
       if (state.isOwner) return true
       if (state.isSuperAdmin) return true
       return state.permissions.includes(code)
+    },
+    isFree: state => state.plan === PLANS.FREE,
+    isStart: state => state.plan === PLANS.START,
+    isPro: state => state.plan === PLANS.PRO,
+    isEnterprise: state => state.plan === PLANS.ENTERPRISE,
+
+    // 🔥 powerful helper
+    hasPlan: state => level => {
+      const order = [PLANS.FREE, PLANS.START, PLANS.PRO, PLANS.ENTERPRISE]
+      return order.indexOf(state.plan) >= order.indexOf(level)
     },
     // ── Business type helpers ──────────────────────────────────────────────
     isMart: state =>
@@ -84,6 +96,7 @@ export const useAuthStore = defineStore('auth', {
       // Staff
       this.role_name = d.role_name ?? null
       this.currency = d.currency ?? null
+      this.plan = d.plan ?? null
     }
   }
 })

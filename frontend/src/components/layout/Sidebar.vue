@@ -54,6 +54,7 @@
       path: '/loyalty',
       title: t('menu.promotions'),
       icon: 'mdi-gift-outline',
+      show: authStore.hasPlan('pro')
     },
     // ── 4. CATALOG ──────────────────────────────────────────────────────────────
     {
@@ -118,7 +119,7 @@
       title: t('menu.dining'),
       icon: 'mdi-silverware-fork-knife',
       // show: can('tables.view') || can('reservations.view'),
-      show: authStore.isFood || authStore.isSuperAdmin,
+      show: (authStore.isFood || authStore.isSuperAdmin) && authStore.hasPlan('pro'),
       subLinks: [
         {
           path: '/dining-table',

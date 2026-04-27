@@ -136,7 +136,8 @@ class AuthController extends Controller
                 'bu_type'        => $ownedTenant->bu_type,
                 'logo_url'       => $ownedTenant->logo_url,
                 'currency'       => $ownedTenant->currency,
-                'locale'       => $ownedTenant->locale,
+                'locale'         => $ownedTenant->locale,
+                'plan'           => $ownedTenant->plan,
                 'branch_id'      => null,       // access ALL branches
                 'permissions'    => Permission::pluck('code')->toArray(),
             ]);
@@ -160,10 +161,11 @@ class AuthController extends Controller
             'bu_name'        => $staff->tenant?->name,
             'bu_type'        => $staff->tenant?->bu_type,
             'logo_url'       => $staff->tenant?->logo_url,
-            'branch_name' => $staff->branch?->name,
+            'branch_name'    => $staff->branch?->name,
             'branch_id'      => $staff->branch_id,
-            'role_name'    => $staff->role->name,
+            'role_name'      => $staff->role->name,
             'currency'       => $staff->tenant?->currency,
+            'plan'           => $staff->tenant?->currency,
             'permissions'    => $staff->role->permissions->pluck('code')->toArray(),
         ]);
     }
