@@ -32,6 +32,7 @@ class Order extends BaseModel
         'estimated_ready_at',
         'completed_at',
         'customer_type',
+        'queue_number'
     ];
 
     protected $casts = [
