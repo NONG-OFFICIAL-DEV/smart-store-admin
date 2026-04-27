@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
-use App\Models\ModifierOption;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\OrderItemModifier;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\Product;
@@ -20,20 +18,18 @@ class CoffeePOSorderController extends Controller
     public function coffeeOrders(Request $request)
     {
         $request->validate([
-            'branch_id'                                   => 'required|uuid|exists:branches,id',
-            'payment_method'                              => 'required|in:cash,card,qr,transfer',
-            'cash_tendered'                               => 'nullable|numeric|min:0',
-            'change_given'                                => 'nullable|numeric|min:0',
-            'notes'                                       => 'nullable|string|max:500',
-            'discount_amount'                             => 'nullable|numeric|min:0',
-            'items'                                       => 'required|array|min:1',
-            'items.*.product_id'                          => 'required|uuid|exists:products,id',
-            'items.*.quantity'                            => 'required|integer|min:1',
-            'items.*.price'                               => 'nullable|numeric|min:0',
-            'items.*.note'                                => 'nullable|string|max:200',
-            'items.*.customizations'                      => 'nullable|array',
-            'items.*.customizations.*.modifier_option_id' => 'uuid|exists:modifier_options,id',
-            'items.*.customizations.*.quantity'           => 'integer|min:1',
+            'branch_id'              => 'required|uuid|exists:branches,id',
+            'payment_method'         => 'required|in:cash,card,qr,transfer',
+            'cash_tendered'          => 'nullable|numeric|min:0',
+            'change_given'           => 'nullable|numeric|min:0',
+            'notes'                  => 'nullable|string|max:500',
+            'discount_amount'        => 'nullable|numeric|min:0',
+            'items'                  => 'required|array|min:1',
+            'items.*.product_id'     => 'required|uuid|exists:products,id',
+            'items.*.quantity'       => 'required|integer|min:1',
+            'items.*.price'          => 'nullable|numeric|min:0',
+            'items.*.note'           => 'nullable|string|max:200',
+            'items.*.customizations' => 'nullable',   // accept any shape — object or array
         ]);
 
         $branch  = Branch::with('tenant')->findOrFail($request->branch_id);
@@ -54,40 +50,24 @@ class CoffeePOSorderController extends Controller
             $staff,
             $paymentMethodMap
         ) {
-            // ── Calculate totals ───────────────────────────────────────────
             $subtotal  = 0;
             $itemsData = [];
 
             foreach ($request->items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-
-                // Always trust DB price; fall back to client price only if base_price is null
+                $product   = Product::findOrFail($item['product_id']);
                 $unitPrice = (float) ($product->base_price ?? $item['price'] ?? 0);
 
-                // ── Customizations (modifier options) ──────────────────────
-                $modifierTotal      = 0;
-                $customizationsData = [];
+                // ── Parse customizations — display only, never hits DB ─────
+                $customizationsSnapshot = $this->parseCustomizations(
+                    $item['customizations'] ?? null
+                );
 
-                foreach ($item['customizations'] ?? [] as $custom) {
-                    $option  = ModifierOption::findOrFail($custom['modifier_option_id']);
-                    $modQty  = $custom['quantity'] ?? 1;
-                    $modifierTotal += (float) $option->price * $modQty;
-
-                    $customizationsData[] = [
-                        'modifier_option_id' => $option->id,
-                        'option_name'        => $option->name,   // snapshot
-                        'price_adjustment'   => (float) $option->price,
-                        'quantity'           => $modQty,
-                    ];
-                }
-
-                $unitPrice  += $modifierTotal;
-                $totalPrice  = $unitPrice * $item['quantity'];
-                $subtotal   += $totalPrice;
+                $totalPrice = $unitPrice * $item['quantity'];
+                $subtotal  += $totalPrice;
 
                 $itemsData[] = [
                     'product_id'      => $product->id,
-                    'product_name'    => $product->name,         // snapshot
+                    'product_name'    => $product->name,
                     'unit_name'       => $product->unit ?? 'cup',
                     'quantity'        => $item['quantity'],
                     'unit_price'      => $unitPrice,
@@ -95,7 +75,7 @@ class CoffeePOSorderController extends Controller
                     'total_price'     => $totalPrice,
                     'notes'           => $item['note'] ?? null,
                     'status'          => 'served',
-                    '_customizations' => $customizationsData,    // temp key, stripped before insert
+                    '_customizations' => $customizationsSnapshot, // temp — print only
                 ];
             }
 
@@ -109,37 +89,28 @@ class CoffeePOSorderController extends Controller
 
             // ── Create order ───────────────────────────────────────────────
             $order = Order::create([
-                'branch_id'              => $branch->id,
-                'cashier_id'             => $staff?->id,
-                'order_type'             => 'takeaway',
-                'status'                 => 'completed',
-                'source'                 => 'pos',
-                'subtotal'               => $subtotal,
-                'tax_amount'             => $taxAmount,
-                'service_charge_amount'  => $serviceChargeAmount,
-                'discount_amount'        => $discountAmount,
-                'total_amount'           => $totalAmount,
-                'notes'                  => $request->notes,
-                'queue_number'           => $this->generateQueueNumber($branch->id),
-                'completed_at'           => now(),
+                'branch_id'             => $branch->id,
+                'cashier_id'            => $staff?->id,
+                'order_type'            => 'takeaway',
+                'status'                => 'completed',
+                'source'                => 'pos',
+                'subtotal'              => $subtotal,
+                'tax_amount'            => $taxAmount,
+                'service_charge_amount' => $serviceChargeAmount,
+                'discount_amount'       => $discountAmount,
+                'total_amount'          => $totalAmount,
+                'notes'                 => $request->notes,
+                'queue_number'          => $this->generateQueueNumber($branch->id),
+                'completed_at'          => now(),
             ]);
 
-            // ── Create order items + customizations ────────────────────────
+            // ── Create order items — no modifiers table for coffee POS ─────
             foreach ($itemsData as $itemData) {
-                $customizations = $itemData['_customizations'];
-                unset($itemData['_customizations']);
-
-                $orderItem = OrderItem::create([
+                unset($itemData['_customizations']); // never persisted
+                OrderItem::create([
                     'order_id' => $order->id,
                     ...$itemData,
                 ]);
-
-                foreach ($customizations as $custom) {
-                    OrderItemModifier::create([
-                        'order_item_id' => $orderItem->id,
-                        ...$custom,
-                    ]);
-                }
             }
 
             // ── Payment record ─────────────────────────────────────────────
@@ -168,115 +139,168 @@ class CoffeePOSorderController extends Controller
                 'notes'       => "Coffee POS sale · {$cashier->email}",
             ]);
 
-            $order->load('items.modifiers');
+            $order->load('items');
 
             return response()->json([
                 'success' => true,
                 'data'    => [
-                    'id'             => $order->id,
-                    'order_number'   => $order->order_number,
-                    'queue_number'   => $order->queue_number,
+                    'id'                   => $order->id,
+                    'order_number'         => $order->order_number,
+                    'queue_number'         => $order->queue_number,
                     'queue_number_display' => '#' . $order->queue_number,
-                    'subtotal'       => (float) $order->subtotal,
-                    'discount'       => (float) $order->discount_amount,
-                    'tax'            => (float) $order->tax_amount,
-                    'service_charge' => (float) $order->service_charge_amount,
-                    'total_amount'   => (float) $order->total_amount,
-                    'payment_method' => $request->payment_method,
-                    'cash_tendered'  => $cashTendered,
-                    'change_given'   => $changeGiven,
-                    'payment_id'     => $payment->id,
-                    'prints'         => $this->buildPrints($order, $payment, $branch, $cashier),
+                    'subtotal'             => (float) $order->subtotal,
+                    'discount'             => (float) $order->discount_amount,
+                    'tax'                  => (float) $order->tax_amount,
+                    'service_charge'       => (float) $order->service_charge_amount,
+                    'total_amount'         => (float) $order->total_amount,
+                    'payment_method'       => $request->payment_method,
+                    'cash_tendered'        => $cashTendered,
+                    'change_given'         => $changeGiven,
+                    'payment_id'           => $payment->id,
+                    'prints'               => $this->buildPrints(
+                                                $order,
+                                                $payment,
+                                                $branch,
+                                                $cashier,
+                                                $itemsData   // carry customizations from memory
+                                             ),
                 ],
             ], 201);
         });
     }
 
-    // ── Build all 3 print payloads ─────────────────────────────────────────
-    private function buildPrints(Order $order, Payment $payment, Branch $branch, $cashier): array
+    // ── Parse customizations — accepts any shape ───────────────────────────
+    // Handles: null, [], {}, JSON string, key-value object, array of objects
+    private function parseCustomizations(mixed $raw): array
     {
+        if (empty($raw)) return [];
+
+        // Decode if JSON string
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true) ?? [];
+        }
+
+        if (!is_array($raw)) return [];
+
+        $result = [];
+
+        foreach ($raw as $key => $value) {
+            if ($value === null || $value === '' || $value === false) continue;
+
+            // Already shaped as { label, value } — pass through
+            if (is_array($value) && isset($value['label'], $value['value'])) {
+                $result[] = $value;
+                continue;
+            }
+
+            // Key-value object: { sugar: "No Sugar", variant_name: "M" }
+            if (is_string($key)) {
+                $result[] = [
+                    'label' => $key,
+                    'value' => (string) $value,
+                ];
+                continue;
+            }
+
+            // Indexed array of strings: ["No Sugar", "Oat Milk"]
+            if (is_string($value)) {
+                $result[] = [
+                    'label' => null,
+                    'value' => $value,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    // ── Build all 3 print payloads ─────────────────────────────────────────
+    private function buildPrints(
+        Order $order,
+        Payment $payment,
+        Branch $branch,
+        $cashier,
+        array $itemsData
+    ): array {
         return [
-            'order_ticket' => $this->buildOrderTicket($order, $cashier),
+            'order_ticket' => $this->buildOrderTicket($order, $cashier, $itemsData),
             'queue_ticket' => $this->buildQueueTicket($order),
-            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier),
+            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier, $itemsData),
         ];
     }
 
-    // ── 1. Order ticket ────────────────────────────────────────────────────
-    // Printed at the bar/counter — shows what to make
-    private function buildOrderTicket(Order $order, $cashier): array
+    // ── 1. Order ticket — bar/counter, shows what to make ─────────────────
+    private function buildOrderTicket(Order $order, $cashier, array $itemsData): array
     {
         return [
-            'type'         => 'order_ticket',
-            'order_number' => $order->order_number,
-            'queue_number' => $order->queue_number,
+            'type'                 => 'order_ticket',
+            'order_number'         => $order->order_number,
+            'queue_number'         => $order->queue_number,
             'queue_number_display' => '#' . $order->queue_number,
-            'cashier'      => $cashier->email,
-            'time'         => now()->format('h:i A'),
-            'date'         => now()->format('d/m/Y'),
-            'notes'        => $order->notes,
-            'items'        => $order->items->map(fn($i) => [
-                'name'           => $i->product_name,
-                'quantity'       => $i->quantity,
-                'customizations' => $i->modifiers
-                    ->map(fn($m) => $m->option_name)
-                    ->values(),
-                'note'           => $i->notes,
+            'cashier'              => $cashier->email,
+            'time'                 => now()->format('h:i A'),
+            'date'                 => now()->format('d/m/Y'),
+            'notes'                => $order->notes,
+            'items'                => collect($itemsData)->map(fn($i) => [
+                'name'           => $i['product_name'],
+                'quantity'       => $i['quantity'],
+                'customizations' => $i['_customizations'] ?? [],
+                // → [{ label: "sugar", value: "No Sugar" }, { label: "variant_name", value: "M" }]
+                'note'           => $i['notes'],
             ]),
         ];
     }
 
-    // ── 2. Queue ticket ────────────────────────────────────────────────────
-    // Given to the customer — shows their queue number
+    // ── 2. Queue ticket — customer facing ─────────────────────────────────
     private function buildQueueTicket(Order $order): array
     {
         return [
-            'type'         => 'queue_ticket',
-            'queue_number' => $order->queue_number,
+            'type'                 => 'queue_ticket',
+            'queue_number'         => $order->queue_number,
             'queue_number_display' => '#' . $order->queue_number,
-            'order_number' => $order->order_number,
-            'item_count'   => $order->items->sum('quantity'),
-            'time'         => now()->format('h:i A'),
-            'date'         => now()->format('d/m/Y'),
+            'order_number'         => $order->order_number,
+            'item_count'           => $order->items->sum('quantity'),
+            'time'                 => now()->format('h:i A'),
+            'date'                 => now()->format('d/m/Y'),
         ];
     }
 
-    // ── 3. Payment receipt ─────────────────────────────────────────────────
-    // Full financial breakdown for the customer
-    private function buildReceipt(Order $order, Payment $payment, Branch $branch, $cashier): array
-    {
+    // ── 3. Receipt — full financials ───────────────────────────────────────
+    private function buildReceipt(
+        Order $order,
+        Payment $payment,
+        Branch $branch,
+        $cashier,
+        array $itemsData
+    ): array {
         return [
-            'type'           => 'receipt',
-            'order_number'   => $order->order_number,
-            'queue_number'   => $order->queue_number,
+            'type'                 => 'receipt',
+            'order_number'         => $order->order_number,
+            'queue_number'         => $order->queue_number,
             'queue_number_display' => '#' . $order->queue_number,
-            'branch_name'    => $branch->name,
-            'branch_address' => $branch->address ?? null,
-            'branch_phone'   => $branch->phone   ?? null,
-            'cashier'        => $cashier->email,
-            'date'           => now()->toDateTimeString(),
-            'items'          => $order->items->map(fn($i) => [
-                'name'           => $i->product_name,
-                'unit'           => $i->unit_name,
-                'qty'            => $i->quantity,
-                'unit_price'     => (float) $i->unit_price,
-                'total_price'    => (float) $i->total_price,
-                'customizations' => $i->modifiers->map(fn($m) => [
-                    'option_name'      => $m->option_name,
-                    'price_adjustment' => (float) $m->price_adjustment,
-                    'quantity'         => $m->quantity,
-                ]),
-                'note'           => $i->notes,
+            'branch_name'          => $branch->name,
+            'branch_address'       => $branch->address ?? null,
+            'branch_phone'         => $branch->phone   ?? null,
+            'cashier'              => $cashier->email,
+            'date'                 => now()->toDateTimeString(),
+            'items'                => collect($itemsData)->map(fn($i) => [
+                'name'           => $i['product_name'],
+                'unit'           => $i['unit_name'],
+                'qty'            => $i['quantity'],
+                'unit_price'     => (float) $i['unit_price'],
+                'total_price'    => (float) $i['total_price'],
+                'customizations' => $i['_customizations'] ?? [],
+                'note'           => $i['notes'],
             ]),
-            'subtotal'       => (float) $order->subtotal,
-            'discount'       => (float) $order->discount_amount,
-            'tax'            => (float) $order->tax_amount,
-            'service_charge' => (float) $order->service_charge_amount,
-            'total'          => (float) $order->total_amount,
-            'payment_method' => $payment->payment_method,
-            'cash_tendered'  => (float) ($payment->amount + ($payment->change_given ?? 0)),
-            'change_given'   => (float) ($payment->change_given ?? 0),
-            'printed_at'     => now()->format('d/m/Y H:i'),
+            'subtotal'             => (float) $order->subtotal,
+            'discount'             => (float) $order->discount_amount,
+            'tax'                  => (float) $order->tax_amount,
+            'service_charge'       => (float) $order->service_charge_amount,
+            'total'                => (float) $order->total_amount,
+            'payment_method'       => $payment->payment_method,
+            'cash_tendered'        => (float) ($payment->amount + ($payment->change_given ?? 0)),
+            'change_given'         => (float) ($payment->change_given ?? 0),
+            'printed_at'           => now()->format('d/m/Y H:i'),
         ];
     }
 
@@ -288,7 +312,7 @@ class CoffeePOSorderController extends Controller
             ->whereNotNull('queue_number')
             ->orderByDesc('queue_number')
             ->lockForUpdate()
-            ->value('queue_number');  // pulls the single highest value, lock is valid on row fetch
+            ->value('queue_number');
 
         return ($last ?? 0) + 1;
     }
