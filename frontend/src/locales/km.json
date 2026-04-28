@@ -828,7 +828,18 @@
     "empty_sub": "សូមជ្រើសរើសចន្លោះកាលបរិច្ឆេទផ្សេង",
     "revenue_over_time": "ចំណូលតាមពេលវេលា",
     "order_types": "ប្រភេទកម្មង់",
-    "period_comparison": "ការប្រៀបធៀបរយៈពេល"
+    "period_comparison": "ការប្រៀបធៀបរយៈពេល",
+    "payment_method": "វិធីសាស្រ្តទូទាត់",
+    "split_by_revenue": "បែងចែកតាមចំណូល",
+    "sales_by_time": "ការលក់តាមពេលវេលា",
+    "top_products": "ផលិតផលលក់ដាច់បំផុត",
+    "top_products_subtitle": "ផលិតផលលក់បានច្រើនតាមចំណូល ឬ បរិមាណ",
+    "sold": "លក់បាន",
+    "by_qty": "តាមចំនួន",
+    "orders_per_hour": "ចំនួនបញ្ជាទិញក្នុងមួយម៉ោង",
+    "hourly": "តាមម៉ោង",
+    "daily": "ប្រចាំថ្ងៃ",
+    "monthly": "ប្រចាំខែ"
   },
 
   "purchase_report": {
@@ -960,11 +971,12 @@
     "warning": "ការព្រមាន",
     "info": "ព័ត៌មាន",
     "today": "ថ្ងៃនេះ",
-    "day_before":"ថ្ងៃមុន",
+    "day_before": "ថ្ងៃមុន",
     "yesterday": "ម្សិលមិញ",
     "this_week": "សប្តាហ៍នេះ",
     "last_week": "សប្តាហ៍មុន",
     "this_month": "ខែនេះ",
+    "month_before": "ខែមុន",
     "last_month": "ខែមុន",
     "this_year": "ឆ្នាំនេះ",
     "custom_range": "កំណត់ពេលវេលា",
