@@ -195,7 +195,7 @@
 
         <template #item.items_count="{ item }">
           <v-chip size="x-small" variant="tonal" rounded="lg">
-            {{ item.items?.length ?? 0 }} {{t('order_report.headers.items')}}
+            {{ item.items?.length ?? 0 }} {{ t('order_report.headers.items') }}
           </v-chip>
         </template>
 
@@ -306,7 +306,7 @@
   let donutChart = null
   let barChart = null
 
-  const period = ref('month')
+  const period = ref('today')
   const chartMode = ref('revenue')
   const exporting = ref(false)
   const tableLoading = ref(false)
@@ -476,12 +476,36 @@
     { value: 'walk_in', label: 'Walk In' }
   ]
   const headers = [
-    { title: t('order_report.headers.order_number'), key: 'order_number', sortable: false },
-    { title: t('order_report.headers.customer'), key: 'customer', sortable: false },
-    { title: t('order_report.headers.items'), key: 'items_count', sortable: false },
-    { title: t('order_report.headers.total'), key: 'total_amount', sortable: true },
-    { title: t('order_report.headers.payment'), key: 'payment_method', sortable: false },
-    { title: t('order_report.headers.date'), key: 'created_at', sortable: true },
+    {
+      title: t('order_report.headers.order_number'),
+      key: 'order_number',
+      sortable: false
+    },
+    {
+      title: t('order_report.headers.customer'),
+      key: 'customer',
+      sortable: false
+    },
+    {
+      title: t('order_report.headers.items'),
+      key: 'items_count',
+      sortable: false
+    },
+    {
+      title: t('order_report.headers.total'),
+      key: 'total_amount',
+      sortable: true
+    },
+    {
+      title: t('order_report.headers.payment'),
+      key: 'payment_method',
+      sortable: false
+    },
+    {
+      title: t('order_report.headers.date'),
+      key: 'created_at',
+      sortable: true
+    },
     { title: '', key: 'actions', sortable: false, width: '48' }
   ]
 
@@ -760,7 +784,9 @@
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { callback: v => `${format(v)}` }
+            ticks: {
+              callback: v => (chartMode.value === 'revenue' ? format(v) : v)
+            }
           },
           x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
         }

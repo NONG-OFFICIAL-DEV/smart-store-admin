@@ -85,10 +85,10 @@
                 type="email"
                 prepend-inner-icon="mdi-email-outline"
                 :rules="[rules.required, rules.email]"
-                :disabled="isEdit"
                 hint="Used for login and notifications"
                 persistent-hint
-              />
+                />
+                <!-- :disabled="isEdit" -->
             </v-col>
 
             <!-- Phone -->

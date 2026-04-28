@@ -962,6 +962,7 @@
     "warning": "Warning",
     "info": "Info",
     "today": "Today",
+    "day_before":"Day before",
     "yesterday": "Yesterday",
     "this_week": "This Week",
     "last_week": "Last Week",
