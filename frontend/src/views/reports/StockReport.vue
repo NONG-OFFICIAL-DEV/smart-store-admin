@@ -2,20 +2,10 @@
   <div>
     <custom-title
       icon="mdi-warehouse"
-      title="Inventory & Stock Report"
-      subtitle="Mange stock report"
+      :title="t('inventory_report.title')"
+      :subtitle="t('inventory_report.subtitle')"
     >
       <template #right>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-refresh"
-          :loading="loading"
-          @click="load"
-        >
-          Refresh
-        </v-btn>
         <v-btn
           class="ms-2"
           variant="outlined"
@@ -566,7 +556,9 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import api from '@/api/api'
   import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
+  import { useI18n } from 'vue-i18n'
 
+  const { t } = useI18n()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const { notif } = useAppUtils()
