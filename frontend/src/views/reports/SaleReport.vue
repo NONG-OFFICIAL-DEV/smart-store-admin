@@ -952,7 +952,7 @@
         const name = item.product_name ?? item.name ?? 'Unknown'
         if (!map[name]) map[name] = { name, qty: 0, revenue: 0 }
         map[name].qty += item.quantity ?? 1
-        map[name].revenue += parseFloat(item.subtotal ?? item.price ?? 0)
+        map[name].revenue += parseFloat(item.total_price ?? 0)
       }
     }
     topProductsRaw.value = Object.values(map)
