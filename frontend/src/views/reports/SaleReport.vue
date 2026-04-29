@@ -19,6 +19,7 @@
         </v-btn>
       </template>
     </custom-title>
+
     <BranchFilterBar
       v-model="filters.branch_ids"
       :branches="branchStore.branches?.data || branchStore.branches || []"
@@ -29,8 +30,8 @@
       @date-change="onDateChange"
     />
 
-    <!-- ══ KPI Cards ════════════════════════════════════════════════════════ -->
-    <v-row dense class="mb-5">
+    <!-- ══ KPI Cards ═══════════════════════════════════════════════════════ -->
+    <v-row dense class="mb-4">
       <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="4">
         <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
           <div class="d-flex align-center justify-space-between mb-3">
@@ -63,10 +64,9 @@
       </v-col>
     </v-row>
 
-    <!-- ══ Charts Row ═══════════════════════════════════════════════════════ -->
-    <v-row dense class="mb-5">
-      <!-- Revenue Over Time -->
-      <v-col cols="12" md="12">
+    <!-- ══ Revenue/Orders Over Time (full width) ═══════════════════════════ -->
+    <v-row dense class="mb-4">
+      <v-col cols="12">
         <v-card rounded="xl" border elevation="0" class="pa-5">
           <div class="d-flex align-center justify-space-between mb-4">
             <div>
@@ -94,14 +94,209 @@
               </v-btn>
             </v-btn-toggle>
           </div>
-          <div style="height: 240px">
+          <div style="height: 220px">
             <canvas ref="lineChartRef" />
           </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- ══ Filters + Table ══════════════════════════════════════════════════ -->
+    <!-- ══ Hourly Traffic + Payment Method (2-column) ═══════════════════════ -->
+    <v-row dense class="mb-4">
+      <!-- Hourly Traffic -->
+      <v-col cols="12" md="7">
+        <v-card
+          rounded="xl"
+          border
+          elevation="0"
+          class="pa-5"
+          style="height: 100%"
+        >
+          <div class="d-flex align-center justify-space-between mb-1">
+            <div>
+              <div class="text-body-1 font-weight-bold">
+                {{ t('order_report.sales_by_time') }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ t('order_report.orders_per_hour') }}
+              </div>
+            </div>
+            <v-btn-toggle
+              v-model="hourlyMode"
+              mandatory
+              density="compact"
+              rounded="lg"
+              variant="outlined"
+              color="primary"
+              size="x-small"
+            >
+              <v-btn value="hourly" size="x-small">
+                {{ t('order_report.hourly') }}
+              </v-btn>
+              <v-btn value="daily" size="x-small">
+                {{ t('order_report.daily') }}
+              </v-btn>
+              <v-btn value="monthly" size="x-small">
+                {{ t('order_report.monthly') }}
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+          <div style="height: 200px">
+            <canvas ref="hourlyChartRef" />
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Payment Method -->
+      <v-col cols="12" md="5">
+        <v-card
+          rounded="xl"
+          border
+          elevation="0"
+          class="pa-5"
+          style="height: 100%"
+        >
+          <div class="text-body-1 font-weight-bold mb-1">
+            {{ t('order_report.payment_method') }}
+          </div>
+          <div class="text-caption text-medium-emphasis mb-3">
+            {{ t('order_report.split_by_revenue') }}
+          </div>
+          <div class="d-flex align-center gap-4">
+            <div
+              style="
+                width: 130px;
+                height: 130px;
+                flex-shrink: 0;
+                position: relative;
+              "
+            >
+              <canvas ref="payDonutRef" />
+            </div>
+            <div style="flex: 1">
+              <div
+                v-for="(item, i) in paymentStats"
+                :key="item.label"
+                class="d-flex align-center mb-2"
+                style="gap: 8px"
+              >
+                <span
+                  class="legend-dot"
+                  :style="`background:${payColors[i % payColors.length]}`"
+                />
+                <span class="text-caption text-medium-emphasis" style="flex: 1">
+                  {{ item.label }}
+                </span>
+                <span class="text-caption font-weight-bold">
+                  {{ format(item.revenue) }}
+                </span>
+                <span class="text-caption text-medium-emphasis">
+                  {{ item.pct }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ══ Top Products (full width) ════════════════════════════════════════ -->
+    <v-row dense class="mb-4">
+      <v-col cols="12">
+        <v-card rounded="xl" border elevation="0" class="pa-5">
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div>
+              <div class="text-body-1 font-weight-bold">
+                {{ t('order_report.top_products') }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ t('order_report.top_products_subtitle') }}
+              </div>
+            </div>
+            <v-btn-toggle
+              v-model="productMode"
+              mandatory
+              density="compact"
+              rounded="lg"
+              variant="outlined"
+              color="primary"
+              size="x-small"
+            >
+              <v-btn value="qty" size="x-small">
+                {{ t('order_report.by_qty') }}
+              </v-btn>
+              <v-btn value="revenue" size="x-small">
+                {{ t('order_report.state.revenue') }}
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+
+          <v-row dense>
+            <v-col
+              v-if="topProducts.length > 0"
+              v-for="(product, i) in topProducts"
+              :key="product.name"
+              cols="12"
+              sm="6"
+              md="4"
+            >
+              <div class="d-flex align-center mb-1" style="gap: 8px">
+                <span
+                  class="text-caption font-weight-bold"
+                  style="width: 16px; text-align: right; opacity: 0.4"
+                >
+                  {{ i + 1 }}
+                </span>
+                <span
+                  class="text-body-2"
+                  style="
+                    flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                >
+                  {{ product.name }}
+                </span>
+                <span class="text-caption text-medium-emphasis">
+                  {{
+                    productMode === 'qty'
+                      ? product.qty + ' ' + t('order_report.sold')
+                      : format(product.revenue)
+                  }}
+                </span>
+              </div>
+              <div class="product-bar-track">
+                <div
+                  class="product-bar-fill"
+                  :style="`width:${product.pct}%;background:${productBarColors[i % productBarColors.length]}`"
+                />
+              </div>
+            </v-col>
+            <v-col v-else>
+              <div
+                class="d-flex flex-column align-center justify-center pa-8 gap-2"
+              >
+                <v-icon
+                  icon="mdi-receipt-text-remove-outline"
+                  size="40"
+                  color="grey-lighten-1"
+                />
+                <div class="text-body-2 text-medium-emphasis">
+                  No orders found
+                </div>
+                <div class="text-caption text-disabled">
+                  No orders were placed during this period
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ══ Filters + Table ════════════════════════════════════════════════════ -->
     <v-card rounded="xl" border elevation="0" class="mb-4">
       <div class="pa-4 d-flex align-center gap-3 flex-wrap border-b">
         <v-text-field
@@ -207,9 +402,9 @@
 
         <template #item.payment_method="{ item }">
           <v-chip
+            v-if="getPaymentMethod(item)"
             size="small"
             rounded="lg"
-            v-if="getPaymentMethod(item)"
             :color="payColor(getPaymentMethod(item))"
           >
             {{ payLabel(getPaymentMethod(item)) }}
@@ -256,7 +451,6 @@
   import { useOrderStore } from '@/stores/orderStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useI18n } from 'vue-i18n'
-
   import { useAppUtils } from '@/composables/useAppUtils'
   import OrderDetailDialog from '@/components/orders/OrderDetailDialog.vue'
   import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
@@ -291,6 +485,7 @@
     Legend,
     Filler
   )
+
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { format, currencySymbol } = useCurrency()
 
@@ -298,24 +493,34 @@
   const branchStore = useBranchStore()
   const orderStore = useOrderStore()
   const { t } = useI18n()
-  // ── Refs ──────────────────────────────────────────────────────────────────────
-  const lineChartRef = ref(null)
-  const donutChartRef = ref(null)
-  const barChartRef = ref(null)
-  let lineChart = null
-  let donutChart = null
-  let barChart = null
 
+  // ── Chart canvas refs ──────────────────────────────────────────────────────────
+  const lineChartRef = ref(null)
+  const hourlyChartRef = ref(null)
+  const payDonutRef = ref(null)
+
+  let lineChart = null
+  let hourlyChart = null
+  let payDonut = null
+
+  // ── State ─────────────────────────────────────────────────────────────────────
   const period = ref('today')
   const chartMode = ref('revenue')
+  const hourlyMode = ref('hourly')
+  const productMode = ref('qty')
   const exporting = ref(false)
   const tableLoading = ref(false)
 
   const stats = ref(null)
   const prevStats = ref(null)
-  const chartData = ref([]) // [{label, revenue, orders}]
+  const chartData = ref([])
   const orders = ref([])
   const pagination = ref(null)
+
+  // New data refs
+  const paymentStats = ref([]) // [{ label, revenue, pct }]
+  const topProductsRaw = ref([]) // [{ name, qty, revenue }]
+  const hourlyData = ref([]) // [{ hour, count }]  or daily/monthly
 
   const detailDialog = ref(false)
   const selectedOrderId = ref(null)
@@ -331,7 +536,18 @@
     page: 1
   })
 
-  // ── Period helpers ─────────────────────────────────────────────────────────────
+  // ── Colors ─────────────────────────────────────────────────────────────────────
+  const payColors = ['#1D9E75', '#378ADD', '#BA7517', '#D85A30', '#7F77DD']
+  const productBarColors = [
+    '#378ADD',
+    '#1D9E75',
+    '#BA7517',
+    '#D85A30',
+    '#7F77DD',
+    '#888780'
+  ]
+
+  // ── Period helpers (unchanged from original) ───────────────────────────────────
   const previousPeriod = computed(
     () =>
       ({
@@ -360,69 +576,63 @@
 
   const periodDates = p => {
     const today = new Date()
-    const format = d => d.toISOString().slice(0, 10)
+    const fmt = d => d.toISOString().slice(0, 10)
     const add = (d, n) => {
       const x = new Date(d)
       x.setDate(x.getDate() + n)
       return x
     }
-
     switch (p) {
       case 'today':
-        return { from: format(today), to: format(today) }
+        return { from: fmt(today), to: fmt(today) }
       case 'yesterday': {
         const y = add(today, -1)
-        return { from: format(y), to: format(y) }
+        return { from: fmt(y), to: fmt(y) }
       }
       case 'week': {
         const mon = new Date(today)
         mon.setDate(today.getDate() - today.getDay() + 1)
-        return { from: format(mon), to: format(today) }
+        return { from: fmt(mon), to: fmt(today) }
       }
       case 'month': {
         const first = new Date(today.getFullYear(), today.getMonth(), 1)
-        return { from: format(first), to: format(today) }
+        return { from: fmt(first), to: fmt(today) }
       }
       case 'last_month': {
         const first = new Date(today.getFullYear(), today.getMonth() - 1, 1)
         const last = new Date(today.getFullYear(), today.getMonth(), 0)
-        return { from: format(first), to: format(last) }
+        return { from: fmt(first), to: fmt(last) }
       }
       case 'custom':
         return { from: filters.value.date_from, to: filters.value.date_to }
       default:
-        return { from: format(today), to: format(today) }
+        return { from: fmt(today), to: fmt(today) }
     }
   }
 
   const previousPeriodDates = computed(() => {
     const cur = periodDates(period.value)
     if (!cur.from || !cur.to) return cur
-
-    const from = new Date(cur.from)
-    const to = new Date(cur.to)
+    const from = new Date(cur.from),
+      to = new Date(cur.to)
     const days = Math.round((to - from) / 86400000) + 1
-
     const pFrom = new Date(from)
     pFrom.setDate(pFrom.getDate() - days)
     const pTo = new Date(to)
     pTo.setDate(pTo.getDate() - days)
-
     return {
       from: pFrom.toISOString().slice(0, 10),
       to: pTo.toISOString().slice(0, 10)
     }
   })
 
-  // ── KPI cards ──────────────────────────────────────────────────────────────────
+  // ── KPI cards (unchanged from original) ───────────────────────────────────────
   const kpiCards = computed(() => {
-    const s = stats.value
-    const ps = prevStats.value
+    const s = stats.value,
+      ps = prevStats.value
     if (!s) return []
-
     const pct = (a, b) => (b ? (((a - b) / b) * 100).toFixed(1) + '%' : '—')
     const up = (a, b) => a >= b
-
     return [
       {
         label: t('order_report.state.revenue'),
@@ -454,7 +664,7 @@
         ),
         changePositive: up(
           s.total_orders ? s.total_revenue / s.total_orders : 0,
-          ps?.total_orders ? ps?.total_revenue / ps?.total_orders : 0
+          ps?.total_orders ? ps.total_revenue / ps.total_orders : 0
         ),
         icon: 'mdi-tag-outline',
         color: 'info',
@@ -463,11 +673,24 @@
     ]
   })
 
-  // ── Order type stats ───────────────────────────────────────────────────────────
-  const orderTypeStats = ref([])
+  // ── Top products computed (sorted + pct for bar width) ─────────────────────────
+  const topProducts = computed(() => {
+    const sorted = [...topProductsRaw.value]
+      .sort((a, b) =>
+        productMode.value === 'qty' ? b.qty - a.qty : b.revenue - a.revenue
+      )
+      .slice(0, 12)
+    const max =
+      sorted[0]?.[productMode.value === 'qty' ? 'qty' : 'revenue'] || 1
+    return sorted.map(p => ({
+      ...p,
+      pct: Math.round(
+        ((productMode.value === 'qty' ? p.qty : p.revenue) / max) * 100
+      )
+    }))
+  })
 
-  // ── Options ───────────────────────────────────────────────────────────────────
-
+  // ── Options (unchanged) ────────────────────────────────────────────────────────
   const orderTypeOptions = [
     { value: null, label: 'All Types' },
     { value: 'dine_in', label: 'Dine In' },
@@ -475,6 +698,7 @@
     { value: 'delivery', label: 'Delivery' },
     { value: 'walk_in', label: 'Walk In' }
   ]
+
   const headers = [
     {
       title: t('order_report.headers.order_number'),
@@ -509,8 +733,7 @@
     { title: '', key: 'actions', sortable: false, width: '48' }
   ]
 
-  // ── Helpers ───────────────────────────────────────────────────────────────────
-
+  // ── Helpers (unchanged from original) ─────────────────────────────────────────
   const fmtDate = v =>
     v
       ? new Date(v).toLocaleDateString('en-US', {
@@ -526,6 +749,7 @@
           minute: '2-digit'
         })
       : ''
+
   const statusColor = s =>
     ({
       pending: 'warning',
@@ -553,7 +777,6 @@
   const getPaymentMethod = order =>
     order.payments?.[0]?.payment_method ?? order.payment_method ?? null
 
-  // Normalize to display label
   const payLabel = raw =>
     ({
       cash: 'Cash',
@@ -566,7 +789,6 @@
     raw?.replace('_', ' ') ??
     '—'
 
-  // Color map — covers both old and new enum values
   const payColor = raw =>
     ({
       cash: 'success',
@@ -579,7 +801,7 @@
       credit_term: 'error'
     })[raw] ?? 'grey'
 
-  // ── Data loading ──────────────────────────────────────────────────────────────
+  // ── Data loading ───────────────────────────────────────────────────────────────
   const onPeriodChange = val => {
     period.value = val
     if (period.value !== 'custom') {
@@ -590,6 +812,7 @@
       loadAll()
     }
   }
+
   const onDateChange = ({ from, to }) => {
     filters.value.date_from = from
     filters.value.date_to = to
@@ -610,7 +833,6 @@
     try {
       const dates = periodDates(period.value)
       const prevDates = previousPeriodDates.value
-
       const [curRes, prevRes] = await Promise.all([
         orderStore.getAllOrdersReport({
           date_from: dates.from,
@@ -646,9 +868,6 @@
         per_page: res.data.data.per_page,
         total: res.data.data.total
       }
-
-      // Build type stats from current results
-      buildTypeStats(orders.value)
     } catch (e) {
       console.error(e)
     } finally {
@@ -658,26 +877,28 @@
 
   const loadChartData = async () => {
     try {
-      // Fetch all orders for chart (no pagination)
       const dates = periodDates(period.value)
       const res = await orderStore.getAllOrdersReport({
         date_from: dates.from,
         date_to: dates.to,
-        per_page: 9999
+        per_page: 9999,
+        branch_ids: filters.value.branch_ids
       })
       const allOrders = res.data.data.data
       buildChartData(allOrders, dates.from, dates.to)
       buildPaymentStats(allOrders)
+      buildTopProducts(allOrders)
+      buildHourlyData(allOrders)
     } catch (e) {
       console.error(e)
     }
   }
 
+  // ── Build helpers ──────────────────────────────────────────────────────────────
   const buildChartData = (allOrders, from, to) => {
-    // Group by day
     const map = {}
-    const cur = new Date(from)
-    const end = new Date(to)
+    const cur = new Date(from),
+      end = new Date(to)
     while (cur <= end) {
       const key = cur.toISOString().slice(0, 10)
       map[key] = { label: key, revenue: 0, orders: 0 }
@@ -694,34 +915,12 @@
     nextTick(() => drawLineChart())
   }
 
-  const buildTypeStats = allOrders => {
-    const COLORS = {
-      dine_in: '#3b82f6',
-      takeaway: '#06b6d4',
-      delivery: '#f59e0b',
-      walk_in: '#10b981'
-    }
-    const map = {}
-    for (const o of allOrders) {
-      const t = o.order_type ?? 'other'
-      map[t] = (map[t] ?? 0) + 1
-    }
-    orderTypeStats.value = Object.entries(map).map(([key, count]) => ({
-      label: key.replace('_', ' '),
-      count,
-      color: COLORS[key] ?? '#94a3b8'
-    }))
-    nextTick(() => drawDonutChart())
-  }
   const buildPaymentStats = allOrders => {
     const map = {}
-
     for (const o of allOrders) {
-      // Read from payments[] array first, fallback to order.payment_method
+      if (o.status === 'cancelled') continue
       const raw =
         o.payments?.[0]?.payment_method ?? o.payment_method ?? 'unknown'
-
-      // Normalize db enum → display label
       const label =
         {
           cash: 'Cash',
@@ -731,23 +930,93 @@
           qr: 'QR',
           transfer: 'Transfer'
         }[raw] ?? raw
-
-      map[label] = (map[label] ?? 0) + parseFloat(o.total_amount ?? 0)
+      if (!map[label]) map[label] = 0
+      map[label] += parseFloat(o.total_amount ?? 0)
     }
+    const total = Object.values(map).reduce((a, b) => a + b, 0)
+    paymentStats.value = Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, revenue]) => ({
+        label,
+        revenue,
+        pct: total ? Math.round((revenue / total) * 100) : 0
+      }))
+    nextTick(() => drawPayDonut())
+  }
 
-    nextTick(() => drawBarChart(map))
+  const buildTopProducts = allOrders => {
+    const map = {}
+    for (const o of allOrders) {
+      if (o.status === 'cancelled') continue
+      for (const item of o.items ?? []) {
+        const name = item.product_name ?? item.name ?? 'Unknown'
+        if (!map[name]) map[name] = { name, qty: 0, revenue: 0 }
+        map[name].qty += item.quantity ?? 1
+        map[name].revenue += parseFloat(item.total_price ?? 0)
+      }
+    }
+    topProductsRaw.value = Object.values(map)
+  }
+
+  const buildHourlyData = allOrders => {
+    if (hourlyMode.value === 'hourly') {
+      const map = {}
+      for (let h = 0; h < 24; h++) map[h] = 0
+      for (const o of allOrders) {
+        if (o.status === 'cancelled') continue
+        const h = new Date(o.created_at).getHours()
+        map[h]++
+      }
+      hourlyData.value = Object.entries(map)
+        .filter(([h]) => Number(h) >= 6 && Number(h) <= 23)
+        .map(([h, count]) => ({ label: `${h}:00`, count }))
+    } else if (hourlyMode.value === 'daily') {
+      const map = {}
+      for (const o of allOrders) {
+        if (o.status === 'cancelled') continue
+        const key = o.created_at?.slice(0, 10)
+        if (!map[key]) map[key] = 0
+        map[key]++
+      }
+      hourlyData.value = Object.entries(map)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([label, count]) => ({
+          label: new Date(label).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          }),
+          count
+        }))
+    } else {
+      const map = {}
+      for (const o of allOrders) {
+        if (o.status === 'cancelled') continue
+        const d = new Date(o.created_at)
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        if (!map[key]) map[key] = 0
+        map[key]++
+      }
+      hourlyData.value = Object.entries(map)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([label, count]) => ({
+          label: new Date(label + '-01').toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric'
+          }),
+          count
+        }))
+    }
+    nextTick(() => drawHourlyChart())
   }
 
   // ── Chart drawing ──────────────────────────────────────────────────────────────
   const drawLineChart = () => {
     if (!lineChartRef.value) return
     if (lineChart) lineChart.destroy()
-
     const labels = chartData.value.map(d => {
       const dt = new Date(d.label)
       return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     })
-
     const values =
       chartMode.value === 'revenue'
         ? chartData.value.map(d => d.revenue)
@@ -764,13 +1033,17 @@
                 ? `Revenue (${currencySymbol()})`
                 : 'Orders',
             data: values,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59,130,246,0.08)',
+            borderColor: '#378ADD',
+            backgroundColor: values.map((v, i) =>
+              i === values.indexOf(Math.max(...values))
+                ? '#378ADD'
+                : 'rgba(55,138,221,0.15)'
+            ),
             fill: true,
             tension: 0.4,
-            pointRadius: 4,
-            pointBackgroundColor: '#3b82f6',
-            borderWidth: 2
+            borderRadius: 4,
+            borderSkipped: false,
+            borderWidth: 0
           }
         ]
       },
@@ -779,34 +1052,92 @@
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: ctx =>
+                chartMode.value === 'revenue'
+                  ? format(ctx.parsed.y)
+                  : ctx.parsed.y + ' orders'
+            }
+          }
         },
         scales: {
           y: {
             beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
             ticks: {
-              callback: v => (chartMode.value === 'revenue' ? format(v) : v)
+              callback: v => (chartMode.value === 'revenue' ? format(v) : v),
+              font: { size: 11 }
             }
           },
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
+          x: {
+            grid: { display: false },
+            ticks: { maxTicksLimit: 10, font: { size: 11 } }
+          }
         }
       }
     })
   }
 
-  const drawDonutChart = () => {
-    if (!donutChartRef.value) return
-    if (donutChart) donutChart.destroy()
+  const drawHourlyChart = () => {
+    if (!hourlyChartRef.value) return
+    if (hourlyChart) hourlyChart.destroy()
+    const data = hourlyData.value
+    const counts = data.map(d => d.count)
+    const max = Math.max(...counts)
 
-    const data = orderTypeStats.value
-    donutChart = new Chart(donutChartRef.value, {
+    hourlyChart = new Chart(hourlyChartRef.value, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.label),
+        datasets: [
+          {
+            data: counts,
+            backgroundColor: counts.map(v =>
+              v >= max * 0.75 ? '#D85A30' : 'rgba(216,90,48,0.2)'
+            ),
+            borderRadius: 3,
+            borderSkipped: false,
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' orders' } }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { maxTicksLimit: 12, font: { size: 10 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { display: false },
+            ticks: { font: { size: 10 } }
+          }
+        }
+      }
+    })
+  }
+
+  const drawPayDonut = () => {
+    if (!payDonutRef.value) return
+    if (payDonut) payDonut.destroy()
+    const data = paymentStats.value
+    payDonut = new Chart(payDonutRef.value, {
       type: 'doughnut',
       data: {
         labels: data.map(d => d.label),
         datasets: [
           {
-            data: data.map(d => d.count),
-            backgroundColor: data.map(d => d.color),
+            data: data.map(d => d.revenue),
+            backgroundColor: payColors.slice(0, data.length),
             borderWidth: 0
           }
         ]
@@ -815,48 +1146,25 @@
         responsive: true,
         maintainAspectRatio: false,
         cutout: '70%',
-        plugins: { legend: { display: false } }
-      }
-    })
-  }
-
-  const drawBarChart = paymentMap => {
-    if (!barChartRef.value) return
-    if (barChart) barChart.destroy()
-
-    const labels = Object.keys(paymentMap).map(k => k.replace('_', ' '))
-    const values = Object.values(paymentMap)
-    const colors = ['#10b981', '#3b82f6', '#06b6d4', '#f59e0b', '#ef4444']
-
-    barChart = new Chart(barChartRef.value, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Revenue ($)',
-            data: values,
-            backgroundColor: labels.map((_, i) => colors[i % colors.length]),
-            borderRadius: 6,
-            borderSkipped: false
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: ctx => ctx.label + ': ' + format(ctx.parsed) }
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false } },
-          y: { grid: { color: '#f1f5f9' }, beginAtZero: true }
         }
       }
     })
   }
 
+  // ── Watchers ───────────────────────────────────────────────────────────────────
   watch(chartMode, () => drawLineChart())
 
-  // ── Actions ───────────────────────────────────────────────────────────────────
+  watch(hourlyMode, () => {
+    // Re-derive hourly data from already-fetched all orders
+    loadChartData()
+  })
+
+  // ── Actions ────────────────────────────────────────────────────────────────────
   let searchTimer = null
   const onSearch = () => {
     clearTimeout(searchTimer)
@@ -904,14 +1212,10 @@
     }
   }
 
-  onMounted(() => {
-    loadAll()
-    // onPeriodChange('month')
-  })
+  onMounted(() => loadAll())
 </script>
 
 <style scoped>
-  /* KPI cards */
   .kpi-card {
     transition: box-shadow 0.2s;
   }
@@ -933,21 +1237,24 @@
     letter-spacing: -0.5px;
   }
 
-  /* Comparison banner */
-  .comparison-banner {
-    background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
-  }
-  .compare-cell {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  /* Legend dot */
   .legend-dot {
     width: 10px;
     height: 10px;
-    border-radius: 50%;
+    border-radius: 2px;
     flex-shrink: 0;
+  }
+
+  .product-bar-track {
+    height: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .product-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
   }
 
   .gap-2 {
@@ -955,6 +1262,9 @@
   }
   .gap-3 {
     gap: 12px;
+  }
+  .gap-4 {
+    gap: 16px;
   }
   .border-b {
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);

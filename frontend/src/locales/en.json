@@ -49,7 +49,6 @@
     "ingredients": "Integrations",
     "modifiers": "Modifiers",
     "branch_menus": "Branch Menus"
-    
   },
 
   "btn": {
@@ -830,7 +829,18 @@
     "empty": "No orders for this period",
     "empty_sub": "Try selecting a different date range",
     "revenue_over_time": "Revenue Over Time",
-    "order_types": "Order Types"
+    "order_types": "Order Types",
+    "payment_method": "Payment Method",
+    "split_by_revenue": "Split by Revenue",
+    "sales_by_time": "Sales by Time",
+    "top_products": "Top Products",
+    "top_products_subtitle": "Best-selling items by revenue or quantity",
+    "sold": "Sold",
+    "by_qty": "By Quantity",
+    "orders_per_hour": "Orders per Hour",
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "monthly": "Monthly"
   },
 
   "purchase_report": {
@@ -962,14 +972,16 @@
     "warning": "Warning",
     "info": "Info",
     "today": "Today",
-    "day_before":"Day before",
+    "day_before": "Day before",
     "yesterday": "Yesterday",
     "this_week": "This Week",
     "last_week": "Last Week",
     "this_month": "This Month",
+    "month_before": "Month before",
     "last_month": "Last Month",
     "this_year": "This Year",
     "custom_range": "Custom Range",
+    "custom": "Custom",
     "per_page": "Per page",
     "total": "Total",
     "subtotal": "Subtotal",
@@ -981,7 +993,7 @@
     "vs": "vs",
     "previous": "Previous",
     "prev_custom": "Previous {n}",
-    "select": "Select",
+    "selected": "Selected",
     "all_selected": "Deselect All"
   },
   "unit": {
