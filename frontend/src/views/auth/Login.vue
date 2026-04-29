@@ -56,7 +56,7 @@
 
         <!-- Footer -->
         <div class="text-caption mt-auto left-footer-text">
-          © {{ new Date().getFullYear() }} BrewDesk — Enterprise Edition
+          © {{ new Date().getFullYear() }} {{ t('app.footer') }}
         </div>
       </v-col>
 
