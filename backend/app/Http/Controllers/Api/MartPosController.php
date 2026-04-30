@@ -74,9 +74,9 @@ class MartPosController extends Controller
                     $unitPrice  = (float) ($item['topup_amount'] ?? 0);
                     $qtyPerBase = $productUnit ? (float) $productUnit->qty_per_base : 1;
                     $unitName   = $productUnit?->unit_label
-                            ?? $productUnit?->unit_name
-                            ?? $product->unit
-                            ?? 'pcs';
+                        ?? $productUnit?->unit_name
+                        ?? $product->unit
+                        ?? 'pcs';
                 } elseif ($productUnit) {
                     $unitPrice  = $productUnit->priceFor($itemCustomerType);
                     $qtyPerBase = (float) $productUnit->qty_per_base;
@@ -328,97 +328,123 @@ class MartPosController extends Controller
     }
     /**
      * GET /api/v1/mart/reports/inventory
+     *
+     * Fixed version:
+     * - Loads retail_price / cost_price from the base product_unit (is_base_unit = true)
+     *   because the `products` table itself does not carry those columns.
+     * - stock_quantity, reorder_level, unit are assumed to be on `products`
+     *   (add them if they're stored elsewhere).
+     * - Removed columns that don't exist in the schema (track_stock is kept as a
+     *   guard, adjust to your real column name if different).
+     * - category_id filter is forwarded to the query.
+     * - product_movements image_url uses asset() correctly.
      */
+
     public function reportStock(Request $request)
     {
         $request->validate([
             'branch_id'   => 'nullable|uuid|exists:branches,id',
             'date_from'   => 'nullable|date',
             'date_to'     => 'nullable|date|after_or_equal:date_from',
-            'category_id' => 'nullable|uuid',
-            'search'      => 'nullable|string',
+            'category_id' => 'nullable|uuid|exists:categories,id',
+            'search'      => 'nullable|string|max:100',
         ]);
 
-        // $tenantId = auth()->user()->staff->tenant_id;
         $branchId = $request->branch_id ?? auth()->user()->staff->branch_id;
         $from     = $request->date_from ? $request->date_from . ' 00:00:00' : null;
         $to       = $request->date_to   ? $request->date_to   . ' 23:59:59' : null;
 
-        // ── Current stock snapshot ─────────────────────────────────────────
-        $products = Product::with(['category:id,name', 'activeUnits'])
-            // ->where('tenant_id', $tenantId)
+        // ── Current stock snapshot ─────────────────────────────────────────────
+        // Eager-load the base unit so we can pull retail_price / cost_price / unit label.
+        $products = Product::with([
+            'category:id,name',
+            'activeUnits' => fn($q) => $q->orderBy('sort_order'),
+        ])
             ->where(function ($q) {
+                // retail products OR products with stock tracking enabled
                 $q->where('product_type', 'retail')
                     ->orWhere('track_stock', true);
             })
-            // ->where('is_active', true)
-            ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
-            ->when($request->search, fn($q) => $q->where('name', 'ilike', "%{$request->search}%"))
+            ->when($request->category_id, fn($q, $v) => $q->where('category_id', $v))
+            ->when($request->search,      fn($q, $v) => $q->where('name', 'ilike', "%{$v}%"))
             ->orderBy('name')
             ->get()
-            ->map(fn($p) => [
-                'id'              => $p->id,
-                'name'            => $p->name,
-                'sku'             => $p->sku,
-                'image_url'       => $p->image_url,
-                'category'        => $p->category?->name,
-                'unit'            => $p->unit,
-                'stock_quantity'  => (float) $p->stock_quantity,
-                'reorder_level'   => $p->reorder_level ? (float) $p->reorder_level : null,
-                'cost_price'      => (float) $p->cost_price,
-                'retail_price'    => (float) $p->retail_price,
-                'stock_value'     => (float) $p->stock_quantity * (float) ($p->cost_price ?? 0),
-                'retail_value'    => (float) $p->stock_quantity * (float) ($p->retail_price ?? 0),
-                'stock_status'    => $this->stockStatus($p),
-                'active_units'    => $p->activeUnits->map(fn($u) => [
-                    'id'           => $u->id,
-                    'unit_label'   => $u->unit_label ?? $u->unit_name,
-                    'qty_per_base' => (float) $u->qty_per_base,
-                    'is_base_unit' => (bool) $u->is_base_unit,
-                ]),
-            ]);
+            ->map(function ($p) {
+                // Resolve pricing from the base unit; fall back to product-level cost_price.
+                $baseUnit   = $p->activeUnits->firstWhere('is_base_unit', true)
+                    ?? $p->activeUnits->first();
+                $costPrice   = (float) ($baseUnit?->cost_price   ?? $p->cost_price   ?? 0);
+                $retailPrice = (float) ($baseUnit?->retail_price ?? 0);
+                $stockQty    = (float) ($p->stock_quantity ?? 0);
 
-        // ── Summary ────────────────────────────────────────────────────────
-        $totalProducts  = $products->count();
-        $inStock        = $products->where('stock_status', 'in_stock')->count();
-        $lowStock       = $products->where('stock_status', 'low_stock')->count();
-        $outOfStock     = $products->where('stock_status', 'out_of_stock')->count();
-        $totalCostValue = $products->sum('stock_value');
+                return [
+                    'id'             => $p->id,
+                    'name'           => $p->name,
+                    'sku'            => $p->sku,
+                    'image_url'      => $p->image_url,
+                    'category'       => $p->category?->name,
+                    'unit'           => $baseUnit?->unit_label ?? $baseUnit?->unit_name ?? 'pcs',
+                    'stock_quantity' => $stockQty,
+                    'reorder_level'  => $p->reorder_level ? (float) $p->reorder_level : null,
+                    'cost_price'     => $costPrice,
+                    'retail_price'   => $retailPrice,
+                    'stock_value'    => round($stockQty * $costPrice,   2),
+                    'retail_value'   => round($stockQty * $retailPrice, 2),
+                    'stock_status'   => $this->stockStatus($p),
+                    'active_units'   => $p->activeUnits->map(fn($u) => [
+                        'id'           => $u->id,
+                        'unit_label'   => $u->unit_label ?? $u->unit_name,
+                        'qty_per_base' => (float) $u->qty_per_base,
+                        'retail_price' => (float) $u->retail_price,
+                        'cost_price'   => (float) ($u->cost_price ?? 0),
+                        'is_base_unit' => (bool)  $u->is_base_unit,
+                    ]),
+                ];
+            });
+
+        // ── Summary ────────────────────────────────────────────────────────────
+        $totalProducts    = $products->count();
+        $inStock          = $products->where('stock_status', 'in_stock')->count();
+        $lowStock         = $products->where('stock_status', 'low_stock')->count();
+        $outOfStock       = $products->where('stock_status', 'out_of_stock')->count();
+        $totalCostValue   = $products->sum('stock_value');
         $totalRetailValue = $products->sum('retail_value');
         $potentialProfit  = $totalRetailValue - $totalCostValue;
 
-        // ── Stock movement summary (if date range provided) ────────────────
+        // ── Stock movement summary (only when date range given) ────────────────
         $movementSummary = null;
         if ($from && $to) {
             $movementSummary = StockMovement::where('branch_id', $branchId)
                 ->whereBetween('created_at', [$from, $to])
                 ->selectRaw("
-                    movement_type,
-                    COUNT(*)            as count,
-                    SUM(ABS(quantity))  as total_qty,
-                    SUM(
-                        CASE WHEN unit_cost IS NOT NULL
-                        THEN ABS(quantity) * unit_cost
-                        ELSE 0 END
-                    ) as total_value
-                ")
+                movement_type,
+                COUNT(*)           AS count,
+                SUM(ABS(quantity)) AS total_qty,
+                SUM(
+                    CASE WHEN unit_cost IS NOT NULL
+                    THEN ABS(quantity) * unit_cost
+                    ELSE 0 END
+                ) AS total_value
+            ")
                 ->groupBy('movement_type')
                 ->get();
         }
 
-        // ── Stock movement by product (if date range) ──────────────────────
+        // ── Top stock movers by product (only when date range given) ──────────
         $productMovements = null;
         if ($from && $to) {
             $productMovements = StockMovement::where('stock_movements.branch_id', $branchId)
                 ->whereBetween('stock_movements.created_at', [$from, $to])
                 ->join('products', 'stock_movements.product_id', '=', 'products.id')
                 ->selectRaw("
-        stock_movements.product_id,
-        products.name        as product_name,
-        products.image_url,
-        SUM(CASE WHEN stock_movements.quantity > 0 THEN stock_movements.quantity ELSE 0 END)          as total_in,
-        SUM(CASE WHEN stock_movements.quantity < 0 THEN ABS(stock_movements.quantity) ELSE 0 END)     as total_out
-    ")
+                stock_movements.product_id,
+                products.name      AS product_name,
+                products.image_url,
+                SUM(CASE WHEN stock_movements.quantity > 0
+                    THEN  stock_movements.quantity ELSE 0 END)          AS total_in,
+                SUM(CASE WHEN stock_movements.quantity < 0
+                    THEN ABS(stock_movements.quantity) ELSE 0 END)      AS total_out
+            ")
                 ->groupBy('stock_movements.product_id', 'products.name', 'products.image_url')
                 ->orderByDesc('total_out')
                 ->limit(20)
@@ -431,25 +457,28 @@ class MartPosController extends Controller
                 });
         }
 
-        // ── Category breakdown ─────────────────────────────────────────────
-        $byCategory = $products->groupBy('category')->map(fn($items, $cat) => [
-            'category'    => $cat ?? 'Uncategorized',
-            'count'       => $items->count(),
-            'stock_value' => $items->sum('stock_value'),
-            'out_of_stock' => $items->where('stock_status', 'out_of_stock')->count(),
-            'low_stock'   => $items->where('stock_status', 'low_stock')->count(),
-        ])->values();
+        // ── Category breakdown ─────────────────────────────────────────────────
+        $byCategory = $products
+            ->groupBy('category')
+            ->map(fn($items, $cat) => [
+                'category'    => $cat ?: 'Uncategorized',
+                'count'       => $items->count(),
+                'stock_value' => round($items->sum('stock_value'), 2),
+                'out_of_stock' => $items->where('stock_status', 'out_of_stock')->count(),
+                'low_stock'   => $items->where('stock_status', 'low_stock')->count(),
+            ])
+            ->values();
 
         return response()->json([
             'data' => [
                 'summary' => [
-                    'total_products'    => $totalProducts,
-                    'in_stock'          => $inStock,
-                    'low_stock'         => $lowStock,
-                    'out_of_stock'      => $outOfStock,
-                    'total_cost_value'  => round($totalCostValue, 2),
+                    'total_products'     => $totalProducts,
+                    'in_stock'           => $inStock,
+                    'low_stock'          => $lowStock,
+                    'out_of_stock'       => $outOfStock,
+                    'total_cost_value'   => round($totalCostValue,   2),
                     'total_retail_value' => round($totalRetailValue, 2),
-                    'potential_profit'  => round($potentialProfit, 2),
+                    'potential_profit'   => round($potentialProfit,  2),
                 ],
                 'products'          => $products,
                 'by_category'       => $byCategory,
@@ -461,9 +490,9 @@ class MartPosController extends Controller
 
     private function stockStatus($product): string
     {
-        if ((float) $product->stock_quantity <= 0) return 'out_of_stock';
-        if ($product->reorder_level && (float) $product->stock_quantity <= (float) $product->reorder_level)
-            return 'low_stock';
+        $qty = (float) ($product->stock_quantity ?? 0);
+        if ($qty <= 0) return 'out_of_stock';
+        if ($product->reorder_level && $qty <= (float) $product->reorder_level) return 'low_stock';
         return 'in_stock';
     }
 }

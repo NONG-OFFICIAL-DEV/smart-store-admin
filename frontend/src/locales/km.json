@@ -17,7 +17,7 @@
     "stock_overview": "ទិដ្ឋភាពស្តុក",
     "stock_in": "ស្តុកចូល",
     "stock_out": "ស្តុកចេញ",
-    "stock_movements": "ចលនាស្តុក",
+    "stock_movements": "បម្រែបម្រួលស្តុក",
     "adjustment": "កែតម្រូវ",
     "purchase_order": "បញ្ជាទិញ",
     "low_stock": "ស្តុកទាប",
@@ -759,8 +759,8 @@
   },
 
   "stock_movements": {
-    "title": "ចលនាស្តុក",
-    "subtitle": "ប្រវត្តិចលនាស្តុកពេញ",
+    "title": "បម្រែបម្រួលស្តុក",
+    "subtitle": "ប្រវត្តិបម្រែបម្រួលស្តុកពេញ",
     "table": {
       "date": "កាលបរិច្ឆេទ",
       "product": "ផលិតផល",
@@ -771,8 +771,8 @@
       "staff": "បុគ្គលិក",
       "notes": "កំណត់ចំណាំ"
     },
-    "empty": "រកមិនឃើញចលនា",
-    "empty_sub": "ចលនាស្តុកនឹងបង្ហាញនៅទីនេះ",
+    "empty": "រកមិនឃើញបម្រែបម្រួល",
+    "empty_sub": "បម្រែបម្រួលស្តុកនឹងបង្ហាញនៅទីនេះ",
     "summary": {
       "total": "ចំនួនចូល",
       "sales": "ការលក់",
@@ -863,19 +863,77 @@
 
   "inventory_report": {
     "title": "របាយការណ៍ស្តុក",
-    "subtitle": "កម្រិតស្តុក តម្លៃ និងប្រវត្តិចលនា",
+    "subtitle": "កម្រិតស្តុក តម្លៃ និងប្រវត្តិបម្រែបម្រួល",
     "summary": {
       "total_products": "ផលិតផលសរុប",
-      "cost_value": "តម្លៃស្តុក",
-      "retail_value": "តម្លៃលក់",
-      "potential_profit": "ចំណេញដែលអាចទទួលបាន"
+      "cost_value": "តម្លៃដើមស្តុក",
+      "retail_value": "តម្លៃលក់រាយ",
+      "potential_profit": "ប្រាក់ចំណេញសក្តានុពល",
+      "at_cost_price": "តាមតម្លៃដើម",
+      "at_selling_price": "តាមតម្លៃលក់",
+      "if_all_sold": "បើលក់ស្តុកទាំងអស់"
     },
+
+    "status": {
+      "in_stock": "មានស្តុក",
+      "low_stock": "ស្តុកតិច",
+      "out_of_stock": "អស់ស្តុក"
+    },
+
+    "filter": {
+      "search_placeholder": "ស្វែងរកផលិតផល ឬ SKU…",
+      "all_statuses": "ស្ថានភាពទាំងអស់",
+      "stock_status": "ស្ថានភាពស្តុក"
+    },
+
+    "table": {
+      "product": "ផលិតផល",
+      "category": "ប្រភេទ",
+      "stock": "ស្តុក",
+      "reorder_at": "បញ្ជាទិញនៅ",
+      "cost_price": "តម្លៃដើម",
+      "retail_price": "តម្លៃលក់រាយ",
+      "cost_value": "តម្លៃដើមសរុប",
+      "retail_value": "តម្លៃលក់សរុប",
+      "status": "ស្ថានភាព"
+    },
+
+    "movement": {
+      "title": "សង្ខេបចលនាស្តុក",
+      "select_range": "ជ្រើសរើសកាលបរិច្ឆេទដើម្បីមើលចលនាស្តុក",
+      "units": "គ្រឿង",
+      "transactions": "ប្រតិបត្តិការ",
+      "purchase": "ទិញចូល",
+      "sale": "លក់",
+      "adjustment_in": "កែតម្រូវចូល",
+      "adjustment_out": "កែតម្រូវចេញ",
+      "waste": "បំបាត់",
+      "count": "រាប់ស្តុក",
+      "top_move":"ការបម្រែបម្រួលស្តុកតាមលំដាប់"
+    },
+
+    "top_movers": {
+      "title": "ផលិតផលចលនាច្រើន",
+      "in": "ចូល (+)",
+      "out": "ចេញ (-)",
+      "net": "សុទ្ធ"
+    },
+
+    "by_category": "តាមប្រភេទ",
+    "all_products": "ផលិតផលទាំងអស់",
+    "uncategorized": "គ្មានប្រភេទ",
+    "cost": "ដើម",
+    "retail": "លក់រាយ",
+    "value": "តម្លៃ",
+    "products_count": "{n} ផលិតផល",
+
     "tabs": {
       "all": "ផលិតផលទាំងអស់",
-      "movements": "ចលនា"
+      "movements": "សង្ខេបចលនា"
     },
     "empty": "រកមិនឃើញទិន្នន័យសារពើភ័ណ្ឌ",
-    "empty_sub": "បន្ថែមផលិតផល និងកំណត់ស្តុក"
+    "empty_sub": "បន្ថែមផលិតផល និងកំណត់ស្តុក",
+    "no_products": "រកមិនឃើញផលិតផល"
   },
 
   "product_performance": {

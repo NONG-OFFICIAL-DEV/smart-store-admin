@@ -869,12 +869,68 @@
       "total_products": "Total Products",
       "cost_value": "Stock Cost Value",
       "retail_value": "Retail Value",
-      "potential_profit": "Potential Profit"
+      "potential_profit": "Potential Profit",
+      "at_cost_price": "at cost price",
+      "at_selling_price": "at selling price",
+      "if_all_sold": "if all stock sold"
     },
+    "status": {
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
+
+    "filter": {
+      "search_placeholder": "Search product or SKU…",
+      "all_statuses": "All statuses",
+      "stock_status": "Stock Status"
+    },
+
+    "table": {
+      "product": "Product",
+      "category": "Category",
+      "stock": "Stock",
+      "reorder_at": "Reorder at",
+      "cost_price": "Cost Price",
+      "retail_price": "Retail Price",
+      "cost_value": "Cost Value",
+      "retail_value": "Retail Value",
+      "status": "Status"
+    },
+
+    "movement": {
+      "title": "Movement Summary",
+      "select_range": "Select a date range to see movements",
+      "units": "units",
+      "transactions": "transactions",
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "adjustment_in": "Adj In",
+      "adjustment_out": "Adj Out",
+      "waste": "Waste",
+      "count": "Count",
+      "top_move": "Top Stock Movers"
+    },
+
+    "top_movers": {
+      "title": "Top Stock Movers",
+      "in": "In (+)",
+      "out": "Out (-)",
+      "net": "Net"
+    },
+
+    "by_category": "By Category",
+    "all_products": "All Products",
+    "uncategorized": "Uncategorized",
+    "cost": "cost",
+    "retail": "retail",
+    "value": "value",
+    "products_count": "{n} products",
     "tabs": {
       "all": "All Products",
-      "movements": "Movements"
+      "movements": "Movements Summary"
     },
+    "top_stock_movers": "Top Stock Movers",
     "empty": "No inventory data found",
     "empty_sub": "Add products and set stock levels to see inventory report"
   },

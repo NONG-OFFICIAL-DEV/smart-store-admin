@@ -16,6 +16,7 @@
         </v-btn>
       </template>
     </custom-title>
+
     <!-- Branch + Period filter -->
     <BranchFilterBar
       v-model="branchIds"
@@ -31,10 +32,10 @@
     <v-card rounded="lg" border elevation="0" class="mb-5">
       <v-card-text class="pa-4">
         <v-row dense align="center">
-          <v-col cols="12" sm="4">
+          <v-col cols="12" sm="5">
             <v-text-field
               v-model="search"
-              placeholder="Search product..."
+              :placeholder="t('inventory_report.filter.search_placeholder')"
               variant="outlined"
               density="compact"
               rounded="lg"
@@ -44,22 +45,21 @@
               @update:model-value="onSearch"
             />
           </v-col>
-          <v-col cols="6" sm="2">
+          <v-col cols="6" sm="3">
             <v-select
               v-model="stockFilter"
               :items="stockFilterOptions"
               item-title="label"
               item-value="value"
-              placeholder="Stock status"
+              :placeholder="t('inventory_report.filter.stock_status')"
               variant="outlined"
               density="compact"
               rounded="lg"
               hide-details
               clearable
-              @update:model-value="load"
             />
           </v-col>
-          <v-col cols="6" sm="2">
+          <v-col cols="6" sm="4" class="d-flex justify-end">
             <v-btn-toggle
               v-model="viewMode"
               mandatory
@@ -78,12 +78,11 @@
 
     <!-- Summary cards -->
     <v-row dense class="mb-5">
-      <!-- Stock health -->
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-caption text-medium-emphasis">
-              Total Products
+              {{ t('inventory_report.summary.total_products') }}
             </span>
             <v-avatar size="28" color="primary" variant="tonal" rounded="lg">
               <v-icon icon="mdi-package-variant" size="14" />
@@ -92,137 +91,149 @@
           <div class="text-h5 font-weight-black text-primary">
             {{ report.summary?.total_products ?? 0 }}
           </div>
-          <div class="d-flex gap-2 mt-2">
+          <div class="d-flex flex-wrap gap-1 mt-2">
             <v-chip size="x-small" color="success" variant="tonal" rounded="lg">
               {{ report.summary?.in_stock ?? 0 }} OK
             </v-chip>
             <v-chip size="x-small" color="warning" variant="tonal" rounded="lg">
-              {{ report.summary?.low_stock ?? 0 }} Low
+              {{ report.summary?.low_stock ?? 0 }}
+              {{ t('inventory_report.status.low_stock') }}
             </v-chip>
             <v-chip size="x-small" color="error" variant="tonal" rounded="lg">
-              {{ report.summary?.out_of_stock ?? 0 }} Out
+              {{ report.summary?.out_of_stock ?? 0 }}
+              {{ t('inventory_report.status.out_of_stock') }}
             </v-chip>
           </div>
         </v-card>
       </v-col>
 
-      <!-- Stock cost value -->
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-caption text-medium-emphasis">
-              Stock Cost Value
+              {{ t('inventory_report.summary.cost_value') }}
             </span>
             <v-avatar size="28" color="indigo" variant="tonal" rounded="lg">
               <v-icon icon="mdi-cash-multiple" size="14" />
             </v-avatar>
           </div>
           <div class="text-h5 font-weight-black text-indigo">
-            {{ fmt(report.summary?.total_cost_value) }}
+            {{ format(report.summary?.total_cost_value) }}
           </div>
           <div class="text-caption text-medium-emphasis mt-1">
-            at cost price
+            {{ t('inventory_report.summary.at_cost_price') }}
           </div>
         </v-card>
       </v-col>
 
-      <!-- Retail value -->
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">Retail Value</span>
+            <span class="text-caption text-medium-emphasis">
+              {{ t('inventory_report.summary.retail_value') }}
+            </span>
             <v-avatar size="28" color="teal" variant="tonal" rounded="lg">
               <v-icon icon="mdi-tag-outline" size="14" />
             </v-avatar>
           </div>
           <div class="text-h5 font-weight-black text-teal">
-            {{ fmt(report.summary?.total_retail_value) }}
+            {{ format(report.summary?.total_retail_value) }}
           </div>
           <div class="text-caption text-medium-emphasis mt-1">
-            at selling price
+            {{ t('inventory_report.summary.at_selling_price') }}
           </div>
         </v-card>
       </v-col>
 
-      <!-- Potential profit -->
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-caption text-medium-emphasis">
-              Potential Profit
+              {{ t('inventory_report.summary.potential_profit') }}
             </span>
             <v-avatar size="28" color="success" variant="tonal" rounded="lg">
               <v-icon icon="mdi-trending-up" size="14" />
             </v-avatar>
           </div>
           <div class="text-h5 font-weight-black text-success">
-            {{ fmt(report.summary?.potential_profit) }}
+            {{ format(report.summary?.potential_profit) }}
           </div>
           <div class="text-caption text-medium-emphasis mt-1">
-            if all stock sold
+            {{ t('inventory_report.summary.if_all_sold') }}
           </div>
         </v-card>
       </v-col>
     </v-row>
 
     <v-row dense>
-      <!-- By category chart -->
+      <!-- By category -->
       <v-col cols="12" md="4">
         <v-card rounded="xl" border elevation="0" class="mb-4 fill-height">
-          <div class="pa-5 pb-3 text-body-1 font-weight-bold">By Category</div>
+          <div class="pa-5 pb-3 text-body-1 font-weight-bold">
+            {{ t('inventory_report.by_category') }}
+          </div>
           <v-divider />
           <v-card-text class="pa-4">
-            <div
-              v-for="cat in report.by_category"
-              :key="cat.category"
-              class="mb-3"
-            >
-              <div class="d-flex justify-space-between align-center mb-1">
-                <span class="text-body-2 font-weight-medium">
-                  {{ cat.category }}
-                </span>
-                <div class="d-flex align-center gap-2">
-                  <span class="text-caption font-weight-bold">
-                    {{ fmt(cat.stock_value) }}
+            <template v-if="report.by_category?.length">
+              <div
+                v-for="cat in report.by_category"
+                :key="cat.category"
+                class="mb-4"
+              >
+                <div class="d-flex justify-space-between align-center mb-1">
+                  <span
+                    class="text-body-2 font-weight-medium text-truncate"
+                    style="max-width: 55%"
+                  >
+                    {{ cat.category }}
                   </span>
-                  <span class="text-caption text-medium-emphasis">
-                    {{ cat.count }} products
-                  </span>
+                  <div class="d-flex align-center gap-2">
+                    <span class="text-caption font-weight-bold">
+                      {{ format(cat.stock_value) }}
+                    </span>
+                    <span class="text-caption text-medium-emphasis">
+                      {{ cat.count }}p
+                    </span>
+                  </div>
+                </div>
+                <v-progress-linear
+                  :model-value="
+                    maxCategoryValue > 0
+                      ? (cat.stock_value / maxCategoryValue) * 100
+                      : 0
+                  "
+                  color="primary"
+                  height="5"
+                  rounded
+                  bg-color="grey-lighten-3"
+                />
+                <div
+                  v-if="cat.out_of_stock > 0 || cat.low_stock > 0"
+                  class="d-flex gap-1 mt-1"
+                >
+                  <v-chip
+                    v-if="cat.out_of_stock"
+                    size="x-small"
+                    color="error"
+                    variant="tonal"
+                    rounded="lg"
+                  >
+                    {{ cat.out_of_stock }} out
+                  </v-chip>
+                  <v-chip
+                    v-if="cat.low_stock"
+                    size="x-small"
+                    color="warning"
+                    variant="tonal"
+                    rounded="lg"
+                  >
+                    {{ cat.low_stock }} low
+                  </v-chip>
                 </div>
               </div>
-              <v-progress-linear
-                :model-value="(cat.stock_value / maxCategoryValue) * 100"
-                color="primary"
-                height="5"
-                rounded
-                bg-color="grey-lighten-3"
-              />
-              <div
-                v-if="cat.out_of_stock > 0 || cat.low_stock > 0"
-                class="d-flex gap-1 mt-1"
-              >
-                <v-chip
-                  v-if="cat.out_of_stock"
-                  size="x-small"
-                  color="error"
-                  variant="tonal"
-                  rounded="lg"
-                >
-                  {{ cat.out_of_stock }} out
-                </v-chip>
-                <v-chip
-                  v-if="cat.low_stock"
-                  size="x-small"
-                  color="warning"
-                  variant="tonal"
-                  rounded="lg"
-                >
-                  {{ cat.low_stock }} low
-                </v-chip>
-              </div>
-            </div>
+            </template>
             <div
-              v-if="!report.by_category?.length"
+              v-else
               class="text-caption text-medium-emphasis text-center py-6"
             >
               No data
@@ -231,11 +242,13 @@
         </v-card>
       </v-col>
 
-      <!-- Movement summary (if date range) -->
+      <!-- Movement summary -->
       <v-col cols="12" md="8">
         <v-card rounded="xl" border elevation="0" class="mb-4">
           <div class="d-flex align-center justify-space-between pa-5 pb-3">
-            <div class="text-body-1 font-weight-bold">Movement Summary</div>
+            <div class="text-body-1 font-weight-bold">
+              {{ t('inventory_report.tabs.movements') }}
+            </div>
             <v-chip
               v-if="dateFrom && dateTo"
               size="small"
@@ -252,7 +265,7 @@
               variant="tonal"
               rounded="lg"
             >
-              Select date range to see movements
+            {{ t('inventory_report.movement.select_range') }}
             </v-chip>
           </div>
           <v-divider />
@@ -276,7 +289,7 @@
                     </span>
                   </div>
                   <div class="text-body-1 font-weight-black">
-                    {{ m.total_qty }}
+                    {{ Number(m.total_qty).toLocaleString() }}
                     <span
                       class="text-caption text-medium-emphasis font-weight-regular"
                     >
@@ -284,7 +297,13 @@
                     </span>
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ m.count }} transactions
+                    {{ m.count }} {{t('inventory_report.movement.transactions')}}
+                  </div>
+                  <div
+                    v-if="Number(m.total_value) > 0"
+                    class="text-caption font-weight-bold mt-1"
+                  >
+                    {{ format(m.total_value) }}
                   </div>
                 </v-card>
               </v-col>
@@ -303,7 +322,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- Top movers (if date range) -->
+        <!-- Top movers -->
         <v-card
           v-if="report.product_movements?.length"
           rounded="xl"
@@ -311,7 +330,7 @@
           elevation="0"
         >
           <div class="pa-5 pb-3 text-body-1 font-weight-bold">
-            Top Stock Movers
+            {{ t('inventory_report.movement.top_move') }}
           </div>
           <v-divider />
           <v-data-table
@@ -369,11 +388,11 @@
       </v-col>
     </v-row>
 
-    <!-- ── Product stock table / cards ──────────────────────────────────── -->
+    <!-- Product stock table / cards -->
     <v-card rounded="xl" border elevation="0" class="mt-4">
       <div class="d-flex align-center justify-space-between pa-5 pb-3">
         <div class="text-body-1 font-weight-bold">
-          All Products
+          {{ t('inventory_report.tabs.all') }}
           <v-chip
             size="x-small"
             color="primary"
@@ -384,6 +403,13 @@
             {{ filteredProducts.length }}
           </v-chip>
         </div>
+        <v-progress-linear
+          v-if="loading"
+          indeterminate
+          color="primary"
+          class="position-absolute"
+          style="bottom: 0; left: 0; right: 0"
+        />
       </div>
       <v-divider />
 
@@ -392,9 +418,11 @@
         v-if="viewMode === 'table'"
         :headers="productHeaders"
         :items="filteredProducts"
-        :items-per-page="10"
+        :items-per-page="15"
         item-value="id"
+        :loading="loading"
       >
+        <!-- Product name + SKU + image -->
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-2 py-1">
             <v-avatar
@@ -423,31 +451,38 @@
           <span class="text-caption">{{ item.category ?? '—' }}</span>
         </template>
 
+        <!-- Stock qty coloured by status -->
         <template #item.stock_quantity="{ item }">
-          <div>
-            <span
-              class="font-weight-black"
-              :class="stockClass(item.stock_status)"
-            >
-              {{ item.stock_quantity }}
-            </span>
-            <span class="text-caption text-medium-emphasis ml-1">
-              {{ item.unit ?? 'pcs' }}
-            </span>
-          </div>
+          <span
+            class="font-weight-black"
+            :class="stockClass(item.stock_status)"
+          >
+            {{ item.stock_quantity }}
+          </span>
+          <span class="text-caption text-medium-emphasis ml-1">
+            {{ item.unit }}
+          </span>
         </template>
 
         <template #item.reorder_level="{ item }">
           <span class="text-body-2">{{ item.reorder_level ?? '—' }}</span>
         </template>
 
+        <template #item.cost_price="{ item }">
+          <span class="text-body-2">{{ format(item.cost_price) }}</span>
+        </template>
+
+        <template #item.retail_price="{ item }">
+          <span class="text-body-2">{{ format(item.retail_price) }}</span>
+        </template>
+
         <template #item.stock_value="{ item }">
-          <span class="font-weight-bold">{{ fmt(item.stock_value) }}</span>
+          <span class="font-weight-bold">{{ format(item.stock_value) }}</span>
         </template>
 
         <template #item.retail_value="{ item }">
           <span class="text-success font-weight-bold">
-            {{ fmt(item.retail_value) }}
+            {{ format(item.retail_value) }}
           </span>
         </template>
 
@@ -525,11 +560,14 @@
                   <span
                     class="text-caption text-medium-emphasis font-weight-regular"
                   >
-                    {{ p.unit ?? 'pcs' }}
+                    {{ p.unit }}
                   </span>
                 </div>
                 <div class="text-caption text-medium-emphasis">
-                  {{ fmt(p.stock_value) }} value
+                  {{ format(p.stock_value) }} cost
+                </div>
+                <div class="text-caption text-success">
+                  {{ format(p.retail_value) }} retail
                 </div>
               </div>
             </v-card>
@@ -557,7 +595,9 @@
   import api from '@/api/api'
   import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
   import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
+  const { format } = useCurrency()
   const { t } = useI18n()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
@@ -569,28 +609,30 @@
   const dateTo = ref('')
   const branchIds = ref([])
   const search = ref('')
-  const stockFilter = ref(null)
+  const stockFilter = ref(null) // client-side only – no extra API call needed
   const viewMode = ref('table')
 
   const report = ref({
     summary: {},
     products: [],
     by_category: [],
-    movement_summary: [],
-    product_movements: []
+    movement_summary: null,
+    product_movements: null
   })
 
-  const stockFilterOptions = [
-    { value: 'in_stock', label: 'In Stock' },
-    { value: 'low_stock', label: 'Low Stock' },
-    { value: 'out_of_stock', label: 'Out of Stock' }
-  ]
+  const stockFilterOptions = computed(() => [
+    { value: 'in_stock', label: t('inventory_report.status.in_stock') },
+    { value: 'low_stock', label: t('inventory_report.status.low_stock') },
+    { value: 'out_of_stock', label: t('inventory_report.status.out_of_stock') }
+  ])
 
-  // ── Filtered products ─────────────────────────────────────────────────────
+  // ── Client-side filtering (no extra API call for status / search debounce) ──
   const filteredProducts = computed(() => {
     let list = report.value.products ?? []
+
     if (stockFilter.value)
       list = list.filter(p => p.stock_status === stockFilter.value)
+
     if (search.value) {
       const q = search.value.toLowerCase()
       list = list.filter(
@@ -606,40 +648,88 @@
     Math.max(...(report.value.by_category ?? []).map(c => c.stock_value), 1)
   )
 
-  // ── Table headers ─────────────────────────────────────────────────────────
-  const productHeaders = [
-    { title: 'Product', key: 'name', sortable: false },
-    { title: 'Category', key: 'category', sortable: true },
-    { title: 'Stock', key: 'stock_quantity', sortable: true },
-    { title: 'Reorder At', key: 'reorder_level', sortable: true },
-    { title: 'Cost Value', key: 'stock_value', sortable: true },
-    { title: 'Retail Value', key: 'retail_value', sortable: true },
-    { title: 'Status', key: 'stock_status', sortable: false }
-  ]
+  // ── Table headers (columns that actually exist in the API response) ──────────
+  const productHeaders = computed(() => [
+    { title: t('inventory_report.table.product'), key: 'name', sortable: true },
+    {
+      title: t('inventory_report.table.category'),
+      key: 'category',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.stock'),
+      key: 'stock_quantity',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.reorder_at'),
+      key: 'reorder_level',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.cost_price'),
+      key: 'cost_price',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.retail_price'),
+      key: 'retail_price',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.cost_value'),
+      key: 'stock_value',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.retail_value'),
+      key: 'retail_value',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.table.status'),
+      key: 'stock_status',
+      sortable: true
+    }
+  ])
 
-  const movementHeaders = [
-    { title: 'Product', key: 'product_name', sortable: false },
-    { title: 'In (+)', key: 'total_in', sortable: true },
-    { title: 'Out (-)', key: 'total_out', sortable: true },
-    { title: 'Net', key: 'net', sortable: false }
-  ]
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  const movementHeaders = computed(() => [
+    {
+      title: t('inventory_report.table.product'),
+      key: 'product_name',
+      sortable: false
+    },
+    {
+      title: t('inventory_report.top_movers.in'),
+      key: 'total_in',
+      sortable: true
+    },
+    {
+      title: t('inventory_report.top_movers.out'),
+      key: 'total_out',
+      sortable: true
+    },
+    { title: t('inventory_report.top_movers.net'), key: 'net', sortable: false }
+  ])
+  // ── Helpers ──────────────────────────────────────────────────────────────────
   const statusColor = s =>
     ({ in_stock: 'success', low_stock: 'warning', out_of_stock: 'error' })[s] ??
     'grey'
+
   const statusIcon = s =>
     ({
       in_stock: 'mdi-check-circle',
       low_stock: 'mdi-alert',
       out_of_stock: 'mdi-close-circle'
     })[s] ?? 'mdi-circle'
+
   const statusLabel = s =>
     ({
-      in_stock: 'In Stock',
-      low_stock: 'Low Stock',
-      out_of_stock: 'Out of Stock'
+      in_stock: t('inventory_report.status.in_stock'),
+      low_stock: t('inventory_report.status.low_stock'),
+      out_of_stock: t('inventory_report.status.out_of_stock')
     })[s] ?? s
+
   const stockClass = s =>
     ({
       in_stock: 'text-success',
@@ -647,7 +737,7 @@
       out_of_stock: 'text-error'
     })[s] ?? ''
 
-  const movementIcon = t =>
+  const movementIcon = type =>
     ({
       purchase: 'mdi-package-down',
       sale: 'mdi-cart-outline',
@@ -655,8 +745,9 @@
       adjustment_out: 'mdi-minus-circle-outline',
       waste: 'mdi-trash-can-outline',
       count: 'mdi-clipboard-check-outline'
-    })[t] ?? 'mdi-circle'
-  const movementColor = t =>
+    })[type] ?? 'mdi-circle'
+
+  const movementColor = type =>
     ({
       purchase: 'success',
       sale: 'primary',
@@ -664,22 +755,10 @@
       adjustment_out: 'orange',
       waste: 'error',
       count: 'purple'
-    })[t] ?? 'grey'
-  const movementLabel = t =>
-    ({
-      purchase: 'Purchase',
-      sale: 'Sale',
-      adjustment_in: 'Adj In',
-      adjustment_out: 'Adj Out',
-      waste: 'Waste',
-      count: 'Count'
-    })[t] ?? t
+    })[type] ?? 'grey'
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
+  const movementLabel = type => t(`inventory_report.movement.${type}`, type)
+
   const fmtDate = v =>
     v
       ? new Date(v).toLocaleDateString('en-US', {
@@ -689,7 +768,7 @@
         })
       : ''
 
-  // ── Period & dates ────────────────────────────────────────────────────────
+  // ── Period / date helpers ─────────────────────────────────────────────────────
   const periodDates = p => {
     const now = new Date()
     const pad = n => String(n).padStart(2, '0')
@@ -733,27 +812,28 @@
     if (from && to) load()
   }
 
+  // Search is debounced but filters client-side — only triggers reload for server-side search
   let searchTimer = null
   const onSearch = () => {
     clearTimeout(searchTimer)
-    searchTimer = setTimeout(load, 400)
+    searchTimer = setTimeout(load, 500)
   }
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // ── Load ──────────────────────────────────────────────────────────────────────
   const load = async () => {
     loading.value = true
     try {
       const res = await api.get('v1/mart/reports/inventory', {
         params: {
-          branch_id: branchIds.value[0] ?? authStore.branch_id,
+          branch_id: branchIds.value[0] ?? authStore.branch_id ?? undefined,
           date_from: dateFrom.value || undefined,
           date_to: dateTo.value || undefined,
           search: search.value || undefined
         }
       })
       report.value = res.data.data
-    } catch (e) {
-      notif('Failed to load report', { type: 'error' })
+    } catch {
+      notif('Failed to load inventory report', { type: 'error' })
     } finally {
       loading.value = false
     }
@@ -761,19 +841,26 @@
 
   onMounted(async () => {
     await branchStore.fetchBranches()
+    const d = periodDates(period.value)
+    dateFrom.value = d.from
+    dateTo.value = d.to
     load()
   })
 </script>
 
 <style scoped>
+  .gap-1 {
+    gap: 4px;
+  }
   .gap-2 {
     gap: 8px;
   }
 
-  /* Product stock cards */
   .product-stock-card {
     overflow: hidden;
-    transition: all 0.15s;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
   }
   .product-stock-card:hover {
     transform: translateY(-2px);
