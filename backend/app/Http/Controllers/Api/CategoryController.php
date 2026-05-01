@@ -43,6 +43,7 @@ class CategoryController extends Controller
             'color',
             'sort_order',
             'is_active',
+            'is_lid_exchange',
         ]));
 
         $category->tenants()->sync($request->input('tenant_ids', []));
@@ -63,6 +64,7 @@ class CategoryController extends Controller
             'color',
             'sort_order',
             'is_active',
+            'is_lid_exchange',
         ]));
 
         $category->tenants()->sync($request->input('tenant_ids', []));

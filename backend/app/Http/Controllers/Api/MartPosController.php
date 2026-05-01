@@ -258,7 +258,7 @@ class MartPosController extends Controller
 
         $branch = Branch::findOrFail($request->branch_id);
 
-        $products = Product::with(['activeUnits', 'category:id,name'])
+        $products = Product::with(['activeUnits', 'category:id,name,is_lid_exchange'])
 
             ->where('tenant_id', $branch->tenant_id)
             ->where('is_available', true)

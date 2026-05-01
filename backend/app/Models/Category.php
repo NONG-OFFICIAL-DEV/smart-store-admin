@@ -18,10 +18,12 @@ class Category extends BaseModel
         'color',
         'sort_order',
         'is_active',
+        'is_lid_exchange'
     ];
 
     protected $casts = [
         'is_active'  => 'boolean',
+        'is_lid_exchange' => 'boolean',
         'sort_order' => 'integer',
     ];
 
@@ -39,6 +41,7 @@ class Category extends BaseModel
                 'color',
                 'sort_order',
                 'is_active',
+                'is_lid_exchange'
             ])
             : $request;
 
