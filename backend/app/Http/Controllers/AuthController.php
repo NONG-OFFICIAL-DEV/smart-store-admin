@@ -125,7 +125,11 @@ class AuthController extends Controller
 
         // ── 2. Tenant Owner ────────────────────────────────────────
         // Owns a tenant — full access within that tenant
-        $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
+
+        $ownedTenant = Tenant::where('owner_user_id', $user->id)
+            ->with('branches:id,tenant_id,name')  // tenant_id is required!
+            ->first();
+
         if ($ownedTenant) {
             return response()->json([
                 'user'           => $user,
@@ -139,6 +143,7 @@ class AuthController extends Controller
                 'locale'         => $ownedTenant->locale,
                 'plan'           => $ownedTenant->plan,
                 'branch_id'      => null,       // access ALL branches
+                'branches'       => $ownedTenant->branches,   // ← add this
                 'permissions'    => Permission::pluck('code')->toArray(),
             ]);
         }
