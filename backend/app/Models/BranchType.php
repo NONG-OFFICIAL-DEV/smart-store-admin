@@ -14,19 +14,19 @@ class BranchType extends Model
         'is_active' => 'boolean',
     ];
 
-    public function businessType(): BelongsTo
+    public function businessType()
     {
         return $this->belongsTo(BusinessType::class);
     }
 
-    public function features(): BelongsToMany
+    public function features()
     {
         return $this->belongsToMany(Feature::class, 'branch_type_features')
                     ->withPivot('is_required', 'is_default')
                     ->withTimestamps();
     }
 
-    public function branches(): HasMany
+    public function branches()
     {
         return $this->hasMany(Branch::class);
     }

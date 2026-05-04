@@ -11,14 +11,14 @@ class Feature extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function businessTypes(): BelongsToMany
+    public function businessTypes()
     {
         return $this->belongsToMany(BusinessType::class, 'business_type_features')
                     ->withPivot('is_default')
                     ->withTimestamps();
     }
 
-    public function branchTypes(): BelongsToMany
+    public function branchTypes()
     {
         return $this->belongsToMany(BranchType::class, 'branch_type_features')
                     ->withPivot('is_required', 'is_default')

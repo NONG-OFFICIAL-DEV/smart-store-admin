@@ -11,19 +11,19 @@ class BusinessType extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
-    public function branchTypes(): HasMany
+    public function branchTypes()
     {
         return $this->hasMany(BranchType::class);
     }
 
-    public function features(): BelongsToMany
+    public function features()
     {
         return $this->belongsToMany(Feature::class, 'business_type_features')
                     ->withPivot('is_default')
                     ->withTimestamps();
     }
 
-    public function tenants(): HasMany
+    public function tenants()
     {
         return $this->hasMany(Tenant::class);
     }
