@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Http\Request;
 
 // app/Models/BranchType.php
-class BranchType extends Model
+class BranchType extends BaseModel
 {
     protected $fillable = ['business_type_id', 'code', 'name', 'icon', 'is_hq', 'is_active', 'sort_order'];
 
@@ -22,8 +21,8 @@ class BranchType extends Model
     public function features()
     {
         return $this->belongsToMany(Feature::class, 'branch_type_features')
-                    ->withPivot('is_required', 'is_default')
-                    ->withTimestamps();
+            ->withPivot('is_required', 'is_default')
+            ->withTimestamps();
     }
 
     public function branches()

@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Http\Request;
-
 // app/Models/BusinessType.php
-class BusinessType extends Model
+class BusinessType extends BaseModel
 {
     protected $fillable = ['code', 'name', 'icon', 'is_active', 'sort_order'];
 
@@ -19,8 +17,8 @@ class BusinessType extends Model
     public function features()
     {
         return $this->belongsToMany(Feature::class, 'business_type_features')
-                    ->withPivot('is_default')
-                    ->withTimestamps();
+            ->withPivot('is_default')
+            ->withTimestamps();
     }
 
     public function tenants()
