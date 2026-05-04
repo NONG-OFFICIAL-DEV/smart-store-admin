@@ -4,17 +4,16 @@
       icon="mdi-store"
       :title="$t('menu.operation')"
     ></custom-title>
-    <!-- Operation Cards / Links -->
     <v-row>
       <v-col
-        v-for="item in operations"
-        :key="item.title"
+        v-for="item in visibleOperations"
+        :key="item.key"
         cols="12" sm="6" md="4" lg="3"
       >
         <v-card
           class="pa-4 text-center"
           hover
-          rounded="log"
+          rounded="lg"
           @click="openLink(item.url)"
         >
           <v-icon size="48" color="primary">{{ item.icon }}</v-icon>
@@ -28,46 +27,40 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 
-const { t } = useI18n()
-const auth = useAuthStore()
+const authStore = useAuthStore()
 
-// Map bu_type → POS URL
-const posUrlMap = {
-  // Mart types → retail POS
-  minimart:   'https://retail.nongofficial.store',
-  retail:     'https://retail.nongofficial.store',
-  wholesale:  'https://retail.nongofficial.store',
+const isSuperAdmin = computed(() => authStore.isSuperAdmin)
+const buType       = computed(() => authStore.bu_type)
 
-  // Food types → coffee/food POS
-  restaurant: 'https://coffee-pos.nongofficial.store',
-  cafe:       'https://coffee-pos.nongofficial.store',
-  bakery:     'https://coffee-pos.nongofficial.store',
-  kiosk:      'https://coffee-pos.nongofficial.store',
-  food_truck: 'https://coffee-pos.nongofficial.store',
-}
-
-const posUrl = computed(() => posUrlMap[auth.bu_type] ?? null)
-
-const operations = computed(() => {
-  const items = []
-
-  if (posUrl.value) {
-    items.push({
-      title: t('menu.pos'),
-      subtitle: auth.isMart ? 'Retail Point of Sale' : 'Food & Beverage POS',
-      icon: auth.isMart ? 'mdi-cash-register' : 'mdi-coffee-outline',
-      url: posUrl.value
-    })
+const operations = [
+  {
+    key:      'pos-retail',
+    title:    'Retail POS',
+    subtitle: 'Open retail POS system',
+    icon:     'mdi-cash-register',
+    url:      'https://retail.nongofficial.store',
+    buTypes:  ['minimart', 'retail', 'wholesale'], // shown to these bu_types (+ super admin)
+  },
+  {
+    key:      'pos-food',
+    title:    'Food & Cafe POS',
+    subtitle: 'Open food/cafe POS system',
+    icon:     'mdi-coffee',
+    url:      'https://coffee-pos.nongofficial.store',
+    buTypes:  ['restaurant', 'cafe', 'bakery', 'kiosk', 'food_truck'],
   }
+]
 
-  // Add more operations here if needed
-  // items.push({ title: '...', subtitle: '...', icon: '...', url: '...' })
-
-  return items
-})
+const visibleOperations = computed(() =>
+  operations.filter(item => {
+    // Super admin sees everything
+    if (isSuperAdmin.value) return true
+    // Others see only items matching their bu_type
+    return item.buTypes.includes(buType.value)
+  })
+)
 
 function openLink(url) {
   if (!url) return

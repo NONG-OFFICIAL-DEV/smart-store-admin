@@ -19,18 +19,22 @@ class DatabaseSeeder extends Seeder
             // UserSeeder::class,
             // PurchaseStatusSeeder::class,
             // TableSeeder::class,
-            // Add other seeders here
+            // Add other seeders here,
+            BusinessTypeSeeder::class,
+            FeatureSeeder::class,
+            BranchTypeSeeder::class,
+            BranchTypeFeatureSeeder::class,
         ]);
-        \App\Models\User::firstOrCreate(
-            ['email' => 'adminstore@example.com'],
-            [
-                'first_name' => 'Admin',
-                'last_name' => 'Store',
-                'password_hash' => bcrypt('admin1234'),
-                'is_super_admin' => true,
-                'is_admin' => true,
-                'is_active'      => true,
-            ]
-        );
+        // \App\Models\User::firstOrCreate(
+        //     ['email' => 'adminstore@example.com'],
+        //     [
+        //         'first_name' => 'Admin',
+        //         'last_name' => 'Store',
+        //         'password_hash' => bcrypt('admin1234'),
+        //         'is_super_admin' => true,
+        //         'is_admin' => true,
+        //         'is_active'      => true,
+        //     ]
+        // );
     }
 }

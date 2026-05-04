@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('name', 150);
             $table->string('slug', 100)->unique();
             $table->enum('plan', ['free', 'starter', 'pro', 'enterprise'])->default('free');
+            $table->foreignUuid('business_type_id')->nullable()->constrained();
             $table->timestampTz('plan_expires_at')->nullable();
             $table->uuid('owner_user_id')->nullable(); // FK added after users table
             $table->text('logo_url')->nullable();
