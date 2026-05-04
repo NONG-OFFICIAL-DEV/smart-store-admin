@@ -85,19 +85,20 @@ Route::get('/test', function () {
     ]);
 });
 
-// ── Public routes (no auth needed) ──────────────────────────────────────────
-Route::post('/login',     [AuthController::class, 'login']);
 Route::get('/get-receipt',     [ReceiptController::class, 'index']);
-Route::post('/login-pin', [AuthController::class, 'loginByPin']); // ← moved OUT
-// routes/api.php
 Route::post('/print-receipt', [ReceiptController::class, 'print']);
 Route::post('/print-receipt-image', [ReceiptController::class, 'printImage']);
+// ── Public routes (no auth needed) ──────────────────────────────────────────
+// routes/api.php
+Route::post('/login',     [AuthController::class, 'login']);
+Route::post('/refresh', [AuthController::class, 'refresh']);
+Route::post('/login-pin', [AuthController::class, 'loginByPin']); // ← moved OUT
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware('jwt.auth')->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
     Route::post('/logout',  [AuthController::class, 'logout']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::put('/set-pin', [AuthController::class, 'setPin']); // ← stays here (needs login first)
+    Route::delete('terminal/{terminal_id}',    [AuthController::class, 'revokeTerminal']);
 
     Route::prefix('users')->group(function () {
         Route::get('/',      [UserController::class, 'index']);

@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@mdi/font": "^7.4.47",
     "@nong-official-dev/core": "^1.2.14",
     "axios": "^1.13.5",
