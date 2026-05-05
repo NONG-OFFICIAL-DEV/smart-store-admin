@@ -19,6 +19,7 @@ class Tenant extends BaseModel
         'currency',
         'locale',
         'is_active',
+        'business_type_id',
     ];
 
     protected $casts = [
@@ -43,6 +44,7 @@ class Tenant extends BaseModel
                 'currency',
                 'locale',
                 'is_active',
+                'business_type_id',
             ])
             : $request;
 
@@ -98,5 +100,22 @@ class Tenant extends BaseModel
     public function suppliers()
     {
         return $this->hasMany(Supplier::class);
+    }
+
+    public function businessType()
+    {
+        return $this->belongsTo(BusinessType::class);
+    }
+
+    public function hqBranch()
+    {
+        return $this->hasOne(Branch::class)
+                    ->whereHas('branchType', fn($q) => $q->where('is_hq', true));
+    }
+
+    // Get all features available to this tenant via business type
+    public function availableFeatures()
+    {
+        return $this->businessType->features()->where('is_active', true)->get();
     }
 }

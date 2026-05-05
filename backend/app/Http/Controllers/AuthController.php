@@ -298,23 +298,24 @@ class AuthController extends Controller
         $ownedTenant = Tenant::where('owner_user_id', $user->id)->first();
         if ($ownedTenant) {
             return response()->json([
-                'user'        => $user,
-                'is_owner'    => true,
-                'tenant_id'   => $ownedTenant->id,
-                'bu_name'     => $ownedTenant->name,
-                'bu_type'     => $ownedTenant->bu_type,
-                'logo_url'    => $ownedTenant->logo_url,
-                'currency'    => $ownedTenant->currency,
-                'locale'      => $ownedTenant->locale,
-                'plan'        => $ownedTenant->plan,
-                'branch_id'   => null,
-                'permissions' => Permission::pluck('code')->toArray(),
+                'user'           => $user,
+                'is_super_admin' => false,
+                'is_owner'       => true,
+                'tenant_id'      => $ownedTenant->id,
+                'bu_name'        => $ownedTenant->name,
+                'bu_type'        => $ownedTenant->businessType?->code,   // ← was ->bu_type
+                'logo_url'       => $ownedTenant->logo_url,
+                'currency'       => $ownedTenant->currency,
+                'locale'         => $ownedTenant->locale,
+                'plan'           => $ownedTenant->plan,
+                'branch_id'      => null,       // access ALL branches
+                'permissions'    => Permission::pluck('code')->toArray(),
             ]);
         }
 
         $staff = $user->staff()
-            ->withoutGlobalScopes()
-            ->with(['role.permissions', 'branch', 'tenant'])
+            ->withoutGlobalScopes()          // ← bypass TenantScope
+            ->with(['role.permissions', 'branch', 'tenant.businessType'])
             ->first();
 
         if (!$staff) {
@@ -322,18 +323,20 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'user'        => $user,
-            'is_staff'    => true,
-            'tenant_id'   => $staff->tenant_id,
-            'bu_name'     => $staff->tenant?->name,
-            'bu_type'     => $staff->tenant?->bu_type,
-            'logo_url'    => $staff->tenant?->logo_url,
-            'branch_name' => $staff->branch?->name,
-            'branch_id'   => $staff->branch_id,
-            'role_name'   => $staff->role?->name,
-            'currency'    => $staff->tenant?->currency,
-            'plan'        => $staff->tenant?->plan,
-            'permissions' => $staff->role?->permissions->pluck('code')->toArray() ?? [],
+            'user'           => $user,
+            'is_super_admin' => false,
+            'is_owner'       => false,
+            'is_staff'       => true,
+            'tenant_id'      => $staff->tenant_id,
+            'bu_name'        => $staff->tenant?->name,
+            'bu_type'        => $staff->tenant?->businessType?->code,   // ← was ->bu_type
+            'logo_url'       => $staff->tenant?->logo_url,
+            'branch_name'    => $staff->branch?->name,
+            'branch_id'      => $staff->branch_id,
+            'role_name'      => $staff->role->name,
+            'currency'       => $staff->tenant?->currency,
+            'plan'           => $staff->tenant?->currency,
+            'permissions'    => $staff->role->permissions->pluck('code')->toArray(),
         ]);
     }
 
@@ -410,7 +413,7 @@ class AuthController extends Controller
             $payload += [
                 'tenant_id'   => $tenant->id,
                 'bu_name'     => $tenant->name,
-                'bu_type'     => $tenant->bu_type,
+                'bu_type'        => $tenant?->businessType?->code,
                 'logo_url'    => $tenant->logo_url,
                 'currency'    => $tenant->currency,
                 'plan'        => $tenant->plan,
@@ -420,11 +423,11 @@ class AuthController extends Controller
         }
 
         if ($isStaff) {
-            $staff = Staff::withoutGlobalScopes()->with(['role.permissions', 'branch', 'tenant'])->find($actorId);
+            $staff = Staff::withoutGlobalScopes()->with(['role.permissions', 'branch', 'tenant.businessType'])->find($actorId);
             $payload += [
                 'tenant_id'   => $staff->tenant_id,
                 'bu_name'     => $staff->tenant?->name,
-                'bu_type'     => $staff->tenant?->bu_type,
+                'bu_type'     => $staff->tenant?->businessType?->code,
                 'logo_url'    => $staff->tenant?->logo_url,
                 'branch_id'   => $staff->branch_id,
                 'branch_name' => $staff->branch?->name,

@@ -46,13 +46,15 @@ class PurchaseOrderController extends Controller
      */
     public function store(Request $request)
     {
-        return PurchaseOrder::store($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        return PurchaseOrder::store($request, null, $tenantId);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         $tenantId = $this->tenantResolver->resolve($request);
 
@@ -72,7 +74,9 @@ class PurchaseOrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        return PurchaseOrder::store($request, $id);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        return PurchaseOrder::store($request, $id, $tenantId);
     }
 
     // ── Receive items (partial or full) ───────────────────────────────────────

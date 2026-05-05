@@ -25,6 +25,7 @@ class Branch extends BaseModel
         'receipt_footer',
         'is_open',
         'is_active',
+        'branch_type_id',
     ];
 
     protected $casts = [
@@ -58,6 +59,7 @@ class Branch extends BaseModel
                 'receipt_footer',
                 'is_open',
                 'is_active',
+                'branch_type_id'
             ])
             : $request;
 
@@ -165,5 +167,25 @@ class Branch extends BaseModel
         }
 
         return $slug;
+    }
+
+    public function branchType(): BelongsTo
+    {
+        return $this->belongsTo(BranchType::class);
+    }
+
+    // Get active features for this branch
+    public function features()
+    {
+        return $this->branchType->features()
+                    ->where('is_active', true)
+                    ->get();
+    }
+
+    public function hasFeature(string $featureCode): bool
+    {
+        return $this->branchType->features()
+                    ->where('code', $featureCode)
+                    ->exists();
     }
 }

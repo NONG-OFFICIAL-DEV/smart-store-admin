@@ -26,8 +26,8 @@ class MartPurchaseReportController extends Controller
         $from     = $request->date_from . ' 00:00:00';
         $to       = $request->date_to   . ' 23:59:59';
 
-        $base = MartPurchaseOrder::where('branch_id', $branchId);
-            // ->whereBetween('created_at', [$from, $to]);
+        $base = MartPurchaseOrder::where('mart_purchase_orders.branch_id', $branchId)
+            ->whereBetween('mart_purchase_orders.created_at', [$from, $to]);
 
         // ── Summary ────────────────────────────────────────────────────────
         $summary = $base->clone()->selectRaw('
@@ -124,5 +124,3 @@ class MartPurchaseReportController extends Controller
         ]);
     }
 }
-
-// Route::get('mart/reports/purchases', [MartPurchaseReportController::class, 'index']);

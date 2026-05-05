@@ -17,7 +17,7 @@ class TenantController extends Controller
     public function index(Request $request)
     {
         $perPage = min((int) $request->get('per_page', 10), 100);
-        $query = Tenant::with('owner');
+        $query = Tenant::with(['owner','businessType']);
         if ($search = $request->get('search')) {
             $query->where('name', 'like', "%{$search}%");
         }
@@ -97,7 +97,7 @@ class TenantController extends Controller
      */
     public function show(string $id)
     {
-        $tenant = Tenant::with('owner')->findOrFail($id);
+        $tenant = Tenant::with(['owner','businessType','branches'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

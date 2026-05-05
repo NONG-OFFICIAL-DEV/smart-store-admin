@@ -1,22 +1,14 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-store"
-      :title="$t('menu.operation')"
-    ></custom-title>
-    <!-- Operation Cards / Links -->
+    <custom-title icon="mdi-store" :title="$t('menu.operation')" />
+
     <v-row>
       <v-col
-        v-for="item in operations"
-        :key="item.title"
+        v-for="item in visibleOperations"
+        :key="item.key"
         cols="12" sm="6" md="4" lg="3"
       >
-        <v-card
-          class="pa-4 text-center"
-          hover
-          rounded="log"
-          @click="openLink(item.url)"
-        >
+        <v-card class="pa-4 text-center" hover rounded="lg" @click="openLink(item.url)">
           <v-icon size="48" color="primary">{{ item.icon }}</v-icon>
           <v-card-title class="justify-center">{{ item.title }}</v-card-title>
           <v-card-subtitle>{{ item.subtitle }}</v-card-subtitle>
@@ -28,46 +20,39 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
+import { BU_CATEGORIES } from '@/constants/businessTypes'
 
-const { t } = useI18n()
-const auth = useAuthStore()
+const authStore = useAuthStore()
 
-// Map bu_type → POS URL
-const posUrlMap = {
-  // Mart types → retail POS
-  minimart:   'https://retail.nongofficial.store',
-  retail:     'https://retail.nongofficial.store',
-  wholesale:  'https://retail.nongofficial.store',
+// ─── Operation registry ───────────────────────────────────────────────────────
+// `buTypes` lists every code from businessTypes.js that can access this POS.
+// To add a new operation: add an entry here.
+// To give a new business type access to an existing POS: update businessTypes.js only.
+const operations = [
+  {
+    key:      'pos-food',
+    title:    'Food & Cafe POS',
+    subtitle: 'Open food & cafe POS system',
+    icon:     'mdi-coffee',
+    url:      'https://coffee-pos.nongofficial.store',
+    buTypes:  BU_CATEGORIES.food,
+  },
+  {
+    key:      'pos-retail',
+    title:    'Retail POS',
+    subtitle: 'Open retail & mart POS system',
+    icon:     'mdi-cash-register',
+    url:      'https://retail.nongofficial.store',
+    buTypes:  BU_CATEGORIES.mart,
+  },
+]
 
-  // Food types → coffee/food POS
-  restaurant: 'https://coffee-pos.nongofficial.store',
-  cafe:       'https://coffee-pos.nongofficial.store',
-  bakery:     'https://coffee-pos.nongofficial.store',
-  kiosk:      'https://coffee-pos.nongofficial.store',
-  food_truck: 'https://coffee-pos.nongofficial.store',
-}
-
-const posUrl = computed(() => posUrlMap[auth.bu_type] ?? null)
-
-const operations = computed(() => {
-  const items = []
-
-  if (posUrl.value) {
-    items.push({
-      title: t('menu.pos'),
-      subtitle: auth.isMart ? 'Retail Point of Sale' : 'Food & Beverage POS',
-      icon: auth.isMart ? 'mdi-cash-register' : 'mdi-coffee-outline',
-      url: posUrl.value
-    })
-  }
-
-  // Add more operations here if needed
-  // items.push({ title: '...', subtitle: '...', icon: '...', url: '...' })
-
-  return items
-})
+const visibleOperations = computed(() =>
+  operations.filter(item =>
+    authStore.isSuperAdmin || item.buTypes?.has(authStore.bu_type)
+  )
+)
 
 function openLink(url) {
   if (!url) return

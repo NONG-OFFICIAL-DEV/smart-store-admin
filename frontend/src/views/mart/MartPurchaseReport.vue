@@ -2,22 +2,9 @@
   <div>
     <custom-title
       icon="mdi-finance"
-      title="Purchase Report"
-      subtitle="PO history & supplier spending"
-    >
-      <template #right>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-refresh"
-          :loading="loading"
-          @click="load"
-        >
-          Refresh
-        </v-btn>
-      </template>
-    </custom-title>
+      :title="t('purchase_report.title')"
+      :subtitle="t('purchase_report.subtitle')"
+    ></custom-title>
 
     <!-- Branch + Period filter bar -->
     <BranchFilterBar
@@ -41,7 +28,7 @@
             </v-avatar>
           </div>
           <div class="text-h5 font-weight-black text-primary">
-            {{ fmt(report.summary?.total_spent) }}
+            {{ format(report.summary?.total_spent) }}
           </div>
           <div class="text-caption text-medium-emphasis mt-1">
             {{ report.summary?.total_pos ?? 0 }} purchase orders
@@ -57,9 +44,9 @@
             </v-avatar>
           </div>
           <div class="text-h5 font-weight-black text-indigo">
-            {{ fmt(report.summary?.avg_po_value) }}
+            {{ format(report.summary?.avg_po_value) }}
           </div>
-           <div class="text-caption text-medium-emphasis mt-1">
+          <div class="text-caption text-medium-emphasis mt-1">
             {{ report.summary?.total_pos ?? 0 }} purchase orders
           </div>
         </v-card>
@@ -140,7 +127,7 @@
                 </div>
                 <div class="text-right">
                   <div class="text-body-2 font-weight-bold">
-                    {{ fmt(s.total_spent) }}
+                    {{ format(s.total_spent) }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
                     {{ s.po_count }} POs
@@ -205,7 +192,7 @@
             </template>
             <template #item.total_cost="{ item }">
               <span class="font-weight-bold text-primary">
-                {{ fmt(item.total_cost) }}
+                {{ format(item.total_cost) }}
               </span>
             </template>
           </v-data-table>
@@ -232,7 +219,7 @@
               </span>
             </template>
             <template #item.total_amount="{ item }">
-              <span class="font-weight-bold">{{ fmt(item.total_amount) }}</span>
+              <span class="font-weight-bold">{{ format(item.total_amount) }}</span>
             </template>
             <template #item.status="{ item }">
               <v-chip
@@ -281,12 +268,16 @@
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useBranchStore } from '@/stores/branchStore'
+  import { useI18n } from 'vue-i18n'
+  import { useCurrency } from '@/composables/useCurrency_v2'
   import api from '@/api/api'
   import BranchFilterBar from '@/components/common/BranchFilterBar.vue'
 
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const { notif } = useAppUtils()
+  const { t } = useI18n()
+  const { format ,currencySymbol} = useCurrency()
 
   // ── State ─────────────────────────────────────────────────────────────────
   const loading = ref(false)
@@ -395,11 +386,6 @@
       cancelled: 'error'
     })[s] ?? 'grey'
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
   const fmtDate = v =>
     new Date(v).toLocaleDateString('en-US', {
       month: 'short',
@@ -424,7 +410,7 @@
         labels: report.value.chart.map(c => c.label),
         datasets: [
           {
-            label: 'Amount Spent ($)',
+            label: `Amount Spent (${currencySymbol})`,
             data: report.value.chart.map(c => parseFloat(c.total_spent)),
             backgroundColor: 'rgba(99,102,241,0.7)',
             borderColor: 'rgb(99,102,241)',
@@ -440,7 +426,7 @@
         scales: {
           y: {
             beginAtZero: true,
-            ticks: { callback: v => `$${v}` }
+            ticks: { callback: v => `${format(v)}` }
           }
         }
       }
