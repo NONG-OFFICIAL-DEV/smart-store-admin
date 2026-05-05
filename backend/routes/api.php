@@ -67,6 +67,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\DigitalMenuController;
 use App\Http\Controllers\Api\ShiftAssignmentController;
 use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\BusinessTypeController;
 use App\Http\Controllers\Api\CoffeePOSorderController;
 use App\Http\Controllers\Api\HospitalityPosController;
 use App\Http\Controllers\Api\MartPosController;
@@ -140,7 +141,9 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
 
     // ── Tenants ───────────────────────────────────────────────────────────────
     Route::apiResource('tenants', TenantController::class);
-    // Extra actions
+    Route::apiResource('business-types', BusinessTypeController::class);
+    Route::get('/business-types/{id}/branch-types', [BusinessTypeController::class, 'getBranchTypeByBusinessTypeId']);
+        // Extra actions
     Route::post('tenants/{id}/toggle-active',       [TenantController::class, 'toggleActive']);
     Route::post('tenants/{id}/transfer-ownership',  [TenantController::class, 'transferOwnership']);
     // ── Branches ──────────────────────────────────────────────────────────────

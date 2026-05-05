@@ -8,3 +8,5 @@ export const updateTenantApi = (id, data) => http.put(`/v1/tenants/${id}`, data)
 export const deleteTenantApi = id => http.delete(`/v1/tenants/${id}`)
 export const toggleTenantActiveApi  = (id)       => http.post(`/v1/tenants/${id}/toggle-active`)       // ✅
 export const transferOwnershipApi   = (id, data) => http.post(`/v1/tenants/${id}/transfer-ownership`, data) 
+export const getBusinessTypesApi   = () => http.get(`/v1/business-types`) 
+export const getBranchTypeByBusinessTypeApi   = (id) => http.get(`/v1/business-types/${id}/branch-types`) 

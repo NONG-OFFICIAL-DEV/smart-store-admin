@@ -345,6 +345,15 @@
   ]
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
+  const fmtDate = v =>
+    v
+      ? new Date(v).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      : ''
+
   const statusColor = s =>
     ({
       draft: 'grey',

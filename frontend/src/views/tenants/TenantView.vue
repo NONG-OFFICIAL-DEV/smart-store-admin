@@ -192,6 +192,13 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1 justify-end">
+            <v-btn
+              icon="mdi-eye-outline"
+              variant="text"
+              size="small"
+              color="primary"
+              :to="`/tenants/${item.id}`"
+            />
             <!-- Edit -->
             <v-btn
               icon="mdi-pencil-outline"
@@ -271,6 +278,7 @@
 
     <!-- ── Tenant Form Dialog ──────────────────────────────────────────────────── -->
     <TenantFormDialog
+      ref="tenantFormRef"
       v-model="dialog.show"
       :item="dialog.tenant"
       :loading="saving"
@@ -343,10 +351,10 @@
   const search = ref('')
   const planFilter = ref('')
   const activeFilter = ref('')
+  const tenantFormRef = ref(null)
 
   // ── Dialog state ──────────────────────────────────────────────────────────────
   const dialog = reactive({ show: false, tenant: null })
-
   const transferDialog = reactive({
     show: false,
     tenant: null,
@@ -379,10 +387,8 @@
   const headers = [
     { title: 'Tenant', key: 'name', sortable: true },
     { title: 'Owner', key: 'owner', sortable: false },
-    { title: 'BU type', key: 'bu_type', sortable: false },
+    { title: 'BU type', key: 'business_type.name', sortable: false },
     { title: 'Plan', key: 'plan', sortable: true },
-    { title: 'Locale', key: 'locale', sortable: false },
-    { title: 'Expires', key: 'plan_expires_at', sortable: true },
     { title: 'Status', key: 'is_active', sortable: true },
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ]
@@ -468,8 +474,8 @@
       }
       dialog.show = false
       dialog.tenant = null
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      tenantFormRef.value?.setErrors(err.response?.data?.errors)
     } finally {
       saving.value = false
     }

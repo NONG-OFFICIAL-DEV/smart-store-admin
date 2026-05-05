@@ -1,331 +1,549 @@
 <template>
-  <v-dialog v-model="model" max-width="700" persistent scrollable>
+  <v-dialog v-model="model" max-width="660" persistent scrollable>
     <v-card rounded="xl" elevation="0" border>
-      <!-- ── Header ──────────────────────────────────────────────────────── -->
-      <v-card-title class="pa-5 pb-4">
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center gap-3">
-            <v-avatar
-              :color="isEdit ? 'primary' : 'success'"
-              size="42"
-              rounded="lg"
-              variant="tonal"
-            >
-              <v-icon
-                :icon="
-                  isEdit ? 'mdi-store-edit-outline' : 'mdi-store-plus-outline'
-                "
-                size="20"
-              />
-            </v-avatar>
-            <div>
-              <div class="text-body-1 font-weight-bold">
-                {{ isEdit ? 'Edit Branch' : 'New Branch' }}
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                {{
-                  isEdit
-                    ? 'Update branch information'
-                    : 'Add a new branch to your business'
-                }}
-              </div>
+      <!-- ───────── HEADER ───────── -->
+      <v-card-title class="pa-0">
+        <div class="d-flex align-center gap-3 pa-5 pb-4">
+          <v-avatar
+            :color="isEdit ? 'primary' : 'success'"
+            size="42"
+            rounded="lg"
+            variant="tonal"
+          >
+            <v-icon
+              :icon="
+                isEdit ? 'mdi-store-edit-outline' : 'mdi-store-plus-outline'
+              "
+            />
+          </v-avatar>
+
+          <div>
+            <div class="text-body-1 font-weight-bold">
+              {{ isEdit ? 'Edit Branch' : 'Create Branch' }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              {{
+                isEdit
+                  ? 'Update branch details'
+                  : 'Add a new branch to your network'
+              }}
             </div>
           </div>
-          <v-btn icon="mdi-close" size="small" variant="text" @click="close" />
+
+          <v-spacer />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            density="comfortable"
+            @click="close"
+          />
+        </div>
+
+        <!-- ───────── STEPPER ───────── -->
+        <div class="stepper-bar px-5 pb-4">
+          <div class="stepper-track">
+            <template v-for="(step, i) in steps" :key="i">
+              <div
+                class="step-item"
+                :class="{
+                  'step-active': i === currentStep,
+                  'step-done': i < currentStep
+                }"
+                @click="tryJumpTo(i)"
+              >
+                <div class="step-dot">
+                  <v-icon v-if="i < currentStep" icon="mdi-check" size="13" />
+                  <span v-else>{{ i + 1 }}</span>
+                </div>
+                <span class="step-label">{{ step.label }}</span>
+              </div>
+
+              <div
+                v-if="i < steps.length - 1"
+                class="step-connector"
+                :class="{ 'connector-done': i < currentStep }"
+              />
+            </template>
+          </div>
         </div>
       </v-card-title>
 
       <v-divider />
 
-      <!-- ── Body ────────────────────────────────────────────────────────── -->
-      <v-card-text class="pa-0" style="max-height: 70vh">
-        <v-form ref="formRef" @submit.prevent="submit">
-          <!-- Tenant -->
-          <div class="form-section">
-            <div class="form-section-label">Tenant and Branch Info</div>
-            <v-row dense>
-              <v-col cols="12" sm="8">
-                <v-select
-                  v-if="isSuperAdmin()"
-                  v-model="form.tenant_id"
-                  :items="tenants"
-                  item-title="name"
-                  item-value="id"
-                  label="Select Tenant"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="rules.tenant_id"
-                  prepend-inner-icon="mdi-domain"
-                />
-              </v-col>
-              <v-col cols="12" sm="8">
-                <v-text-field
-                  v-model="form.name"
-                  label="Branch Name *"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="rules.name"
-                  prepend-inner-icon="mdi-storefront-outline"
-                  maxlength="150"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <v-select
-                  v-model="form.type"
-                  :items="typeOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Type *"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="rules.type"
-                >
-                  <template #item="{ props: p, item }">
-                    <v-list-item v-bind="p">
-                      <template #prepend>
-                        <v-icon :icon="item.raw.icon" size="16" class="mr-1" />
-                      </template>
-                    </v-list-item>
-                  </template>
-                  <template #selection="{ item }">
-                    <div class="d-flex align-center gap-1">
-                      <v-icon :icon="item.raw.icon" size="15" />
-                      <span class="text-body-2">{{ item.raw.label }}</span>
-                    </div>
-                  </template>
-                </v-select>
-              </v-col>
-            </v-row>
-          </div>
+      <!-- ───────── BODY ───────── -->
+      <v-card-text class="pa-0" style="max-height: 60vh; overflow-y: auto">
+        <v-form ref="formRef" @submit.prevent>
+          <v-window v-model="currentStep" :touch="false">
+            <!-- STEP 0: Tenant -->
+            <v-window-item :value="0">
+              <div class="step-content pa-5">
+                <div class="step-section-title mb-4">Tenant information</div>
 
-          <v-divider />
+                <v-row dense>
+                  <v-col cols="12" md="6" v-if="isSuperAdmin()">
+                    <v-select
+                      v-model="form.tenant_id"
+                      :items="tenants"
+                      item-title="name"
+                      item-value="id"
+                      label="Tenant *"
+                      variant="outlined"
+                      rounded="lg"
+                      :rules="[rules.required]"
+                      prepend-inner-icon="mdi-domain"
+                    />
+                  </v-col>
 
-          <!-- Address -->
-          <div class="form-section">
-            <div class="form-section-label">Address</div>
-            <v-row dense>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="form.address_line1"
-                  label="Address Line 1 *"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="rules.address_line1"
-                  prepend-inner-icon="mdi-map-marker-outline"
-                  maxlength="255"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="form.address_line2"
-                  label="Address Line 2"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-map-marker-outline"
-                  maxlength="255"
-                />
-              </v-col>
-              <v-col cols="5">
-                <v-text-field
-                  v-model="form.city"
-                  label="City *"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="rules.city"
-                  maxlength="100"
-                />
-              </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model="form.state"
-                  label="State"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  maxlength="100"
-                />
-              </v-col>
-              <v-col cols="3">
-                <v-text-field
-                  v-model="form.postal_code"
-                  label="Postal"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  maxlength="20"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="form.country"
-                  label="Country"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  maxlength="100"
-                />
-              </v-col>
-            </v-row>
-          </div>
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="form.business_type_id"
+                      :items="tenantStore.businessTypes"
+                      item-title="name"
+                      item-value="id"
+                      label="Business type"
+                      variant="outlined"
+                      rounded="lg"
+                      disabled
+                      prepend-inner-icon="mdi-shape-outline"
+                    />
+                  </v-col>
+                </v-row>
 
-          <v-divider />
-
-          <!-- Contact -->
-          <div class="form-section">
-            <div class="form-section-label">Contact</div>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.phone"
-                  label="Phone"
-                  variant="outlined"
+                <v-alert
+                  type="info"
+                  variant="tonal"
                   rounded="lg"
-                  hide-details="auto"
-                  :rules="rules.phone"
-                  prepend-inner-icon="mdi-phone-outline"
-                  maxlength="30"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.email"
-                  label="Email"
-                  type="email"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details="auto"
-                  :rules="rules.email"
-                  prepend-inner-icon="mdi-email-outline"
-                  maxlength="255"
-                />
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider />
-
-          <!-- Rates -->
-          <div class="form-section">
-            <div class="form-section-label">Rates & Charges</div>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.tax_rate"
-                  label="Tax Rate"
-                  type="number"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details="auto"
-                  :rules="rules.tax_rate"
-                  prepend-inner-icon="mdi-percent"
-                  step="0.0001"
-                  min="0"
-                  max="9.9999"
-                  hint="e.g. 0.1500 = 15%"
-                  persistent-hint
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.service_charge_rate"
-                  label="Service Charge"
-                  type="number"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details="auto"
-                  :rules="rules.service_charge_rate"
-                  prepend-inner-icon="mdi-room-service-outline"
-                  step="0.0001"
-                  min="0"
-                  max="9.9999"
-                  hint="e.g. 0.1000 = 10%"
-                  persistent-hint
-                />
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider />
-
-          <!-- Settings -->
-          <div class="form-section">
-            <div class="form-section-label">Settings</div>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <v-card
-                  rounded="lg"
-                  border
-                  elevation="0"
-                  class="px-4 py-0 d-flex align-center justify-space-between"
-                >
-                  <div>
-                    <div class="text-body-2 font-weight-medium">Open</div>
-                    <div class="text-caption text-grey">Accepting orders</div>
-                  </div>
-                  <v-switch
-                    v-model="form.is_open"
-                    color="success"
-                    inset
-                    hide-details
-                  />
-                </v-card>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-card
-                  rounded="lg"
-                  border
-                  elevation="0"
-                  class="px-4 py-0 d-flex align-center justify-space-between"
-                >
-                  <div>
-                    <div class="text-body-2 font-weight-medium">Active</div>
-                    <div class="text-caption text-grey">
-                      Visible and operational
-                    </div>
-                  </div>
-                  <v-switch
-                    v-model="form.is_active"
-                    color="primary"
-                    inset
-                    hide-details
-                  />
-                </v-card>
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="form.receipt_footer"
-                  label="Receipt Footer"
-                  variant="outlined"
-                  rounded="lg"
-                  rows="2"
-                  hide-details
-                  prepend-inner-icon="mdi-receipt-text-outline"
-                  placeholder="e.g. Thank you for visiting!"
+                  density="compact"
                   class="mt-2"
-                />
-              </v-col>
-            </v-row>
-          </div>
+                  icon="mdi-information-outline"
+                >
+                  Business type is automatically assigned from the selected
+                  tenant.
+                </v-alert>
+              </div>
+            </v-window-item>
+
+            <!-- STEP 1: Branch details -->
+            <v-window-item :value="1">
+              <div class="step-content pa-5">
+                <div class="step-section-title mb-4">Branch details</div>
+
+                <v-row dense>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="form.name"
+                      label="Branch name *"
+                      variant="outlined"
+                      rounded="lg"
+                      :rules="[rules.required]"
+                      prepend-inner-icon="mdi-storefront-outline"
+                      placeholder="e.g. Phnom Penh Central"
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="6">
+                    <v-select
+                      v-model="form.branch_type_id"
+                      :items="tenantStore.branchTypes"
+                      item-title="name"
+                      item-value="id"
+                      label="Branch type"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-store-outline"
+                    />
+                  </v-col>
+
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="form.phone"
+                      label="Phone"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-phone-outline"
+                      placeholder="+855 ..."
+                    />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="form.email"
+                      label="Email"
+                      type="email"
+                      variant="outlined"
+                      rounded="lg"
+                      :rules="[rules.email]"
+                      prepend-inner-icon="mdi-email-outline"
+                      placeholder="branch@example.com"
+                    />
+                  </v-col>
+                </v-row>
+              </div>
+            </v-window-item>
+
+            <!-- STEP 2: Address + Settings -->
+            <v-window-item :value="2">
+              <div class="step-content pa-5">
+                <div class="step-section-title mb-4">Address</div>
+
+                <v-row dense>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="form.address_line1"
+                      label="Address line 1"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-map-marker-outline"
+                      placeholder="Street address"
+                    />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="form.address_line2"
+                      label="Address line 2"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-map-marker-outline"
+                      placeholder="Suite, floor, unit..."
+                      hint="Optional"
+                      persistent-hint
+                    />
+                  </v-col>
+
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="form.city"
+                      label="City"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-city-variant-outline"
+                    />
+                  </v-col>
+
+                  <v-col cols="6">
+                    <v-text-field
+                      v-model="form.country"
+                      label="Country"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-flag-outline"
+                    />
+                  </v-col>
+                </v-row>
+
+                <v-divider class="my-4" />
+
+                <div class="step-section-title mb-4">Status settings</div>
+
+                <v-row dense>
+                  <v-col cols="6">
+                    <v-card rounded="lg" variant="outlined" class="pa-4">
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <div class="text-body-2 font-weight-medium">
+                            Branch is open
+                          </div>
+                          <div class="text-caption text-medium-emphasis">
+                            Visible and accepting customers
+                          </div>
+                        </div>
+                        <v-switch
+                          v-model="form.is_open"
+                          color="primary"
+                          hide-details
+                          density="compact"
+                          inset
+                        />
+                      </div>
+                    </v-card>
+                  </v-col>
+
+                  <v-col cols="6">
+                    <v-card rounded="lg" variant="outlined" class="pa-4">
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <div class="text-body-2 font-weight-medium">
+                            Branch is active
+                          </div>
+                          <div class="text-caption text-medium-emphasis">
+                            Enabled and operational
+                          </div>
+                        </div>
+                        <v-switch
+                          v-model="form.is_active"
+                          color="primary"
+                          hide-details
+                          density="compact"
+                          inset
+                        />
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-window-item>
+
+            <!-- STEP 3: Review -->
+            <v-window-item :value="3">
+              <div class="step-content pa-5">
+                <div class="step-section-title mb-4">
+                  Review before {{ isEdit ? 'updating' : 'creating' }}
+                </div>
+
+                <v-row dense>
+                  <!-- Tenant block -->
+                  <v-col cols="12">
+                    <div class="review-block mb-3">
+                      <div
+                        class="review-block-header d-flex align-center justify-space-between"
+                      >
+                        <div class="d-flex align-center gap-2">
+                          <v-icon icon="mdi-domain" size="16" color="primary" />
+                          <span
+                            class="text-caption font-weight-medium text-uppercase"
+                            style="letter-spacing: 0.5px"
+                          >
+                            Tenant
+                          </span>
+                        </div>
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="primary"
+                          @click="currentStep = 0"
+                        >
+                          Edit
+                        </v-btn>
+                      </div>
+                      <v-row dense class="mt-1">
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Tenant</span>
+                            <span class="review-value">
+                              {{ tenantName || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Business type</span>
+                            <span class="review-value">
+                              {{ businessTypeName || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-col>
+
+                  <!-- Branch block -->
+                  <v-col cols="12">
+                    <div class="review-block mb-3">
+                      <div
+                        class="review-block-header d-flex align-center justify-space-between"
+                      >
+                        <div class="d-flex align-center gap-2">
+                          <v-icon
+                            icon="mdi-storefront-outline"
+                            size="16"
+                            color="primary"
+                          />
+                          <span
+                            class="text-caption font-weight-medium text-uppercase"
+                            style="letter-spacing: 0.5px"
+                          >
+                            Branch
+                          </span>
+                        </div>
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="primary"
+                          @click="currentStep = 1"
+                        >
+                          Edit
+                        </v-btn>
+                      </div>
+                      <v-row dense class="mt-1">
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Name</span>
+                            <span class="review-value">
+                              {{ form.name || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Type</span>
+                            <span class="review-value">
+                              {{ branchTypeName || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Phone</span>
+                            <span class="review-value">
+                              {{ form.phone || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                        <v-col cols="6">
+                          <div class="review-field">
+                            <span class="review-label">Email</span>
+                            <span class="review-value">
+                              {{ form.email || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-col>
+
+                  <!-- Address block -->
+                  <v-col cols="12">
+                    <div class="review-block mb-3">
+                      <div
+                        class="review-block-header d-flex align-center justify-space-between"
+                      >
+                        <div class="d-flex align-center gap-2">
+                          <v-icon
+                            icon="mdi-map-marker-outline"
+                            size="16"
+                            color="primary"
+                          />
+                          <span
+                            class="text-caption font-weight-medium text-uppercase"
+                            style="letter-spacing: 0.5px"
+                          >
+                            Address
+                          </span>
+                        </div>
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="primary"
+                          @click="currentStep = 2"
+                        >
+                          Edit
+                        </v-btn>
+                      </div>
+                      <v-row dense class="mt-1">
+                        <v-col cols="12">
+                          <div class="review-field">
+                            <span class="review-label">Full address</span>
+                            <span class="review-value">
+                              {{ fullAddress || '—' }}
+                            </span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-col>
+
+                  <!-- Status block -->
+                  <v-col cols="12">
+                    <div class="review-block">
+                      <div
+                        class="review-block-header d-flex align-center justify-space-between"
+                      >
+                        <div class="d-flex align-center gap-2">
+                          <v-icon
+                            icon="mdi-toggle-switch-outline"
+                            size="16"
+                            color="primary"
+                          />
+                          <span
+                            class="text-caption font-weight-medium text-uppercase"
+                            style="letter-spacing: 0.5px"
+                          >
+                            Status
+                          </span>
+                        </div>
+                        <v-btn
+                          variant="text"
+                          size="x-small"
+                          color="primary"
+                          @click="currentStep = 2"
+                        >
+                          Edit
+                        </v-btn>
+                      </div>
+                      <div class="d-flex gap-3 mt-2">
+                        <v-chip
+                          :color="form.is_open ? 'success' : 'default'"
+                          :variant="form.is_open ? 'tonal' : 'outlined'"
+                          size="small"
+                          :prepend-icon="
+                            form.is_open
+                              ? 'mdi-check-circle-outline'
+                              : 'mdi-close-circle-outline'
+                          "
+                        >
+                          {{ form.is_open ? 'Open' : 'Closed' }}
+                        </v-chip>
+                        <v-chip
+                          :color="form.is_active ? 'success' : 'default'"
+                          :variant="form.is_active ? 'tonal' : 'outlined'"
+                          size="small"
+                          :prepend-icon="
+                            form.is_active
+                              ? 'mdi-check-circle-outline'
+                              : 'mdi-close-circle-outline'
+                          "
+                        >
+                          {{ form.is_active ? 'Active' : 'Inactive' }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-window-item>
+          </v-window>
         </v-form>
       </v-card-text>
 
       <v-divider />
 
-      <!-- ── Actions ──────────────────────────────────────────────────────── -->
-      <v-card-actions class="pa-4 gap-2">
+      <!-- ───────── FOOTER ───────── -->
+      <v-card-actions class="pa-4">
+        <div class="text-caption text-medium-emphasis">
+          Step {{ currentStep + 1 }} of {{ steps.length }}
+        </div>
+
         <v-spacer />
-        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
-          Cancel
-        </v-btn>
+
         <v-btn
-          :color="isEdit ? 'primary' : 'success'"
-          variant="flat"
-          rounded="lg"
+          v-if="currentStep > 0"
+          variant="tonal"
+          prepend-icon="mdi-arrow-left"
+          @click="prevStep"
+        >
+          Back
+        </v-btn>
+
+        <v-btn variant="tonal" @click="close">Cancel</v-btn>
+
+        <v-btn
+          v-if="currentStep < steps.length - 1"
+          color="primary"
+          append-icon="mdi-arrow-right"
+          @click="nextStep"
+        >
+          Continue
+        </v-btn>
+
+        <v-btn
+          v-else
+          color="primary"
           :loading="loading"
-          :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
+          prepend-icon="mdi-check"
           @click="submit"
         >
-          {{ isEdit ? 'Save Changes' : 'Create Branch' }}
+          {{ isEdit ? 'Update Branch' : 'Create Branch' }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -336,100 +554,177 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useTenantStore } from '@/stores/tenantStore'
   import { usePermission } from '@/composables/usePermission'
-  const { isSuperAdmin } = usePermission()
 
+  const { isSuperAdmin } = usePermission()
+  const tenantStore = useTenantStore()
+
+  // ─── Props / Emits ────────────────────────────────────────────────────────────
   const props = defineProps({
     modelValue: Boolean,
     branch: Object
   })
+
   const emit = defineEmits(['update:modelValue', 'saved'])
 
-  const formRef = ref(null)
-  const loading = ref(false)
-  const tenantStore = useTenantStore()
-  const tenants = ref([])
-
+  // ─── Dialog model ─────────────────────────────────────────────────────────────
   const model = computed({
     get: () => props.modelValue,
-    set: val => emit('update:modelValue', val)
+    set: v => emit('update:modelValue', v)
   })
+
   const isEdit = computed(() => !!props.branch?.id)
 
-  const typeOptions = [
-    {
-      value: 'restaurant',
-      label: 'Restaurant',
-      icon: 'mdi-silverware-fork-knife'
-    },
-    { value: 'cafe', label: 'Cafe', icon: 'mdi-coffee' },
-    { value: 'kiosk', label: 'Kiosk', icon: 'mdi-store-outline' },
-    { value: 'food_truck', label: 'Food Truck', icon: 'mdi-truck-outline' }
+  // ─── Stepper ──────────────────────────────────────────────────────────────────
+  const steps = [
+    { label: 'Tenant' },
+    { label: 'Branch' },
+    { label: 'Location' },
+    { label: 'Review' }
   ]
+
+  const currentStep = ref(0)
+
+  // ─── Form ─────────────────────────────────────────────────────────────────────
+  const loading = ref(false)
+  const formRef = ref(null)
+  const tenants = ref([])
 
   const defaultForm = () => ({
     id: null,
     tenant_id: null,
+    business_type_id: null,
+    branch_type_id: null,
     name: '',
-    type: 'restaurant',
     address_line1: '',
     address_line2: '',
     city: '',
-    state: '',
     country: 'Cambodia',
-    postal_code: '',
     phone: '',
     email: '',
-    tax_rate: 0,
-    service_charge_rate: 0,
-    receipt_footer: '',
     is_open: true,
     is_active: true
   })
 
   const form = reactive(defaultForm())
 
+  // ─── Validation rules ─────────────────────────────────────────────────────────
+  const rules = {
+    required: v => !!v || 'This field is required',
+    email: v => !v || /.+@.+\..+/.test(v) || 'Invalid email address'
+  }
+
+  // Fields that belong to each step (used for per-step validation)
+  const stepFields = {
+    0: ['tenant_id'],
+    1: ['name', 'email'],
+    2: [],
+    3: []
+  }
+
+  // ─── Computed display values ───────────────────────────────────────────────────
+  const tenantName = computed(
+    () => tenants.value.find(t => t.id === form.tenant_id)?.name
+  )
+
+  const businessTypeName = computed(
+    () =>
+      tenantStore.businessTypes?.find(b => b.id === form.business_type_id)?.name
+  )
+
+  const branchTypeName = computed(
+    () => tenantStore.branchTypes?.find(b => b.id === form.branch_type_id)?.name
+  )
+
+  const fullAddress = computed(() =>
+    [form.address_line1, form.address_line2, form.city, form.country]
+      .filter(Boolean)
+      .join(', ')
+  )
+
+  const handleTenantChange = async tenantId => {
+    if (!tenantId) return
+
+    const tenant = tenants.value.find(t => t.id === tenantId) || form.tenant // fallback from API
+
+    form.business_type_id = tenant?.business_type_id ?? null
+
+    if (form.business_type_id) {
+      await tenantStore.fetchBranchTypeByBusinessType(form.business_type_id)
+    }
+  }
+  // ─── Watch: populate form when editing ────────────────────────────────────────
+
+  watch(
+    () => props.modelValue,
+    async open => {
+      if (open && form.tenant_id) {
+        await handleTenantChange(form.tenant_id)
+      }
+    }
+  )
+
   watch(
     () => props.branch,
-    val => {
-      Object.assign(form, val ? val : defaultForm())
+    async val => {
+      Object.assign(form, val ? { ...defaultForm(), ...val } : defaultForm())
+
+      // ✅ FIX: fallback from tenant
+      if (val?.tenant?.business_type_id) {
+        form.business_type_id = val.tenant.business_type_id
+      }
+
+      currentStep.value = 0
+
+      // ✅ trigger loading
+      if (form.tenant_id) {
+        await handleTenantChange(form.tenant_id)
+      }
     },
     { immediate: true }
   )
 
-  const isDecimal54 = v => {
-    const num = parseFloat(v)
-    if (isNaN(num)) return 'Must be a number'
-    if (num < 0) return 'Must be 0 or greater'
-    if (num >= 10) return 'Must be less than 10'
-    return true
-  }
+  // ─── Watch: auto-fill business type + branch types when tenant changes ─────────
+  watch(
+    () => form.tenant_id,
+    async tenantId => {
+      await handleTenantChange(tenantId)
+    }
+  )
 
-  const rules = {
-    tenant_id: [v => !!v || 'Tenant is required'],
-    name: [
-      v => !!v || 'Branch name is required',
-      v => v?.length <= 150 || 'Max 150 chars'
-    ],
-    type: [v => !!v || 'Type is required'],
-    address_line1: [v => !!v || 'Address is required'],
-    city: [v => !!v || 'City is required'],
-    phone: [v => !v || /^[+\d\s().-]+$/.test(v) || 'Invalid phone'],
-    email: [v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Invalid email'],
-    tax_rate: [
-      v => (v !== '' && v !== null) || 'Required',
-      v => isDecimal54(v)
-    ],
-    service_charge_rate: [v => !v || isDecimal54(v) === true || isDecimal54(v)]
-  }
-
+  // ─── Load data ────────────────────────────────────────────────────────────────
   onMounted(async () => {
     await tenantStore.fetchTenants()
+    await tenantStore.fetchBusinessTypes()
     tenants.value = tenantStore.tenants
   })
 
-  const submit = async () => {
+  // ─── Stepper navigation ───────────────────────────────────────────────────────
+  const validateCurrentStep = async () => {
+    if (!formRef.value) return true
+    const fields = stepFields[currentStep.value]
+    if (!fields?.length) return true
     const { valid } = await formRef.value.validate()
+    return valid
+  }
+
+  const nextStep = async () => {
+    const valid = await validateCurrentStep()
     if (!valid) return
+    if (currentStep.value < steps.length - 1) currentStep.value++
+  }
+
+  const prevStep = () => {
+    if (currentStep.value > 0) currentStep.value--
+  }
+
+  // Only allow jumping back to already-completed steps
+  const tryJumpTo = i => {
+    if (i < currentStep.value) currentStep.value = i
+  }
+
+  // ─── Submit ───────────────────────────────────────────────────────────────────
+
+  const submit = async () => {
     loading.value = true
     try {
       emit('saved', { ...form })
@@ -441,26 +736,135 @@
 
   const close = () => {
     model.value = false
-    formRef.value?.reset()
     Object.assign(form, defaultForm())
+    currentStep.value = 0
+    formRef.value?.reset()
   }
 </script>
 
 <style scoped>
-  .form-section {
-    padding: 18px 20px;
+  /* ── Stepper ── */
+  .stepper-track {
+    display: flex;
+    align-items: center;
   }
-  .form-section-label {
-    font-size: 0.68rem;
-    font-weight: 700;
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+  }
+
+  .step-item.step-done {
+    cursor: pointer;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(var(--v-border-color), 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    color: rgba(var(--v-theme-on-surface), 0.4);
+    background: transparent;
+    transition: all 0.2s ease;
+  }
+
+  .step-active .step-dot {
+    background: rgb(var(--v-theme-primary));
+    border-color: rgb(var(--v-theme-primary));
+    color: #fff;
+  }
+
+  .step-done .step-dot {
+    background: rgb(var(--v-theme-success));
+    border-color: rgb(var(--v-theme-success));
+    color: #fff;
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: rgba(var(--v-theme-on-surface), 0.4);
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+
+  .step-active .step-label {
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    font-weight: 500;
+  }
+
+  .step-done .step-label {
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
+
+  .step-connector {
+    flex: 1;
+    height: 1px;
+    background: rgba(var(--v-border-color), 0.3);
+    margin: 0 8px;
+    transition: background 0.3s;
+    min-width: 16px;
+  }
+
+  .connector-done {
+    background: rgb(var(--v-theme-success));
+  }
+
+  /* ── Step content ── */
+  .step-content {
+    min-height: 240px;
+  }
+
+  .step-section-title {
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.7px;
     color: rgb(var(--v-theme-primary));
-    margin-bottom: 12px;
   }
-  .gap-1 {
-    gap: 4px;
+
+  /* ── Review blocks ── */
+  .review-block {
+    border: 1px solid rgba(var(--v-border-color), 0.2);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: rgba(var(--v-theme-surface-variant), 0.1);
   }
+
+  .review-block-header {
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(var(--v-border-color), 0.15);
+    margin-bottom: 4px;
+  }
+
+  .review-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+  }
+
+  .review-label {
+    font-size: 11px;
+    color: rgba(var(--v-theme-on-surface), 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .review-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+  }
+
+  /* ── Utilities ── */
   .gap-2 {
     gap: 8px;
   }

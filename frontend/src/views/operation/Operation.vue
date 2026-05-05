@@ -1,21 +1,14 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-store"
-      :title="$t('menu.operation')"
-    ></custom-title>
+    <custom-title icon="mdi-store" :title="$t('menu.operation')" />
+
     <v-row>
       <v-col
         v-for="item in visibleOperations"
         :key="item.key"
         cols="12" sm="6" md="4" lg="3"
       >
-        <v-card
-          class="pa-4 text-center"
-          hover
-          rounded="lg"
-          @click="openLink(item.url)"
-        >
+        <v-card class="pa-4 text-center" hover rounded="lg" @click="openLink(item.url)">
           <v-icon size="48" color="primary">{{ item.icon }}</v-icon>
           <v-card-title class="justify-center">{{ item.title }}</v-card-title>
           <v-card-subtitle>{{ item.subtitle }}</v-card-subtitle>
@@ -28,38 +21,37 @@
 <script setup>
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { BU_CATEGORIES } from '@/constants/businessTypes'
 
 const authStore = useAuthStore()
 
-const isSuperAdmin = computed(() => authStore.isSuperAdmin)
-const buType       = computed(() => authStore.bu_type)
-
+// ─── Operation registry ───────────────────────────────────────────────────────
+// `buTypes` lists every code from businessTypes.js that can access this POS.
+// To add a new operation: add an entry here.
+// To give a new business type access to an existing POS: update businessTypes.js only.
 const operations = [
-  {
-    key:      'pos-retail',
-    title:    'Retail POS',
-    subtitle: 'Open retail POS system',
-    icon:     'mdi-cash-register',
-    url:      'https://retail.nongofficial.store',
-    buTypes:  ['minimart', 'retail', 'wholesale'], // shown to these bu_types (+ super admin)
-  },
   {
     key:      'pos-food',
     title:    'Food & Cafe POS',
-    subtitle: 'Open food/cafe POS system',
+    subtitle: 'Open food & cafe POS system',
     icon:     'mdi-coffee',
     url:      'https://coffee-pos.nongofficial.store',
-    buTypes:  ['restaurant', 'cafe', 'bakery', 'kiosk', 'food_truck'],
-  }
+    buTypes:  BU_CATEGORIES.food,
+  },
+  {
+    key:      'pos-retail',
+    title:    'Retail POS',
+    subtitle: 'Open retail & mart POS system',
+    icon:     'mdi-cash-register',
+    url:      'https://retail.nongofficial.store',
+    buTypes:  BU_CATEGORIES.mart,
+  },
 ]
 
 const visibleOperations = computed(() =>
-  operations.filter(item => {
-    // Super admin sees everything
-    if (isSuperAdmin.value) return true
-    // Others see only items matching their bu_type
-    return item.buTypes.includes(buType.value)
-  })
+  operations.filter(item =>
+    authStore.isSuperAdmin || item.buTypes?.has(authStore.bu_type)
+  )
 )
 
 function openLink(url) {

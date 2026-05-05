@@ -27,14 +27,6 @@
           rounded="lg"
           @update:model-value="onPeriodChange"
         />
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-download-outline"
-        >
-          Export
-        </v-btn>
       </div>
     </div>
 

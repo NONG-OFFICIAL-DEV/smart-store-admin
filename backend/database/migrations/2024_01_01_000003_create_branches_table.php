@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignUuid('tenant_id')->constrained('tenants')->cascadeOnDelete();
             $table->string('name', 150);
             $table->enum('type', ['restaurant', 'cafe', 'kiosk', 'food_truck'])->default('restaurant');
-            $table->foreignUuid('branch_type_id')->nullable()->constrained();
             $table->string('address_line1', 255);
             $table->string('address_line2', 255)->nullable();
             $table->string('city', 100);

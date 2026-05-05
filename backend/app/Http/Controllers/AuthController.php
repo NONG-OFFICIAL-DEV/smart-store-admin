@@ -133,7 +133,7 @@ class AuthController extends Controller
                 'is_owner'       => true,
                 'tenant_id'      => $ownedTenant->id,
                 'bu_name'        => $ownedTenant->name,
-                'bu_type'        => $ownedTenant->bu_type,
+                'bu_type'        => $ownedTenant->businessType?->code,   // ← was ->bu_type
                 'logo_url'       => $ownedTenant->logo_url,
                 'currency'       => $ownedTenant->currency,
                 'locale'         => $ownedTenant->locale,
@@ -145,7 +145,7 @@ class AuthController extends Controller
         // ── 4. Regular Staff ───────────────────────────────────────────────
         $staff = $user->staff()
             ->withoutGlobalScopes()          // ← bypass TenantScope
-            ->with(['role.permissions', 'branch', 'tenant'])
+            ->with(['role.permissions', 'branch', 'tenant.businessType'])
             ->first();
 
         if (!$staff) {
@@ -159,7 +159,7 @@ class AuthController extends Controller
             'is_staff'       => true,
             'tenant_id'      => $staff->tenant_id,
             'bu_name'        => $staff->tenant?->name,
-            'bu_type'        => $staff->tenant?->bu_type,
+            'bu_type'        => $staff->tenant?->businessType?->code,   // ← was ->bu_type
             'logo_url'       => $staff->tenant?->logo_url,
             'branch_name'    => $staff->branch?->name,
             'branch_id'      => $staff->branch_id,

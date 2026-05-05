@@ -6,17 +6,30 @@ import {
   updateTenantApi,
   deleteTenantApi,
   toggleTenantActiveApi,
-  transferOwnershipApi
+  transferOwnershipApi,
+  getBusinessTypesApi,
+  getBranchTypeByBusinessTypeApi
 } from '../api/tenantService'
 
 export const useTenantStore = defineStore('tenant', {
   state: () => ({
     tenants: [],
     tenant: null,
+    businessTypes: [],
+    branchTypes: [],
     pagination: {}
   }),
 
   actions: {
+    async fetchBusinessTypes() {
+      const { data } = await getBusinessTypesApi()
+      this.businessTypes = data.data
+    },
+    async fetchBranchTypeByBusinessType(id) {
+      const { data } = await getBranchTypeByBusinessTypeApi(id)
+      this.branchTypes = data.data
+    },
+
     async fetchTenants(filters) {
       const res = await getAllTenantsApi(filters)
       this.tenants = res.data.data.data

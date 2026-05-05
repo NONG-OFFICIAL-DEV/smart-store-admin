@@ -102,12 +102,12 @@ class Tenant extends BaseModel
         return $this->hasMany(Supplier::class);
     }
 
-    public function businessType(): BelongsTo
+    public function businessType()
     {
         return $this->belongsTo(BusinessType::class);
     }
 
-    public function hqBranch(): HasOne
+    public function hqBranch()
     {
         return $this->hasOne(Branch::class)
                     ->whereHas('branchType', fn($q) => $q->where('is_hq', true));
