@@ -300,6 +300,14 @@
               </v-card>
             </v-col>
           </v-row>
+
+          <!-- Two-factor auth — "administrators" here means super admins
+               and tenant owners, matching the backend's own authorization. -->
+          <v-row v-if="authStore.isSuperAdmin || authStore.isOwner" class="mt-2">
+            <v-col cols="12" md="12">
+              <TwoFactorAuthSection />
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </template>
@@ -317,6 +325,7 @@
   import { usePasswordPolicy } from '@/composables/usePasswordPolicy'
   import { useAppUtils } from '@/composables/useAppUtils'
   import authService from '@/api/auth'
+  import TwoFactorAuthSection from '@/components/common/TwoFactorAuthSection.vue'
 
   const { t } = useI18n()
   const tenantStore = useTenantStore()

@@ -6,9 +6,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, CanResetPasswordContract
 {
+    use CanResetPassword, Notifiable;
     // ── UUID primary key (from BaseModel logic, applied directly here) ─────────
     public $incrementing = false;
     protected $keyType   = 'string';
@@ -44,23 +48,34 @@ class User extends Authenticatable implements JWTSubject
         'is_admin',
         'must_change_password',
         'password_changed_at',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
     ];
 
     // ── Hidden ────────────────────────────────────────────────────────────────
     protected $hidden = [
         'password_hash',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     // ── Casts ─────────────────────────────────────────────────────────────────
     protected $casts = [
-        'email_verified_at'    => 'datetime',
-        'last_login_at'        => 'datetime',
-        'is_active'            => 'boolean',
-        'notify_email'         => 'boolean',
-        'notify_telegram'      => 'boolean',
-        'notify_system'        => 'boolean',
-        'must_change_password' => 'boolean',
-        'password_changed_at'  => 'datetime',
+        'email_verified_at'         => 'datetime',
+        'last_login_at'             => 'datetime',
+        'is_active'                 => 'boolean',
+        'notify_email'              => 'boolean',
+        'notify_telegram'           => 'boolean',
+        'notify_system'             => 'boolean',
+        'must_change_password'      => 'boolean',
+        'password_changed_at'       => 'datetime',
+        'two_factor_secret'         => 'encrypted',
+        // Bcrypt-hashed individually (like passwords) — irreversible by
+        // design, unlike 'encrypted:array'. A recovery code should never be
+        // readable back by anyone, even with the app's own encryption key.
+        'two_factor_recovery_codes' => 'array',
+        'two_factor_confirmed_at'   => 'datetime',
     ];
 
     protected $appends = [

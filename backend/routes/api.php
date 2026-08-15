@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 // ── Auth ───────────────────────────────────────────────────────────────────
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\TwoFactorAuthController;
 use App\Http\Controllers\Api\V1\UserController;
 
 // ── Multi-Tenancy ──────────────────────────────────────────────────────────
@@ -90,20 +91,32 @@ Route::get('/test', function () {
 });
 
 // ── Public routes (no auth needed) ──────────────────────────────────────────
-Route::post('/login',     [AuthController::class, 'login']);
-Route::post('/login-pin', [AuthController::class, 'loginByPin']);
+Route::post('/login',     [AuthController::class, 'login'])->middleware('throttle:login');
 
-// Token refresh — intentionally outside 'jwt.auth': that middleware rejects
-// expired tokens before the controller runs, which would make refreshing an
-// expired-but-still-refreshable token impossible. AuthController::refresh()
-// does its own token validation via JWTAuth::parseToken()->refresh().
-Route::post('/refresh', [AuthController::class, 'refresh']);
+// Token refresh — intentionally outside 'jwt.auth': this endpoint never
+// looks at the (possibly long-expired) access token at all, only the
+// refresh token in the body, so there's no JWT for that middleware to
+// validate in the first place. See AuthController::refresh().
+Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:refresh');
+
+// Second step of a 2FA-gated login — no JWT exists yet at this point
+// either (see AuthController::login()), so this also stays outside jwt.auth.
+Route::post('/two-factor/verify', [AuthController::class, 'verifyTwoFactor'])->middleware('throttle:two-factor');
+
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset');
 
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
     Route::post('/logout',  [AuthController::class, 'logout']);
     Route::put('/set-pin', [AuthController::class, 'setPin']);
+
+    Route::prefix('two-factor')->group(function () {
+        Route::post('setup',   [TwoFactorAuthController::class, 'setup']);
+        Route::post('confirm', [TwoFactorAuthController::class, 'confirm']);
+        Route::delete('/',     [TwoFactorAuthController::class, 'disable']);
+    });
 
     Route::prefix('users')->middleware('superadmin')->group(function () {
         Route::get('/',      [UserController::class, 'index']);
@@ -569,6 +582,6 @@ Route::prefix('v1/public')->group(function () {
 
     // website register
     Route::get('business-types', [BusinessTypeController::class, 'index']);
-    Route::post('business-register',    [TenantController::class, 'store']);
+    Route::post('business-register',    [TenantController::class, 'store'])->middleware('throttle:register');
     Route::get('plans', [PlanController::class, 'publicPlans']);
 });

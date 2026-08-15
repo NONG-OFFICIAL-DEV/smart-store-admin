@@ -219,15 +219,15 @@
     "description": "Manage your POS, inventory, staff and reports across all locations from a single dashboard.",
     "signIn": "Sign in",
     "sub": "Enter your credentials to access your workspace",
-    "pin": "PIN Code",
     "password": "Password",
     "email": "Email Address",
     "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "••••••••",
     "passwordHint": "Enter your password",
     "signInBtn": "Sign In to Dashboard",
-    "pinCode": "PIN Code",
-    "signInPin": "Sign In with PIN",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "register_link": "Sign up",
     "feature_list": {
       "pos": "Multi-branch POS & order management",
       "inventory": "Real-time inventory tracking",
@@ -240,14 +240,96 @@
       "password_required": "Password is required"
     },
     "errors": {
-      "invalid_pin": "Incorrect PIN. Please try again.",
-      "account_locked": "Account locked due to too many attempts.",
       "too_many_attempts": "Too many attempts. Please wait a moment.",
       "too_many_attempts_retry": "Too many attempts. Please wait a moment and try again.",
       "cannot_connect": "Cannot connect to server. Check your connection.",
       "unexpected": "An unexpected error occurred.",
       "unexpected_retry": "An unexpected error occurred. Please try again.",
       "invalid_credentials": "The email or password you entered is incorrect."
+    },
+    "two_factor": {
+      "title": "Two-factor verification",
+      "sub": "Enter the 6-digit code from your authenticator app",
+      "recovery_sub": "Enter one of your recovery codes",
+      "code": "Verification code",
+      "recovery_code": "Recovery code",
+      "recovery_code_placeholder": "XXXX-XXXX",
+      "verify": "Verify",
+      "back_to_login": "Back to login",
+      "use_code": "Use authenticator code instead",
+      "use_recovery_code": "Use a recovery code instead",
+      "errors": {
+        "expired": "This verification session has expired. Please log in again.",
+        "invalid_code": "Invalid verification code."
+      }
+    }
+  },
+  "register": {
+    "tagline": "GROW YOUR BUSINESS",
+    "title1": "Start selling",
+    "title2": "in minutes.",
+    "description": "Create your account and set up your first branch — no credit card required.",
+    "signUp": "Create your account",
+    "sub": "Fill in your details to get started",
+    "owner_first_name": "First Name",
+    "owner_last_name": "Last Name",
+    "business_name": "Business Name",
+    "business_type": "Business Type",
+    "owner_email": "Email Address",
+    "owner_password": "Password",
+    "create_account": "Create Account",
+    "have_account": "Already have an account?",
+    "login_link": "Sign in"
+  },
+  "forgot_password": {
+    "tagline": "ACCOUNT RECOVERY",
+    "title": "Reset your password.",
+    "description": "Enter the email on your account and we'll send you a link to reset your password.",
+    "heading": "Forgot password?",
+    "sub": "We'll email you a reset link",
+    "send_link": "Send Reset Link",
+    "sent_message": "If that email address is registered, a password reset link has been sent.",
+    "back_to_login": "Back to login",
+    "errors": {
+      "throttled": "Too many requests. Please wait a moment before trying again."
+    }
+  },
+  "reset_password": {
+    "tagline": "ACCOUNT RECOVERY",
+    "title": "Choose a new password.",
+    "description": "Pick a strong password you haven't used before.",
+    "heading": "Reset password",
+    "sub": "Enter your new password below",
+    "new_password": "New Password",
+    "confirm_password": "Confirm New Password",
+    "submit": "Reset Password",
+    "success_message": "Password reset successfully. Please log in with your new password.",
+    "request_new_link": "Request a new reset link",
+    "errors": {
+      "missing_token": "This reset link is invalid or incomplete.",
+      "invalid_token": "This password reset link is invalid or has expired.",
+      "password_mismatch": "Passwords do not match."
+    }
+  },
+  "two_factor": {
+    "title": "Two-Factor Authentication",
+    "subtitle": "Add an extra layer of security to your account",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable 2FA",
+    "disable": "Disable 2FA",
+    "setup_title": "Set up Two-Factor Authentication",
+    "confirm_button": "Confirm & Enable",
+    "scan_instructions": "Scan this QR code with Google Authenticator, Authy, or a similar app.",
+    "manual_entry": "Or enter this code manually:",
+    "enter_code_instructions": "Enter the 6-digit code shown in your authenticator app.",
+    "back_to_qr": "Back to QR code",
+    "recovery_codes_warning": "Save these recovery codes somewhere safe. Each can be used once if you lose access to your authenticator app. They won't be shown again.",
+    "recovery_codes_saved": "I've saved these codes",
+    "enabled_success": "Two-factor authentication enabled.",
+    "disabled_success": "Two-factor authentication disabled.",
+    "errors": {
+      "invalid_code": "Invalid verification code."
     }
   },
   "features": {

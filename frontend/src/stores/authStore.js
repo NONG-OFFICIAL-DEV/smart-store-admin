@@ -73,38 +73,72 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login({ email, password }) {
       const response = await authService.userLogin(email, password)
+
+      // Password step succeeded but the account has 2FA enabled — no
+      // token is issued yet, the caller (Login.vue) must complete the
+      // separate verifyTwoFactor() step before any session actually exists.
+      if (response.data.requires_two_factor) {
+        return response
+      }
+
       if (response.data.status === 'success') {
-        this.token = response.data.token
+        this.storeTokenPair(response.data)
         this.user  = response.data.user
         this.mustChangePassword = response.data.must_change_password ?? false
-        localStorage.setItem('token', response.data.token)
       }
       return response
     },
 
-    async loginByPin(pin_code, branch_id = null) {
-      const response = await authService.loginByPin(pin_code, branch_id)
+    async verifyTwoFactor(twoFactorToken, code) {
+      const response = await authService.verifyTwoFactor(twoFactorToken, code)
       if (response.data.status === 'success') {
-        this.token = response.data.token
+        this.storeTokenPair(response.data)
         this.user  = response.data.user
-        localStorage.setItem('token', response.data.token)
-        await this.fetchMe()
+        this.mustChangePassword = response.data.must_change_password ?? false
       }
       return response
+    },
+
+    async register(payload) {
+      const response = await authService.register(payload)
+      if (response.data.success) {
+        this.storeTokenPair(response.data.data)
+      }
+      return response
+    },
+
+    async forgotPassword(email) {
+      return authService.forgotPassword(email)
+    },
+
+    async resetPassword(payload) {
+      return authService.resetPassword(payload)
     },
 
     async logout() {
-      await authService.userLogout().catch(() => {})
+      const refreshToken = localStorage.getItem('refresh_token')
+      await authService.userLogout(refreshToken).catch(() => {})
+      localStorage.removeItem('refresh_token')
       disconnectEcho()
     },
 
-    // Silently exchange the current (possibly just-expired) token for a
-    // fresh one. Used by the api.js response interceptor on 401s.
+    // Silently exchange the current refresh token for a fresh access+refresh
+    // pair. Used by the api.js response interceptor on 401s. The refresh
+    // token itself rotates on every call — the old one is dead the instant
+    // this succeeds, so the new value must always replace it in storage.
     async refreshToken() {
-      const res = await authService.refresh()
-      this.token = res.data.token
-      localStorage.setItem('token', res.data.token)
+      const refreshToken = localStorage.getItem('refresh_token')
+      const res = await authService.refresh(refreshToken)
+      this.storeTokenPair(res.data)
       return res.data.token
+    },
+
+    storeTokenPair(data) {
+      this.token = data.token
+      localStorage.setItem('token', data.token)
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token)
+      }
     },
 
     async fetchMe() {

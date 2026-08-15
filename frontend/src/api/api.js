@@ -19,9 +19,19 @@ api.interceptors.request.use(async config => {
 })
 
 // Requests to these endpoints must never trigger a silent-refresh attempt —
-// otherwise a 401 from /login or /refresh itself would try to refresh a
-// token that doesn't exist yet / just failed to refresh, looping forever.
-const REFRESH_EXEMPT_PATHS = ['/login', '/login-pin', '/refresh']
+// each can legitimately 401/422 with no valid session in play yet (no
+// token/refresh-token exists, or the one in play is intentionally being
+// exchanged/validated by that very request), so retrying them through the
+// refresh flow would either loop forever or refresh a session that was
+// never meant to exist for this request.
+const REFRESH_EXEMPT_PATHS = [
+  '/login',
+  '/refresh',
+  '/two-factor/verify',
+  '/business-register',
+  '/forgot-password',
+  '/reset-password'
+]
 const isRefreshExempt = config => REFRESH_EXEMPT_PATHS.some(path => config.url?.includes(path))
 
 // Coalesce concurrent 401s behind a single in-flight refresh call instead of
@@ -30,6 +40,7 @@ let refreshPromise = null
 
 async function logoutToLogin() {
   localStorage.removeItem('token')
+  localStorage.removeItem('refresh_token')
   await router.push({ name: 'Login' })
 }
 

@@ -15,21 +15,32 @@ export default {
     })
   },
 
-  userLogout() {
-    return http.post('/logout') // call your backend logout endpoint
+  userLogout(refreshToken) {
+    return http.post('/logout', { refresh_token: refreshToken })
   },
 
   me() {
     return http.get('/me')
   },
 
-  /** PIN login — branch_id is optional */
-  loginByPin(pin_code, branch_id = null) {
-    return http.post('/login-pin', { pin_code, branch_id })
+  verifyTwoFactor(twoFactorToken, code) {
+    return http.post('/two-factor/verify', { two_factor_token: twoFactorToken, code })
   },
 
-  refresh() {
-    return http.post('/refresh')
+  register(payload) {
+    return http.post('/v1/public/business-register', payload)
+  },
+
+  forgotPassword(email) {
+    return http.post('/forgot-password', { email })
+  },
+
+  resetPassword({ token, email, password, password_confirmation }) {
+    return http.post('/reset-password', { token, email, password, password_confirmation })
+  },
+
+  refresh(refreshToken) {
+    return http.post('/refresh', { refresh_token: refreshToken })
   },
 
   changePassword(current_password, new_password, new_password_confirmation) {

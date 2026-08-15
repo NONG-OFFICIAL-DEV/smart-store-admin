@@ -2,16 +2,19 @@
 
 namespace App\Services;
 
+use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Repositories\Contracts\TenantRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TenantService extends BaseService
 {
@@ -19,6 +22,8 @@ class TenantService extends BaseService
         TenantRepositoryInterface $repository,
         private PasswordService $passwordService,
         private OwnerRoleProvisioner $ownerRoleProvisioner,
+        private TenantSubscriptionService $subscriptions,
+        private RefreshTokenService $refreshTokenService,
     ) {
         parent::__construct($repository);
     }
@@ -181,13 +186,20 @@ class TenantService extends BaseService
      * Tenant creation deliberately does NOT touch subscriptions/plans — a
      * tenant can exist with zero subscription rows until an admin
      * explicitly assigns one from the Subscriptions screen
-     * (TenantSubscriptionController).
+     * (TenantSubscriptionController). The one exception is self-service
+     * signup (see TenantController::store()), which assigns a default
+     * plan itself right after calling this.
+     *
+     * $temporary controls whether the owner's password is flagged for a
+     * forced change on first login — true for admin-created tenants
+     * (the admin picked the password, not the owner), false for
+     * self-registration (the owner chose their own real password).
      *
      * @return array{tenant_id: string, owner_id: string}
      */
-    public function create(array $validated, ?string $logoUrl): array
+    public function create(array $validated, ?string $logoUrl, bool $temporary = true): array
     {
-        return DB::transaction(function () use ($validated, $logoUrl) {
+        return DB::transaction(function () use ($validated, $logoUrl, $temporary) {
             $owner = User::create([
                 'first_name' => $validated['owner_first_name'],
                 'last_name' => $validated['owner_last_name'],
@@ -196,7 +208,7 @@ class TenantService extends BaseService
                 'is_active' => true,
             ]);
 
-            $this->passwordService->applyPassword($owner, $validated['owner_password'], temporary: true);
+            $this->passwordService->applyPassword($owner, $validated['owner_password'], temporary: $temporary);
 
             $slug = $validated['slug'] ?? $this->generateUniqueSlug($validated['name']);
 
@@ -220,6 +232,38 @@ class TenantService extends BaseService
 
             return ['tenant_id' => $tenant->id, 'owner_id' => $owner->id];
         });
+    }
+
+    /**
+     * The public self-service signup path (TenantController::store() when
+     * called with no authenticated user) — on top of create(), this also
+     * assigns the default free plan (a brand new tenant can't be left with
+     * zero subscription rows the way an admin-created one deliberately can
+     * be, since nobody's coming back later to assign one) and immediately
+     * logs the new owner in.
+     *
+     * @return array{tenant_id: string, owner_id: string, token: string, token_type: string, expires_in: int, refresh_token: string, refresh_expires_in: int}
+     */
+    public function registerSelfService(array $validated, ?string $logoUrl, Request $request): array
+    {
+        $result = $this->create($validated, $logoUrl, temporary: false);
+        $owner = User::findOrFail($result['owner_id']);
+
+        $freePlan = Plan::where('code', 'free')->firstOrFail();
+        $cycleId = $freePlan->billingCycles()->where('is_active', true)->value('id');
+
+        $this->subscriptions->changePlan(
+            tenant: Tenant::findOrFail($result['tenant_id']),
+            newPlanId: $freePlan->id,
+            newCycleId: $cycleId,
+            changedBy: $owner->id,
+            reason: 'Self-registration default plan',
+        );
+
+        $token = JWTAuth::fromUser($owner);
+        $refreshToken = $this->refreshTokenService->issue($owner, $request);
+
+        return [...$result, 'token' => $token, 'token_type' => 'bearer', 'expires_in' => JWTAuth::factory()->getTTL() * 60, ...$refreshToken];
     }
 
     /**

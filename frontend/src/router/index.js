@@ -8,6 +8,24 @@ const routes = [
     meta: { transition: 'fade' }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/auth/Register.vue'),
+    meta: { transition: 'fade' }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/auth/ForgotPassword.vue'),
+    meta: { transition: 'fade' }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/auth/ResetPassword.vue'),
+    meta: { transition: 'fade' }
+  },
+  {
     path: '/force-password-change',
     name: 'ForcePasswordChange',
     component: () => import('@/views/auth/ForcePasswordChange.vue'),
@@ -345,15 +363,21 @@ const router = createRouter({
   routes
 })
 
+// Reachable without a token AND without redirecting a logged-in visitor
+// away — signup/forgot/reset are legitimate destinations even mid-session
+// (e.g. a link opened in a new tab), unlike Login itself which a logged-in
+// user should never land back on.
+const PUBLIC_AUTH_ROUTES = ['Login', 'Register', 'ForgotPassword', 'ResetPassword']
+
 router.beforeEach(async (to, from, next) => {
   const { useAuthStore } = await import('@/stores/authStore')
   const authStore = useAuthStore()
   const token = localStorage.getItem('token')
 
-  // ── 1. No token → force Login ──────────────────────────────────────────
+  // ── 1. No token → force Login (except the other public auth routes) ───
   if (!token) {
     authStore.$reset() // ← add this, clear stale state
-    if (to.name === 'Login') return next()
+    if (PUBLIC_AUTH_ROUTES.includes(to.name)) return next()
     return next({ name: 'Login' })
   }
 
@@ -363,7 +387,7 @@ router.beforeEach(async (to, from, next) => {
       await authStore.fetchMe()
     } catch {
       localStorage.removeItem('token')
-      if (to.name === 'Login') return next()
+      if (PUBLIC_AUTH_ROUTES.includes(to.name)) return next()
       return next({ name: 'Login' })
     }
   }

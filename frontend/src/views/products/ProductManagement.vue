@@ -13,30 +13,12 @@
             rounded="lg"
             prepend-icon="mdi-chart-bar"
             @click="showStats = !showStats"
-            class="me-4"
+            class="me-2"
           >
             {{ t('btn.stats') }}
           </v-btn>
           <v-btn
-            :color="showFilters ? 'primary' : 'default'"
-            :variant="showFilters ? 'flat' : 'tonal'"
-            rounded="lg"
-            :prepend-icon="
-              showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-            "
-            @click="showFilters = !showFilters"
-          >
-            {{ t('btn.filter') }}
-            <!-- badge shows how many filters are active -->
-            <v-badge
-              v-if="activeFilterCount > 0"
-              :content="activeFilterCount"
-              color="error"
-              floating
-            />
-          </v-btn>
-          <v-btn
-            class="ms-4"
+            class="ms-2"
             color="primary"
             variant="flat"
             rounded="lg"
@@ -49,71 +31,6 @@
       </template>
     </custom-title>
 
-    <!-- Collapsible filter panel -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" border class="mb-4">
-        <v-card-text class="pa-4">
-          <v-row dense align="center">
-            <v-col cols="12" sm="3">
-              <v-text-field
-                v-model="search"
-                :placeholder="t('products.filter.placeholder')"
-                prepend-inner-icon="mdi-magnify"
-                variant="outlined"
-                hide-details
-                clearable
-                rounded="lg"
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="6" sm="4">
-              <custom-select
-                v-model="filterCategories"
-                :items="categories"
-                item-title="name"
-                item-value="id"
-                :label="t('categories.title')"
-                :multiple="true"
-                :chips="true"
-                :max-visible-chips="2"
-              />
-            </v-col>
-            <v-col cols="6" sm="3">
-              <v-select
-                v-model="filterAvailable"
-                :items="availabilityOptions"
-                :label="t('products.filter.availability')"
-                variant="outlined"
-                hide-details
-                clearable
-                rounded="lg"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
     <!-- Stats panel -->
     <v-expand-transition>
       <v-row v-if="showStats" dense class="mb-4">
@@ -136,17 +53,43 @@
         </v-col>
       </v-row>
     </v-expand-transition>
+
+    <!-- ── Filters ────────────────────────────────────────────────────────── -->
+    <v-row dense align="center" class="mb-2">
+      <v-col cols="12" sm="3">
+        <custom-select
+          v-model="filterCategories"
+          :items="categories"
+          item-title="name"
+          item-value="id"
+          :label="t('categories.title')"
+          :multiple="true"
+          :chips="true"
+          :max-visible-chips="2"
+        />
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-select
+          v-model="filterAvailable"
+          :items="availabilityOptions"
+          :label="t('products.filter.availability')"
+          variant="outlined"
+          clearable
+          rounded="lg"
+          hide-details
+        />
+      </v-col>
+    </v-row>
+
     <!-- ── Table View ─────────────────────────────────────────────────────── -->
-    <v-card rounded="lg" elevation="0" border>
-      <v-data-table-server
+    <v-card rounded="lg" elevation="0" border class="pa-4">
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="products"
-        :items-length="pagination.total || 0"
-        :items-per-page="pagination.per_page"
-        item-value="id"
-        rounded="lg"
-        hover
-        @update:options="fetchOnOptions"
+        :fetch-fn="fetchProductsForTable"
+        :filters="filters"
+        :show-search="true"
+        :item-label="t('products.title')"
       >
         <!-- Image + Name -->
         <template #item.name="{ item }">
@@ -174,28 +117,9 @@
           <v-switch
             v-model="item.is_available"
             color="success"
-            density="compact"
             hide-details
             @change="toggleAvailability(item)"
           />
-        </template>
-
-        <!-- Featured -->
-        <template #item.is_featured="{ item }">
-          <v-icon
-            :icon="item.is_featured ? 'mdi-star' : 'mdi-star-outline'"
-            :color="item.is_featured ? 'warning' : 'grey'"
-            size="20"
-          />
-        </template>
-
-        <!-- Prep time -->
-        <template #item.preparation_time="{ item }">
-          <span v-if="item.preparation_time">
-            <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
-            {{ item.preparation_time }} min
-          </span>
-          <span v-else class="text-medium-emphasis">—</span>
         </template>
 
         <!-- Actions -->
@@ -243,7 +167,7 @@
             </v-btn>
           </div>
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
   </v-container>
 </template>
@@ -253,11 +177,10 @@
   import { storeToRefs } from 'pinia'
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
-  import { useDataTable } from '@/composables/useServerTable'
- 
+
   const router = useRouter()
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
@@ -268,12 +191,22 @@
   const { products, pagination } = storeToRefs(productStore)
   const { categories } = storeToRefs(categoryStore)
 
-  // ── UI state ──────────────────────────────────────────────────────────────────
-  const search = ref('')
-  const filterCategories = ref([]) // ✅ always an array
-  const filterAvailable = ref(null)
-  const showFilters = ref(false)
+  const tableRef = ref(null)
   const showStats = ref(false)
+
+  // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
+  // search is AppTable's own built-in field). ───────────────────────────────────
+  const filterCategories = ref([])
+  const filterAvailable = ref(null)
+
+  const filters = computed(() => ({
+    categories: filterCategories.value?.length ? filterCategories.value : undefined,
+    is_available:
+      filterAvailable.value !== null ? filterAvailable.value : undefined
+  }))
+
+  // ── AppTable's fetch-fn contract: params -> { items, total } ─────────────────
+  const fetchProductsForTable = params => productStore.fetchProducts(params)
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────────
   onMounted(async () => {
@@ -285,13 +218,6 @@
     { title: 'Available', value: true },
     { title: 'Unavailable', value: false }
   ]
-
-  // ── Applied filters (only updated on "Apply") ─────────────────────────────────
-  const appliedFilters = ref({
-    search: '',
-    categories: [],
-    is_available: null
-  })
 
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = computed(() => [
@@ -342,53 +268,6 @@
     }
   ])
 
-  // ── Data table ────────────────────────────────────────────────────────────────
-  const { fetchOnOptions, refresh } = useDataTable(
-    productStore.fetchProducts,
-    () => ({
-      search: appliedFilters.value.search,
-      categories: appliedFilters.value.categories, // ✅ array of UUIDs
-      is_available: appliedFilters.value.is_available
-    })
-  )
-
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (search.value?.trim()) count++ // ✅ string check
-    if (filterCategories.value?.length > 0) count++ // ✅ array length
-    if (filterAvailable.value !== null && filterAvailable.value !== undefined)
-      count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
-  // ── Filter actions (aliased as onFilterChange / resetFilters) ─────────────────
-  function applyFilters() {
-    appliedFilters.value = {
-      search: search.value?.trim() ?? '',
-      categories: filterCategories.value ?? [], // ✅ always send array
-      is_available: filterAvailable.value
-    }
-    refresh()
-  }
-
-  function clearFilters() {
-    search.value = ''
-    filterCategories.value = [] // ✅ reset to array, NOT null
-    filterAvailable.value = null
-
-    appliedFilters.value = {
-      search: '',
-      categories: [],
-      is_available: null
-    }
-    refresh()
-  }
-
-  const onFilterChange = applyFilters
-  const resetFilters = clearFilters
-
   // ── Navigation ────────────────────────────────────────────────────────────────
   const openCreate = () => router.push('/products/create')
   const openEdit = item => router.push(`/products/${item.id}/edit`)
@@ -404,7 +283,7 @@
       })
     } catch {
       item.is_available = !item.is_available // revert optimistic update
-      notif(`Failed to update ${item.name}`, { type: 'error' }) // ✅ fixed: was 'success'
+      notif(`Failed to update ${item.name}`, { type: 'error' })
     }
   }
 
@@ -417,9 +296,8 @@
       agree: async () => {
         await productStore.deleteProduct(product.id)
         notif(t('messages.deleted_success'), { type: 'success' })
-        refresh()
+        tableRef.value?.refresh()
       }
     })
   }
-
 </script>

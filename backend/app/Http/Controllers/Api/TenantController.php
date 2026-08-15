@@ -107,6 +107,17 @@ class TenantController extends Controller
             $logoUrl = Storage::url($path);
         }
 
+        // Same route serves both the superadmin-only admin panel (POST
+        // /tenants, authenticated) and the public self-service signup form
+        // (POST /business-register, no auth at all) — distinguished here by
+        // whether a user is actually authenticated, since StoreTenantRequest
+        // itself must authorize() both.
+        if (! $request->user()) {
+            $result = $this->tenants->registerSelfService($request->validated(), $logoUrl, $request);
+
+            return $this->created($result, 'Account created successfully');
+        }
+
         $result = $this->tenants->create($request->validated(), $logoUrl);
 
         return $this->created($result, 'Tenant created successfully');

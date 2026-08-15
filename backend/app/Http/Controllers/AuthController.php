@@ -8,17 +8,31 @@ use App\Models\Tenant;
 use App\Models\ActivityLog;
 use App\Rules\PasswordPolicy;
 use App\Services\PasswordService;
+use App\Services\RefreshTokenService;
+use App\Services\TwoFactorAuthService;
+use App\Exceptions\InvalidRefreshTokenException;
+use App\Exceptions\RefreshTokenExpiredException;
+use App\Exceptions\RefreshTokenReusedException;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class AuthController extends Controller
 {
+    private const TWO_FACTOR_CHALLENGE_TTL_MINUTES = 5;
+
     // Login user
-    public function login(Request $request)
-    {
+    public function login(
+        Request $request,
+        RefreshTokenService $refreshTokenService,
+        TwoFactorAuthService $twoFactor
+    ) {
         // ── Validate input ────────────────────────────────────────────────────
         $request->validate([
             'email'    => 'required|email',
@@ -56,60 +70,29 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            // ── Update last_login_at ──────────────────────────────────────────
-            $user->update(['last_login_at' => now()]);
-            $user = $user->fresh();
+            // Password verification succeeded, but that is NOT the same as
+            // "fully authenticated" for a 2FA-enabled account — the token
+            // attempt() just minted is invalidated immediately and never
+            // sent to the client. A real token is only issued once the
+            // second factor is verified (see verifyTwoFactor()).
+            if ($twoFactor->hasTwoFactorEnabled($user)) {
+                JWTAuth::setToken($token)->invalidate();
 
-            // ── Resolve bu_type via relation (bu_type column was dropped) ─────
-            $bu_type = null;
+                $challengeToken = Str::random(40);
+                Cache::put(
+                    "two_factor_challenge:{$challengeToken}",
+                    $user->id,
+                    now()->addMinutes(self::TWO_FACTOR_CHALLENGE_TTL_MINUTES)
+                );
 
-            if (!$user->is_super_admin) {
-                $ownedTenant = Tenant::with('businessType')
-                    ->where('owner_user_id', $user->id)
-                    ->first();
-
-                if ($ownedTenant) {
-                    $bu_type = $ownedTenant->businessType?->code;
-                } else {
-                    $bu_type = $user->staff()
-                        ->withoutGlobalScopes()
-                        ->with('tenant.businessType')
-                        ->first()
-                        ?->tenant
-                        ?->businessType
-                        ?->code;
-                }
+                return response()->json([
+                    'status' => 'success',
+                    'requires_two_factor' => true,
+                    'two_factor_token' => $challengeToken,
+                ]);
             }
 
-            // ── Log login ─────────────────────────────────────────────────────
-            ActivityLog::log(
-                action: 'auth.login',
-                entity: null,
-                payload: null,
-                description: "User {$user->email} logged in"
-            );
-
-            return response()->json([
-                'status'     => 'success',
-                'token'      => $token,
-                'token_type' => 'bearer',
-                'expires_in' => JWTAuth::factory()->getTTL() * 60,
-                'user'       => [
-                    'id'            => $user->id,
-                    'email'         => $user->email,
-                    'phone'         => $user->phone,
-                    'first_name'    => $user->first_name,
-                    'last_name'     => $user->last_name,
-                    'full_name'     => $user->full_name,
-                    'avatar_url'    => $user->avatar_url,
-                    'is_active'     => $user->is_active,
-                    'last_login_at' => $user->last_login_at,
-                ],
-                'is_super_admin'       => $user->is_super_admin,
-                'is_owner'             => Tenant::where('owner_user_id', $user->id)->exists(),
-                'bu_type'              => $bu_type,
-                'must_change_password' => $user->must_change_password,
-            ]);
+            return $this->buildLoginResponse($user, $token, $refreshTokenService, $request);
         } catch (JWTException $e) {
             return response()->json([
                 'status'  => 'error',
@@ -118,6 +101,116 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
+    }
+
+    // Second step of a 2FA-gated login — verifies the challenge token +
+    // code, and only then mints a real access+refresh token pair.
+    public function verifyTwoFactor(
+        Request $request,
+        RefreshTokenService $refreshTokenService,
+        TwoFactorAuthService $twoFactor
+    ) {
+        $request->validate([
+            'two_factor_token' => 'required|string',
+            'code' => 'required|string',
+        ]);
+
+        $userId = Cache::pull("two_factor_challenge:{$request->two_factor_token}");
+
+        if (! $userId) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 'TWO_FACTOR_CHALLENGE_EXPIRED',
+                'message' => 'This verification session has expired. Please log in again.',
+            ], 422);
+        }
+
+        $user = User::find($userId);
+
+        if (! $user || ! $twoFactor->verifyCode($user, $request->code)) {
+            // Put the challenge back — a wrong code shouldn't force the
+            // user all the way back to a fresh password login.
+            Cache::put(
+                "two_factor_challenge:{$request->two_factor_token}",
+                $userId,
+                now()->addMinutes(self::TWO_FACTOR_CHALLENGE_TTL_MINUTES)
+            );
+
+            return response()->json([
+                'status' => 'error',
+                'code' => 'INVALID_TWO_FACTOR_CODE',
+                'message' => 'Invalid verification code.',
+            ], 422);
+        }
+
+        $token = JWTAuth::fromUser($user);
+
+        return $this->buildLoginResponse($user, $token, $refreshTokenService, $request);
+    }
+
+    private function buildLoginResponse(
+        User $user,
+        string $token,
+        RefreshTokenService $refreshTokenService,
+        Request $request
+    ) {
+        // ── Update last_login_at ──────────────────────────────────────────
+        $user->update(['last_login_at' => now()]);
+        $user = $user->fresh();
+
+        // ── Resolve bu_type via relation (bu_type column was dropped) ─────
+        $bu_type = null;
+
+        if (!$user->is_super_admin) {
+            $ownedTenant = Tenant::with('businessType')
+                ->where('owner_user_id', $user->id)
+                ->first();
+
+            if ($ownedTenant) {
+                $bu_type = $ownedTenant->businessType?->code;
+            } else {
+                $bu_type = $user->staff()
+                    ->withoutGlobalScopes()
+                    ->with('tenant.businessType')
+                    ->first()
+                    ?->tenant
+                    ?->businessType
+                    ?->code;
+            }
+        }
+
+        // ── Log login ─────────────────────────────────────────────────────
+        ActivityLog::log(
+            action: 'auth.login',
+            entity: null,
+            payload: null,
+            description: "User {$user->email} logged in"
+        );
+
+        $refreshToken = $refreshTokenService->issue($user, $request);
+
+        return response()->json([
+            'status'     => 'success',
+            'token'      => $token,
+            'token_type' => 'bearer',
+            'expires_in' => JWTAuth::factory()->getTTL() * 60,
+            ...$refreshToken,
+            'user'       => [
+                'id'            => $user->id,
+                'email'         => $user->email,
+                'phone'         => $user->phone,
+                'first_name'    => $user->first_name,
+                'last_name'     => $user->last_name,
+                'full_name'     => $user->full_name,
+                'avatar_url'    => $user->avatar_url,
+                'is_active'     => $user->is_active,
+                'last_login_at' => $user->last_login_at,
+            ],
+            'is_super_admin'       => $user->is_super_admin,
+            'is_owner'             => Tenant::where('owner_user_id', $user->id)->exists(),
+            'bu_type'              => $bu_type,
+            'must_change_password' => $user->must_change_password,
+        ]);
     }
 
 
@@ -216,31 +309,36 @@ class AuthController extends Controller
         ]));
     }
 
-    // Refresh an (possibly expired-but-refreshable) JWT for a new one.
-    // NOTE: deliberately NOT behind the 'jwt.auth' middleware — that
-    // middleware rejects expired tokens outright, which would make this
-    // endpoint unreachable in the one case it exists for.
-    public function refresh()
+    // Exchanges a refresh token for a brand-new access+refresh pair.
+    // NOTE: deliberately NOT behind the 'jwt.auth' middleware — this
+    // endpoint never looks at the (possibly long-expired) access token at
+    // all, only the refresh token in the body, so there's no JWT for that
+    // middleware to validate in the first place.
+    public function refresh(Request $request, RefreshTokenService $refreshTokenService)
     {
+        $request->validate(['refresh_token' => 'required|string']);
+
         try {
-            $newToken = JWTAuth::parseToken()->refresh();
-        } catch (JWTException $e) {
+            $result = $refreshTokenService->rotate($request->refresh_token, $request);
+        } catch (InvalidRefreshTokenException|RefreshTokenExpiredException|RefreshTokenReusedException $e) {
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Could not refresh token, please log in again',
+                'status'  => 'session_revoked',
+                'message' => $e->getMessage(),
             ], 401);
         }
 
         return response()->json([
-            'status'     => 'success',
-            'token'      => $newToken,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
+            'status'             => 'success',
+            'token'              => $result['access_token'],
+            'token_type'         => 'bearer',
+            'expires_in'         => JWTAuth::factory()->getTTL() * 60,
+            'refresh_token'      => $result['refresh_token'],
+            'refresh_expires_in' => $result['refresh_expires_in'],
         ]);
     }
 
     // Logout
-    public function logout()
+    public function logout(Request $request, RefreshTokenService $refreshTokenService)
     {
         try {
             // ── Log before invalidating token ──────────────────────────────
@@ -250,113 +348,18 @@ class AuthController extends Controller
                 payload: null,
                 description: 'User logged out'
             );
+
+            // Scoped to just this session's own refresh token — logging out
+            // on one device must never revoke another device's session.
+            if ($request->filled('refresh_token')) {
+                $refreshTokenService->revoke($request->refresh_token);
+            }
+
             JWTAuth::parseToken()->invalidate();
             return response()->json(['message' => 'Logged out successfully']);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Failed to logout, token invalid'], 500);
         }
-    }
-
-    // Login by PIN (POS / quick login)
-    // POST /api/auth/login-pin
-    // Body: { "pin_code": "1122", "branch_id": "<uuid>" }   (branch_id optional — narrows search)
-    public function loginByPin(Request $request)
-    {
-        // ── Validate ──────────────────────────────────────────────────────────
-        $request->validate([
-            'pin_code'  => 'required|string|min:4|max:6',
-            'branch_id' => 'nullable|uuid|exists:branches,id',
-        ]);
-
-        // ── Find active staff in this branch that match the PIN ───────────────
-        // We load a small set (active staff of the branch) then verify hash in PHP
-        // because bcrypt hashes cannot be searched directly in SQL.
-        $staffQuery = \App\Models\Staff::withoutGlobalScopes()
-            ->with(['user', 'role.permissions', 'tenant', 'branch'])
-            ->where('is_active', true)
-            ->whereNotNull('pin_code');
-
-        if ($request->filled('branch_id')) {
-            $staffQuery->where('branch_id', $request->branch_id);
-        }
-
-        $matchedStaff = null;
-
-        // Iterate and verify hashed pin — stop at first match
-        foreach ($staffQuery->cursor() as $staff) {
-            if (Hash::check($request->pin_code, $staff->pin_code)) {
-                $matchedStaff = $staff;
-                break;
-            }
-        }
-
-        if (!$matchedStaff) {
-            return response()->json([
-                'status'  => 'invalid_pin',
-                'message' => 'PIN code is incorrect or not assigned to any active staff.',
-            ], 401);
-        }
-
-        $user = $matchedStaff->user;
-
-        if (!$user || !$user->is_active) {
-            return response()->json([
-                'status'  => 'account_inactive',
-                'message' => 'This account has been deactivated. Please contact support.',
-            ], 403);
-        }
-
-        // ── Generate JWT for this user ────────────────────────────────────────
-        try {
-            $token = JWTAuth::fromUser($user);
-        } catch (JWTException $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Could not create token, please try again.',
-            ], 500);
-        }
-
-        // ── Update last_login_at ──────────────────────────────────────────────
-        $user->update(['last_login_at' => now()]);
-        $user = $user->fresh();
-
-        // ── Activity log ──────────────────────────────────────────────────────
-        ActivityLog::log(
-            action: 'auth.login_pin',
-            entity: null,
-            payload: null,
-            description: "Staff {$user->email} logged in via PIN (branch: {$matchedStaff->branch_id})"
-        );
-
-        return response()->json([
-            'status'     => 'success',
-            'token'      => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
-            'user' => [
-                'id'            => $user->id,
-                'email'         => $user->email,
-                'phone'         => $user->phone,
-                'first_name'    => $user->first_name,
-                'last_name'     => $user->last_name,
-                'full_name'     => $user->full_name,
-                'avatar_url'    => $user->avatar_url,
-                'is_active'     => $user->is_active,
-                'last_login_at' => $user->last_login_at,
-            ],
-            'is_super_admin' => false,
-            'is_owner'       => false,
-            'is_staff'       => true,
-            'tenant_id'      => $matchedStaff->tenant_id,
-            'bu_name'        => $matchedStaff->tenant?->name,
-            'bu_type'        => $matchedStaff->tenant?->bu_type,
-            'logo_url'       => $matchedStaff->tenant?->logo_url,
-            'branch_id'      => $matchedStaff->branch_id,
-            'branch_name'    => $matchedStaff->branch?->name,
-            'role_name'      => $matchedStaff->role?->name,
-            'currency'       => $matchedStaff->tenant?->currency,
-            'permissions'    => $matchedStaff->role?->permissions->pluck('code')->toArray() ?? [],
-        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -387,7 +390,7 @@ class AuthController extends Controller
     // PUT /api/v1/auth/password
     // Body: { "current_password": "...", "new_password": "...", "new_password_confirmation": "..." }
     // ─────────────────────────────────────────────────────────────────────────────
-    public function changePassword(Request $request, PasswordService $passwordService)
+    public function changePassword(Request $request, PasswordService $passwordService, RefreshTokenService $refreshTokenService)
     {
         $request->validate([
             'current_password' => 'required|string',
@@ -405,6 +408,12 @@ class AuthController extends Controller
 
         $passwordService->applyPassword($user, $request->new_password, temporary: false);
 
+        // A password change is exactly the kind of event that should force
+        // every OTHER session to re-authenticate — this device's own
+        // current session keeps working (its access token isn't touched),
+        // but a stolen refresh token from before the change is now dead.
+        $refreshTokenService->revokeAllForUser($user->id);
+
         ActivityLog::log(
             action: 'auth.password_changed',
             entity: null,
@@ -413,5 +422,80 @@ class AuthController extends Controller
         );
 
         return response()->json(['status' => 'success', 'message' => 'Password updated successfully.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // FORGOT PASSWORD — sends a reset link if the email exists. Deliberately
+    // ALWAYS returns the same generic response regardless of whether the
+    // broker actually found an account — never confirm/deny account
+    // existence via a distinguishable response.
+    // POST /api/forgot-password
+    // Body: { "email": "..." }
+    // ─────────────────────────────────────────────────────────────────────────────
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status === Password::RESET_THROTTLED) {
+            // Rate-limit state isn't an account-existence leak — safe to
+            // surface distinctly.
+            return response()->json([
+                'status'  => 'throttled',
+                'message' => 'Please wait before requesting another reset link.',
+            ], 429);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'If that email address is registered, a password reset link has been sent.',
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // RESET PASSWORD — completes the flow with the token from the emailed link.
+    // POST /api/reset-password
+    // Body: { "token": "...", "email": "...", "password": "...", "password_confirmation": "..." }
+    // ─────────────────────────────────────────────────────────────────────────────
+    public function resetPassword(Request $request, PasswordService $passwordService, RefreshTokenService $refreshTokenService)
+    {
+        $request->validate([
+            'token'    => 'required|string',
+            'email'    => 'required|email',
+            'password' => array_merge(PasswordPolicy::rules(), ['confirmed']),
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) use ($passwordService, $refreshTokenService) {
+                $passwordService->applyPassword($user, $password, temporary: false);
+                $refreshTokenService->revokeAllForUser($user->id);
+
+                event(new PasswordReset($user));
+
+                ActivityLog::log(
+                    action: 'auth.password_reset',
+                    entity: $user,
+                    payload: null,
+                    description: "Password reset via emailed link for {$user->email}"
+                );
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            // Still no distinguishable-by-email response — an invalid
+            // token and a token for a nonexistent email both fail
+            // Password::reset() the same way.
+            return response()->json([
+                'status'  => 'invalid_token',
+                'message' => 'This password reset link is invalid or has expired.',
+            ], 422);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Password reset successfully. Please log in with your new password.',
+        ]);
     }
 }
