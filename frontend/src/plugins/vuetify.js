@@ -1,0 +1,108 @@
+import '@mdi/font/css/materialdesignicons.css'
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import { ref, watch } from 'vue'
+import { km, en } from 'vuetify/locale'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import * as labs from 'vuetify/labs/components'
+import { VDateInput } from 'vuetify/labs/VDateInput'
+import { VColorInput } from 'vuetify/labs/VColorInput'
+import { KhmerDateAdapter } from './khmerDateAdapter'
+
+export const appDensity = ref(localStorage.getItem('density') || 'default')
+const savedLocale = localStorage.getItem('lang') || 'km'
+
+const DENSITY_FIELDS = [
+  'VTextField',
+  'VSelect',
+  'VTextarea',
+  'VAutocomplete',
+  'VDateInput',
+  'VDataTable',
+  'VDataTableServer',
+  'VTable'
+]
+
+const vuetify = createVuetify({
+  display: { mobileBreakpoint: 'sm' },
+  components: { VDateInput, VColorInput, ...components, ...labs },
+  directives,
+  defaults: {
+    VDateInput: {
+      density: 'comfortable',
+      variant: 'outlined',
+      color: 'primary',
+      prependIcon: '',
+      appendInnerIcon: '$calendar',
+      inputFormat: 'DD-MM-YYYY',
+      hideActions: true
+    },
+    VSelect: { density: 'comfortable', variant: 'outlined', color: 'primary' },
+    VTextField: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary',
+      rounded: 'lg'
+    },
+    VTextarea: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary',
+      autoGrow: true,
+      rows: 3
+    },
+    VAutocomplete: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary'
+    },
+    VDataTable: { class: 'rounded-lg' },
+    VDataTableServer: { class: 'rounded-lg' }
+  },
+  theme: {
+    themes: {
+      light: {
+        dark: false,
+        colors: {
+          primary: '#00838F',
+          secondary: '#c17290',
+          textField: '#2f9dab',
+          icon: '#653748',
+          btnEdit: '#a0627f',
+          gray: '#f2f2f2',
+          warning: '#FB8C00',
+          error: '#B00020'
+        }
+      }
+    }
+  },
+  locale: {
+    messages: { km, en },
+    locale: savedLocale,
+    fallback: 'en'
+  },
+  icons: { iconfont: 'mdi' },
+  date: {
+    adapter: KhmerDateAdapter,
+    locale: {
+      en: 'en-GB',
+      km: 'km-KH'
+    }
+  }
+})
+
+watch(
+  appDensity,
+  val => {
+    DENSITY_FIELDS.forEach(key => {
+      vuetify.defaults.value[key] = {
+        ...vuetify.defaults.value[key],
+        density: val
+      }
+    })
+  },
+  { immediate: true }
+)
+
+export default vuetify

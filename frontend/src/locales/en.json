@@ -1,0 +1,3179 @@
+{
+  "lang": {
+    "en": "English",
+    "km": "Khmer",
+    "zh": "Chinese"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "tenant": "Tenants",
+    "business_type": "Business type",
+    "pos": "Point of Sale",
+    "products_management": "Products",
+    "products": "Products",
+    "product_units": "Product Units",
+    "categories": "Categories",
+    "suppliers": "Suppliers",
+    "customers": "Customers",
+    "inventory": "Inventory",
+    "stock_overview": "Stock Overview",
+    "stock_in": "Stock In",
+    "stock_out": "Stock Out",
+    "stock_movements": "Stock Movements",
+    "adjustment": "Adjustments",
+    "purchase_order": "Purchase Orders",
+    "low_stock": "Low Stock Alerts",
+    "sales": "Sales",
+    "orders": "Orders",
+    "reports": "Reports",
+    "settings": "Settings",
+    "users": "Users",
+    "roles": "Roles & Permissions",
+    "activity_log": "Activity Log",
+    "branches": "Branches",
+    "staff": "Staff",
+    "staff_list": "Staff List",
+    "shift": "Shift",
+    "shift_assign": "Shift Assignment",
+    "tables": "Tables",
+    "menus": "Menus",
+    "promotions": "Promotions",
+    "menu_management": "Menu",
+    "orders_analytics": "Orders Analytics",
+    "purchase_reports": "Purchase Reports",
+    "stock_reports": "Stock Reports",
+    "product_performance": "Product Performance",
+    "sales_report": "Sales Report",
+    "profit_loss": "Profit & Loss",
+    "operation": "Operations",
+    "dining": "Dining",
+    "reservations": "Reservations",
+    "ingredients": "Integrations",
+    "modifiers": "Modifiers",
+    "branch_menus": "Branch Menus",
+    "system_admin": "System Admin",
+    "access_rights": "Permissions",
+    "invoice_setup": "Invoice",
+    "billing": "Billing",
+    "pricing_plans": "Pricing Plan",
+    "subscriptions": "Subscriptions",
+    "telegram_settings": "Telegram Bot",
+    "tenants_management": "Tenants",
+    "expenses": "Expenses",
+    "business_management": "Platform",
+    "sales_operations": "Sales",
+    "product_catalog": "Catalog",
+    "inventory_purchasing": "Inventory",
+    "reports_analytics": "Reports",
+    "staff_workforce": "Staff",
+    "system_administration": "System Admin",
+    "setting": "Setting"
+  },
+  "btn": {
+    "create": "Create",
+    "edit": "Edit",
+    "update": "Update",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "filter": "Filter",
+    "search": "Search",
+    "view": "View",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print",
+    "confirm": "Confirm",
+    "refresh": "Refresh",
+    "add": "Add",
+    "add_category": "Add Category",
+    "remove": "Remove",
+    "submit": "Submit",
+    "reset": "Reset",
+    "clear": "Clear",
+    "apply": "Apply",
+    "receive": "Receive",
+    "checkout": "Checkout",
+    "pay": "Pay",
+    "adjust": "Adjust",
+    "new_order": "New Order",
+    "add_to_cart": "Add to Cart",
+    "save_changes": "Save Changes",
+    "create_po": "Create PO",
+    "add_product": "Add Product",
+    "add_branch": "Add Branch",
+    "add_staff": "Add Staff",
+    "add_supplier": "Add Supplier",
+    "add_customer": "Add Customer",
+    "add_unit": "Add Unit",
+    "select_all": "Select All",
+    "deselect_all": "Deselect All",
+    "download": "Download",
+    "upload": "Upload",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "retry": "Retry",
+    "proceed": "Proceed",
+    "stats": "Stats",
+    "done": "Done",
+    "view_all": "View All",
+    "take_photo": "Take Photo",
+    "assign": "Assign Staff",
+    "create_coupon": "Create Coupons",
+    "loyalty": "Loyalty Program",
+    "promotions": "Create Promotions",
+    "create_promotion": "Create Promotion",
+    "manage": "Manage"
+  },
+  "app": {
+    "name": "Nexstack Tech",
+    "footer": "Nexstack Tech — Enterprise Edition"
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Customize your experience",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "density": "Density",
+    "comfortable": "Comfortable",
+    "compact": "Compact"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account information and settings",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "change_password": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm New Password",
+    "password_changed": "Password changed successfully",
+    "password_change_failed": "Failed to change password"
+  },
+  "billing": {
+    "title": "Billing",
+    "subtitle": "View your subscription and payment history",
+    "plan": "Current Plan",
+    "status": "Status",
+    "next_billing_date": "Next Billing Date",
+    "payment_history": "Payment History",
+    "amount": "Amount",
+    "date": "Date",
+    "method": "Payment Method",
+    "status_paid": "Paid",
+    "status_failed": "Failed",
+    "subscription": "Subscription Plan",
+    "billing_summary": "Billing Summary",
+    "invoice_history": "Invoice History",
+    "plan_history": "Plan History",
+    "overview": {
+      "lastPayment": "Last Payment",
+      "trialEnds": "Trial Ends",
+      "nextBilling": "Next Billing",
+      "nextCharge": "Next Charge",
+      "userSeats": "User Seats",
+      "daysLeft": "Days Left"
+    },
+    "billingCards": {
+      "lastPayment": "Last Payment",
+      "trialEnds": "Trial Ends",
+      "nextBilling": "Next Billing",
+      "nextCharge": "Next Charge"
+    },
+    "invoices": {
+      "title": "Subscription & Invoices",
+      "table": {
+        "invoice": "Invoice",
+        "date": "Date",
+        "amount": "Amount",
+        "method": "Method",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+    "historyTable": {
+      "plan": "Plan",
+      "changedDate": "Changed Date",
+      "price": "Price",
+      "status": "Status"
+    },
+    "default_plan_name": "Subscription",
+    "messages": {
+      "payment_confirmed": "Payment confirmed! Invoice updated."
+    }
+  },
+  "login": {
+    "tagline": "RETAIL & RESTAURANT OS",
+    "title1": "One platform.",
+    "title2": "Every branch.",
+    "description": "Manage your POS, inventory, staff and reports across all locations from a single dashboard.",
+    "signIn": "Sign in",
+    "sub": "Enter your credentials to access your workspace",
+    "pin": "PIN Code",
+    "password": "Password",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "••••••••",
+    "passwordHint": "Enter your password",
+    "signInBtn": "Sign In to Dashboard",
+    "pinCode": "PIN Code",
+    "signInPin": "Sign In with PIN",
+    "feature_list": {
+      "pos": "Multi-branch POS & order management",
+      "inventory": "Real-time inventory tracking",
+      "staff": "Staff roles & permissions",
+      "reports": "Sales analytics & reports"
+    },
+    "rules": {
+      "email_required": "Email is required",
+      "email_invalid": "Enter a valid email address",
+      "password_required": "Password is required"
+    },
+    "errors": {
+      "invalid_pin": "Incorrect PIN. Please try again.",
+      "account_locked": "Account locked due to too many attempts.",
+      "too_many_attempts": "Too many attempts. Please wait a moment.",
+      "too_many_attempts_retry": "Too many attempts. Please wait a moment and try again.",
+      "cannot_connect": "Cannot connect to server. Check your connection.",
+      "unexpected": "An unexpected error occurred.",
+      "unexpected_retry": "An unexpected error occurred. Please try again.",
+      "invalid_credentials": "The email or password you entered is incorrect."
+    }
+  },
+  "features": {
+    "feature1": "Multi-branch management",
+    "feature2": "Real-time reports",
+    "feature3": "Inventory tracking",
+    "feature4": "Staff management"
+  },
+  "form": {
+    "name": "Name",
+    "description": "Description",
+    "category": "Category",
+    "supplier": "Supplier",
+    "branch": "Branch",
+    "price": "Price",
+    "cost": "Cost",
+    "cost_price": "Cost Price",
+    "retail_price": "Retail Price",
+    "wholesale_price": "Wholesale Price",
+    "selling_price": "Selling Price",
+    "quantity": "Quantity",
+    "sku": "SKU",
+    "barcode": "Barcode",
+    "stock": "Stock",
+    "unit": "Unit",
+    "unit_name": "Unit Name",
+    "unit_label": "Unit Label",
+    "qty_per_base": "Qty Per Base Unit",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "date": "Date",
+    "date_from": "Date From",
+    "date_to": "Date To",
+    "notes": "Notes",
+    "status": "Status",
+    "type": "Type",
+    "image": "Image",
+    "tax_rate": "Tax Rate",
+    "discount": "Discount",
+    "payment_method": "Payment Method",
+    "customer_type": "Customer Type",
+    "expected_delivery": "Expected Delivery",
+    "reference": "Reference",
+    "reorder_level": "Reorder Level",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "role": "Role",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "select_option": "Select an option",
+    "select_branch": "Select branch",
+    "select_category": "Select category",
+    "select_supplier": "Select supplier",
+    "select_status": "Select status",
+    "select_type": "Select type",
+    "optional": "Optional",
+    "required": "Required"
+  },
+  "placeholder": {
+    "search": "Search...",
+    "search_product": "Search product name or SKU...",
+    "search_order": "Search order number...",
+    "search_customer": "Search customer name or phone...",
+    "search_supplier": "Search supplier name...",
+    "search_staff": "Search staff name or email...",
+    "search_branch": "Search branch name...",
+    "search_category": "Search category...",
+    "search_po": "Search PO number or supplier...",
+    "enter_name": "Enter name",
+    "enter_email": "Enter email address",
+    "enter_phone": "Enter phone number",
+    "enter_address": "Enter address",
+    "enter_notes": "Enter notes or remarks...",
+    "enter_quantity": "Enter quantity",
+    "enter_price": "Enter price",
+    "enter_sku": "Enter SKU code",
+    "enter_barcode": "Scan or type barcode",
+    "no_results": "No results found",
+    "type_to_search": "Type to search...",
+    "select_date": "Select date",
+    "select_date_range": "Select date range"
+  },
+  "inventory": {
+    "current_stock": "Current Stock",
+    "min_stock": "Minimum Stock",
+    "max_stock": "Maximum Stock",
+    "stock_level": "Stock Level",
+    "low_stock": "Low Stock",
+    "out_of_stock": "Out of Stock",
+    "in_stock": "In Stock",
+    "reorder_level": "Reorder Level",
+    "stock_quantity": "Stock Quantity",
+    "total_products": "Total Products",
+    "needs_reorder": "Needs Reorder",
+    "healthy_level": "Healthy Level",
+    "zero_stock": "Zero Stock"
+  },
+  "stock": {
+    "movement_type": {
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "adjustment_in": "Adjustment In",
+      "adjustment_out": "Adjustment Out",
+      "waste": "Waste / Damaged",
+      "count": "Stock Count",
+      "transfer_in": "Transfer In",
+      "transfer_out": "Transfer Out"
+    },
+    "adjust": {
+      "title": "Stock Adjustment",
+      "add_stock": "Add Stock",
+      "remove_stock": "Remove Stock",
+      "waste": "Waste / Damaged",
+      "count": "Stock Count",
+      "desc_add": "Add stock that was found, received without PO, or miscounted.",
+      "desc_remove": "Remove stock due to discrepancy, theft, or other loss.",
+      "desc_waste": "Write off expired, damaged or unsellable stock.",
+      "desc_count": "Set exact stock level from a physical count.",
+      "new_count": "New Stock Count",
+      "apply": "Apply Adjustment",
+      "current_stock": "Current stock",
+      "after_receive": "After receive",
+      "subtitle": "Manual stock correction",
+      "type": "TYPE",
+      "branch": "Branch",
+      "branch_placeholder": "Select branch...",
+      "product": "Product",
+      "product_placeholder": "Search product...",
+      "unit": "Unit",
+      "unit_placeholder": "Select unit...",
+      "no_units": "No units defined",
+      "quantity": "Quantity",
+      "count_hint": "Sets stock to this exact value from physical count",
+      "notes": "Notes / Reason",
+      "notes_placeholder": "e.g. Physical count, damaged goods...",
+      "types": {
+        "add": "Add",
+        "remove": "Remove",
+        "waste": "Waste",
+        "count": "Stock Count"
+      },
+      "desc": {
+        "add": "Add stock found, received without PO, or miscounted.",
+        "remove": "Remove stock due to discrepancy, theft, or other loss.",
+        "waste": "Write off expired, damaged or unsellable stock.",
+        "count": "Set exact stock level from a physical count."
+      },
+      "adjustment_quantity": "Adjustment Quantity",
+      "adjustment_quantity_hint": "Negative (-) to decrease, Positive (+) to increase",
+      "adjustment_reason": "Adjustment Reason",
+      "note_optional": "Note (optional)",
+      "resulting_stock": "Resulting Stock:",
+      "reasons": {
+        "damaged": "Damaged",
+        "expired": "Expired",
+        "lost_theft": "Lost / Theft",
+        "count_correction": "Count Correction",
+        "pos_error": "POS Error"
+      }
+    },
+    "management": {
+      "title": "Inventory Stock",
+      "subtitle": "Track stock levels across all branches",
+      "low_stock_alert": "{n} item(s) are at or below reorder point",
+      "stats": {
+        "total_items": "Total Items"
+      },
+      "search_ingredient": "Search ingredient...",
+      "table": {
+        "ingredient": "Ingredient",
+        "on_hand": "On Hand",
+        "reserved": "Reserved",
+        "reorder_point": "Reorder Point",
+        "last_counted": "Last Counted"
+      },
+      "never": "Never",
+      "confirm_delete": {
+        "title": "Delete Stock Record",
+        "message": "This will remove this stock entry permanently."
+      },
+      "messages": {
+        "updated": "Stock updated",
+        "added": "Stock added"
+      }
+    }
+  },
+  "po": {
+    "title": "Purchase Orders",
+    "subtitle": "Manage mart stock replenishment orders",
+    "new": "New Purchase Order",
+    "edit": "Edit Purchase Order",
+    "detail": "Purchase Order Detail",
+    "submit_po": "Submit",
+    "confirm_po": "Confirm",
+    "receive": "Receive Stock",
+    "po_number": "PO Number",
+    "order_items": "Order Items",
+    "order_details": "Order Details",
+    "summary": "Summary",
+    "total_items": "Total Items",
+    "total_units": "Total Units",
+    "grand_total": "Grand Total",
+    "quantity_ordered": "Qty Ordered",
+    "quantity_received": "Qty Received",
+    "remaining": "Remaining",
+    "receive_all": "Receive All",
+    "fully_received": "Fully Received",
+    "add_product": "Add Product",
+    "unit_cost": "Unit Cost",
+    "line_total": "Line Total",
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "confirmed": "Confirmed",
+      "partially_received": "Partially Received",
+      "received": "Received",
+      "cancelled": "Cancelled"
+    },
+    "table": {
+      "po_number": "PO Number",
+      "supplier": "Supplier",
+      "branch": "Branch",
+      "items": "Items",
+      "total": "Total",
+      "expected": "Expected",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "field": {
+      "branch": "Branch *",
+      "supplier": "Supplier *",
+      "date": "Date",
+      "note": "Notes",
+      "status": "Status",
+      "product": "Product *",
+      "unit": "Unit *",
+      "qty": "Quantity *",
+      "unit_cost": "Unit Cost *",
+      "ingredient_n": "Ingredient {n} *"
+    },
+    "header": {
+      "product": "PRODUCT",
+      "category": "Category",
+      "unit": "UNIT",
+      "qty": "QTY",
+      "unit_cost": "UNIT COST",
+      "total": "LINE TOTAL"
+    },
+    "empty": "No purchase orders found",
+    "empty_sub": "Create your first purchase order to start receiving stock",
+    "total_amount": "Total Amount",
+    "per_unit_suffix": "/unit",
+    "received_progress": "{received} / {ordered} received",
+    "receive_notes_label": "Receive Notes (optional)",
+    "ordered_colon": "Ordered:",
+    "already_received_colon": "Already received:",
+    "remaining_count": "{n} remaining",
+    "receiving_now_label": "Receiving now (max {max})",
+    "receive_items": "Receive Items",
+    "receive_instructions": "Enter quantity received for each item. Stock will be updated automatically.",
+    "receive_qty_max": "Receive qty (max {max})",
+    "confirm_receive": "Confirm Receive",
+    "number_auto_generated": "PO number auto-generated",
+    "add_item": "Add Item",
+    "items_count": "{count} item | {count} items",
+    "confirm_cancel": {
+      "title": "Cancel PO?",
+      "message": "This action cannot be undone.",
+      "keep": "No, Keep",
+      "confirm": "Yes, Cancel"
+    },
+    "messages": {
+      "updated": "Purchase order updated",
+      "created": "Purchase order created",
+      "save_failed": "Failed to save purchase order",
+      "submitted": "Purchase order submitted",
+      "submit_failed": "Failed to submit purchase order",
+      "confirmed": "Purchase order confirmed",
+      "confirm_failed": "Failed to confirm purchase order",
+      "received": "Items received and stock updated",
+      "receive_failed": "Failed to receive items",
+      "cancelled": "Purchase order cancelled",
+      "cancel_failed": "Failed to cancel"
+    },
+    "no_suppliers_found": "No suppliers found",
+    "optional_remarks": "Optional remarks...",
+    "no_items_yet": "No items yet",
+    "no_items_hint": "Click \"Add Product\" to start building your order",
+    "add_first_product": "Add First Product",
+    "load_failed": "Failed to load PO"
+  },
+  "pos": {
+    "title": "Point of Sale",
+    "cart": "Cart",
+    "empty_cart": "Cart is empty",
+    "add_products": "Add products from the list",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Checkout",
+    "payment": "Payment",
+    "total_due": "Total Due",
+    "cash_tendered": "Cash Tendered",
+    "change": "Change",
+    "confirm_payment": "Confirm Payment",
+    "order_completed": "Order Completed!",
+    "items_count": "{n} item | {n} items",
+    "customer_type": {
+      "retail": "Retail",
+      "wholesale": "Wholesale"
+    },
+    "payment_method": {
+      "cash": "Cash",
+      "card": "Card",
+      "qr": "QR",
+      "transfer": "Transfer"
+    },
+    "out_of_stock": "Out of Stock",
+    "low_stock": "Low Stock",
+    "all_products": "All Products",
+    "select_unit": "Select Unit",
+    "quantity": "Quantity",
+    "unit_price": "Unit Price",
+    "current_order": "Current Order",
+    "add_discount": "Add Discount / Coupon",
+    "apply_discount": "Apply Discount",
+    "coupon_code": "Coupon Code",
+    "max_available": "Max: {n} available",
+    "insufficient_stock": "Insufficient stock",
+    "scan_barcode": "Scan barcode..."
+  },
+  "order": {
+    "order_number": "Order Number",
+    "order_type": "Order Type",
+    "order_date": "Order Date",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "total": "Total",
+    "payment_method": "Payment Method",
+    "table": {
+      "order_number": "Order #",
+      "date": "Date",
+      "items": "Items",
+      "total": "Total",
+      "payment": "Payment",
+      "status": "Status",
+      "cashier": "Cashier",
+      "type": "Type",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "served": "Served",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "type": {
+      "dine_in": "Dine In",
+      "takeaway": "Takeaway",
+      "delivery": "Delivery",
+      "online": "Online"
+    },
+    "note_prefix": "Note:",
+    "print_receipt": "Print Receipt"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "received": "Received",
+    "failed": "Failed",
+    "refunded": "Refunded",
+    "all": "All",
+    "confirmed": "Confirmed",
+    "seated": "Seated",
+    "no_show": "No Show",
+    "trial": "Trial",
+    "suspended": "Suspended",
+    "on_leave": "On Leave"
+  },
+  "messages": {
+    "confirm_delete": "Are you sure you want to delete this?",
+    "confirm_cancel": "Are you sure you want to cancel this?",
+    "confirm_action": "Are you sure you want to proceed?",
+    "saved_success": "Saved successfully",
+    "created_success": "Created successfully",
+    "updated_success": "Updated successfully",
+    "deleted_success": "Deleted successfully",
+    "cancelled_success": "Cancelled successfully",
+    "received_success": "Stock received successfully",
+    "adjusted_success": "Stock adjusted successfully",
+    "error_occurred": "An error occurred",
+    "login_success": "Login successfully",
+    "logout_success": "Logout successfully",
+    "logout_failed": "Logout failed",
+    "existName": "The name has already been taken.",
+    "no_data": "No data found",
+    "loading": "Loading...",
+    "insufficient_stock": "Insufficient stock",
+    "required_field": "This field is required",
+    "invalid_email": "Invalid email address",
+    "session_expired": "Session expired, please login again",
+    "upload_success": "Uploaded successfully",
+    "copy_success": "Copied to clipboard",
+    "no_permission": "You don't have permission to perform this action",
+    "network_error": "Network error. Please check your connection.",
+    "not_found": "Record not found",
+    "popup_blocked": "Popup blocked. Please allow popups for this site.",
+    "action_cannot_be_undone": "This action cannot be undone."
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Invalid email address",
+    "min_length": "Minimum {n} characters required",
+    "max_length": "Maximum {n} characters allowed",
+    "min_value": "Minimum value is {n}",
+    "max_value": "Maximum value is {n}",
+    "match": "Values do not match",
+    "unique": "This value is already taken",
+    "positive": "Must be greater than 0",
+    "country_code": "Use a 2-letter ISO code (e.g. US, KH)",
+    "latitude_range": "Must be between -90 and 90",
+    "longitude_range": "Must be between -180 and 180",
+    "password_complexity": "Must include an uppercase letter, a lowercase letter, and a number",
+    "password_mismatch": "Passwords do not match"
+  },
+  "table": {
+    "no_data": "No data available",
+    "no_data_sub": "Try adjusting your search or filters",
+    "rows_per_page": "Rows per page",
+    "of": "of",
+    "actions": "Actions",
+    "loading": "Loading data...",
+    "total": "Total",
+    "showing": "Showing {from}–{to} of {total}"
+  },
+  "report": {
+    "revenue": "Revenue",
+    "orders": "Orders",
+    "total_sales": "Total Sales",
+    "total_orders": "Total Orders",
+    "avg_order": "Avg. Order Value",
+    "today": "Today",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "this_year": "This Year",
+    "custom": "Custom Range",
+    "payment_breakdown": "Payment Breakdown",
+    "sales_chart": "Sales Chart",
+    "no_data": "No data for this period",
+    "no_data_sub": "Try selecting a different date range"
+  },
+  "branches": {
+    "title": "Branches",
+    "subtitle": "Manage your business locations",
+    "table": {
+      "name": "Branch Name",
+      "address": "Address",
+      "phone": "Phone",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "No branches found",
+    "empty_sub": "Add your first branch to get started",
+    "form": {
+      "name": "Branch Name",
+      "address": "Address",
+      "phone": "Phone Number",
+      "tax_rate": "Tax Rate (%)",
+      "name_placeholder": "e.g. Phnom Penh Central",
+      "branch_type": "Branch type",
+      "address_line1": "Address line 1",
+      "address_line2": "Address line 2",
+      "city": "City",
+      "country": "Country"
+    },
+    "detail": {
+      "title": "Branch Detail",
+      "open": "OPEN",
+      "closed": "CLOSED",
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "service_charge": "Service Charge",
+      "slug": "Slug",
+      "orders_today": "Orders Today",
+      "revenue_today": "Revenue Today",
+      "avg_order": "Avg Order",
+      "total_tables": "Total Tables",
+      "occupied": "Occupied",
+      "reserved": "Reserved",
+      "table_number": "Table {n}",
+      "capacity": "Capacity: {n}",
+      "more_tables": "+{n} more tables",
+      "staff_count": "Staff ({n})",
+      "no_role": "No role",
+      "no_staff_assigned": "No staff assigned"
+    },
+    "dialog": {
+      "titleEdit": "Edit Branch",
+      "titleCreate": "Create Branch",
+      "subtitleEdit": "Update branch details",
+      "subtitleCreate": "Add a new branch to your network",
+      "step": {
+        "tenant": "Tenant",
+        "location": "Location",
+        "review": "Review"
+      },
+      "section": {
+        "tenant_info": "Tenant information",
+        "branch_details": "Branch details",
+        "status_settings": "Status settings"
+      },
+      "business_type_hint": "Business type is automatically assigned from the selected tenant.",
+      "phone_placeholder": "+855 ...",
+      "email_placeholder": "branch{'@'}example.com",
+      "address_line1_placeholder": "Street address",
+      "address_line2_placeholder": "Suite, floor, unit...",
+      "is_open_label": "Branch is open",
+      "is_open_hint": "Visible and accepting customers",
+      "is_active_label": "Branch is active",
+      "is_active_hint": "Enabled and operational",
+      "review_before_update": "Review before updating",
+      "review_before_create": "Review before creating",
+      "full_address_label": "Full address",
+      "open": "Open",
+      "closed": "Closed",
+      "step_of": "Step {current} of {total}",
+      "submitEdit": "Update Branch",
+      "submitCreate": "Create Branch"
+    },
+    "search_placeholder": "Search branch name or city...",
+    "select_tenant_first": "Select a tenant first",
+    "all_status": "All status",
+    "messages": {
+      "saved": "Branch saved successfully",
+      "delete_title": "Delete Branch",
+      "delete_message": "Are you sure you want to delete \"{name}\"?",
+      "deleted": "Branch deleted"
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "subtitle": "Manage your product groupings and display order",
+    "table": {
+      "name": "Category Name",
+      "products": "Products",
+      "icon": "Icon",
+      "sort_order": "Sort Order",
+      "status": "Status",
+      "actions": "Actions",
+      "description": "Description"
+    },
+    "empty": "No categories found",
+    "empty_sub": "Add your first category to organize products",
+    "form": {
+      "name": "Category Name",
+      "description": "Description",
+      "color": "Color",
+      "icon": "Icon",
+      "sort_order": "Sort Order",
+      "name_placeholder": "e.g. Italian Coffee",
+      "visibility": "Visibility Status",
+      "visibility_hint": "Show this category on the menu"
+    },
+    "dialog": {
+      "edit": "Edit Category",
+      "add": "Add New Category",
+      "titleEdit": "Edit Category",
+      "add_subtitle": "Create a new product category",
+      "edit_subtitle": "Update this category's details",
+      "name_placeholder": "e.g. Beverages",
+      "parent_category": "Parent Category",
+      "parent_placeholder": "None (top-level)",
+      "leave_empty_top_level": "Leave empty for top-level",
+      "assign_to_tenants": "Assign to Tenants",
+      "select_tenants_placeholder": "Select tenants...",
+      "leave_empty_assigning": "Leave empty to create without assigning yet",
+      "description_placeholder": "Brief description of this category...",
+      "mdi_icon_name": "MDI icon name",
+      "icon_placeholder": "e.g. mdi-food",
+      "hex": "hex",
+      "image_url": "Image URL",
+      "sort_order_hint": "Lower numbers appear first",
+      "active_status": "Active Status",
+      "active_status_hint": "Category will be visible when active",
+      "lid_exchange": "Lid Exchange",
+      "lid_exchange_hint": "Products in this category can be exchanged with can lids",
+      "create_category": "Create Category"
+    },
+    "validation": {
+      "name_required": "Name is required",
+      "min_2_chars": "At least 2 characters",
+      "max_100_chars": "Max 100 characters",
+      "max_50_chars": "Max 50 characters",
+      "invalid_icon": "Must be a valid MDI icon (e.g. mdi-food)",
+      "invalid_color": "Must be a valid hex color (e.g. #FF5733)",
+      "invalid_url": "Must be a valid URL",
+      "whole_number": "Must be a whole number",
+      "min_sort_order": "Min -32768",
+      "max_sort_order": "Max 32767"
+    },
+    "loading": "Loading categories...",
+    "no_data": "No categories found",
+    "delete_title": "Delete Category",
+    "delete_message": "Are you sure you want to delete \"{name}\"?"
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Manage your product catalog, variants, and availability",
+    "editTitle": "Edit Product",
+    "newTitle": "New Product",
+    "editSubtitle": "Update product details",
+    "newSubtitle": "Create a new product",
+    "detailTitle": "Product Detail",
+    "basePrice": "Base Price",
+    "table": {
+      "name": "Product Name",
+      "sku": "SKU",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status",
+      "type": "Type",
+      "actions": "Actions",
+      "available": "Available",
+      "featured": "Featured"
+    },
+    "empty": "No products found",
+    "empty_sub": "Add your first product to get started",
+    "filter": {
+      "placeholder": "Search products...",
+      "all_types": "All Types",
+      "all_categories": "All Categories",
+      "all_status": "All Status",
+      "stock": "Stock Status",
+      "availability": "Availability"
+    },
+    "type": {
+      "retail": "Retail",
+      "food": "Food",
+      "beverage": "Beverage",
+      "combo": "Combo"
+    },
+    "units_count": "{n} unit | {n} units",
+    "buType": {
+      "restaurant": "Restaurant",
+      "coffee_shop": "Coffee Shop",
+      "mart": "Mart"
+    },
+    "tab": {
+      "basic": "Basic",
+      "pricing": "Pricing",
+      "details": "Details"
+    },
+    "section": {
+      "productInfo": "Product Info",
+      "additionalInfo": "Additional Info",
+      "pricing": "Pricing",
+      "productDetails": "Product Details",
+      "preview": "Preview",
+      "kitchenDetails": "Kitchen Details"
+    },
+    "productType": {
+      "food": "Food",
+      "beverage": "Beverage",
+      "retail": "Retail",
+      "combo": "Combo"
+    },
+    "field": {
+      "productName": "Product Name *",
+      "type": "Type *",
+      "category": "Category *",
+      "tenant": "Tenant *",
+      "available": "Available",
+      "availableHint": "Visible in menu",
+      "featured": "Featured",
+      "featuredHint": "Highlighted",
+      "barcode": "Barcode",
+      "description": "Description",
+      "basePrice": "Base Price *",
+      "costPrice": "Cost Price",
+      "grossMargin": "Gross Margin",
+      "profitUnit": "Profit / unit",
+      "taxCategory": "Tax Category",
+      "taxCategoryPlaceholder": "standard, reduced, exempt",
+      "sortOrder": "Sort Order",
+      "prepTime": "Prep Time",
+      "min": "min",
+      "calories": "Calories",
+      "visibleInMenu": "Visible in menu",
+      "highlighted": "Highlighted",
+      "visibleInMenuCatalog": "Visible in menu / catalog",
+      "featuredHintFull": "Highlighted in listings",
+      "stockQuantity": "Stock Quantity",
+      "lowStockAlert": "Low Stock Alert",
+      "trackStock": "Track Stock",
+      "expiryDate": "Expiry Date",
+      "supplierCode": "Supplier Code",
+      "shelfLife": "Shelf Life",
+      "availableSizes": "Available Sizes",
+      "temperatureOptionsLabel": "Temperature Options",
+      "sku":"SKU"
+    },
+    "image": {
+      "upload": "Upload",
+      "pasteUrl": "Or paste URL",
+      "dragHint": "Click or drag to upload",
+      "formatHint": "JPG · PNG · WEBP · max 5MB",
+      "tooLarge": "Image must be under 5MB",
+      "photo": "Photo",
+      "formats": "JPG · PNG · WEBP"
+    },
+    "hint": {
+      "variantsInfo": "Variants & Modifier Groups can be managed from the product detail page after saving.",
+      "selectTenantForBusinessType": "Select a tenant to see its business type"
+    },
+    "preview": {
+      "productName": "Product Name",
+      "noSku": "No SKU"
+    },
+    "rule": {
+      "required": "Required",
+      "nonNegative": "Must be 0 or greater",
+      "nonNegativeInt": "Must be positive integer",
+      "maxLen": "Max {n} characters",
+      "isNumber": "Must be a number"
+    },
+    "error": {
+      "fixErrors": "Please fix errors before saving"
+    },
+    "alert": {
+      "retail": "Unit tiers, barcodes & pricing are managed from the product detail page.",
+      "food": "Variants, modifiers & pricing are managed from the product detail page."
+    },
+    "stats": {
+      "total": "Total Products",
+      "available": "Available",
+      "featured": "Featured",
+      "unavailable": "Unavailable"
+    },
+    "variant": {
+      "title": "Variants",
+      "addTitle": "Add Variant",
+      "editTitle": "Edit Variant",
+      "subtitle": "Configure product sizes and options",
+      "name": "Variant Name",
+      "namePlaceholder": "e.g. Small, Medium, Large",
+      "price": "Price",
+      "pricePlaceholder": "Enter price",
+      "priceAdjustment": "Price Adjustment",
+      "priceAdjustmentHint": "Add or subtract from the base price",
+      "skuSuffix": "SKU Suffix",
+      "skuSuffixHint": "Appended to the product SKU",
+      "finalPrice": "Final Price",
+      "basePrice": "Base Price",
+      "costPrice": "Cost Price",
+      "sortOrder": "Display Order",
+      "isDefault": "Default Option",
+      "default": "Default",
+      "optionVariants": "Size / Option Variants",
+      "optionVariantsHint": "Each variant has its own price (e.g. Small $3, Large $5)",
+      "variantCount": "{count} Variant | {count} Variants",
+      "singlePrice": "Single price",
+      "addVariant": "Add New Variant",
+      "sellingPrice": "Selling Price",
+      "sellingPriceHint": "Price charged to customers",
+      "noVariants": "No variants available",
+      "noVariantsYet": "No variants yet",
+      "noVariantsHint": "No variants — Base Price will be used as the selling price.",
+      "base": "Base:",
+      "defaultSellingPrice": "Default Selling Price",
+      "defaultSellingPriceHint": "Used when no variants are configured",
+      "sizeTempMatrixTitle": "Size × Temperature Matrix",
+      "sizeTempMatrixHint": "Set individual prices per combination",
+      "generateMatrix": "Generate",
+      "sizeTemp": "Size / Temp",
+      "freeformNamePlaceholder": "e.g. Small, Regular, Large",
+      "marginLabel": "Margin: {value}%",
+      "internalCostReference": "Internal cost reference"
+    },
+    "cardTitle": {
+      "coreInformation": "Core Information",
+      "identifiers": "Identifiers",
+      "kitchenDetails": "Kitchen Details",
+      "pricingAndVariants": "Pricing & Variants",
+      "visibility": "Visibility",
+      "productImage": "Product Image",
+      "businessType": "Business Type",
+      "inventoryAndStock": "Inventory & Stock"
+    },
+    "businessNature": {
+      "food": "Food & Beverage",
+      "mart": "Mart / Retail",
+      "retailMart": "Retail / Mart"
+    },
+    "errors": {
+      "fixBeforeSaving": "Please fix errors before saving",
+      "saveFailed": "Save failed. Please try again.",
+      "loadFailed": "Failed to load product for editing.",
+      "duplicateValue": "A duplicate value was found. Please check your inputs.",
+      "duplicateBarcode": "A unit with this barcode already exists. Please use a unique barcode."
+    },
+    "messages": {
+      "updated": "Product updated successfully",
+      "created": "Product created successfully"
+    }
+  },
+  "suppliers": {
+    "title": "Supplier Management",
+    "subtitle": "Manage your product suppliers and purchase history",
+    "table": {
+      "name": "Supplier Name",
+      "phone": "Phone",
+      "email": "Email",
+      "payment_terms": "payment terms",
+      "contact_person": "Contact Person",
+      "address": "Address",
+      "total_orders": "Total Orders",
+      "total_spent": "Total Spent",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "No suppliers found",
+    "empty_sub": "Add your first supplier to start managing purchases",
+    "form": {
+      "name": "Supplier Name",
+      "contact_person": "Contact Person",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "notes": "Notes",
+      "tenant": "Tenant",
+      "payment_terms": "Payment Terms",
+      "payment_terms_placeholder": "e.g. Net 30, COD",
+      "active_hint": "Available for orders"
+    },
+    "dialog": {
+      "titleEdit": "Edit Supplier",
+      "subtitleEdit": "Update supplier details",
+      "subtitleCreate": "Add a new supplier to your business",
+      "basic_info": "Basic Info",
+      "payment_settings": "Payment & Settings"
+    },
+    "validation": {
+      "invalid_phone": "Invalid phone"
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Manage your customer database and loyalty",
+    "table": {
+      "name": "Customer Name",
+      "phone": "Phone",
+      "email": "Email",
+      "type": "Type",
+      "total_orders": "Total Orders",
+      "total_spent": "Total Spent",
+      "actions": "Actions",
+      "customer": "Customer",
+      "contact": "Contact",
+      "source": "Source",
+      "orders": "Orders",
+      "spent": "Spent",
+      "points": "Points"
+    },
+    "empty": "No customers found",
+    "empty_sub": "Add your first customer to track purchases",
+    "type": {
+      "regular": "Regular",
+      "member": "Member",
+      "wholesale": "Wholesale",
+      "vip": "VIP"
+    },
+    "dialog": {
+      "title_new": "New Customer",
+      "title_edit": "Edit Customer",
+      "subtitle_new": "Add a new customer to your database",
+      "subtitle_edit": "Update customer details",
+      "personal_info": "Personal Info",
+      "preferences_source": "Preferences & Source"
+    },
+    "field": {
+      "date_of_birth": "Date of Birth",
+      "gender": "Gender",
+      "preferred_language": "Preferred Language",
+      "marketing_opt_in": "Marketing Opt-in",
+      "source": "Source",
+      "birthday": "Birthday",
+      "marketing_on": "Marketing On",
+      "marketing_off": "Marketing Off"
+    },
+    "detail": {
+      "profile_title": "Customer Profile",
+      "addresses_title": "Addresses",
+      "no_addresses": "No addresses yet",
+      "empty_state": "Select a customer to view details",
+      "spent": "Spent",
+      "points": "Points"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "source": {
+      "walk_in": "Walk-in",
+      "referral": "Referral",
+      "social": "Social Media"
+    },
+    "address_dialog": {
+      "title_new": "New Address",
+      "title_edit": "Edit Address",
+      "subtitle_new": "Add a new address for this customer",
+      "subtitle_edit": "Update address details",
+      "label": "Label *",
+      "label_hint": "e.g. Home, Work",
+      "address_line1": "Address Line 1 *",
+      "address_line2": "Address Line 2 (optional)",
+      "city": "City *",
+      "latitude": "Latitude (optional)",
+      "longitude": "Longitude (optional)",
+      "set_default": "Set as default address",
+      "add": "Add Address"
+    },
+    "validation": {
+      "first_name_required": "First name is required",
+      "invalid_email": "Invalid email address",
+      "invalid_phone": "Invalid phone"
+    },
+    "load_failed": "Failed to load customers.",
+    "stats": {
+      "total": "Total Customers",
+      "opted_in": "Marketing Opt-in",
+      "total_points": "Total Points"
+    },
+    "search_placeholder": "Search by name, email or phone…",
+    "no_results_search": "Try a different search term."
+  },
+  "stock_overview": {
+    "title": "Stock Overview",
+    "subtitle": "Current inventory levels for all mart products",
+    "table": {
+      "product": "Product",
+      "category": "Category",
+      "stock": "Current Stock",
+      "reorder": "Reorder Level",
+      "stock_bar": "Stock Level",
+      "units": "Units",
+      "status": "Status",
+      "cost_value": "Cost Value",
+      "retail_value": "Retail Value",
+      "actions": "Actions",
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_stock": "Out of Stock"
+    },
+    "empty": "No products in inventory",
+    "empty_sub": "Add products and set stock levels to see inventory",
+    "filter": {
+      "all_status": "All Status",
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
+    "sort": {
+      "name": "Name A–Z",
+      "stock_asc": "Stock: Low first",
+      "stock_desc": "Stock: High first"
+    },
+    "summary": {
+      "total": "Total Products",
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    }
+  },
+  "stock_movements": {
+    "title": "Stock Movements",
+    "subtitle": "Full stock ledger history",
+    "table": {
+      "date": "Date",
+      "product": "Product",
+      "type": "Type",
+      "qty": "Qty",
+      "before_after": "Before → After",
+      "reference": "Reference",
+      "staff": "Staff",
+      "notes": "Notes",
+      "total_cost": "Total cost"
+    },
+    "empty": "No movements found",
+    "empty_sub": "Stock movements will appear here after sales, purchases, and adjustments",
+    "summary": {
+      "total": "Total Entries",
+      "sales": "Sales",
+      "purchases": "Purchases",
+      "adjustments": "Adjustments"
+    },
+    "breadcrumb": "Stocks",
+    "adjust_stock": "Adjust Stock",
+    "filter": {
+      "product_placeholder": "Filter by product",
+      "from": "From",
+      "to": "To"
+    },
+    "load_failed": "Failed to load movements",
+    "dialog_title": "Stock Movement History",
+    "no_stock_selected": "No stock selected. Please choose an item to view movement history."
+  },
+  "purchase_order": {
+    "title": "Purchase Orders",
+    "subtitle": "Manage mart stock replenishment orders",
+    "summary": {
+      "total": "Total POs",
+      "in_progress": "In Progress",
+      "received": "Received",
+      "draft": "Draft"
+    },
+    "detail_title": "Purchase Details",
+    "print_invoice": "Print Invoice",
+    "purchase_information": "Purchase Information",
+    "invoice_no": "Invoice No",
+    "po_no": "Po No",
+    "purchase_date": "Purchase Date",
+    "supplier_information": "Supplier Information",
+    "purchased_items": "Purchased Items",
+    "item": "Item",
+    "no_notes": "No notes provided.",
+    "search_placeholder": "Search PO number or supplier...",
+    "receive_stock": "Receive Stock",
+    "delete_title": "Delete PO?",
+    "deleted": "PO deleted"
+  },
+  "order_report": {
+    "title": "Order Report",
+    "subtitle": "Sales analytics and revenue overview",
+    "summary": {
+      "total_revenue": "Total Revenue",
+      "total_orders": "Total Orders",
+      "avg_order": "Avg. Order",
+      "total_discount": "Total Discount",
+      "tax_collected": "Tax Collected"
+    },
+    "chart": {
+      "revenue": "Revenue Overview",
+      "payment": "Payment Methods",
+      "top_products": "Top 10 Products",
+      "recent_orders": "Recent Orders"
+    },
+    "state": {
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "avg_order_value": "Avg. Order Value",
+      "completed": "Completed",
+      "profit": "Profit"
+    },
+    "headers": {
+      "order_number": "Order #",
+      "customer": "Customer",
+      "items": "Items",
+      "total": "Total",
+      "payment": "Payment",
+      "status": "Status",
+      "date": "Date"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "charts": "Charts",
+      "products": "Products",
+      "orders": "Orders"
+    },
+    "insights": {
+      "peak_hour": "Peak hour",
+      "orders_count": "{count} orders",
+      "top_item": "Top item",
+      "total_revenue": "Total revenue"
+    },
+    "filter": {
+      "type": "Order Type",
+      "status": "Status"
+    },
+    "search_placeholder": "Search product or SKU…",
+    "empty": "No orders for this period",
+    "empty_sub": "Try selecting a different date range",
+    "revenue_over_time": "Revenue Over Time",
+    "order_types": "Order Types",
+    "payment_method": "Payment Method",
+    "split_by_revenue": "Split by Revenue",
+    "sales_by_time": "Sales by Time",
+    "top_products": "Top Products",
+    "top_products_subtitle": "Best-selling items by revenue or quantity",
+    "sold": "Sold",
+    "revenue": "Revenue",
+    "by_qty": "By Quantity",
+    "orders_per_hour": "Orders per Hour",
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "monthly": "Monthly"
+  },
+  "purchase_report": {
+    "title": "Purchase Report",
+    "subtitle": "PO history and supplier spending analysis",
+    "summary": {
+      "total_spent": "Total Spent",
+      "avg_po": "Avg PO Value",
+      "received": "Received",
+      "pending": "Pending"
+    },
+    "chart": {
+      "spending": "Spending Over Time",
+      "by_supplier": "By Supplier",
+      "top_products": "Top Purchased Products",
+      "recent_pos": "Recent Purchase Orders"
+    },
+    "empty": "No purchase orders for this period",
+    "empty_sub": "Try selecting a different date range",
+    "orders_suffix": "purchase orders",
+    "partial_suffix": "partial",
+    "cancelled_suffix": "cancelled",
+    "pos_suffix": "POs",
+    "load_failed": "Failed to load report",
+    "table": {
+      "product": "Product",
+      "ordered": "Ordered",
+      "cost": "Cost"
+    }
+  },
+  "inventory_report": {
+    "title": "Inventory & Stock Report",
+    "subtitle": "Current stock levels, values and movement history",
+    "summary": {
+      "total_products": "Total Products",
+      "cost_value": "Stock Cost Value",
+      "retail_value": "Retail Value",
+      "potential_profit": "Potential Profit",
+      "at_cost_price": "at cost price",
+      "at_selling_price": "at selling price",
+      "if_all_sold": "if all stock sold"
+    },
+    "status": {
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
+    "filter": {
+      "search_placeholder": "Search product or SKU…",
+      "all_statuses": "All statuses",
+      "stock_status": "Stock Status"
+    },
+    "table": {
+      "product": "Product",
+      "category": "Category",
+      "stock": "Stock",
+      "reorder_at": "Reorder at",
+      "cost_price": "Cost Price",
+      "retail_price": "Retail Price",
+      "cost_value": "Cost Value",
+      "retail_value": "Retail Value",
+      "status": "Status"
+    },
+    "movement": {
+      "title": "Movement Summary",
+      "select_range": "Select a date range to see movements",
+      "units": "units",
+      "transactions": "transactions",
+      "purchase": "Purchase",
+      "sale": "Sale",
+      "adjustment_in": "Adj In",
+      "adjustment_out": "Adj Out",
+      "waste": "Waste",
+      "count": "Count",
+      "top_move": "Top Stock Movers",
+      "empty": "Empty"
+    },
+    "top_movers": {
+      "title": "Top Stock Movers",
+      "in": "In (+)",
+      "out": "Out (-)",
+      "net": "Net"
+    },
+    "by_category": "By Category",
+    "all_products": "All Products",
+    "uncategorized": "Uncategorized",
+    "cost": "cost",
+    "retail": "retail",
+    "value": "value",
+    "products_count": "{n} products",
+    "tabs": {
+      "overview": "Overview",
+      "all": "All Products",
+      "movements": "Movements Summary"
+    },
+    "overview": {
+      "stock_health": "stock health",
+      "needs_attention": "needs attention",
+      "all_stocked": "All stock"
+    },
+    "top_stock_movers": "Top Stock Movers",
+    "empty": "No inventory data found",
+    "empty_sub": "Add products and set stock levels to see inventory report",
+    "load_failed": "Failed to load inventory report"
+  },
+  "product_performance": {
+    "title": "Product Performance",
+    "subtitle": "Best sellers and slow moving items",
+    "summary": {
+      "revenue": "Total Revenue",
+      "qty_sold": "Units Sold",
+      "unique": "Products Sold",
+      "slow_movers": "Slow Movers"
+    },
+    "tabs": {
+      "best": "Best Sellers",
+      "slow": "Slow Movers",
+      "all": "All Products"
+    },
+    "best_seller": "Best Seller",
+    "slow_mover": "Slow Mover",
+    "no_sales": "No sales in this period",
+    "all_sold": "All products had sales this period!"
+  },
+  "staff": {
+    "title": "Staff Management",
+    "subtitle": "Manage your team members and their access",
+    "table": {
+      "name": "Name",
+      "code": "Code",
+      "email": "Email",
+      "role": "Role",
+      "branch": "Branch",
+      "compensation": "Compensation",
+      "status": "Status",
+      "joined": "Join Date",
+      "actions": "Actions"
+    },
+    "empty": "No staff found",
+    "empty_sub": "Add your first staff member to get started",
+    "form": {
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "branch": "Branch",
+      "password": "Password",
+      "gender": "Gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "dob": "Date of Birth",
+      "job_title": "Job Title",
+      "department": "Department",
+      "joining_date": "Date of Joining",
+      "emergency_phone": "Emergency Contact Phone"
+    },
+    "dialog": {
+      "edit": "Edit Staff Member",
+      "add": "Add Staff Member",
+      "edit_subtitle": "Update employment details",
+      "add_subtitle": "Creates login account + assigns to branch",
+      "titleEdit": "Edit Staff",
+      "titleCreate": "Create Staff"
+    },
+    "section": {
+      "employment": "Employment",
+      "account_info": "Account Info",
+      "employment_details": "Employment Details",
+      "review_confirm": "Review & Confirm"
+    },
+    "field": {
+      "role_required": "Role *",
+      "hire_date": "Hire Date",
+      "hourly_rate": "Hourly Rate ($)",
+      "salary": "Monthly Salary ($)",
+      "pin": "POS PIN (4–6 digits)",
+      "employee_code": "Employee Code",
+      "allow_login": "Allow login",
+      "select_tenant": "Select Tenant",
+      "first_name_required": "First Name *",
+      "last_name_required": "Last Name *",
+      "email_required": "Email *",
+      "password_required": "Password *"
+    },
+    "generate_password": "Generate Password",
+    "reset_password": "Reset Password",
+    "reset_password_confirm": "This will set a new temporary password and require the staff member to change it on next login.",
+    "reset_password_failed": "Failed to reset password",
+    "review": {
+      "hourly_rate": "Hourly Rate",
+      "salary": "Monthly Salary"
+    },
+    "login_account_notice": "A login account will be created and the staff member will be assigned to the selected branch.",
+    "step_of": "Step {step} of {total}",
+    "step": {
+      "account": "Account",
+      "employment": "Employment",
+      "review": "Review"
+    },
+    "validation": {
+      "pin": "PIN must be 4–6 digits"
+    },
+    "list": {
+      "subtitle": "Employees · Roles · Access",
+      "view_shifts": "View Shifts",
+      "add_first": "Add First Staff",
+      "confirm_deactivate": {
+        "title": "Deactivate Staff?",
+        "message": "will be deactivated. Their history will be kept."
+      },
+      "stats": {
+        "total_staff": "Total Staff"
+      },
+      "messages": {
+        "deactivated": "{name} deactivated",
+        "deactivate_failed": "Failed to deactivate",
+        "updated": "Staff updated",
+        "created": "Staff created",
+        "save_failed": "Failed to save staff"
+      }
+    },
+    "filter": {
+      "all_branches": "All Branches",
+      "all_roles": "All Roles"
+    }
+  },
+  "shifts": {
+    "title": "Shifts",
+    "subtitle": "Manage work shifts and schedules",
+    "table": {
+      "name": "Shift Name",
+      "start": "Start Time",
+      "end": "End Time",
+      "days": "Days",
+      "staff": "Staff",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "card": {
+      "custom": "custom",
+      "start": "Start",
+      "end": "End",
+      "break": "{minutes}m break",
+      "overnight": "Overnight"
+    },
+    "form": {
+      "titleEdit": "Edit Shift",
+      "titleCreate": "New Shift",
+      "subtitleEdit": "Update shift definition",
+      "subtitleCreate": "Define a reusable shift",
+      "fields": {
+        "tenant": {
+          "label": "Tenant (Business)",
+          "hint": "This shift will be available to all branches under this tenant"
+        },
+        "name": {
+          "label": "Shift Name",
+          "placeholder": "e.g. Morning, Ca Sang, Night"
+        },
+        "type": {
+          "label": "Type"
+        },
+        "timeWindow": "Time Window",
+        "startTime": {
+          "label": "Start Time",
+          "hint": "e.g. 09:00"
+        },
+        "endTime": {
+          "label": "End Time",
+          "hint": "e.g. 17:00"
+        },
+        "breakMinutes": {
+          "label": "Break (minutes)",
+          "hint": "0 = no break"
+        },
+        "active": "Active"
+      },
+      "shiftTypes": {
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "full_day": "Full Day",
+        "split": "Split"
+      },
+      "preview": {
+        "duration": "Duration:",
+        "overnight": "— Overnight shift (ends next day)"
+      },
+      "rules": {
+        "required": "Required",
+        "breakNegative": "Cannot be negative",
+        "breakMax": "Max 480 minutes"
+      }
+    },
+    "shiftTypes": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "full_day": "Full Day",
+      "split": "Split"
+    },
+    "preview": {
+      "duration": "Duration:",
+      "overnight": "— Overnight shift (ends next day)"
+    },
+    "rules": {
+      "required": "Required",
+      "breakNegative": "Cannot be negative",
+      "breakMax": "Max 480 minutes"
+    },
+    "empty": "No shifts found",
+    "empty_sub": "Create your first shift to start scheduling staff",
+    "checkin_title": "Check-in / Check-out",
+    "select_employee": "Select Employee",
+    "checkin_time": "Check-in Time",
+    "checkout_time": "Check-out Time",
+    "notes_remarks": "Notes / Remarks",
+    "confirm_attendance": "Confirm Attendance",
+    "search_placeholder": "Search shifts...",
+    "confirm_delete": {
+      "title": "Delete Shift Definition",
+      "message": "Are you sure you want to delete \"{name}\"? This will remove all associated staff schedules."
+    },
+    "messages": {
+      "removed": "Shift definition removed",
+      "remove_failed": "Failed to remove shift",
+      "updated": "Shift updated",
+      "created": "New shift created",
+      "save_failed": "Could not save shift data"
+    }
+  },
+  "shift_assignments": {
+    "title": "Shift Assignments",
+    "subtitle": "Assign staff members to shifts",
+    "table": {
+      "staff": "Staff",
+      "shift": "Shift",
+      "branch": "Branch",
+      "date": "Date",
+      "status": "Status",
+      "actual": "Actual time"
+    },
+    "titleEdit": "Edit Assignment",
+    "titleCreate": "Assign Staff to Shift",
+    "subtitleEdit": "Update assignment details",
+    "subtitleCreate": "Assign a staff member to a shift on a date",
+    "fields": {
+      "shift": {
+        "label": "Shift",
+        "hint": "Which shift?"
+      },
+      "staff": {
+        "label": "Staff Member",
+        "hint": "Who works this shift?"
+      },
+      "branch": {
+        "label": "Branch",
+        "hint": "Which branch?"
+      },
+      "shiftDate": {
+        "label": "Shift Date",
+        "hint": "Which day is this shift?"
+      },
+      "actualStart": {
+        "label": "Actual Start",
+        "hint": "When staff clocked in"
+      },
+      "actualEnd": {
+        "label": "Actual End",
+        "hint": "When staff clocked out"
+      },
+      "notes": {
+        "label": "Notes",
+        "hint": "Optional"
+      }
+    },
+    "clockInOut": "Actual Clock In/Out",
+    "preview": "{name} on {date}: {start} → {end}",
+    "previewBreak": "({minutes}m break)",
+    "empty": "No shift assignments found",
+    "empty_sub": "Assign staff to shifts to manage your schedule",
+    "rules": {
+      "afterActualStart": "Must be after actual start"
+    }
+  },
+  "common": {
+    "from": "from",
+    "to": "to",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "na": "N/A",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "processing": "Processing...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "today": "Today",
+    "day_before": "Day before",
+    "yesterday": "Yesterday",
+    "this_week": "This Week",
+    "last_week": "Last Week",
+    "this_month": "This Month",
+    "month_before": "Month before",
+    "last_month": "Last Month",
+    "this_year": "This Year",
+    "custom_range": "Custom Range",
+    "custom": "Custom",
+    "per_page": "Per page",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "grand_total": "Grand Total",
+    "created_at": "Created At",
+    "updated_at": "Updated At",
+    "version": "Version",
+    "language": "Language",
+    "vs": "vs",
+    "previous": "Previous",
+    "prev_custom": "Previous {n}",
+    "selected": "Selected",
+    "all_selected": "Deselect All",
+    "sign_out": "Sign Out",
+    "period": "Period",
+    "select": "Select",
+    "and_more": "+{n} others",
+    "unknown": "Unknown",
+    "action_cannot_be_undone": "This action cannot be undone.",
+    "noItemsFound": "No {item} found",
+    "tryAdjustingFilters": "Try adjusting your search or filters.",
+    "searchPlaceholder": "Search ...",
+    "temporary_password": {
+      "title": "Temporary Password",
+      "subtitle": "Share this with the account owner. It won't be shown again.",
+      "warning": "This password won't be shown again — copy it now.",
+      "copied": "Password copied to clipboard",
+      "done": "Done"
+    }
+  },
+  "unit": {
+    "title": "Units & Pricing",
+    "title_add": "Add Unit",
+    "subtitle_add": "e.g. Can, 6-Pack, Box of 24",
+    "title_edit": "Edit Unit",
+    "unit_name": "Unit Name",
+    "display_label": "Display Label",
+    "qty_per_base": "Qty per Base Unit",
+    "hint_base_unit": "Base unit is always 1",
+    "barcode": "Barcode",
+    "retail_price": "Retail Price",
+    "wholesale_price": "Wholesale Price",
+    "cost_price": "Cost Price",
+    "active": "Active",
+    "base_unit": "This is the base unit",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "add": "Add Unit",
+    "margin": "Margin",
+    "profit_unit": "Profit {value} per unit",
+    "no_data": "No units yet",
+    "delete_confirm": "Are you sure delete \"{name}\"?",
+    "page_title": "Update or create new unit",
+    "manage_hint": "Manage selling units — can, pack, box, pallet etc.",
+    "add_unit": "Add Unit",
+    "add_first_unit": "Add First Unit",
+    "no_data_desc": "Add units like Can, Pack, Box to enable multi-unit selling",
+    "set_base_unit": "Set as base unit",
+    "unit_count": "{count} unit | {count} units",
+    "at_least_one_unit_required": "At least one unit is required for mart products.",
+    "headers": {
+      "unit": "Unit",
+      "qty": "Qty",
+      "barcode": "Barcode",
+      "retail": "Retail Price",
+      "wholesale": "Wholesale Price",
+      "margin": "Margin",
+      "active": "Active"
+    },
+    "base": "BASE",
+    "how_title": "How units work:",
+    "how_desc": "Stock is always tracked in the base unit (e.g. \"can\"). Selling a box of 24 deducts 24 cans from stock.",
+    "delete_title": "Delete Product Unit?",
+    "updated": "Unit updated",
+    "added": "Unit added",
+    "failed": "Failed to save unit",
+    "delete_failed": "Failed to delete",
+    "errors": {
+      "cannot_delete_base_unit": "Cannot delete base unit while other units exist. Set another unit as base first."
+    },
+    "existing": "existing",
+    "common": "common",
+    "press_enter_before": "Press",
+    "press_enter_after": "to use",
+    "shown_to_cashier_hint": "Shown to cashier on POS",
+    "qty_per_base_hint": "e.g. 24 for a box of 24 cans",
+    "barcode_hint": "Scan or type barcode",
+    "cost_price_hint": "For margin tracking",
+    "unit_name_placeholder": "can, pack, box, kg...",
+    "base_unit_chip": "Base Unit",
+    "derived_unit_chip": "Derived Unit",
+    "unit_fallback_name": "Unit {n}"
+  },
+  "tenant_profile": {
+    "title": "Profile",
+    "subtitle": "Manage your business account and settings",
+    "identity": {
+      "tenantId": "ID",
+      "joinedSince": "Joined Since"
+    },
+    "businessDetails": {
+      "title": "Business Details",
+      "businessType": "Business Type",
+      "localization": "Localization Settings"
+    },
+    "registry": {
+      "title": "Account Registry",
+      "subtitle": "Primary contact and administrative credentials.",
+      "btnEdit": "Edit Details",
+      "email": "Registered Email",
+      "phone": "Primary Contact Phone",
+      "country": "Country Origin",
+      "admin": "Managing System Admin"
+    },
+    "kpi": {
+      "branches": "Branches",
+      "plan": "Current Plan",
+      "seats": "User Seats",
+      "storage": "Storage"
+    }
+  },
+  "subscription": {
+    "subscription_plan": "Subscription Plan",
+    "upgrade_plan": "Upgrade Plan",
+    "renew_plan": "Renew Subscription",
+    "no_active_plan": "No Active Plan",
+    "billed": "Billed",
+    "month": "month",
+    "whats_included": "What's included",
+    "make_payment": "Make a Payment",
+    "renewal_date": "Renewal Date",
+    "next_charge": "Next Charge",
+    "user_seats": "User Seats",
+    "days_left": "Days Left",
+    "amount_due": "Amount Due",
+    "plan_dialog": {
+      "edit_title": "Edit Plan",
+      "new_title": "New Plan",
+      "new_subtitle": "Define pricing, limits, and features for a new plan",
+      "edit_subtitle": "Update pricing, limits, and features for this plan",
+      "tabs": {
+        "basic_info": "Basic Info",
+        "billing_cycles": "Billing Cycles",
+        "features": "Features"
+      },
+      "fields": {
+        "plan_name": "Plan Name *",
+        "code": "Code *",
+        "code_hint": "e.g. pro",
+        "price_usd": "Price (USD) *",
+        "price_khr": "Price (KHR)",
+        "seats": "Seats *",
+        "storage_gb": "Storage (GB) *",
+        "api_limit": "API Limit",
+        "api_limit_hint": "0 = unlimited"
+      },
+      "cycles": {
+        "description": "Define available billing periods and discounts.",
+        "label": "Label *",
+        "months": "Months *",
+        "discount_percent": "Discount %",
+        "add_cycle": "Add Billing Cycle",
+        "required_error": "At least one billing cycle is required.",
+        "quick_presets": "Quick presets:"
+      },
+      "features": {
+        "description": "List features included in this plan.",
+        "key": "Key *",
+        "english": "English *",
+        "add_feature": "Add Feature"
+      },
+      "create_plan": "Create Plan",
+      "months": {
+        "one": "1 month",
+        "three": "3 months",
+        "six": "6 months",
+        "twelve": "12 months"
+      },
+      "presets": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "semi_annual": "Semi-annual",
+        "yearly": "Yearly"
+      }
+    },
+    "month_short": "/mo",
+    "plan": {
+      "title": "Plans",
+      "subtitle": "Define subscription plans for tenants",
+      "new": "New Plan",
+      "seats_count": "{count} seat | {count} seats",
+      "table": {
+        "name": "Plan",
+        "limits": "Limits"
+      },
+      "confirm_delete": {
+        "title": "Delete Plan",
+        "message": "Are you sure you want to delete \"{name}\"?"
+      },
+      "messages": {
+        "updated": "Plan updated successfully",
+        "created": "Plan created successfully",
+        "deleted": "Plan deleted successfully",
+        "delete_failed": "Failed to delete plan"
+      }
+    },
+    "list": {
+      "subtitle": "Manage tenant subscriptions and plans",
+      "new": "New Subscription",
+      "new_subtitle": "Subscribe a tenant to a plan",
+      "change_plan": "Change Plan",
+      "change_plan_subtitle": "Replace this tenant's current plan",
+      "assign_plan": "Assign Plan",
+      "assign_plan_subtitle": "Choose a plan and billing cycle for this tenant",
+      "select_plan_first": "Select a plan first",
+      "search_placeholder": "Search by tenant name...",
+      "empty": "No subscriptions match this filter",
+      "expires_in_days": "Expires in {count} day | Expires in {count} days",
+      "stats": {
+        "mrr": "MRR",
+        "expiring_soon": "Expiring Soon"
+      },
+      "field": {
+        "plan": "Plan *",
+        "billing_cycle": "Billing Cycle *",
+        "status": "Status *",
+        "trial_ends_at": "Trial Ends At",
+        "period_start": "Period Start",
+        "period_end": "Period End"
+      },
+      "action": {
+        "change_plan": "Change plan",
+        "assign_plan": "Assign a plan",
+        "renew": "Renew",
+        "pause": "Pause subscription",
+        "resume": "Resume subscription",
+        "cancel": "Cancel subscription",
+        "delete": "Delete subscription",
+        "view_history": "View history"
+      },
+      "confirm_cancel": {
+        "title": "Cancel Subscription",
+        "message": "This cannot be undone.",
+        "alert_before": "Tenant",
+        "alert_after": "will lose access immediately."
+      },
+      "confirm_delete": {
+        "title": "Delete Subscription?",
+        "message": "Are you sure you want to permanently delete this subscription record for \"{name}\"?"
+      },
+      "table": {
+        "tenant": "Tenant",
+        "ends": "Ends"
+      }
+    },
+    "history": {
+      "title": "Subscription History",
+      "subtitle": "Plan changes, renewals, and cancellations for this tenant",
+      "back": "Back to Subscriptions",
+      "change": "Change",
+      "reason": "Reason",
+      "changed_by": "Changed By",
+      "changed_at": "Date",
+      "none": "None",
+      "system": "System",
+      "empty": "No subscription history for this tenant yet"
+    },
+    "status": {
+      "trial": "Trial",
+      "expired": "Expired",
+      "suspended": "Suspended"
+    },
+    "upgrade_dialog": {
+      "choose_plan": "Choose your plan",
+      "currently_on": "Currently on",
+      "no_plan": "No Plan",
+      "tab_billing": "Current subscription",
+      "free_trial": "Free · 14-day trial",
+      "current_plan_label": "Current plan",
+      "effective_immediately": "Effective immediately · prorated billing",
+      "active_subscription": "Active subscription",
+      "billing_details": "Billing details",
+      "next_charge": "Next charge",
+      "not_set": "Not set",
+      "billing_history": "Billing history",
+      "no_invoices_yet": "No invoices yet",
+      "payments_secured": "Payments secured via Stripe · Cancel anytime",
+      "change_plan": "Change plan",
+      "select_a_plan": "Select a plan",
+      "switch_to": "Switch to {name}",
+      "upgrade_to": "Upgrade to {name}",
+      "downgrade_to": "Downgrade to {name}",
+      "change_success": "Plan changed successfully.",
+      "change_failed": "Failed to change plan. Please try again.",
+      "renew_confirm_title": "Renew subscription",
+      "renew_confirm_message": "Renew the current plan for another billing cycle?",
+      "renew_success": "Subscription renewed successfully.",
+      "renew_failed": "Failed to renew subscription. Please try again."
+    },
+    "plan_history": {
+      "empty": "No plan history available",
+      "from_prefix": "from",
+      "initial_plan": "Initial plan",
+      "changed": "Changed",
+      "initial": "Initial"
+    }
+  },
+  "dashboard": {
+    "live_overview": "Live Overview",
+    "good_morning": "Good morning",
+    "good_afternoon": "Good afternoon",
+    "good_evening": "Good evening",
+    "branches_network": "{count} branches across your network",
+    "periods": {
+      "today": "Today",
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "comparison_periods": {
+      "today": "Yesterday",
+      "week": "Last Week",
+      "month": "Last Month",
+      "year": "Last Year"
+    },
+    "vs_last": "vs {period}",
+    "branch_performance": "Branch Performance",
+    "branch_performance_subtitle": "Revenue & orders per location",
+    "orders_today": "{count} orders today",
+    "top": "Top",
+    "no_branches": "No branches found",
+    "quick_actions": "Quick Actions",
+    "quick_actions_subtitle": "Shortcuts for common tasks",
+    "actions": {
+      "add_product": "Add Product",
+      "view_reports": "View Reports",
+      "manage_staff": "Manage Staff"
+    },
+    "revenue_overview": {
+      "title": "Revenue Overview",
+      "subtitle": "All branches combined",
+      "tabs": {
+        "revenue": "Revenue",
+        "orders": "Orders"
+      }
+    },
+    "low_stock_dialog": {
+      "title": "Low Stock Items"
+    }
+  },
+  "operation": {
+    "pos_food_title": "Food & Cafe POS",
+    "pos_food_subtitle": "Open food & cafe POS system",
+    "pos_retail_title": "Retail POS",
+    "pos_retail_subtitle": "Open retail & mart POS system"
+  },
+  "promotions": {
+    "title": "Promotions, Loyalty & Discounts",
+    "subtitle": "Manage your promotional campaigns and discounts",
+    "stats": {
+      "active_promotions": "Active Promotions",
+      "total_promotions": "Total Promotions",
+      "active_coupons": "Active Coupons",
+      "total_coupons": "Total Coupons"
+    },
+    "dialog": {
+      "edit_title": "Edit Promotion",
+      "new_title": "New Promotion",
+      "step_progress": "Step {current} of {total} — {subtitle}"
+    },
+    "table": {
+      "code": "Promote Code",
+      "promotion": "Promotion",
+      "usage": "Usage",
+      "expires": "Expires",
+      "status": "Status"
+    },
+    "empty": "No promotions found",
+    "empty_coupon": "No coupons found",
+    "empty_coupon_sub": "Create your first coupon to start offering discounts",
+    "empty_sub": "Create your first promotion to start offering discounts",
+    "filter": {
+      "search_placeholder": "Search code or status..."
+    },
+    "unlimited_usage": "Unlimited usage",
+    "used_count": "{count} used",
+    "usage": "Used",
+    "tabs": {
+      "promotions": "Promotions",
+      "coupons": "Coupons"
+    },
+    "step": {
+      "details": "Details",
+      "conditions": "Conditions",
+      "schedule": "Schedule",
+      "details_subtitle": "Name & type",
+      "conditions_subtitle": "Discounts & limits",
+      "schedule_subtitle": "Dates & status"
+    },
+    "form": {
+      "name": "Promotion Name",
+      "type": "Promotion Type",
+      "value": "Value",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "active": "Activate Promotion",
+      "active_hint": "Enable to make this promotion available to customers",
+      "applies_to": "Applies To",
+      "min_order_amount": "Minimum Order Amount ($)",
+      "max_discount_cap": "Maximum Discount Cap ($)",
+      "total_limit_uses": "Total Usage Limit",
+      "per_customer_limit": "Usage Limit Per Customer",
+      "discount": "Discount (%)",
+      "discount_amount": "Discount Amount ($)",
+      "required": "Required",
+      "value_greater_than_zero": "Enter a value greater than 0",
+      "max_discount_cap_hint": "Optional — caps the % discount",
+      "min_order_amount_hint": "Optional — minimum spend to qualify",
+      "unlimited_hint": "Leave blank for unlimited",
+      "end_date_hint": "Optional — leave blank if it doesn't expire",
+      "start_before_end": "Start date must be before the end date",
+      "summary": "Summary",
+      "untitled_promotion": "Untitled promotion",
+      "off": "off",
+      "active_status": "Active",
+      "inactive_status": "Inactive"
+    },
+    "applies_to": {
+      "all": "All Products",
+      "entire_order": "Entire Order",
+      "specific_products": "Specific Products",
+      "specific_categories": "Specific Categories"
+    },
+    "types": {
+      "title": "Promotion Types",
+      "percentage": "Percentage Off",
+      "fixed": "Fixed Amount Off",
+      "buy_x_get_y": "Buy 1 Get 1 Free",
+      "free_item": "Free Item",
+      "free_shipping": "Free Shipping",
+      "loyalty_points": "Loyalty Points",
+      "custom": "Custom",
+      "coupon": "Coupon Code",
+      "combo": "Combo Deal",
+      "n_for_m": "N for M",
+      "tiered": "Tiered Discount",
+      "flash_sale": "Flash Sale",
+      "happy_hour": "Happy Hour"
+    },
+    "hints": {
+      "percentage": "e.g. 20% off the order",
+      "fixed": "e.g. $5 off the order",
+      "buy_x_get_y": "Buy one, get one free/discounted",
+      "free_item": "Add a free item to the order",
+      "combo": "Bundle items at a special price",
+      "happy_hour": "Time-limited discount window"
+    }
+  },
+  "coupons": {
+    "dialog": {
+      "edit_title": "Edit Coupon",
+      "new_title": "New Coupon",
+      "linked_promotion": "Linked Promotion",
+      "coupon_code": "Coupon Code",
+      "coupon_code_hint": "e.g. SUMMER20",
+      "usage_limit": "Usage Limit (blank = unlimited)",
+      "expires_at": "Expires At (optional)",
+      "active": "Active",
+      "save_changes": "Save Changes",
+      "create_coupon": "Create Coupon"
+    }
+  },
+  "expenses": {
+    "title": "Financial Control",
+    "subtitle": "Manage Finances",
+    "searchPlaceholder": "Search expenses...",
+    "table": {
+      "transaction": "Transaction",
+      "category": "Category",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "titleCreate": "New Entry",
+      "titleEdit": "Edit Entry",
+      "subtitleCreate": "Record a new transaction",
+      "subtitleEdit": "Update transaction details",
+      "fields": {
+        "title": {
+          "label": "Transaction Title",
+          "placeholder": "e.g. Office Supplies"
+        },
+        "category": {
+          "label": "Category"
+        },
+        "amountSection": "Amount & Date",
+        "amount": {
+          "label": "Amount",
+          "hint": "Enter the total spent"
+        },
+        "date": {
+          "label": "Date"
+        },
+        "reference": {
+          "label": "Reference",
+          "hint": "Invoice or receipt number"
+        },
+        "receipt": {
+          "label": "Attach Receipt"
+        }
+      },
+      "preview": {
+        "total": "Total transaction amount:"
+      }
+    },
+    "validation": {
+      "required": "This field is required",
+      "positive": "Amount must be greater than 0"
+    }
+  },
+  "ingredients": {
+    "dialog": {
+      "edit_title": "Edit Ingredient",
+      "new_title": "New Ingredient",
+      "fill_details": "Fill in the details below",
+      "create_btn": "Create Ingredient"
+    },
+    "section": {
+      "basic_info": "Basic Info",
+      "cost_reorder": "Cost & Reorder",
+      "supplier_status": "Supplier & Status"
+    },
+    "field": {
+      "name": "Name *",
+      "unit": "Unit *",
+      "unit_hint": "kg, g, L, ml, pcs...",
+      "category_hint": "dairy, produce, packaging...",
+      "unit_cost_hint": "per {unit}",
+      "reorder_point": "Reorder Point",
+      "reorder_point_hint": "in {unit}",
+      "reorder_qty": "Reorder Qty",
+      "reorder_qty_hint": "Qty to order",
+      "preferred_supplier": "Preferred Supplier",
+      "ingredient": "Ingredient *",
+      "quantity_on_hand": "Quantity on Hand *",
+      "quantity_reserved": "Quantity Reserved",
+      "last_counted_at": "Last Counted At"
+    },
+    "stock": {
+      "edit_title": "Edit Stock",
+      "add_title": "Add Stock",
+      "edit_subtitle": "Update quantity and stock info",
+      "add_subtitle": "Add ingredient stock for a branch",
+      "section_location": "Location & Ingredient",
+      "section_quantities": "Stock Quantities"
+    },
+    "title": "Ingredients",
+    "subtitle": "Manage raw materials and stock levels",
+    "add": "Add Ingredient",
+    "search_placeholder": "Search ingredients...",
+    "low_stock_only": "Low Stock Only",
+    "stock_alert": "Stock Alert",
+    "unit_cost": "Unit Cost",
+    "reorder": "Reorder",
+    "reorder_qty": "Reorder qty: {qty}",
+    "delete_title": "Delete Ingredient?",
+    "delete_body": "This cannot be undone. Ingredients used in recipes or purchase orders cannot be deleted.",
+    "updated_success": "Ingredient updated",
+    "created_success": "Ingredient created",
+    "save_failed": "Failed to save ingredient",
+    "deleted_success": "Ingredient deleted",
+    "delete_failed": "Cannot delete — ingredient may be in use"
+  },
+  "modifiers": {
+    "group": {
+      "edit_title": "Edit Modifier Group",
+      "add_title": "Add Modifier Group",
+      "edit_subtitle": "Update group settings",
+      "add_subtitle": "e.g. Sugar Level, Add-ons, Spice Level",
+      "name_label": "Group Name",
+      "name_placeholder": "e.g. Sugar Level",
+      "selection_type_label": "Selection Type",
+      "single": "Single",
+      "multiple": "Multiple",
+      "single_hint": "Customer picks exactly one option",
+      "multiple_hint": "Customer can pick one or more options",
+      "min_selections_label": "Min Selections",
+      "max_selections_label": "Max Selections",
+      "max_placeholder": "Unlimited",
+      "required_toggle": "Required",
+      "required_hint": "Customer must make a selection before ordering",
+      "create_btn": "Create Group"
+    },
+    "link": {
+      "title": "Link Modifier Groups",
+      "subtitle": "Select groups to attach to this product",
+      "search_placeholder": "Search modifier groups...",
+      "already_linked": "Already linked ({n}) — shown with lock icon",
+      "options_count": "{n} options",
+      "min_prefix": "Min:",
+      "max_prefix": "Max:",
+      "empty_search": "No groups match your search",
+      "empty": "No modifier groups available",
+      "groups_selected": "{n} group selected to link | {n} groups selected to link",
+      "link_groups_count": "Link ({n}) Groups",
+      "link_groups": "Link Groups"
+    },
+    "option": {
+      "edit_title": "Edit Option",
+      "add_title": "Add Option",
+      "edit_subtitle": "Update option details",
+      "add_subtitle": "e.g. Extra Shot, No Sugar, Spicy",
+      "name_label": "Option Name",
+      "name_placeholder": "e.g. Extra Shot",
+      "price_hint_prefix": "Use",
+      "price_hint_suffix": "for no charge · positive to add · negative to subtract",
+      "sort_order_hint": "Lower numbers appear first",
+      "available_hint": "Show this option to customers"
+    },
+    "rule": {
+      "name_required": "Name is required",
+      "whole_number": "Must be a whole number",
+      "max_gte_min": "Must be ≥ Min selections",
+      "valid_number": "Must be a valid number",
+      "value_out_of_range": "Value out of range",
+      "max_decimal_places": "Max 2 decimal places"
+    },
+    "messages": {
+      "option_updated": "Option updated",
+      "option_added": "Option added",
+      "option_save_failed": "Failed to save option",
+      "group_updated": "Group updated",
+      "group_created": "Group created",
+      "group_save_failed": "Failed to save group"
+    },
+    "page": {
+      "title": "Modifier Groups",
+      "subtitle": "Add-ons · Extras · Customizations",
+      "add_group": "Add Group",
+      "optional": "Optional",
+      "search_placeholder": "Search groups...",
+      "no_selection_limits": "No selection limits",
+      "add_option": "Add Option",
+      "unavailable": "Unavailable",
+      "no_options_yet": "No options yet",
+      "add_first_option": "+ Add First Option",
+      "no_groups_yet": "No modifier groups yet",
+      "no_groups_hint": "Create groups like \"Spice Level\", \"Add-ons\", \"Sauces\"",
+      "create_first_group": "Create First Group",
+      "stats": {
+        "total_groups": "Total Groups",
+        "required_groups": "Required Groups",
+        "single_select": "Single Select",
+        "multi_select": "Multi Select"
+      },
+      "delete_group_title": "Delete Modifier Group?",
+      "delete_group_message": "Are you sure you want to delete this group?",
+      "delete_option_title": "Delete Option?",
+      "delete_option_message": "Are you sure you want to delete this option?"
+    }
+  },
+  "reservations": {
+    "dialog": {
+      "edit": "Edit Reservation",
+      "new": "New Reservation",
+      "new_subtitle": "Book a table for a guest",
+      "edit_subtitle": "Update this reservation's details",
+      "guest_info": "Guest Info",
+      "date_time": "Date & Time",
+      "status_notes": "Status & Notes",
+      "review": "Review Booking",
+      "steps": {
+        "guest": "Guest & Branch",
+        "table_time": "Table & Time",
+        "confirm": "Confirm"
+      }
+    },
+    "field": {
+      "guest_name": "Guest Name",
+      "guest_name_placeholder": "Full name",
+      "party_size": "Party Size",
+      "table": "Table",
+      "reserved_at": "Reservation Date & Time",
+      "reserved_date": "Date",
+      "reserved_time": "Time",
+      "duration": "Duration (mins)"
+    },
+    "rule": {
+      "past_date": "Date cannot be in the past",
+      "past_time": "Time cannot be in the past"
+    },
+    "table_hint": "Optional — assign later if needed",
+    "table_n": "Table {n}",
+    "seats": "seats",
+    "table_selection": "Table {number} ({capacity} seats)",
+    "party_of": "Party of",
+    "exceeds_capacity": "exceeds table capacity of",
+    "duration_hint": "e.g. 90",
+    "table_released_at": "Table released at:",
+    "notes_placeholder": "Special requests, allergies, occasion...",
+    "book_table": "Book Table",
+    "subtitle": "Bookings · Seating · Walk-ins",
+    "new": "New Reservation",
+    "add": "Add Reservation",
+    "search_placeholder": "Name or phone...",
+    "field_table": "Table",
+    "table_number": "Table {n}",
+    "guests": "guests",
+    "seat_now": "Seat Now",
+    "no_show": "No Show",
+    "complete": "Complete",
+    "empty": "No reservations found",
+    "empty_search": "Try a different search",
+    "empty_period": "No reservations for this period",
+    "status": {
+      "seated": "Seated"
+    },
+    "status_updated": "Reservation {status}",
+    "messages": {
+      "created": "Reservation created",
+      "updated": "Reservation updated",
+      "deleted": "Reservation deleted successfully",
+      "delete_failed": "Failed to delete reservation",
+      "save_failed": "Failed to save",
+      "table_conflict": "This table already has a reservation that overlaps this time — pick a different table or time."
+    },
+    "delete_title": "Delete Reservation?",
+    "delete_message": "Reservation for <strong>{name}</strong> will be removed.",
+    "end_of_list": "You've reached the end of the list"
+  },
+  "roles": {
+    "dialog": {
+      "edit": "Edit Role",
+      "new": "New Role",
+      "new_subtitle": "Define a new role name and description",
+      "edit_subtitle": "Update this role's name and description"
+    },
+    "field": {
+      "name": "Role Name",
+      "name_hint": "e.g. Branch Manager, Cashier, Inventory Staff",
+      "description_hint": "What can users with this role do?"
+    },
+    "create": "Create Role",
+    "assign_permissions": "Assign Permissions",
+    "selected_count": "{n} selected",
+    "search_permissions_placeholder": "Search permissions...",
+    "permissions_count": "{n} permissions",
+    "no_permissions_found": "No permissions found",
+    "save_permissions": "Save Permissions",
+    "title": "Roles",
+    "subtitle": "Define roles and assign permissions to control access",
+    "new": "New Role",
+    "search_placeholder": "Search roles...",
+    "filter": {
+      "system": "System Roles",
+      "custom": "Custom Roles"
+    },
+    "system_badge": "System",
+    "no_description": "No description provided.",
+    "more_count": "+{n} more",
+    "no_permissions_assigned": "No permissions assigned",
+    "empty": "No roles found",
+    "messages": {
+      "updated": "Role updated",
+      "created": "Role created",
+      "deleted": "Role deleted",
+      "permissions_saved": "Permissions saved"
+    },
+    "delete_title": "Delete Role?",
+    "delete_message": "Delete <strong>{name}.</strong>? <br/> Users with this role will lose their access."
+  },
+  "tables": {
+    "dialog": {
+      "edit_title": "Edit Table",
+      "add_title": "Add Table",
+      "subtitle": "Configure table details"
+    },
+    "fields": {
+      "branch_hint": "Which branch is this table at?",
+      "table_number": "Table Number",
+      "table_number_placeholder": "e.g. 1, A1, VIP-01",
+      "capacity": "Capacity (seats)",
+      "shape": "Table Shape",
+      "floor_plan": "Floor Plan",
+      "floor_plan_hint": "Which floor is this table on?",
+      "position_title": "Position on Floor Plan",
+      "position_x": "X Position",
+      "position_y": "Y Position",
+      "current_status": "Current Status"
+    },
+    "shapes": {
+      "round": "Round",
+      "square": "Square",
+      "rectangle": "Rectangle",
+      "bar": "Bar"
+    },
+    "status": {
+      "available": "Available",
+      "occupied": "Occupied",
+      "reserved": "Reserved",
+      "cleaning": "Cleaning"
+    },
+    "rules": {
+      "min_one": "Must be at least 1"
+    },
+    "qr": {
+      "title": "Table {number} — QR Code",
+      "subtitle": "Preview and download",
+      "not_generated": "QR code not generated yet.",
+      "generate": "Generate",
+      "restaurant_fallback": "Restaurant",
+      "table_label": "Table {number}",
+      "scan_to_order": "Scan to order",
+      "url_label": "QR URL",
+      "preview_size": "Preview Size: {size}px",
+      "qr_color": "QR Color",
+      "background": "Background"
+    },
+    "subtitle": "Floor plan · Status · Capacity",
+    "add": "Add Table",
+    "floor_plan": "Floor Plan",
+    "all_floors": "All Floors",
+    "empty_floor": "No tables on this floor",
+    "qr_code": "QR Code",
+    "change_status": "Change Status",
+    "reserve": "Reserve",
+    "table_prefix": "Table",
+    "empty": "No tables found",
+    "status_dialog_title": "Table {number} — Change Status",
+    "default_branch_name": "Your Restaurant",
+    "stats": {
+      "total_tables": "Total Tables"
+    },
+    "table_headers": {
+      "table": "Table",
+      "capacity": "Capacity",
+      "shape": "Shape",
+      "active": "Active"
+    },
+    "messages": {
+      "status_changed": "Table {number} → {status}",
+      "status_update_failed": "Failed to update status",
+      "deleted": "Table {number} deleted",
+      "delete_failed": "Failed to delete",
+      "updated": "Table updated",
+      "created": "Table created",
+      "save_failed": "Failed to save"
+    },
+    "confirm_delete": {
+      "title": "Delete Table?",
+      "message": "Table <strong>{number}</strong> will be permanently removed."
+    }
+  },
+  "tenants": {
+    "payment_method": {
+      "pay_with_aba": "Pay with ABA",
+      "pay_with_bakong": "Pay with Bakong"
+    },
+    "qr_payment": {
+      "aba_title": "ABA PayWay",
+      "bakong_title": "Bakong KHQR",
+      "invoice_label": "Invoice {ref}",
+      "generating": "Generating QR…",
+      "qr_alt": "Payment QR code",
+      "dev_sample": "Sample QR · dev mode",
+      "instructions_aba": "Open <strong>ABA Mobile</strong> → tap <strong>Scan</strong> → confirm",
+      "instructions_bakong": "Open <strong>any Cambodian bank app</strong> → tap <strong>Scan KHQR</strong> → confirm",
+      "expires_in": "Expires in {time}",
+      "paid_confirm": "I've Paid"
+    }
+  },
+  "users": {
+    "dialog": {
+      "edit_title": "Edit User",
+      "add_title": "Add User",
+      "add_subtitle": "Create a new user account and set initial access",
+      "edit_subtitle": "Update this user's profile and account settings",
+      "avatar_url": "Avatar URL",
+      "avatar_url_hint": "Optional profile image URL",
+      "first_name_hint": "Legal first name",
+      "last_name_hint": "Legal last name",
+      "email_hint": "Used for login and notifications",
+      "phone_hint": "Optional mobile number",
+      "preferred_language": "Preferred Language",
+      "preferred_language_hint": "UI language preference",
+      "password_hint": "Minimum 8 characters, with upper/lowercase and a number",
+      "generate_password": "Generate",
+      "account_active": "Account Active",
+      "create_title": "Create User"
+    },
+    "page": {
+      "title": "Users",
+      "subtitle": "Manage all user accounts across the platform",
+      "add_user": "Add User",
+      "search_placeholder": "Search by name, email, phone...",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "email_verified": "Email Verified",
+      "unassigned": "Unassigned",
+      "empty": "No users found",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "email_status": "Email Status",
+        "last_login": "Last Login"
+      },
+      "messages": {
+        "updated": "User updated successfully",
+        "created": "User created successfully",
+        "activated": "User activated",
+        "deactivated": "User deactivated",
+        "deleted": "User deleted successfully",
+        "delete_failed": "Failed to delete",
+        "reset_password_failed": "Failed to reset password"
+      },
+      "delete_title": "Delete User?",
+      "delete_message": "Are you sure you want to delete <strong>{name}</strong>?",
+      "reset_password_title": "Reset Password?",
+      "reset_password_message": "This will set a new temporary password for <strong>{name}</strong> and require them to change it on next login."
+    }
+  },
+  "admin_dashboard": {
+    "title": "Platform Dashboard",
+    "subtitle_suffix": "Monitoring all tenants & subscriptions",
+    "mrr_trend": "MRR Trend",
+    "mrr_trend_subtitle": "Monthly recurring revenue — all active subscriptions",
+    "mrr_label": "MRR",
+    "top_tenants_by_mrr": "Top Tenants by MRR",
+    "ranked_by_subscription_value": "Ranked by subscription value",
+    "manage_tenants": "Manage Tenants",
+    "no_tenants_found": "No tenants found",
+    "billing_plans": "Billing & Plans",
+    "subscription_breakdown": "Subscription breakdown",
+    "overdue_count": "{count} overdue",
+    "renewals_due_suffix": "renewal(s) due in the next 7 days",
+    "percent_off": "{percent}% off",
+    "trial_ends": "Trial ends {date}",
+    "renews": "Renews {date}",
+    "no_plan_data": "No plan data",
+    "recent_tenants": "Recent Tenants",
+    "newly_joined": "Newly joined",
+    "no_recent_tenants": "No recent tenants",
+    "mrr_by_tenant": "MRR by Tenant",
+    "active_subscriptions": "Active subscriptions",
+    "admin_shortcuts": "Admin shortcuts",
+    "action_new_tenant": "New Tenant",
+    "action_plans": "Plans",
+    "action_all_users": "All Users",
+    "action_audit_logs": "Audit Logs"
+  },
+  "force_password_change": {
+    "title": "Set a new password",
+    "subtitle": "You're using a temporary password. Please set a new one to continue.",
+    "submit": "Update Password",
+    "success": "Password updated. Welcome back!",
+    "failed": "Failed to update password"
+  },
+  "not_found": {
+    "error_code": "ERROR 404",
+    "title": "Page Not Found",
+    "description_line1": "The route you navigated to doesn't exist.",
+    "description_line2": "It may have been moved, deleted, or never existed.",
+    "attempted_path": "Attempted path:",
+    "go_to_dashboard": "Go to Dashboard",
+    "go_back": "Go Back"
+  },
+  "access_denied": {
+    "error_code": "ERROR 403",
+    "title": "Access Restricted",
+    "description_line1": "You don't have permission to view this page.",
+    "description_line2": "Contact an administrator if you think this is a mistake.",
+    "attempted_path": "Attempted path:",
+    "go_to_dashboard": "Go to Dashboard",
+    "go_back": "Go Back"
+  },
+  "notification": {
+    "title": "Notifications",
+    "mark_all_read": "Mark all as read",
+    "stay_connected": "Stay Connected",
+    "preferences_title": "Delivery preferences",
+    "system_channel": "In-app",
+    "system_channel_desc": "Show live alerts and updates in the notification bell.",
+    "email_channel": "Email",
+    "email_channel_desc": "Receive an email copy of your notifications.",
+    "telegram_channel": "Telegram",
+    "telegram_channel_desc": "Receive an instant Telegram message for your notifications.",
+    "telegram_linked": "Linked",
+    "unlink_telegram": "Unlink",
+    "telegram_link_desc": "Link your Telegram to get <strong>instant alerts</strong> for purchases, stock updates, and approvals directly on your phone.",
+    "connect_telegram": "Connect Telegram Bot",
+    "mark_as_read": "Mark as read",
+    "no_notifications": "You have no notifications at this time."
+  },
+  "telegram_settings": {
+    "title": "Telegram Bot",
+    "subtitle": "Configure the platform's Telegram bot used for notification delivery.",
+    "bot_username": "Bot Username",
+    "bot_username_hint": "The bot's @handle, without the @ (e.g. my_store_bot).",
+    "bot_token": "Bot Token",
+    "token_hint": "Get this from @BotFather on Telegram.",
+    "token_set_hint": "A token is already set. Leave blank to keep it.",
+    "test_connection": "Test Connection",
+    "test_success": "Connected successfully as {'@'}{username}.",
+    "test_failed": "Could not connect with this token.",
+    "how_to_title": "How to get a bot token",
+    "how_to_step1": "Open Telegram and search for @BotFather.",
+    "how_to_step2": "Send /newbot and follow the prompts to name your bot.",
+    "how_to_step3": "BotFather replies with a token — paste it below.",
+    "how_to_step4": "Enter the bot's @username above, then save and test the connection."
+  },
+  "audit_log": {
+    "title": "Audit Logs",
+    "detail_fallback": "Detail",
+    "general_info": "General Info",
+    "action": "Action",
+    "entity": "Entity",
+    "ip_address": "IP Address",
+    "user_agent": "User Agent",
+    "changes": "Changes",
+    "field": "Field",
+    "before": "Before",
+    "after": "After",
+    "value": "Value",
+    "no_change_data": "No change data recorded",
+    "performed_by": "Performed By",
+    "user_id": "User ID",
+    "tenant": "Tenant",
+    "all_branches": "All branches",
+    "super_admin": "Super Admin",
+    "raw_payload": "Raw Payload",
+    "no_payload_data": "No payload data",
+    "system_audit_trail": "System Audit Trail",
+    "subtitle": "Complete history of security and data events",
+    "search_keyword": "Search keyword",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "apply_filter": "Apply Filter",
+    "generate": "Generate",
+    "end_before_start": "End Date cannot be earlier than Start Date",
+    "user": "User"
+  },
+  "business_type": {
+    "title": "Business Types",
+    "subtitle": "Manage your business type categories",
+    "add": "Add Business Type",
+    "search_placeholder": "Search by name or code...",
+    "result_count": "{n} result | {n} results",
+    "empty": "No business types found",
+    "edit_title": "Edit Business Type",
+    "create_title": "Create Business Type",
+    "edit_subtitle": "Update business type details",
+    "create_subtitle": "Add a new business type",
+    "icon": "Icon",
+    "selected": "Selected:",
+    "name_label": "Name *",
+    "name_placeholder": "e.g. Restaurant",
+    "code_label": "Code *",
+    "code": "Code",
+    "code_placeholder": "e.g. RESTAURANT",
+    "code_hint": "Uppercase letters and underscores only",
+    "code_rule": "Only uppercase letters, numbers, and underscores",
+    "enable_hint": "Enable this business type",
+    "manage_title": "Manage Business Types",
+    "delete_title": "Delete Business Type?",
+    "delete_message": "Delete \"{name}\"? Tenants using it will have their business type cleared, and any branch types under it will be deleted too.",
+    "messages": {
+      "created": "Business type created",
+      "updated": "Business type updated",
+      "deleted": "Business type deleted",
+      "save_failed": "Failed to save business type",
+      "delete_failed": "Failed to delete business type"
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "subtitle": "System-wide permission codes grouped by module",
+    "new": "New Permission",
+    "new_subtitle": "Define a new permission code and assign it to a group",
+    "edit_title": "Edit Permission",
+    "edit_subtitle": "Update this permission's group and description",
+    "create": "Create Permission",
+    "stats": {
+      "total": "Total Permissions",
+      "groups": "Groups / Modules",
+      "avg_per_group": "Avg per Group",
+      "unassigned": "Unassigned"
+    },
+    "search_placeholder": "Search by code or description...",
+    "filter_by_group": "Filter by Group",
+    "view": {
+      "grouped": "Grouped",
+      "table": "Table"
+    },
+    "count": "{n} permissions",
+    "empty": "No permissions found",
+    "table": {
+      "code": "Code",
+      "group": "Group"
+    },
+    "field": {
+      "code": "Permission Code",
+      "code_hint": "e.g. products.create, orders.view — use dot notation",
+      "group": "Group / Module",
+      "group_hint": "Existing group or type a new one",
+      "description_hint": "What does this permission allow?"
+    },
+    "preview": "Preview",
+    "no_description": "No description",
+    "code_format_error": "Use lowercase dot.notation (e.g. orders.view)",
+    "messages": {
+      "updated": "Permissions updated",
+      "created": "Permissions created",
+      "deleted": "Permission deleted"
+    },
+    "delete_title": "Delete Permission?",
+    "delete_message": "Delete <strong>{code}</strong>? <br/>Roles using this permission will lose this access."
+  },
+  "sale": {
+    "dialog_title": "New Sale",
+    "sale_date": "Sale Date",
+    "product": "Product"
+  },
+  "menus": {
+    "dialog": {
+      "titleEdit": "Edit Menu",
+      "titleCreate": "Create New Menu",
+      "subtitleEdit": "Update menu details and settings",
+      "subtitleCreate": "Define a new menu for your store",
+      "description_placeholder": "Brief description of this menu...",
+      "show_first_hint": "Show this menu first",
+      "visible_to_customers_hint": "Visible to customers",
+      "create_menu": "Create Menu"
+    },
+    "form": {
+      "tenant": "Tenant",
+      "tenant_placeholder": "Select tenant",
+      "name": "Menu Name",
+      "name_placeholder": "e.g. Breakfast Menu, Drinks, Lunch Special"
+    },
+    "validation": {
+      "tenant_required": "Tenant is required",
+      "name_required": "Menu name is required",
+      "min_2_chars": "At least 2 characters",
+      "time_before": "Must be before \"Available Until\" time",
+      "time_after": "Must be after \"Available From\" time"
+    },
+    "assign": {
+      "titleEdit": "Update Assignment",
+      "titleCreate": "Assign Menu to Branch",
+      "subtitleEdit": "Update this menu's branch assignment and availability",
+      "subtitleCreate": "Link a menu to a branch and set its availability window",
+      "branch_hint": "Which branch location?",
+      "menu": "Menu",
+      "menu_hint": "Which menu to assign?",
+      "time_window_hint": "Time Window — leave empty for all-day availability",
+      "available_from": "Available From",
+      "available_from_hint": "e.g. 08:00",
+      "available_until": "Available Until",
+      "available_until_hint": "e.g. 22:00",
+      "available_days_hint": "Available Days — leave empty for every day",
+      "day_sun": "Sun",
+      "day_mon": "Mon",
+      "day_tue": "Tue",
+      "day_wed": "Wed",
+      "day_thu": "Thu",
+      "day_fri": "Fri",
+      "day_sat": "Sat",
+      "every_day": "Every day",
+      "selected_days": "Selected: {days}",
+      "sort_order_hint": "Display order (0 = first)",
+      "assign_menu": "Assign Menu"
+    },
+    "list": {
+      "title": "Menu Management",
+      "subtitle": "Manage your menus",
+      "search_placeholder": "Search menus...",
+      "stats": {
+        "total": "Total Menus"
+      },
+      "default_badge": "Default",
+      "not_assigned": "Not assigned",
+      "headers": {
+        "branches": "Branches",
+        "created": "Created"
+      },
+      "tooltip": {
+        "edit": "Edit menu",
+        "assign": "Assign to branch",
+        "delete": "Delete menu"
+      },
+      "empty": "No menus found",
+      "create_first": "Create First Menu",
+      "confirm_delete": {
+        "title": "Confirm Delete",
+        "message": "Are you sure you want to delete \"{name}\"?"
+      },
+      "messages": {
+        "assignment_updated": "Assignment updated successfully",
+        "menu_assigned": "Menu assigned to branch successfully",
+        "branches_assigned": "Branches assigned successfully"
+      }
+    }
+  },
+  "tenant_create": {
+    "title_edit": "Edit Tenant",
+    "title_create": "Create New Tenant",
+    "steps": {
+      "owner_account": "Owner Account",
+      "business_info": "Business Info",
+      "localization": "Localization",
+      "review": "Review & Confirm",
+      "plan": "Plan"
+    },
+    "field": {
+      "first_name": "First Name *",
+      "last_name": "Last Name *",
+      "email": "Email *",
+      "password": "Password *",
+      "business_name": "Business Name *",
+      "slug": "Slug",
+      "business_type": "Business Type *",
+      "logo_url": "Logo URL",
+      "brand_color": "Brand Color",
+      "currency": "Currency",
+      "locale": "Locale",
+      "timezone": "Timezone"
+    },
+    "generate_password": "Generate Password",
+    "password_alert": "Share these credentials with the owner. Password won't be visible again after saving.",
+    "email_locked_before": "Email cannot be changed. To reset the owner's password, use the",
+    "reset_password_label": "Reset Password",
+    "email_locked_after": "button below.",
+    "reset_password_confirm": "This will set a new temporary password for the tenant owner and require them to change it on next login.",
+    "reset_password_failed": "Failed to reset password",
+    "slug_hint": "Auto-generated from name",
+    "lock_slug": "Lock slug",
+    "edit_slug": "Edit manually",
+    "percent_off": "% off",
+    "popular": "Popular",
+    "trial_period": "/ 14-day trial",
+    "no_credit_card": "No credit card required",
+    "month_unit": "month | months",
+    "per_month_suffix": "/month",
+    "storage_suffix": "GB storage",
+    "api_calls_suffix": "API calls",
+    "unlimited_api": "Unlimited API",
+    "plan_change_warning": "Changing the plan will take effect at the start of the next billing cycle.",
+    "trial_notice_before": "All new tenants start on a",
+    "trial_notice_bold": "14-day trial",
+    "trial_notice_after": ". Billing begins after the trial ends.",
+    "continue": "Continue",
+    "create_tenant": "Create Tenant",
+    "tips": {
+      "owner_account": "Creates a user who will own and manage the tenant workspace. Share the credentials after saving.",
+      "business_info": "The slug is auto-generated from the business name and used in URLs. Click the lock icon to edit manually.",
+      "plan": "All new tenants start with a 14-day free trial. The free plan is only available on monthly billing.",
+      "localization": "Currency and locale affect how prices and dates are displayed to the tenant's users. Can be changed later."
+    },
+    "currency": {
+      "usd": "USD — US Dollar",
+      "khr": "KHR — Cambodian Riel",
+      "eur": "EUR — Euro",
+      "gbp": "GBP — British Pound",
+      "sgd": "SGD — Singapore Dollar",
+      "myr": "MYR — Malaysian Ringgit"
+    },
+    "locale_options": {
+      "en_us": "English (US)",
+      "en_gb": "English (UK)",
+      "km_kh": "Khmer (KH)",
+      "zh_cn": "Chinese (CN)"
+    },
+    "timezone_options": {
+      "phnom_penh": "Phnom Penh (UTC+7)",
+      "bangkok": "Bangkok (UTC+7)",
+      "singapore": "Singapore (UTC+8)",
+      "ho_chi_minh": "Ho Chi Minh City (UTC+7)",
+      "utc": "UTC"
+    },
+    "review": {
+      "owner": "Owner",
+      "business": "Business",
+      "cycle": "Cycle"
+    },
+    "rule": {
+      "email": "Invalid email",
+      "min_password": "Minimum 6 characters"
+    }
+  },
+  "tenant_details": {
+    "detail_fallback": "Detail",
+    "status": {
+      "suspended": "Suspended"
+    },
+    "no_plan": "No Plan",
+    "no_subscription": "This tenant has no subscription yet",
+    "no_subscription_short": "No plan",
+    "assign_plan": "Assign a Plan",
+    "edit_tenant": "Edit Tenant",
+    "seats_label": "Seats",
+    "tabs": {
+      "subscription": "Subscription",
+      "history": "History"
+    },
+    "general": "General",
+    "trial_ends_on": "Trial ends on",
+    "days_remaining": "days remaining",
+    "period_ends_in": "Period ends in",
+    "days_suffix": "days.",
+    "billing_period": "Billing Period",
+    "trial_ends": "Trial Ends",
+    "included_features": "Included Features",
+    "no_branches": "No branches yet",
+    "branch_open": "Open",
+    "branch_closed": "Closed",
+    "no_plan_history": "No plan changes yet",
+    "initial_plan": "Initial plan:",
+    "billing_cycle_label": "Billing Cycle",
+    "renews_label": "Renews",
+    "suspend_tenant": "Suspend Tenant",
+    "activate_tenant": "Activate Tenant",
+    "delete_tenant": "Delete Tenant",
+    "list": {
+      "subtitle": "Manage tenant profiles and subscription plans",
+      "add": "Add Tenant",
+      "search_placeholder": "Search by name or slug...",
+      "business_types": "Business types",
+      "table": {
+        "tenant": "Tenant",
+        "bu_type": "BU Type"
+      },
+      "empty": "No tenants found",
+      "add_first": "Add First Tenant",
+      "bu_types": {
+        "restaurant": "Restaurant",
+        "cafe": "Cafe",
+        "bakery": "Bakery",
+        "kiosk": "Kiosk",
+        "food_truck": "Food Truck",
+        "mini_mart": "Mini Mart",
+        "retail": "Retail",
+        "wholesale": "Wholesale"
+      },
+      "confirm_delete": {
+        "title": "Delete Tenant",
+        "message": "Are you sure you want to delete tenant \"{name}\"?"
+      }
+    }
+  },
+  "filters": {
+    "food": "Food",
+    "utilities": "Utilities",
+    "staff": "Staff Salary"
+  },
+  "branch_menu": {
+    "title": "Branch Menu Assignments",
+    "subtitle": "Assign and manage menus for each branch",
+    "filter_by_branch": "Filter by Branch",
+    "filter_by_menu": "Filter by Menu",
+    "all_day": "All Day",
+    "time_window": "Time Window",
+    "days": "Days",
+    "sort_order": "Sort Order",
+    "empty": "No menu assignments found",
+    "assign_first": "Assign First Menu",
+    "operation_failed": "Operation failed",
+    "remove_title": "Remove Assignment?",
+    "remove_message": "Are you sure you want to delete \"{name}\"?"
+  },
+  "purchases": {
+    "form": {
+      "edit_title": "Edit Purchase",
+      "add_title": "Add Purchase",
+      "use_ai_suggestions": "Use AI Suggestions",
+      "purchase_information": "Purchase Information",
+      "supplier_required": "Supplier is required",
+      "create_new_supplier": "Create new supplier",
+      "purchase_date": "Purchase Date",
+      "date_required": "Date is required",
+      "payment_status": "Payment Status",
+      "payment_unpaid": "Unpaid",
+      "payment_partial": "Partial",
+      "payment_paid": "Paid",
+      "item_list": "Item List",
+      "product_required": "Product is required",
+      "quantity_positive": "Quantity must be > 0",
+      "price_non_negative": "Price must be ≥ 0",
+      "summary": "Summary",
+      "total_discount_amount": "Total Discount Amount",
+      "total_tax_amount": "Total Tax Amount",
+      "total_amount": "Total Amount",
+      "update_draft": "Update Draft",
+      "save_draft": "Save Draft",
+      "submit_request": "Submit Request",
+      "duplicate_title": "Duplicate Product",
+      "duplicate_message": "Product \"{name}\" is already added! Do you want to remove this duplicate?",
+      "cannot_edit_received": "Cannot edit a received purchase.",
+      "saved_and_requested": "Saved & requested approval",
+      "approved": "Purchase approved",
+      "rejected": "Purchase rejected",
+      "ai_fetch_failed": "Failed to fetch AI suggestions:"
+    }
+  }
+}

@@ -1,0 +1,574 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+// ── Auth ───────────────────────────────────────────────────────────────────
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\V1\UserController;
+
+// ── Multi-Tenancy ──────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\BranchHourController;
+
+// ── Users & Roles ──────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\StaffController;
+use App\Http\Controllers\Api\ShiftController;
+
+// ── Menu & Products ────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductVariantController;
+use App\Http\Controllers\Api\ModifierGroupController;
+use App\Http\Controllers\Api\ModifierOptionController;
+use App\Http\Controllers\Api\BranchProductOverrideController;
+
+// ── Tables & Floor ─────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\FloorPlanController;
+use App\Http\Controllers\Api\TableController;
+use App\Http\Controllers\Api\ReservationController;
+
+// ── Orders ─────────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderItemController;
+use App\Http\Controllers\Api\KitchenDisplayTicketController;
+
+// ── Payments ───────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\RefundController;
+use App\Http\Controllers\Api\CashDrawerController;
+
+// ── Inventory ──────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\IngredientController;
+use App\Http\Controllers\Api\InventoryStockController;
+use App\Http\Controllers\Api\InventoryTransactionController;
+use App\Http\Controllers\Api\ProductRecipeController;
+use App\Http\Controllers\Api\PurchaseOrderController;
+
+// ── Customers ──────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\CustomerAddressController;
+use App\Http\Controllers\Api\LoyaltyTransactionController;
+
+// ── Promotions ─────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\PromotionController;
+use App\Http\Controllers\Api\CouponController;
+
+// ── Reporting ──────────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\DailySalesSummaryController;
+use App\Http\Controllers\Api\V1\AuditLogController;
+use App\Http\Controllers\Api\BranchMenuController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\DigitalMenuController;
+use App\Http\Controllers\Api\V1\ShiftAssignmentController;
+use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\BusinessTypeController;
+use App\Http\Controllers\Api\CoffeePOSorderController;
+use App\Http\Controllers\Api\HospitalityPosController;
+use App\Http\Controllers\Api\MartPosController;
+use App\Http\Controllers\Api\MartPurchaseOrderController;
+use App\Http\Controllers\Api\OrderExportController;
+use App\Http\Controllers\Api\ProductUnitController;
+use App\Http\Controllers\Api\StockAdjustmentController;
+use App\Http\Controllers\Api\MartProductController;
+use App\Http\Controllers\Api\MartProductPerformanceController;
+use App\Http\Controllers\Api\MartPurchaseReportController;
+use App\Http\Controllers\Api\PlanController;
+use App\Http\Controllers\Api\TenantSubscriptionController;
+use App\Http\Controllers\Api\SubscriptionPlanHistoryController;
+use App\Http\Controllers\Api\BillingController;
+use App\Http\Controllers\Api\TelegramSettingController;
+
+Route::get('/test', function () {
+    return response()->json([
+        'message' => 'API is working'
+    ]);
+});
+
+// ── Public routes (no auth needed) ──────────────────────────────────────────
+Route::post('/login',     [AuthController::class, 'login']);
+Route::post('/login-pin', [AuthController::class, 'loginByPin']);
+
+// Token refresh — intentionally outside 'jwt.auth': that middleware rejects
+// expired tokens before the controller runs, which would make refreshing an
+// expired-but-still-refreshable token impossible. AuthController::refresh()
+// does its own token validation via JWTAuth::parseToken()->refresh().
+Route::post('/refresh', [AuthController::class, 'refresh']);
+
+// ── Protected routes ─────────────────────────────────────────────────────────
+Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
+    Route::get('/me',      [AuthController::class, 'me']);
+    Route::post('/logout',  [AuthController::class, 'logout']);
+    Route::put('/set-pin', [AuthController::class, 'setPin']);
+
+    Route::prefix('users')->middleware('superadmin')->group(function () {
+        Route::get('/',      [UserController::class, 'index']);
+        Route::post('/',     [UserController::class, 'store']);
+        Route::get('/{user}',  [UserController::class, 'show']);
+        Route::put('/{user}',  [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
+        Route::post('/{user}/reset-password', [UserController::class, 'resetPassword']);
+    });
+});
+
+// =============================================================================
+// PROTECTED ROUTES (auth required)
+// =============================================================================
+Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(function () {
+
+    // ── Auth (protected) ──────────────────────────────────────────────────────
+    Route::prefix('auth')->group(function () {
+        // Route::post('logout',  [AuthController::class, 'logout']);
+        // Route::get('me',       [AuthController::class, 'me']);
+        Route::put('profile',  [AuthController::class, 'updateProfile']);
+        Route::put('password', [AuthController::class, 'changePassword']);
+    });
+
+    // Tenant self-service read — a tenant owner/staff must be able to view
+    // their OWN tenant's profile (see TenantProfile.vue). Kept outside the
+    // 'superadmin' group below, but TenantController::show() itself still
+    // enforces that non-super-admins may only fetch their own tenant.
+    Route::get('/tenants/{tenant}', [TenantController::class, 'show']);
+
+    // ── System / Super-admin only ──────────────────────────────────────────────
+    Route::middleware('superadmin')->group(function () {
+        Route::apiResource('tenants', TenantController::class)->except(['show']);
+        Route::get('/tenants/{tenant}/edit', [TenantController::class, 'edit']);
+        Route::post('tenants/{tenant}/toggle-active', [TenantController::class, 'toggleActive']);
+        Route::post('tenants/{tenant}/reset-owner-password', [TenantController::class, 'resetOwnerPassword']);
+        Route::post('tenants/{tenant}/transfer-ownership', [TenantController::class, 'transferOwnership']);
+
+        Route::apiResource('business-types', BusinessTypeController::class)
+            ->except(['index', 'show']);
+
+        Route::apiResource('plans', PlanController::class);
+        Route::patch('plans/{plan}/toggle-active', [PlanController::class, 'toggleActive']);
+
+        // Subscriptions — assigning/changing a tenant's plan (store) and its
+        // lifecycle (renew/cancel/toggle/destroy). No generic "update" route:
+        // a plan change always goes through store(), never an in-place edit.
+        Route::apiResource('subscriptions', TenantSubscriptionController::class)
+            ->only(['index', 'show', 'store', 'destroy']);
+        Route::patch('subscriptions/{subscription}/toggle-active', [TenantSubscriptionController::class, 'toggleActive']);
+        Route::patch('subscriptions/{subscription}/cancel', [TenantSubscriptionController::class, 'cancel']);
+        Route::patch('subscriptions/{subscription}/renew', [TenantSubscriptionController::class, 'renew']);
+
+        Route::get('subscription-plan-history', [SubscriptionPlanHistoryController::class, 'index']);
+
+        Route::prefix('admin/dashboard')->group(function () {
+            Route::get('stats',        [AdminDashboardController::class, 'stats']);
+            Route::get('chart',        [AdminDashboardController::class, 'chart']);
+            Route::get('tenant-chart', [AdminDashboardController::class, 'tenantChart']);
+        });
+
+        Route::prefix('telegram-settings')->group(function () {
+            Route::get('/',    [TelegramSettingController::class, 'show']);
+            Route::put('/',    [TelegramSettingController::class, 'update']);
+            Route::post('test', [TelegramSettingController::class, 'test']);
+        });
+    });
+
+    // Tenant's own billing read — stays open to any authenticated tenant user
+    // (the controller itself enforces tenant isolation).
+    Route::get('plans/{tenant}/billing', [TenantController::class, 'getSubscriptionByTenant']);
+
+    // ── Self-service billing (Tenant Owner) ─────────────────────────────────────
+    // Always resolves the CALLER'S OWN tenant — never accepts a client-supplied
+    // tenant_id. Gated by permission:billing.manage, which the Owner already
+    // bypasses automatically (see CheckPermission), leaving room to later
+    // delegate billing to a trusted Manager.
+    Route::middleware('permission:billing.manage')->prefix('billing')->group(function () {
+        Route::get('plans', [PlanController::class, 'publicPlans']);
+        Route::post('change-plan', [BillingController::class, 'changePlan']);
+        Route::post('renew', [BillingController::class, 'renew']);
+    });
+
+    // Business types & their branch types — reference/catalog data, not
+    // tenant-scoped, so any authenticated user (tenant owner/staff creating
+    // a branch) can read them; only mutation stays superadmin-only above.
+    Route::get('/business-types', [BusinessTypeController::class, 'index']);
+    Route::get('/business-types/{business_type}', [BusinessTypeController::class, 'show']);
+    Route::get('/business-types/{business_type}/branch-types', [BusinessTypeController::class, 'branchTypes']);
+
+    // ── Branches ──────────────────────────────────────────────────────────────
+    // Pre-existing finer-grained codes (view/delete) honored here instead of
+    // the single .manage convention used for the other modules below.
+    Route::apiResource('branches', BranchController::class)
+        ->middlewareFor(['index', 'show'], 'permission:branches.view')
+        ->middlewareFor(['store', 'update'], 'permission:branches.manage')
+        ->middlewareFor('destroy', 'permission:branches.delete');
+    Route::post('branches/{branch}/toggle-open', [BranchController::class, 'toggleOpen'])
+        ->middleware('permission:branches.manage');
+    Route::prefix('branches/{branch}')->group(function () {
+        Route::get('hours',          [BranchHourController::class, 'index']);
+        Route::post('hours',         [BranchHourController::class, 'store'])->middleware('permission:branches.manage');
+        Route::put('hours/{hour}',   [BranchHourController::class, 'update'])->middleware('permission:branches.manage');
+        Route::delete('hours/{hour}', [BranchHourController::class, 'destroy'])->middleware('permission:branches.manage');
+
+        Route::get('staff',          [StaffController::class, 'byBranch']);
+        Route::get('orders',         [OrderController::class, 'byBranch']);
+        Route::get('tables',         [TableController::class, 'byBranch']);
+        Route::get('floor-plans',    [FloorPlanController::class, 'byBranch']);
+        Route::get('inventory',      [InventoryStockController::class, 'byBranch']);
+        Route::get('reservations',   [ReservationController::class, 'byBranch']);
+        Route::get('sales-summary',  [DailySalesSummaryController::class, 'byBranch']);
+        Route::post('sales-summary/generate', [DailySalesSummaryController::class, 'generate']);
+    });
+
+    // ── Roles & Permissions ───────────────────────────────────────────────────
+    Route::middleware('permission:roles.manage')->group(function () {
+        Route::apiResource('roles',       RoleController::class);
+        Route::apiResource('permissions', PermissionController::class);
+        Route::post('roles/{role}/permissions/sync', [RoleController::class, 'syncPermissions']);
+    });
+
+    // ── Staff ─────────────────────────────────────────────────────────────────
+    Route::middleware('permission:staff.manage')->group(function () {
+        Route::apiResource('staff', StaffController::class);
+        Route::post('staff/{staff}/reset-password', [StaffController::class, 'resetPassword']);
+        Route::prefix('staff/{staff}')->group(function () {
+            Route::get('shifts',       [ShiftController::class, 'byStaff']);
+            Route::post('clock-in',    [ShiftController::class, 'clockIn']);
+            Route::post('clock-out',   [ShiftController::class, 'clockOut']);
+        });
+    });
+
+    // ── Shifts (definitions + assignments) ─────────────────────────────────────
+    Route::middleware('permission:shifts.manage')->group(function () {
+        Route::apiResource('shifts', ShiftController::class);
+        Route::apiResource('shift-assignments', ShiftAssignmentController::class);
+        Route::post('shift-assignments/{shift_assignment}/clock-in',  [ShiftAssignmentController::class, 'clockIn']);
+        Route::post('shift-assignments/{shift_assignment}/clock-out', [ShiftAssignmentController::class, 'clockOut']);
+    });
+
+    // ── Menus ─────────────────────────────────────────────────────────────────
+    Route::middleware('permission:menus.manage')->group(function () {
+        Route::apiResource('menus', MenuController::class);
+        Route::prefix('menus/{menu}')->group(function () {
+            Route::get('categories',          [CategoryController::class, 'byMenu']);
+            Route::post('branches/sync',      [MenuController::class, 'syncBranches']);
+        });
+    });
+
+    // ── Categories ────────────────────────────────────────────────────────────
+    Route::apiResource('categories', CategoryController::class)->middleware('permission:categories.manage');
+    Route::prefix('categories/{category}')->group(function () {
+        Route::get('products', [ProductController::class, 'byCategory']);
+    });
+
+    // ── Products ──────────────────────────────────────────────────────────────
+    Route::middleware('permission:products.manage')->group(function () {
+        Route::apiResource('products', ProductController::class);
+        Route::apiResource('product-variants', ProductVariantController::class);
+        Route::prefix('products/{product}')->group(function () {
+            Route::apiResource('variants',         ProductVariantController::class)->shallow();
+            Route::post('modifier-groups/sync',    [ProductController::class, 'attachModifierGroups']);
+            Route::post('recipe',                  [ProductRecipeController::class, 'store']);
+            Route::put('recipe/{recipe}',          [ProductRecipeController::class, 'update']);
+            Route::delete('recipe/{recipe}',       [ProductRecipeController::class, 'destroy']);
+            Route::post('branch-override',         [BranchProductOverrideController::class, 'storeForProduct']);
+        });
+        Route::apiResource('modifier-groups', ModifierGroupController::class);
+        Route::prefix('modifier-groups/{modifierGroup}')->group(function () {
+            Route::apiResource('options', ModifierOptionController::class)->shallow();
+        });
+        Route::apiResource('branch-product-overrides', BranchProductOverrideController::class);
+    });
+    // Read-only product lookups — used broadly across POS/kitchen/ordering flows
+    Route::prefix('products/{product}')->group(function () {
+        Route::get('modifier-groups', [ModifierGroupController::class, 'byProduct']);
+        Route::get('recipe',          [ProductRecipeController::class, 'byProduct']);
+    });
+
+    // ── Floor Plans & Tables ────────────────────────────────────────────────────
+    Route::middleware('permission:floor_plans.manage')->group(function () {
+        Route::apiResource('floor-plans', FloorPlanController::class);
+        Route::apiResource('tables', TableController::class);
+        Route::get('tables/{table}/qr-code/download', [TableController::class, 'downloadQrCode']);
+        Route::post('tables/{table}/qr-code/regenerate', [TableController::class, 'regenerateQrCode']);
+        Route::prefix('tables/{table}')->group(function () {
+            Route::patch('status', [TableController::class, 'updateStatus']);
+        });
+    });
+    Route::get('tables/{table}/qr-code', [TableController::class, 'qrCode']);
+    Route::prefix('tables/{table}')->group(function () {
+        Route::get('active-order',   [OrderController::class, 'activeByTable']);
+        Route::get('reservations',   [ReservationController::class, 'byTable']);
+    });
+
+    // ── Reservations ──────────────────────────────────────────────────────────
+    Route::middleware('permission:reservations.manage')->group(function () {
+        Route::apiResource('reservations', ReservationController::class);
+        Route::prefix('reservations/{reservation}')->group(function () {
+            Route::patch('confirm', [ReservationController::class, 'confirm']);
+            Route::patch('seat',    [ReservationController::class, 'seat']);
+            Route::patch('cancel',  [ReservationController::class, 'cancel']);
+            Route::patch('no-show', [ReservationController::class, 'noShow']);
+        });
+    });
+
+    // ── Orders ────────────────────────────────────────────────────────────────
+    // NOTE: the report/export routes must be registered BEFORE the apiResource
+    // below — otherwise `GET orders/{order}` (the resource's `show` route)
+    // greedily matches `/orders/report` and `/orders/export` first, passing
+    // the literal string "report"/"export" as the order id/number and blowing
+    // up with an invalid UUID error.
+    Route::middleware('permission:reports.view')->group(function () {
+        Route::get('orders/report',  [OrderController::class, 'orderReport']);
+        Route::get('orders/export',  [OrderExportController::class, 'export']);
+    });
+    Route::middleware('permission:orders.manage')->group(function () {
+        Route::apiResource('orders', OrderController::class);
+        Route::prefix('orders/{order}')->group(function () {
+            Route::get('items',             [OrderItemController::class, 'byOrder']);
+            Route::post('items',            [OrderItemController::class, 'store']);
+            Route::put('items/{item}',      [OrderItemController::class, 'update']);
+            Route::delete('items/{item}',   [OrderItemController::class, 'destroy']);
+
+            Route::get('status-history',    [OrderController::class, 'statusHistory']);
+            Route::patch('status',          [OrderController::class, 'updateStatus']);
+            Route::patch('confirm',         [OrderController::class, 'confirm']);
+            Route::patch('prepare',         [OrderController::class, 'prepare']);
+            Route::patch('ready',           [OrderController::class, 'ready']);
+            Route::patch('complete',        [OrderController::class, 'complete']);
+            Route::patch('cancel',          [OrderController::class, 'cancel']);
+
+            Route::get('payments',          [PaymentController::class, 'byOrder']);
+            Route::post('payments',         [PaymentController::class, 'store']);
+
+            Route::post('apply-coupon',     [CouponController::class, 'apply']);
+            Route::get('kitchen-tickets',   [KitchenDisplayTicketController::class, 'byOrder']);
+        });
+    });
+
+    // ── Kitchen Display ───────────────────────────────────────────────────────
+    Route::middleware('permission:kitchen.manage')->group(function () {
+        Route::apiResource('kitchen-tickets', KitchenDisplayTicketController::class);
+        Route::prefix('kitchen-tickets/{ticket}')->group(function () {
+            Route::patch('start',    [KitchenDisplayTicketController::class, 'start']);
+            Route::patch('complete', [KitchenDisplayTicketController::class, 'complete']);
+            Route::patch('cancel',   [KitchenDisplayTicketController::class, 'cancel']);
+        });
+    });
+
+    // ── Payments & Refunds ──────────────────────────────────────────────────────
+    Route::middleware('permission:payments.manage')->group(function () {
+        Route::apiResource('payments', PaymentController::class);
+        Route::post('payments/{payment}/refund', [RefundController::class, 'store']);
+        Route::apiResource('refunds', RefundController::class)->only(['index', 'show']);
+
+        // ── Cash Drawers ──────────────────────────────────────────────────────
+        Route::apiResource('cash-drawers', CashDrawerController::class);
+        Route::prefix('cash-drawers')->group(function () {
+            Route::post('open',           [CashDrawerController::class, 'open']);
+            Route::patch('{drawer}/close', [CashDrawerController::class, 'close']);
+        });
+    });
+
+    // ── Suppliers ─────────────────────────────────────────────────────────────
+    Route::apiResource('suppliers', SupplierController::class)->middleware('permission:suppliers.manage');
+
+    // ── Ingredients ───────────────────────────────────────────────────────────
+    Route::apiResource('ingredients', IngredientController::class)->middleware('permission:ingredients.manage');
+    Route::prefix('ingredients/{ingredient}')->group(function () {
+        Route::get('stock',        [InventoryStockController::class, 'byIngredient']);
+        Route::get('transactions', [InventoryTransactionController::class, 'byIngredient']);
+    });
+
+    // ── Inventory ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:inventory.manage')->group(function () {
+        Route::apiResource('inventory-stock', InventoryStockController::class);
+        Route::post('inventory-stock/adjust', [InventoryStockController::class, 'adjust']);
+        Route::apiResource('inventory-transactions', InventoryTransactionController::class)
+            ->only(['index', 'show']);
+    });
+
+    // ── Product Recipes ───────────────────────────────────────────────────────
+    Route::apiResource('product-recipes', ProductRecipeController::class)->middleware('permission:products.manage');
+
+    // ── Purchase Orders ───────────────────────────────────────────────────────
+    Route::middleware('permission:purchase_orders.manage')->group(function () {
+        Route::apiResource('purchase-orders', PurchaseOrderController::class);
+        Route::prefix('purchase-orders/{purchase_order}')->group(function () {
+            Route::patch('submit',  [PurchaseOrderController::class, 'submit']);
+            Route::patch('confirm', [PurchaseOrderController::class, 'confirm']);
+            Route::patch('cancel',  [PurchaseOrderController::class, 'cancel']);
+            Route::post('receive',  [PurchaseOrderController::class, 'receive']);
+        });
+    });
+
+    // ── Customers ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:customers.manage')->group(function () {
+        Route::apiResource('customers', CustomerController::class);
+        Route::prefix('customers/{customer}')->group(function () {
+            Route::post('loyalty/add',        [CustomerController::class, 'addPoints']);
+            Route::post('loyalty/redeem',     [CustomerController::class, 'redeemPoints']);
+            // Only index + store nested
+            Route::apiResource('addresses', CustomerAddressController::class)
+                ->only(['index', 'store']);
+        });
+        // show / update / destroy shallow — no customer segment
+        Route::apiResource('addresses', CustomerAddressController::class)
+            ->only(['show', 'update', 'destroy']);
+
+        // ── Loyalty Transactions ──────────────────────────────────────────────
+        Route::apiResource('loyalty-transactions', LoyaltyTransactionController::class)
+            ->only(['index', 'show']);
+    });
+    Route::prefix('customers/{customer}')->group(function () {
+        Route::get('orders',  [OrderController::class, 'byCustomer']);
+        Route::get('loyalty', [LoyaltyTransactionController::class, 'byCustomer']);
+    });
+
+    // ── Promotions & Coupons ────────────────────────────────────────────────────
+    Route::middleware('permission:promotions.manage')->group(function () {
+        Route::apiResource('promotions', PromotionController::class);
+        Route::prefix('promotions/{promotion}')->group(function () {
+            Route::get('coupons',        [CouponController::class, 'byPromotion']);
+            Route::post('coupons',       [CouponController::class, 'store']);
+        });
+        Route::apiResource('coupons', CouponController::class);
+    });
+    // Coupon validation is part of checkout, not coupon management — stays open
+    Route::post('coupons/validate', [CouponController::class, 'validate']);
+
+    // ── Reports ───────────────────────────────────────────────────────────────
+    Route::middleware('permission:reports.view')->group(function () {
+        Route::prefix('reports')->group(function () {
+            Route::get('sales',         [DailySalesSummaryController::class, 'index']);
+            Route::get('sales/{date}',  [DailySalesSummaryController::class, 'show']);
+            // Reuses the existing, working DashboardController::topProducts()
+            // implementation rather than duplicating the same aggregation —
+            // topCustomers/revenue/staffReport had no implementation
+            // anywhere (not even dead code) to migrate; building them means
+            // designing new analytics logic from scratch (date ranges,
+            // ranking definitions, etc.), not fixing/relocating something
+            // that already exists. Removed rather than left pointing at
+            // nonexistent methods; revisit as a real feature request if
+            // these reports are actually needed.
+            Route::get('top-products',  [DashboardController::class, 'topProducts']);
+        });
+
+        // ── Activity Logs ─────────────────────────────────────────────────────
+        Route::get('activity-logs',      [AuditLogController::class, 'index']);
+        Route::get('activity-logs/{activityLog}', [AuditLogController::class, 'show']);
+    });
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+    // Registered before apiResource so it isn't swallowed by the
+    // {notification} route-model-binding param below.
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::get('notifications/preferences', [NotificationController::class, 'preferences']);
+    Route::patch('notifications/preferences', [NotificationController::class, 'updatePreferences']);
+    Route::post('notifications/telegram/link', [NotificationController::class, 'telegramLinkUrl']);
+    Route::post('notifications/telegram/unlink', [NotificationController::class, 'unlinkTelegram']);
+    Route::apiResource('notifications', NotificationController::class)
+        ->only(['index', 'show', 'destroy']);
+    Route::prefix('notifications')->group(function () {
+        Route::patch('{notification}/read', [NotificationController::class, 'markRead']);
+        // Frontend calls this with PATCH (matches the single-notification
+        // `read` action above) — was registered as POST, a method mismatch
+        // that would 405 every "mark all read" click.
+        Route::patch('read-all',            [NotificationController::class, 'markAllRead']);
+    });
+
+
+    Route::middleware('permission:menus.manage')->group(function () {
+        Route::apiResource('branch-menus', BranchMenuController::class);
+        Route::delete('branch-menus/unassign', [BranchMenuController::class, 'unassign']);
+    });
+    Route::get('branch-menus/branch/{branchId}/available-now', [BranchMenuController::class, 'availableNow']);
+
+    Route::prefix('dashboard')->group(function () {
+        Route::get('stats',        [DashboardController::class, 'stats']);
+        Route::get('chart',        [DashboardController::class, 'chart']);
+        Route::get('live-orders',  [DashboardController::class, 'liveOrders']);
+        Route::get('top-products', [DashboardController::class, 'topProducts']);
+        Route::get('activity',     [DashboardController::class, 'activity']);
+    });
+    // ── Hospitality  ───────────────────────────────────────────────────
+    Route::prefix('hospitality')->group(function () {
+        Route::prefix('/pos')->group(function () {
+            Route::get('products', [HospitalityPosController::class, 'productHospitalityPos']);
+        });
+    });
+
+    Route::prefix('mart')->group(function () {
+
+        Route::middleware('permission:purchase_orders.manage')->group(function () {
+            Route::get('purchase-orders', [MartPurchaseOrderController::class, 'index']);
+            Route::post('purchase-orders', [MartPurchaseOrderController::class, 'store']);
+            Route::get('purchase-orders/{mart_purchase_order}', [MartPurchaseOrderController::class, 'show']);
+            Route::put('purchase-orders/{mart_purchase_order}', [MartPurchaseOrderController::class, 'update']);
+            Route::delete('purchase-orders/{mart_purchase_order}', [MartPurchaseOrderController::class, 'destroy']);
+            Route::post('purchase-orders/{mart_purchase_order}/receive', [MartPurchaseOrderController::class, 'receive']);
+            Route::post('purchase-orders/{mart_purchase_order}/cancel', [MartPurchaseOrderController::class, 'cancel']);
+        });
+
+        // ── Stock ──────────────────────────────────────────────────────────────
+        Route::middleware('permission:inventory.manage')->group(function () {
+            Route::post('stock/adjust',     [StockAdjustmentController::class, 'adjust']);
+            Route::get('stock/movements',  [StockAdjustmentController::class, 'movements']);
+            Route::get('stock/low-stock',  [StockAdjustmentController::class, 'lowStock']);
+        });
+
+        Route::get('products',      [MartProductController::class, 'index']);
+        Route::get('products/{id}', [MartProductController::class, 'show']);
+
+        // POS sale-taking — product/category browsing + barcode scan stay open,
+        // only recording/listing actual sales needs orders.manage
+        Route::prefix('/pos')->group(function () {
+            Route::get('products', [MartPosController::class, 'products']);
+            Route::post('/scan',    [ProductController::class, 'scan']);
+            Route::get('categories', [MartPosController::class, 'categories']);
+            Route::middleware('permission:orders.manage')->group(function () {
+                Route::get('orders', [MartPosController::class, 'index']);
+                Route::post('orders', [MartPosController::class, 'store']);
+                Route::post('customer-orders', [MartPosController::class, 'storeOrders']);
+            });
+        });
+        Route::middleware('permission:reports.view')->group(function () {
+            Route::get('/reports/inventory', [MartPosController::class, 'reportStock']);
+            Route::get('/reports/purchases',           [MartPurchaseReportController::class,    'index']);
+            Route::get('/reports/product-performance', [MartProductPerformanceController::class, 'index']);
+        });
+    });
+
+    Route::prefix('coffee')->group(function () {
+        // /api/v1/coffee/pos/orders
+        Route::prefix('/pos')->group(function () {
+            Route::post('orders', [CoffeePOSorderController::class, 'coffeeOrders'])
+                ->middleware('permission:orders.manage');
+        });
+    });
+
+    Route::get('product-units/names', [ProductUnitController::class, 'names']);
+    // ── Product Units ──────────────────────────────────────────────────────
+    Route::get('products/{product}/units', [ProductUnitController::class, 'index']);
+    Route::middleware('permission:products.manage')->group(function () {
+        Route::post('products/{product}/units',       [ProductUnitController::class, 'store']);
+        Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update']);
+        Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy']);
+    });
+});
+
+
+Route::prefix('v1/public')->group(function () {
+    Route::get('menu/{branchSlug}',                      [DigitalMenuController::class, 'show']);
+    Route::get('menu/{branchSlug}/table/{tableId}',      [DigitalMenuController::class, 'show']);
+    Route::get('menu/{branchSlug}/product/{productId}',  [DigitalMenuController::class, 'product']);
+
+    // Orders — no auth, customer places + tracks
+    Route::post('orders',                        [OrderController::class, 'store']);
+    Route::get('orders/{orderNumber}',           [OrderController::class, 'show']);
+    Route::get('orders/table/{tableId}',         [OrderController::class, 'byTable']);
+
+    // website register
+    Route::get('business-types', [BusinessTypeController::class, 'index']);
+    Route::post('business-register',    [TenantController::class, 'store']);
+    Route::get('plans', [PlanController::class, 'publicPlans']);
+});

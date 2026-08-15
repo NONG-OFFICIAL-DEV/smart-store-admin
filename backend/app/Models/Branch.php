@@ -1,0 +1,168 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use App\Models\Scopes\TenantScope;
+
+#[ScopedBy(TenantScope::class)]
+class Branch extends BaseModel
+{
+    protected $fillable = [
+        'tenant_id',
+        'name',
+        'type',
+        'address_line1',
+        'address_line2',
+        'city',
+        'state',
+        'country',
+        'postal_code',
+        'latitude',
+        'longitude',
+        'phone',
+        'email',
+        'tax_rate',
+        'service_charge_rate',
+        'receipt_footer',
+        'is_open',
+        'is_active',
+        'branch_type_id',
+    ];
+
+    protected $casts = [
+        'tax_rate'             => 'decimal:4',
+        'service_charge_rate'  => 'decimal:4',
+        'latitude'             => 'decimal:6',
+        'longitude'            => 'decimal:6',
+        'is_open'              => 'boolean',
+        'is_active'            => 'boolean',
+    ];
+
+    // ─── Relationships ────────────────────────────────────────────────────────
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function hours()
+    {
+        return $this->hasMany(BranchHour::class);
+    }
+
+    public function staff()
+    {
+        return $this->hasMany(Staff::class);
+    }
+
+    public function menus()
+    {
+        // ->using(BranchMenu::class) — see Menu::branches()'s comment; same
+        // fix needed on this side of the same pivot relationship.
+        return $this->belongsToMany(Menu::class, 'branch_menus')
+            ->using(BranchMenu::class)
+            ->withPivot(['id', 'available_from', 'available_until', 'days_of_week', 'sort_order'])
+            ->withTimestamps();
+    }
+    public function branchMenus()
+    {
+        return $this->hasMany(BranchMenu::class);
+    }
+
+    public function floorPlans()
+    {
+        return $this->hasMany(FloorPlan::class);
+    }
+
+    public function tables()
+    {
+        return $this->hasMany(Table::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function inventoryStock()
+    {
+        return $this->hasMany(InventoryStock::class);
+    }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function dailySalesSummaries()
+    {
+        return $this->hasMany(DailySalesSummary::class);
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    public function getFullAddressAttribute(): string
+    {
+        return collect([
+            $this->address_line1,
+            $this->address_line2,
+            $this->city,
+            $this->state,
+            $this->country,
+        ])->filter()->implode(', ');
+    }
+    // Auto-generate slug on create
+    protected static function booted(): void
+    {
+        static::creating(function ($branch) {
+            if (empty($branch->slug)) {
+                $branch->slug = static::generateSlug($branch->name);
+            }
+        });
+
+        // Regenerate QR when branch or table changes
+        static::updating(function ($branch) {
+            if ($branch->isDirty('name') && empty($branch->slug)) {
+                $branch->slug = static::generateSlug($branch->name);
+            }
+        });
+    }
+
+    private static function generateSlug(string $name): string
+    {
+        $base  = \Illuminate\Support\Str::slug($name);
+        $slug  = $base;
+        $count = 1;
+
+        // slug is globally unique at the DB level (not per-tenant), but a
+        // plain static::where() here runs under the active TenantScope —
+        // so this only ever checked the current tenant's branches. Two
+        // different tenants both naming a branch "Downtown" could each
+        // generate slug "downtown", and the second insert would crash on
+        // the DB's unique constraint instead of getting "-1" appended here.
+        while (static::withoutGlobalScopes()->where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $count++;
+        }
+
+        return $slug;
+    }
+
+    public function branchType()
+    {
+        return $this->belongsTo(BranchType::class);
+    }
+
+    // Get active features for this branch
+    public function features()
+    {
+        return $this->branchType->features()
+                    ->where('is_active', true)
+                    ->get();
+    }
+
+    public function hasFeature(string $featureCode): bool
+    {
+        return $this->branchType->features()
+                    ->where('code', $featureCode)
+                    ->exists();
+    }
+}
