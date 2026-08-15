@@ -425,6 +425,51 @@ class AuthController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
+    // UPDATE EMAIL — self-service, requires the current password (email
+    // doubles as the account's own password-reset/recovery channel, so
+    // changing it deserves the same identity check as changing the
+    // password itself).
+    // PUT /api/v1/auth/email
+    // Body: { "email": "...", "current_password": "..." }
+    // ─────────────────────────────────────────────────────────────────────────────
+    public function updateEmail(Request $request)
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $request->validate([
+            'email'            => 'required|email|unique:users,email,' . $user->id,
+            'current_password' => 'required|string',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password_hash)) {
+            return response()->json([
+                'status'  => 'invalid_current_password',
+                'message' => 'Current password is incorrect',
+            ], 401);
+        }
+
+        $oldEmail = $user->email;
+
+        // A changed email is a fresh, unverified identity claim — reset
+        // verified_at rather than trusting that whoever typed the new
+        // address actually owns it, exactly as a brand-new signup would be.
+        $user->forceFill(['email' => $request->email, 'email_verified_at' => null])->save();
+
+        ActivityLog::log(
+            action: 'auth.email_changed',
+            entity: null,
+            payload: null,
+            description: "User changed their email from {$oldEmail} to {$user->email}"
+        );
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Email updated successfully.',
+            'email'   => $user->email,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
     // FORGOT PASSWORD — sends a reset link if the email exists. Deliberately
     // ALWAYS returns the same generic response regardless of whether the
     // broker actually found an account — never confirm/deny account

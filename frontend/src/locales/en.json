@@ -153,12 +153,18 @@
     "name": "Name",
     "email": "Email",
     "phone": "Phone",
+    "security_title": "Login & Security",
+    "security_subtitle": "Update the password and email address you use to sign in.",
     "change_password": "Change Password",
     "current_password": "Current Password",
     "new_password": "New Password",
     "confirm_password": "Confirm New Password",
     "password_changed": "Password changed successfully",
-    "password_change_failed": "Failed to change password"
+    "password_change_failed": "Failed to change password",
+    "change_email": "Change Email",
+    "new_email": "New Email Address",
+    "email_changed": "Email changed successfully",
+    "email_change_failed": "Failed to change email"
   },
   "billing": {
     "title": "Billing",

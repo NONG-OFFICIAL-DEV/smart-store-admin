@@ -42,7 +42,11 @@ class TwoFactorAuthService
 
         return [
             'secret' => $secret,
-            'qr_code_svg' => QrCode::size(200)->generate($otpauthUrl),
+            // ->generate() returns an Illuminate\Support\HtmlString, not a
+            // plain string — left uncast, it JSON-encodes to {} (no public
+            // properties) and the frontend's v-html then renders the
+            // literal text "[object Object]" instead of the QR code.
+            'qr_code_svg' => (string) QrCode::size(200)->generate($otpauthUrl),
         ];
     }
 

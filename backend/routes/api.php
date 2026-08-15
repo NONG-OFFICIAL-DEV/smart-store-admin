@@ -139,6 +139,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
         // Route::get('me',       [AuthController::class, 'me']);
         Route::put('profile',  [AuthController::class, 'updateProfile']);
         Route::put('password', [AuthController::class, 'changePassword']);
+        Route::put('email',    [AuthController::class, 'updateEmail']);
     });
 
     // Tenant self-service read — a tenant owner/staff must be able to view

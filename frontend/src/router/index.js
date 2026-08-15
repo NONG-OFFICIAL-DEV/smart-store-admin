@@ -71,10 +71,10 @@ const routes = [
         meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
       },
       {
-        path: '/tenants-profile',
-        name: 'tenant-profile',
-        component: () => import('@/views/tenants/TenantProfile.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        path: '/profile',
+        name: 'profile',
+        component: () => import('@/views/profile/Profile.vue'),
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
         path: '/tenants-billing',

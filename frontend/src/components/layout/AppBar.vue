@@ -320,7 +320,7 @@
   // Navigation
   const goToProfile = () => {
     userMenu.value = false
-    router.push({ name: 'tenant-profile' })
+    router.push({ name: 'profile' })
   }
 
   const goToBilling = () => {

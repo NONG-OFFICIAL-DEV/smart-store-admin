@@ -49,5 +49,9 @@ export default {
       new_password,
       new_password_confirmation
     })
+  },
+
+  updateEmail(email, current_password) {
+    return http.put('/v1/auth/email', { email, current_password })
   }
 }
