@@ -17,15 +17,6 @@
     <v-form ref="formRef">
       <!-- Basic Info -->
       <div class="form-section">
-            <v-select
-              v-if="isSuperAdmin()"
-              v-model="form.tenant_id"
-              :items="tenants"
-              item-title="name"
-              item-value="id"
-              :label="$t('suppliers.form.tenant')"
-              :rules="[r.required]"
-            />
             <div class="form-section-label">
               <v-icon icon="mdi-information-outline" size="13" class="mr-1" />
               {{ $t('suppliers.dialog.basic_info') }}
@@ -137,13 +128,9 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, onMounted } from 'vue'
-  import { storeToRefs } from 'pinia'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useTenantStore } from '@/stores/tenantStore'
-  import { usePermission } from '@/composables/usePermission'
   import AppDialog from '@/components/common/AppDialog.vue'
-  const { isSuperAdmin } = usePermission()
   const { t } = useI18n()
   const props = defineProps({
     modelValue: Boolean,
@@ -153,8 +140,6 @@
   const emit = defineEmits(['update:modelValue', 'save'])
 
   const formRef = ref(null)
-  const tenantStore = useTenantStore()
-  const { tenants } = storeToRefs(tenantStore)
   const model = computed({
     get: () => props.modelValue,
     set: v => emit('update:modelValue', v)
@@ -165,7 +150,6 @@
 
   // ── Default form — matches DB schema exactly ───────────────────────────────────
   const defaultForm = () => ({
-    tenant_id: null,
     name: '',
     contact_person: '', // ← schema: contact_person (not contact_name)
     phone: '',
@@ -184,7 +168,6 @@
         form,
         val
           ? {
-              tenant_id: val.tenant_id ?? null,
               name: val.name ?? '',
               contact_person: val.contact_person ?? '',
               phone: val.phone ?? '',
@@ -222,11 +205,6 @@
       is_active: form.is_active
     }
 
-    // ✅ Only include tenant_id if super admin and has value
-    if (isSuperAdmin() && form.tenant_id) {
-      payload.tenant_id = form.tenant_id
-    }
-
     emit('save', payload)
   }
 
@@ -235,9 +213,6 @@
     formRef.value?.reset()
     Object.assign(form, defaultForm())
   }
-  onMounted(async () => {
-    if (isSuperAdmin()) tenantStore.fetchTenants()
-  })
 </script>
 
 <style scoped>

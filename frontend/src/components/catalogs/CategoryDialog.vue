@@ -72,56 +72,6 @@
             </v-col>
           </v-row>
 
-          <!-- Assign to Tenants -->
-          <v-row dense>
-            <v-col cols="12">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.dialog.assign_to_tenants') }}
-                <span class="text-caption text-grey ml-1">({{ $t('form.optional') }})</span>
-              </label>
-              <v-select
-                v-model="form.tenant_ids"
-                :items="tenants"
-                item-title="name"
-                item-value="id"
-                :placeholder="$t('categories.dialog.select_tenants_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                multiple
-                chips
-                closable-chips
-                clearable
-                :loading="loadingTenants"
-                :error-messages="serverErrors.tenant_ids"
-              >
-                <template #prepend-inner>
-                  <v-icon
-                    icon="mdi-store-outline"
-                    size="18"
-                    class="text-grey"
-                  />
-                </template>
-                <template #chip="{ item, props: chipProps }">
-                  <v-chip
-                    v-bind="chipProps"
-                    size="small"
-                    rounded="md"
-                    color="primary"
-                    variant="tonal"
-                  >
-                    {{ item.title }}
-                  </v-chip>
-                </template>
-              </v-select>
-              <p class="text-caption text-grey mt-1 ml-1">
-                {{ $t('categories.dialog.leave_empty_assigning') }}
-              </p>
-            </v-col>
-          </v-row>
-
           <!-- Description -->
           <v-row dense>
             <v-col cols="12">
@@ -316,15 +266,12 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, nextTick, onMounted } from 'vue'
+  import { ref, reactive, computed, watch, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useCategoryStore } from '@/stores/categoryStore'
-  import { useTenantStore } from '@/stores/tenantStore'
-  import { usePermission } from '@/composables/usePermission'
   import AppDialog from '@/components/common/AppDialog.vue'
 
   const { t } = useI18n()
-  const { isSuperAdmin } = usePermission()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -334,14 +281,11 @@
 
   const emit = defineEmits(['update:modelValue', 'saved'])
   const categoryStore = useCategoryStore()
-  const tenantStore = useTenantStore()
 
   // ── State ──────────────────────────────────────────────────────────────────
   const formRef = ref(null)
   const loading = ref(false)
-  const loadingTenants = ref(false)
   const serverErrors = reactive({})
-  const tenants = ref([])
 
   // ── Model ──────────────────────────────────────────────────────────────────
   const model = computed({
@@ -360,7 +304,6 @@
     name: '',
     description: '',
     parent_id: null,
-    tenant_ids: [], // ✅ new
     image_url: '',
     icon: '',
     color: '',
@@ -458,7 +401,6 @@
           name: val.name ?? '',
           description: val.description ?? '',
           parent_id: val.parent_id ?? null,
-          tenant_ids: val.tenants?.map(t => t.id) ?? [], // ✅ pre-fill assigned tenants
           image_url: val.image_url ?? '',
           icon: val.icon ?? '',
           color: val.color ?? '',
@@ -487,7 +429,6 @@
         name: form.name.trim(),
         description: form.description || null,
         parent_id: form.parent_id || null,
-        tenant_ids: form.tenant_ids, // ✅ send to backend
         image_url: form.image_url || null,
         icon: form.icon || null,
         color: form.color || null,
@@ -517,22 +458,6 @@
       loading.value = false
     }
   }
-
-  // ── Fetch Tenants ──────────────────────────────────────────────────────────
-  // /v1/tenants is superadmin-only — skip for tenant-logged-in users, who
-  // would otherwise get Forbidden and never see the rest of the dialog load.
-  const fetchTenants = async () => {
-    if (!isSuperAdmin()) return
-    loadingTenants.value = true
-    try {
-      await tenantStore.fetchTenants()
-      tenants.value = tenantStore.tenants
-    } finally {
-      loadingTenants.value = false
-    }
-  }
-
-  onMounted(fetchTenants)
 </script>
 
 <style scoped>

@@ -19,22 +19,10 @@
         </v-btn>
       </template>
     </custom-title>
-    <!-- ── Filters — tenant/branch-type/status apply immediately; AppTable
+    <!-- ── Filters — branch-type/status apply immediately; AppTable
     deep-watches `filters` below and refetches, resetting to page 1. Text
     search is AppTable's own built-in search box, not this panel. ────────── -->
     <v-row dense class="mb-2">
-      <v-col v-if="!isTenantUser" cols="12" md="3" sm="3">
-        <custom-select
-          v-model="filterState.tenant"
-          :items="tenants"
-          item-title="name"
-          item-value="id"
-          :label="t('menu.tenant')"
-          :multiple="false"
-          :chips="true"
-          :max-visible-chips="3"
-        />
-      </v-col>
       <v-col cols="12" md="3" sm="3">
         <custom-select
           v-model="filterState.branchType"
@@ -105,20 +93,6 @@
             class="text-capitalize"
           >
             {{ item.branch_type.name.replace('_', ' ') }}
-          </v-chip>
-          <span v-else class="text-medium-emphasis">—</span>
-        </template>
-
-        <!-- Tenant (superadmin only column) -->
-        <template #[`item.tenant`]="{ item }">
-          <v-chip
-            v-if="item.tenant"
-            size="x-small"
-            variant="tonal"
-            color="primary"
-            prepend-icon="mdi-domain"
-          >
-            {{ item.tenant.name }}
           </v-chip>
           <span v-else class="text-medium-emphasis">—</span>
         </template>
@@ -213,7 +187,7 @@
 </template>
 
 <script setup>
-  import { ref, watch, reactive, computed, onMounted } from 'vue'
+  import { ref, reactive, computed, onMounted } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
   import { useTenantStore } from '@/stores/tenantStore'
   import { usePermission } from '@/composables/usePermission'
@@ -226,7 +200,7 @@
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
-  const { can, isSuperAdmin } = usePermission()
+  const { can } = usePermission()
   const { confirm, notif } = useAppUtils()
   const branchStore = useBranchStore()
   const tenantStore = useTenantStore()
@@ -243,13 +217,11 @@
     tenant: null,
     status: null
   })
-  const isTenantUser = computed(() => !!authStore.tenant_id)
   const statusOptions = computed(() => [
     { title: t('status.active'), value: 'Active' },
     { title: t('status.inactive'), value: 'Inactive' }
   ])
   const dialog = reactive({ show: false, branch: null })
-  const tenants = computed(() => tenantStore.tenants)
   const branchTypes = computed(() => tenantStore.branchTypes ?? [])
 
   // ── Headers ────────────────────────────────────────────────────────────────
@@ -260,9 +232,6 @@
       key: 'branch_type',
       sortable: false
     },
-    ...(isSuperAdmin()
-      ? [{ title: t('menu.tenant'), key: 'tenant', sortable: false }]
-      : []),
     { title: t('branches.table.phone'), key: 'contact', sortable: false },
     { title: t('branches.table.status'), key: 'is_active', sortable: true },
     ...(can('branches.manage')
@@ -296,27 +265,6 @@
     const { data } = await getAllBranchesApi(params)
     return { items: data.data, total: data.meta.total }
   }
-
-  // ── Watch tenant ──────────────────────────────────────────────────────────────
-  // Note: tenants list & branch-type-by-business-type are superadmin-only
-  // endpoints — tenant-logged-in users never have a list to search, so this
-  // simply no-ops for them (they get Forbidden if we call it directly).
-  watch(
-    () => filterState.tenant,
-    async tenantId => {
-      filterState.branchType = []
-      tenantStore.branchTypes = []
-
-      if (!tenantId || isTenantUser.value) return
-
-      const allTenants = tenantStore.tenants?.data ?? tenantStore.tenants ?? []
-      const tenant = allTenants.find(t => t.id === tenantId)
-
-      if (tenant?.business_type_id) {
-        await tenantStore.fetchBranchTypeByBusinessType(tenant.business_type_id)
-      }
-    }
-  )
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   const openCreate = () => {
@@ -374,15 +322,9 @@
       food_truck: 'mdi-truck-outline'
     })[type] || 'mdi-store-outline'
 
-  onMounted(async () => {
-    if (isTenantUser.value) {
-      // Tenant users get their branches scoped server-side by their own
-      // tenant_id — no need to (and no permission to) load the full tenant
-      // list, which is a superadmin-only endpoint.
-      filterState.tenant = authStore.tenant_id
-    } else {
-      await tenantStore.fetchTenants()
-    }
+  onMounted(() => {
+    // Branches are scoped server-side by the user's own tenant_id.
+    filterState.tenant = authStore.tenant_id
   })
 </script>
 

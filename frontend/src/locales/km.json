@@ -168,6 +168,10 @@
     "email_changed": "ប្ដូរអ៊ីមែលបានជោគជ័យ",
     "email_change_failed": "មិនអាចប្ដូរអ៊ីមែលបានទេ"
   },
+  "settings": {
+    "title": "សុវត្ថិភាព",
+    "subtitle": "គ្រប់គ្រងពាក្យសម្ងាត់ អ៊ីមែល និងការផ្ទៀងផ្ទាត់ពីរជាន់ដែលអ្នកប្រើសម្រាប់ចូលគណនី"
+  },
   "billing": {
     "title": "ការបង់ប្រាក់",
     "subtitle": "គ្រប់គ្រងព័ត៌មានការបង់ប្រាក់ និងប្រវត្តិការបង់ប្រាក់របស់អ្នក",
@@ -847,16 +851,16 @@
       "subtitleEdit": "ធ្វើបច្ចុប្បន្នភាពព័ត៌មានលម្អិតសាខា",
       "subtitleCreate": "បន្ថែមសាខាថ្មីទៅបណ្តាញរបស់អ្នក",
       "step": {
-        "tenant": "អ្នកជួល",
+        "business_type": "ប្រភេទអាជីវកម្ម",
         "location": "ទីតាំង",
         "review": "ពិនិត្យឡើងវិញ"
       },
       "section": {
-        "tenant_info": "ព័ត៌មានអ្នកជួល",
+        "business_type_info": "ព័ត៌មានប្រភេទអាជីវកម្ម",
         "branch_details": "ព័ត៌មានលម្អិតសាខា",
         "status_settings": "ការកំណត់ស្ថានភាព"
       },
-      "business_type_hint": "ប្រភេទអាជីវកម្មត្រូវបានកំណត់ដោយស្វ័យប្រវត្តិពីអ្នកជួលដែលបានជ្រើសរើស។",
+      "business_type_hint": "ប្រភេទអាជីវកម្មត្រូវបានកំណត់ដោយស្វ័យប្រវត្តិពីអ្នកជួលរបស់អ្នក។",
       "phone_placeholder": "+855 ...",
       "email_placeholder": "branch{'@'}example.com",
       "address_line1_placeholder": "អាសយដ្ឋានផ្លូវ",
@@ -918,9 +922,6 @@
       "parent_category": "ប្រភេទមេ",
       "parent_placeholder": "គ្មាន (កម្រិតកំពូល)",
       "leave_empty_top_level": "ទុកចោលទទេសម្រាប់កម្រិតកំពូល",
-      "assign_to_tenants": "កំណត់ទៅអ្នកជួល",
-      "select_tenants_placeholder": "ជ្រើសរើសអ្នកជួល...",
-      "leave_empty_assigning": "ទុកចោលទទេ ដើម្បីបង្កើតដោយមិនទាន់កំណត់",
       "description_placeholder": "ការពិពណ៌នាសង្ខេបអំពីប្រភេទនេះ...",
       "mdi_icon_name": "ឈ្មោះរូបតំណាង MDI",
       "icon_placeholder": "ឧ. mdi-food",
@@ -1016,7 +1017,6 @@
       "productName": "ឈ្មោះផលិតផល *",
       "type": "ប្រភេទ *",
       "category": "ប្រភេទក្រុម *",
-      "tenant": "អ្នកជួល *",
       "available": "ដាក់លក់",
       "availableHint": "បង្ហាញក្នុងម៉ឺនុយ",
       "featured": "លក្ខណៈពិសេស",
@@ -1049,7 +1049,6 @@
     },
     "image": {
       "upload": "បញ្ចូលរូបភាព",
-      "pasteUrl": "ឬបិទភ្ជាប់ URL",
       "dragHint": "ចុច ឬអូសដើម្បីបញ្ចូល",
       "formatHint": "JPG · PNG · WEBP · អតិបរមា 5MB",
       "tooLarge": "រូបភាពត្រូវតែតិចជាង 5MB",
@@ -1057,8 +1056,7 @@
       "formats": "JPG · PNG · WEBP"
     },
     "hint": {
-      "variantsInfo": "ប្រភេទនិងក្រុមកែប្រែអាចត្រូវបានគ្រប់គ្រងពីទំព័រលម្អិតផលិតផលបន្ទាប់ពីរក្សាទុក។",
-      "selectTenantForBusinessType": "ជ្រើសរើសអ្នកជួលដើម្បីមើលប្រភេទអាជីវកម្មរបស់ខ្លួន"
+      "variantsInfo": "ប្រភេទនិងក្រុមកែប្រែអាចត្រូវបានគ្រប់គ្រងពីទំព័រលម្អិតផលិតផលបន្ទាប់ពីរក្សាទុក។"
     },
     "preview": {
       "productName": "ឈ្មោះផលិតផល",
@@ -1175,7 +1173,6 @@
       "email": "អ៊ីមែល",
       "address": "អាសយដ្ឋាន",
       "notes": "កំណត់ចំណាំ",
-      "tenant": "អ្នកជួល",
       "payment_terms": "លក្ខខណ្ឌទូទាត់",
       "payment_terms_placeholder": "ឧ. Net 30, COD",
       "active_hint": "អាចប្រើសម្រាប់ការបញ្ជាទិញ"
@@ -1622,7 +1619,6 @@
       "pin": "កូដ PIN POS (4–6 ខ្ទង់)",
       "employee_code": "កូដបុគ្គលិក",
       "allow_login": "អនុញ្ញាតឱ្យចូលប្រើ",
-      "select_tenant": "ជ្រើសរើសអ្នកជួល",
       "first_name_required": "នាមខ្លួន *",
       "last_name_required": "នាមត្រកូល *",
       "email_required": "អ៊ីមែល *",
@@ -1695,10 +1691,6 @@
       "subtitleEdit": "កែប្រែការកំណត់វេន",
       "subtitleCreate": "កំណត់វេនដែលអាចប្រើបានម្តងទៀត",
       "fields": {
-        "tenant": {
-          "label": "អ្នកជួល (អាជីវកម្ម)",
-          "hint": "វេននេះនឹងអាចប្រើបានសម្រាប់សាខាទាំងអស់នៅក្រោមអ្នកជួលនេះ"
-        },
         "name": {
           "label": "ឈ្មោះវេន",
           "placeholder": "ឧ. ព្រឹក, កាសាង, យប់"
@@ -2977,13 +2969,10 @@
       "create_menu": "បង្កើតម៉ឺនុយ"
     },
     "form": {
-      "tenant": "អ្នកជួល",
-      "tenant_placeholder": "ជ្រើសរើសអ្នកជួល",
       "name": "ឈ្មោះម៉ឺនុយ",
       "name_placeholder": "ឧ. ម៉ឺនុយអាហារពេលព្រឹក ភេសជ្ជៈ អាហារថ្ងៃត្រង់ពិសេស"
     },
     "validation": {
-      "tenant_required": "ត្រូវការជ្រើសរើសអ្នកជួល",
       "name_required": "ត្រូវការបំពេញឈ្មោះម៉ឺនុយ",
       "min_2_chars": "យ៉ាងតិច ២ តួអក្សរ",
       "time_before": "ត្រូវតែមុនម៉ោង \"អាចប្រើបានដល់\"",

@@ -22,7 +22,6 @@
               v-model:image-file="imageFile"
               v-model:image-preview="imagePreview"
               v-model:image-url="form.image_url"
-              :isSuperAdmin="isSuperAdmin()"
             />
 
             <!-- ── Business Type ──────────────────────────────────────── -->
@@ -33,69 +32,11 @@
                   {{ $t('products.cardTitle.businessType') }}
                 </div>
 
-                <template v-if="isSuperAdmin()">
-                  <v-select
-                    v-model="form.tenant_id"
-                    :items="tenants"
-                    item-title="name"
-                    item-value="id"
-                    :label="t('products.field.tenant')"
-                    variant="outlined"
-                    rounded="lg"
-                    :rules="[r.required]"
-                    prepend-inner-icon="mdi-domain"
-                    class="mb-3"
-                  >
-                    <template #item="{ props: p, item }">
-                      <v-list-item v-bind="p">
-                        <template #prepend>
-                          <v-avatar size="28" rounded="lg" class="mr-2">
-                            <v-img
-                              v-if="item.raw.logo_url"
-                              :src="item.raw.logo_url"
-                            />
-                            <v-icon v-else icon="mdi-domain" size="14" />
-                          </v-avatar>
-                        </template>
-                        <template #subtitle>
-                          <span class="text-caption text-grey">
-                            {{ item.raw.business_type?.name ?? '—' }}
-                          </span>
-                        </template>
-                      </v-list-item>
-                    </template>
-                    <template #selection="{ item }">
-                      <div class="d-flex align-center" style="gap: 8px">
-                        <v-avatar size="20" rounded="sm">
-                          <v-img
-                            v-if="item.raw.logo_url"
-                            :src="item.raw.logo_url"
-                          />
-                          <v-icon v-else icon="mdi-domain" size="12" />
-                        </v-avatar>
-                        <span class="text-body-2">{{ item.raw.name }}</span>
-                      </div>
-                    </template>
-                  </v-select>
-
-                  <BusinessTypeChip
-                    v-if="resolvedBuConfig"
-                    :config="resolvedBuConfig"
-                    :label="resolvedBuLabel"
-                    :nature="productNature"
-                  />
-                  <div v-else class="text-caption text-grey">
-                    {{ $t('products.hint.selectTenantForBusinessType') }}
-                  </div>
-                </template>
-
-                <template v-else>
-                  <BusinessTypeChip
-                    :config="resolvedBuConfig"
-                    :label="resolvedBuLabel"
-                    :nature="productNature"
-                  />
-                </template>
+                <BusinessTypeChip
+                  :config="resolvedBuConfig"
+                  :label="resolvedBuLabel"
+                  :nature="productNature"
+                />
               </v-card-text>
             </v-card>
 
@@ -1014,11 +955,9 @@
   import { useI18n } from 'vue-i18n'
   import { storeToRefs } from 'pinia'
   import { useAppUtils } from '@nong-official-dev/core'
-  import { usePermission } from '@/composables/usePermission'
   import { useAuthStore } from '@/stores/authStore'
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
-  import { useTenantStore } from '@/stores/tenantStore'
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { BUSINESS_TYPES } from '@/constants/businessTypes'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
@@ -1037,14 +976,11 @@
   const authStore = useAuthStore()
   const productStore = useProductStore()
   const categoryStore = useCategoryStore()
-  const tenantStore = useTenantStore()
   const productUnitStore = useProductUnitStore()
   const { categories } = storeToRefs(categoryStore)
-  const { tenants } = storeToRefs(tenantStore)
 
   // ── Composables ────────────────────────────────────────────────────────────────
   const { t } = useI18n()
-  const { isSuperAdmin } = usePermission()
   const { notif } = useAppUtils()
   const { currencySymbol } = useCurrency()
 
@@ -1084,7 +1020,6 @@
 
   const defaultForm = () => ({
     id: null,
-    tenant_id: null,
     category_id: null,
     sku: null,
     barcode: '',
@@ -1136,30 +1071,17 @@
   })
 
   // ── Business type ──────────────────────────────────────────────────────────────
-  const resolvedBuCode = computed(() => {
-    if (isSuperAdmin()) {
-      if (!form.value.tenant_id) return null
-      const tenant = tenants.value.find(t => t.id === form.value.tenant_id)
-      return tenant?.business_type?.code?.toUpperCase() ?? null
-    }
-    return authStore.bu_type?.toUpperCase() ?? 'RESTAURANT'
-  })
+  const resolvedBuCode = computed(() => authStore.bu_type?.toUpperCase() ?? 'RESTAURANT')
 
   const resolvedBuConfig = computed(() =>
     resolvedBuCode.value ? (BUSINESS_TYPES[resolvedBuCode.value] ?? null) : null
   )
 
-  const resolvedBuLabel = computed(() => {
-    if (isSuperAdmin()) {
-      const tenant = tenants.value.find(t => t.id === form.value.tenant_id)
-      return tenant?.business_type?.name ?? resolvedBuCode.value ?? '—'
-    }
-    return (
-      resolvedBuCode.value
-        ?.replace(/_/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase()) ?? '—'
-    )
-  })
+  const resolvedBuLabel = computed(() =>
+    resolvedBuCode.value
+      ?.replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase()) ?? '—'
+  )
 
   const productNature = computed(
     () => resolvedBuConfig.value?.category ?? 'food'
@@ -1450,8 +1372,6 @@
   onMounted(async () => {
     await Promise.all([
       categoryStore.fetchCategories({ perPage: 1000 }),
-      // /v1/tenants is superadmin-only — tenant-logged-in users get Forbidden
-      isSuperAdmin() ? tenantStore.fetchTenants() : Promise.resolve(),
       fetchUnitNames()
     ])
 

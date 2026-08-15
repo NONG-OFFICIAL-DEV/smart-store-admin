@@ -1,9 +1,6 @@
 <script setup>
-  import { ref, watch, onMounted } from 'vue'
-  import { useTenantStore } from '@/stores/tenantStore'
-  import { usePermission } from '@/composables/usePermission'
+  import { ref, watch } from 'vue'
   import AppDialog from '@/components/common/AppDialog.vue'
-  const { isSuperAdmin } = usePermission()
   /* ================= PROPS / EMITS ================= */
   const props = defineProps({
     modelValue: Boolean,
@@ -13,13 +10,9 @@
 
   const emit = defineEmits(['update:modelValue', 'save'])
 
-  /* ================= TENANT ================= */
-  const tenantStore = useTenantStore()
-
   /* ================= DEFAULT FORM ================= */
   const getDefaultForm = () => ({
     id: null,
-    tenant_id: null,
     name: '',
     description: '',
     is_default: false,
@@ -54,7 +47,6 @@
 
       const payload = {
         id: form.value.id,
-        tenant_id: form.value.tenant_id,
         name: form.value.name,
         description: form.value.description,
         is_default: form.value.is_default,
@@ -65,12 +57,6 @@
       close()
     })
   }
-
-  // /v1/tenants is superadmin-only — tenant-logged-in users would get
-  // Forbidden here, so skip the fetch for them.
-  onMounted(async () => {
-    if (isSuperAdmin()) await tenantStore.fetchTenants()
-  })
 </script>
 <template>
   <AppDialog
@@ -97,27 +83,6 @@
   >
     <!-- BODY -->
     <v-form ref="formRef">
-      <!-- Tenant (super admin only) -->
-      <template v-if="isSuperAdmin()">
-        <p
-          class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block mb-1"
-        >
-          {{ $t('menus.form.tenant') }}
-        </p>
-        <v-select
-          v-model="form.tenant_id"
-          :items="tenantStore.tenants"
-          item-title="name"
-          item-value="id"
-          :placeholder="$t('menus.form.tenant_placeholder')"
-          variant="outlined"
-          rounded="lg"
-          prepend-inner-icon="mdi-domain"
-          :rules="[v => !!v || $t('menus.validation.tenant_required')]"
-          class="mb-4"
-        />
-      </template>
-
       <!-- Menu Name -->
       <p
         class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block mb-1"

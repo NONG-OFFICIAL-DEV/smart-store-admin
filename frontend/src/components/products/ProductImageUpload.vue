@@ -95,20 +95,6 @@
           {{ $t('btn.upload') }}
         </v-btn>
       </div>
-
-      <!-- URL paste (super admin only) -->
-      <v-text-field
-        v-if="isSuperAdmin"
-        :model-value="imageUrl"
-        :placeholder="$t('products.image.pasteUrl')"
-        variant="outlined"
-        rounded="lg"
-        hide-details
-        class="mt-3"
-        prepend-inner-icon="mdi-link-variant"
-        clearable
-        @update:model-value="onUrlChange"
-      />
     </v-card-text>
   </v-card>
 </template>
@@ -121,11 +107,10 @@
   const { notif } = useAppUtils()
   const { t } = useI18n()
 
-  const props = defineProps({
+  defineProps({
     imageFile: { default: null },
     imagePreview: { type: String, default: null },
-    imageUrl: { type: String, default: null },
-    isSuperAdmin: { type: Boolean, default: false }
+    imageUrl: { type: String, default: null }
   })
 
   const emit = defineEmits([
@@ -187,12 +172,6 @@
     const reader = new FileReader()
     reader.onload = () => emit('update:imagePreview', reader.result)
     reader.readAsDataURL(resized)
-  }
-
-  const onUrlChange = val => {
-    emit('update:imageFile', val ? null : props.imageFile)
-    emit('update:imagePreview', val || null)
-    emit('update:imageUrl', val || null)
   }
 
   const removeImage = () => {

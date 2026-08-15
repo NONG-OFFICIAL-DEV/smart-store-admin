@@ -166,6 +166,10 @@
     "email_changed": "Email changed successfully",
     "email_change_failed": "Failed to change email"
   },
+  "settings": {
+    "title": "Security",
+    "subtitle": "Manage the password, email, and two-factor authentication you use to sign in"
+  },
   "billing": {
     "title": "Billing",
     "subtitle": "View your subscription and payment history",
@@ -852,16 +856,16 @@
       "subtitleEdit": "Update branch details",
       "subtitleCreate": "Add a new branch to your network",
       "step": {
-        "tenant": "Tenant",
+        "business_type": "Business Type",
         "location": "Location",
         "review": "Review"
       },
       "section": {
-        "tenant_info": "Tenant information",
+        "business_type_info": "Business type information",
         "branch_details": "Branch details",
         "status_settings": "Status settings"
       },
-      "business_type_hint": "Business type is automatically assigned from the selected tenant.",
+      "business_type_hint": "Business type is automatically assigned from your tenant.",
       "phone_placeholder": "+855 ...",
       "email_placeholder": "branch{'@'}example.com",
       "address_line1_placeholder": "Street address",
@@ -923,9 +927,6 @@
       "parent_category": "Parent Category",
       "parent_placeholder": "None (top-level)",
       "leave_empty_top_level": "Leave empty for top-level",
-      "assign_to_tenants": "Assign to Tenants",
-      "select_tenants_placeholder": "Select tenants...",
-      "leave_empty_assigning": "Leave empty to create without assigning yet",
       "description_placeholder": "Brief description of this category...",
       "mdi_icon_name": "MDI icon name",
       "icon_placeholder": "e.g. mdi-food",
@@ -1021,7 +1022,6 @@
       "productName": "Product Name *",
       "type": "Type *",
       "category": "Category *",
-      "tenant": "Tenant *",
       "available": "Available",
       "availableHint": "Visible in menu",
       "featured": "Featured",
@@ -1054,7 +1054,6 @@
     },
     "image": {
       "upload": "Upload",
-      "pasteUrl": "Or paste URL",
       "dragHint": "Click or drag to upload",
       "formatHint": "JPG · PNG · WEBP · max 5MB",
       "tooLarge": "Image must be under 5MB",
@@ -1062,8 +1061,7 @@
       "formats": "JPG · PNG · WEBP"
     },
     "hint": {
-      "variantsInfo": "Variants & Modifier Groups can be managed from the product detail page after saving.",
-      "selectTenantForBusinessType": "Select a tenant to see its business type"
+      "variantsInfo": "Variants & Modifier Groups can be managed from the product detail page after saving."
     },
     "preview": {
       "productName": "Product Name",
@@ -1180,7 +1178,6 @@
       "email": "Email",
       "address": "Address",
       "notes": "Notes",
-      "tenant": "Tenant",
       "payment_terms": "Payment Terms",
       "payment_terms_placeholder": "e.g. Net 30, COD",
       "active_hint": "Available for orders"
@@ -1626,7 +1623,6 @@
       "pin": "POS PIN (4–6 digits)",
       "employee_code": "Employee Code",
       "allow_login": "Allow login",
-      "select_tenant": "Select Tenant",
       "first_name_required": "First Name *",
       "last_name_required": "Last Name *",
       "email_required": "Email *",
@@ -1699,10 +1695,6 @@
       "subtitleEdit": "Update shift definition",
       "subtitleCreate": "Define a reusable shift",
       "fields": {
-        "tenant": {
-          "label": "Tenant (Business)",
-          "hint": "This shift will be available to all branches under this tenant"
-        },
         "name": {
           "label": "Shift Name",
           "placeholder": "e.g. Morning, Ca Sang, Night"
@@ -2997,13 +2989,10 @@
       "create_menu": "Create Menu"
     },
     "form": {
-      "tenant": "Tenant",
-      "tenant_placeholder": "Select tenant",
       "name": "Menu Name",
       "name_placeholder": "e.g. Breakfast Menu, Drinks, Lunch Special"
     },
     "validation": {
-      "tenant_required": "Tenant is required",
       "name_required": "Menu name is required",
       "min_2_chars": "At least 2 characters",
       "time_before": "Must be before \"Available Until\" time",

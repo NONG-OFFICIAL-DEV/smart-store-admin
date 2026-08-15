@@ -47,24 +47,10 @@
             <!-- STEP 0: Tenant -->
             <v-window-item :value="0">
               <div class="step-content pa-5">
-                <div class="step-section-title mb-4">{{ $t('branches.dialog.section.tenant_info') }}</div>
+                <div class="step-section-title mb-4">{{ $t('branches.dialog.section.business_type_info') }}</div>
 
                 <v-row dense>
-                  <v-col cols="12" md="6" v-if="isSuperAdmin()">
-                    <v-select
-                      v-model="form.tenant_id"
-                      :items="tenants"
-                      item-title="name"
-                      item-value="id"
-                      :label="$t('products.field.tenant')"
-                      variant="outlined"
-                      rounded="lg"
-                      :rules="[rules.required]"
-                      prepend-inner-icon="mdi-domain"
-                    />
-                  </v-col>
-
-                  <v-col cols="12" md="6">
+                  <v-col cols="12">
                     <v-select
                       v-model="form.business_type_id"
                       :items="tenantStore.businessTypes"
@@ -263,19 +249,19 @@
                 </div>
 
                 <v-row dense>
-                  <!-- Tenant block -->
+                  <!-- Business type block -->
                   <v-col cols="12">
                     <div class="review-block mb-3">
                       <div
                         class="review-block-header d-flex align-center justify-space-between"
                       >
                         <div class="d-flex align-center gap-2">
-                          <v-icon icon="mdi-domain" size="16" color="primary" />
+                          <v-icon icon="mdi-shape-outline" size="16" color="primary" />
                           <span
                             class="text-caption font-weight-medium text-uppercase"
                             style="letter-spacing: 0.5px"
                           >
-                            {{ $t('branches.dialog.step.tenant') }}
+                            {{ $t('branches.dialog.step.business_type') }}
                           </span>
                         </div>
                         <v-btn
@@ -288,15 +274,7 @@
                         </v-btn>
                       </div>
                       <v-row dense class="mt-1">
-                        <v-col cols="6">
-                          <div class="review-field">
-                            <span class="review-label">{{ $t('branches.dialog.step.tenant') }}</span>
-                            <span class="review-value">
-                              {{ tenantName || '—' }}
-                            </span>
-                          </div>
-                        </v-col>
-                        <v-col cols="6">
+                        <v-col cols="12">
                           <div class="review-field">
                             <span class="review-label">{{ $t('menu.business_type') }}</span>
                             <span class="review-value">
@@ -521,10 +499,8 @@
   import { useI18n } from 'vue-i18n'
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAuthStore } from '@/stores/authStore'
-  import { usePermission } from '@/composables/usePermission'
   import AppDialog from '@/components/common/AppDialog.vue'
 
-  const { isSuperAdmin } = usePermission()
   const { t } = useI18n()
   const tenantStore = useTenantStore()
   const authStore = useAuthStore()
@@ -547,7 +523,7 @@
 
   // ─── Stepper ──────────────────────────────────────────────────────────────────
   const steps = computed(() => [
-    { label: t('branches.dialog.step.tenant') },
+    { label: t('branches.dialog.step.business_type') },
     { label: t('form.branch') },
     { label: t('branches.dialog.step.location') },
     { label: t('branches.dialog.step.review') }
@@ -558,11 +534,9 @@
   // ─── Form ─────────────────────────────────────────────────────────────────────
   const loading = ref(false)
   const formRef = ref(null)
-  const tenants = ref([])
 
   const defaultForm = () => ({
     id: null,
-    tenant_id: null,
     business_type_id: null,
     branch_type_id: null,
     name: '',
@@ -586,17 +560,13 @@
 
   // Fields that belong to each step (used for per-step validation)
   const stepFields = {
-    0: ['tenant_id'],
+    0: [],
     1: ['name', 'email'],
     2: ['address_line1', 'city'],
     3: []
   }
 
   // ─── Computed display values ───────────────────────────────────────────────────
-  const tenantName = computed(
-    () => tenants.value.find(t => t.id === form.tenant_id)?.name
-  )
-
   const businessTypeName = computed(
     () =>
       tenantStore.businessTypes?.find(b => b.id === form.business_type_id)?.name
@@ -612,31 +582,10 @@
       .join(', ')
   )
 
-  const handleTenantChange = async tenantId => {
-    if (!tenantId || !isSuperAdmin()) return
-
-    const tenant = tenants.value.find(t => t.id === tenantId) || form.tenant // fallback from API
-
-    form.business_type_id = tenant?.business_type_id ?? null
-
-    if (form.business_type_id) {
-      await tenantStore.fetchBranchTypeByBusinessType(form.business_type_id)
-    }
-  }
   // ─── Watch: populate form when editing ────────────────────────────────────────
-
-  watch(
-    () => props.modelValue,
-    async open => {
-      if (open && form.tenant_id) {
-        await handleTenantChange(form.tenant_id)
-      }
-    }
-  )
-
   watch(
     () => props.branch,
-    async val => {
+    val => {
       Object.assign(form, val ? { ...defaultForm(), ...val } : defaultForm())
 
       // ✅ FIX: fallback from tenant
@@ -645,40 +594,16 @@
       }
 
       currentStep.value = 0
-
-      // ✅ trigger loading
-      if (form.tenant_id) {
-        await handleTenantChange(form.tenant_id)
-      }
     },
     { immediate: true }
   )
 
-  // ─── Watch: auto-fill business type + branch types when tenant changes ─────────
-  watch(
-    () => form.tenant_id,
-    async tenantId => {
-      await handleTenantChange(tenantId)
-    }
-  )
-
   // ─── Load data ────────────────────────────────────────────────────────────────
-  // /v1/tenants and /v1/business-types are superadmin-only — tenant-logged-in
-  // users would get Forbidden here and the rest of the dialog would never load.
+  // Business type is fixed by the user's own tenant (same for every branch of
+  // that tenant, create or edit alike), so pre-fill it and load the branch
+  // types available for it. businessTypes is still fetched (read-only) so the
+  // disabled select can resolve the id to its display name.
   onMounted(async () => {
-    if (isSuperAdmin()) {
-      await tenantStore.fetchTenants()
-      await tenantStore.fetchBusinessTypes()
-      tenants.value = tenantStore.tenants
-      return
-    }
-
-    // Tenant owner/staff — business type is fixed by their own tenant (same
-    // for create and edit, since they only ever touch their own tenant's
-    // branches), so pre-fill it and load the branch types available for it
-    // instead of relying on the superadmin-only tenant-select flow below.
-    // businessTypes is still fetched (read-only for non-admins) so the
-    // disabled select can resolve the id to its display name.
     await tenantStore.fetchBusinessTypes()
     if (authStore.business_type_id) {
       form.business_type_id = authStore.business_type_id
@@ -694,17 +619,6 @@
     // Manually check each required field for the current step
     for (const field of fields) {
       const value = form[field]
-      // tenant_id is only shown/editable for superadmins — tenant owners and
-      // staff never see that field, so it can never be filled in for them.
-      if (field === 'tenant_id') {
-        if (!isSuperAdmin()) continue
-        if (!value) {
-          // Trigger full validate so error messages show
-          await formRef.value?.validate()
-          return false
-        }
-        continue
-      }
       if (field === 'name' && !value) {
         await formRef.value?.validate()
         return false

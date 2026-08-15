@@ -14,24 +14,6 @@
   >
         <v-form ref="formRef">
           <v-row dense>
-            <!-- Tenant -->
-            <v-col cols="12">
-              <v-select
-                v-if="isSuperAdmin()"
-                v-model="form.tenant_id"
-                :items="tenants"
-                item-value="id"
-                item-title="name"
-                :label="$t('shifts.form.fields.tenant.label')"
-                variant="outlined"
-                rounded="lg"
-                :disabled="isEdit"
-                prepend-inner-icon="mdi-domain"
-                :hint="$t('shifts.form.fields.tenant.hint')"
-                persistent-hint
-              />
-            </v-col>
-
             <!-- Name -->
             <v-col cols="12" sm="7">
               <v-text-field
@@ -162,13 +144,9 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, onMounted } from 'vue'
-  import { storeToRefs } from 'pinia'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useTenantStore } from '@/stores/tenantStore'
-  import { usePermission } from '@/composables/usePermission'
   import AppDialog from '@/components/common/AppDialog.vue'
-  const { isSuperAdmin } = usePermission()
   const { t } = useI18n()
 
   const props = defineProps({
@@ -177,9 +155,6 @@
     loading: Boolean
   })
   const emit = defineEmits(['update:modelValue', 'save'])
-
-  const tenantStore = useTenantStore()
-  const { tenants } = storeToRefs(tenantStore)
 
   const formRef = ref(null)
   const startTimeRef = ref(null)
@@ -200,7 +175,6 @@
   const isEdit = computed(() => !!props.item?.id)
 
   const defaultForm = () => ({
-    tenant_id: null,
     name: '',
     shift_type: null,
     start_time: null,
@@ -260,10 +234,4 @@
     Object.assign(form, defaultForm())
     model.value = false
   }
-
-  onMounted(() => {
-    if (isSuperAdmin()) {
-      tenantStore.fetchTenants()
-    }
-  })
 </script>

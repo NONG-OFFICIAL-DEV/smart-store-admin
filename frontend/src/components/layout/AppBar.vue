@@ -66,7 +66,7 @@
             </v-btn>
           </template>
 
-          <v-card rounded="lg" elevation="4">
+          <v-card rounded="lg" elevation="1">
             <v-card-text class="pa-0">
               <!-- User info -->
               <div class="px-4 pt-4 pb-3">
@@ -249,6 +249,11 @@
       action: () => goToProfile()
     },
     {
+      title: 'settings.title',
+      icon: 'mdi-shield-lock-outline',
+      action: () => goToSettings()
+    },
+    {
       title: 'preferences.title',
       icon: 'mdi-tune-variant',
       action: () => openPreferences()
@@ -321,6 +326,11 @@
   const goToProfile = () => {
     userMenu.value = false
     router.push({ name: 'profile' })
+  }
+
+  const goToSettings = () => {
+    userMenu.value = false
+    router.push({ name: 'settings-security' })
   }
 
   const goToBilling = () => {

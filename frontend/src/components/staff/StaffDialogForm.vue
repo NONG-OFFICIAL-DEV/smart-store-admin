@@ -205,34 +205,6 @@
               <template #[`item.1`]>
                 <v-form ref="formStep1">
                   <div class="form-section">
-                    <template v-if="isSuperAdmin()">
-                      <div class="form-section-label">
-                        <v-icon icon="mdi-domain" size="13" class="mr-1" />
-                        {{ $t('staff.field.select_tenant') }}
-                      </div>
-                      <v-select
-                        v-model="form.tenant_id"
-                        :items="tenants"
-                        item-value="id"
-                        item-title="name"
-                        :label="$t('products.field.tenant')"
-                        variant="outlined"
-                        rounded="lg"
-                        :rules="[r.required]"
-                        prepend-inner-icon="mdi-domain"
-                        class="mb-4"
-                        @update:model-value="onTenantChange"
-                      >
-                        <template #item="{ props: p, item }">
-                          <v-list-item
-                            v-bind="p"
-                            :subtitle="item.raw?.owner?.email || ''"
-                          />
-                        </template>
-                      </v-select>
-                      <v-divider class="mb-4" />
-                    </template>
-
                     <div class="form-section-label">
                       <v-icon
                         icon="mdi-account-outline"
@@ -597,9 +569,7 @@
   import { useAuthStore } from '@/stores/authStore'
   import { useRoleStore } from '@/stores/roleStore'
   import { useBranchStore } from '@/stores/branchStore'
-  import { useTenantStore } from '@/stores/tenantStore'
   import { useStaffStore } from '@/stores/staffStore'
-  import { usePermission } from '@/composables/usePermission'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   import { usePasswordPolicy } from '@/composables/usePasswordPolicy'
@@ -619,15 +589,12 @@
   const authStore = useAuthStore()
   const roleStore = useRoleStore()
   const branchStore = useBranchStore()
-  const tenantStore = useTenantStore()
   const staffStore = useStaffStore()
-  const { isSuperAdmin } = usePermission()
   const { formatDate, formatLocalDate } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
   const { generate, rules: passwordRules } = usePasswordPolicy()
   const { confirm, notif } = useAppUtils()
 
-  const { tenants } = storeToRefs(tenantStore)
   const { branches } = storeToRefs(branchStore)
   const { assignableRoles } = storeToRefs(roleStore)
 
@@ -655,22 +622,10 @@
     { title: t('staff.step.review'), value: 3 }
   ]
 
-  const filteredBranches = computed(() => {
-    const list = branches.value?.data ?? branches.value ?? []
-
-    if (isSuperAdmin() && form.tenant_id) {
-      return list.filter(b => b.tenant_id === form.tenant_id)
-    }
-
-    return list
-  })
-
-  const onTenantChange = () => {
-    form.branch_id = null
-  }
+  const filteredBranches = computed(() => branches.value?.data ?? branches.value ?? [])
 
   const defaultForm = () => ({
-    tenant_id: isSuperAdmin() ? null : (authStore.tenant_id ?? null),
+    tenant_id: authStore.tenant_id ?? null,
     first_name: '',
     last_name: '',
     email: '',
@@ -801,8 +756,6 @@
   }
 
   onMounted(() => {
-    if (isSuperAdmin()) tenantStore.fetchTenants()
-
     branchStore.fetchBranches()
     roleStore.fetchRoles()
   })

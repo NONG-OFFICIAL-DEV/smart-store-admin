@@ -77,6 +77,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/settings-security',
+        name: 'settings-security',
+        component: () => import('@/views/settings/Settings.vue'),
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+      },
+      {
         path: '/tenants-billing',
         name: 'tenant-billing',
         component: () => import('@/views/tenants/TenantBilling.vue'),
