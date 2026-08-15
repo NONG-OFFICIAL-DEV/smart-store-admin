@@ -2750,18 +2750,18 @@
     "title": "Telegram Bot",
     "subtitle": "កំណត់ Telegram Bot របស់ប្រព័ន្ធសម្រាប់ការផ្ញើការជូនដំណឹង។",
     "bot_username": "ឈ្មោះ Bot",
-    "bot_username_hint": "@handle របស់ bot ដោយមិនរួមបញ្ចូល @ (ឧ. my_store_bot)។",
+    "bot_username_hint": "{'@'}handle របស់ bot ដោយមិនរួមបញ្ចូល {'@'} (ឧ. my_store_bot)។",
     "bot_token": "Token របស់ Bot",
-    "token_hint": "ទទួល Token នេះពី @BotFather នៅលើ Telegram។",
+    "token_hint": "ទទួល Token នេះពី {'@'}BotFather នៅលើ Telegram។",
     "token_set_hint": "Token មួយត្រូវបានកំណត់រួចហើយ។ ទុកចន្លោះទទេដើម្បីរក្សាវាដូចដើម។",
     "test_connection": "សាកល្បងការភ្ជាប់",
     "test_success": "ភ្ជាប់បានជោគជ័យក្នុងនាម {'@'}{username}។",
     "test_failed": "មិនអាចភ្ជាប់ជាមួយ Token នេះបានទេ។",
     "how_to_title": "របៀបទទួល Token របស់ Bot",
-    "how_to_step1": "បើក Telegram ហើយស្វែងរក @BotFather។",
+    "how_to_step1": "បើក Telegram ហើយស្វែងរក {'@'}BotFather។",
     "how_to_step2": "ផ្ញើ /newbot ហើយធ្វើតាមការណែនាំដើម្បីដាក់ឈ្មោះ bot របស់អ្នក។",
     "how_to_step3": "BotFather នឹងឆ្លើយតបជាមួយ Token — បិទភ្ជាប់វានៅខាងក្រោម។",
-    "how_to_step4": "បញ្ចូល @username របស់ bot ខាងលើ រួចរក្សាទុក ហើយសាកល្បងការភ្ជាប់។"
+    "how_to_step4": "បញ្ចូល {'@'}username របស់ bot ខាងលើ រួចរក្សាទុក ហើយសាកល្បងការភ្ជាប់។"
   },
   "audit_log": {
     "title": "កំណត់ហេតុត្រួតពិនិត្យ",

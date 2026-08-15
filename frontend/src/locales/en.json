@@ -2770,18 +2770,18 @@
     "title": "Telegram Bot",
     "subtitle": "Configure the platform's Telegram bot used for notification delivery.",
     "bot_username": "Bot Username",
-    "bot_username_hint": "The bot's @handle, without the @ (e.g. my_store_bot).",
+    "bot_username_hint": "The bot's {'@'}handle, without the {'@'} (e.g. my_store_bot).",
     "bot_token": "Bot Token",
-    "token_hint": "Get this from @BotFather on Telegram.",
+    "token_hint": "Get this from {'@'}BotFather on Telegram.",
     "token_set_hint": "A token is already set. Leave blank to keep it.",
     "test_connection": "Test Connection",
     "test_success": "Connected successfully as {'@'}{username}.",
     "test_failed": "Could not connect with this token.",
     "how_to_title": "How to get a bot token",
-    "how_to_step1": "Open Telegram and search for @BotFather.",
+    "how_to_step1": "Open Telegram and search for {'@'}BotFather.",
     "how_to_step2": "Send /newbot and follow the prompts to name your bot.",
     "how_to_step3": "BotFather replies with a token — paste it below.",
-    "how_to_step4": "Enter the bot's @username above, then save and test the connection."
+    "how_to_step4": "Enter the bot's {'@'}username above, then save and test the connection."
   },
   "audit_log": {
     "title": "Audit Logs",
