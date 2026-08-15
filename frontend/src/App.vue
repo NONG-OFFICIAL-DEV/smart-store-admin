@@ -7,7 +7,6 @@
     <CoreNotificationAlert />
 
     <router-view />
-    <Loading />
   </v-app>
 </template>
 
@@ -16,7 +15,6 @@
   // import ConfirmDialog from '@nong-official-dev/core/plugins/confirm/ConfirmDialog.vue'
   // import NotificationAlert from '@nong-official-dev/core/plugins/notif/NotificationAlert.vue'
   // import Notif from '@/components/global/Notification.vue'
-  import Loading from '@/components/global/Loading.vue'
   import AppConfirmDialog from '@/components/common/AppConfirmDialog.vue'
   // import TokenExpired from '@/components/common/TokenExpired.vue'
 

@@ -20,9 +20,7 @@ export default {
   },
 
   me() {
-    return http.get('/me', {
-      meta: { loader: 'skeleton' }
-    })
+    return http.get('/me')
   },
 
   /** PIN login — branch_id is optional */

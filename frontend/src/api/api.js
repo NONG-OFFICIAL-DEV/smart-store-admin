@@ -1,4 +1,3 @@
-import { useLoadingStore } from '@/stores/loading'
 import axios from 'axios'
 import router from '@/router'
 
@@ -10,22 +9,13 @@ const api = axios.create({
   }
 })
 
-// Get store instance
-const loadingStore = useLoadingStore()
 // Request Interceptor
 api.interceptors.request.use(async config => {
-  const loaderType = config.meta?.loader || 'overlay'
-  try {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    loadingStore.start(loaderType)
-    return config
-  } catch (error) {
-    useLoadingStore().stop()
-    return Promise.reject(error)
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
+  return config
 })
 
 // Requests to these endpoints must never trigger a silent-refresh attempt —
@@ -45,13 +35,9 @@ async function logoutToLogin() {
 
 // Response Interceptor
 api.interceptors.response.use(
-  response => {
-    useLoadingStore().stop()
-    return response
-  },
+  response => response,
 
   async error => {
-    useLoadingStore().stop()
     const { config, response } = error
 
     if (response?.status === 401 && config && !config._retriedAfterRefresh && !isRefreshExempt(config)) {

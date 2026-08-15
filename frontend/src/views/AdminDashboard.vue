@@ -506,8 +506,6 @@
   import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAdminDashboardStore } from '@/stores/adminDashboardStore'
-  import { useLoadingStore } from '@/stores/loading'
-  const loadingStore = useLoadingStore()
   const { t } = useI18n()
 
   import {
@@ -554,7 +552,7 @@
   })
 
   // ── Derived data ───────────────────────────────────────────────────────────────
-  const isLoading = computed(() => loadingStore.isLoading ?? false)
+  const isLoading = computed(() => store.loading.stats || store.loading.chart)
   const kpis = computed(() => store.stats?.kpis ?? [])
   const topTenants = computed(() => store.stats?.top_tenants ?? [])
   const recentTenants = computed(() => store.stats?.recent_tenants ?? [])

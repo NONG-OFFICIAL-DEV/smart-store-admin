@@ -12,7 +12,7 @@
         />
       </div>
     </div>
-    <div v-if="loadingStore.isLoading">
+    <div v-if="loading">
       <v-col cols="12" md="12">
         <v-skeleton-loader
           class="mx-auto"
@@ -319,11 +319,9 @@
 </template>
 
 <script setup>
-  import { computed, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useRouter } from 'vue-router'
   import { useBranchStore } from '@/stores/branchStore'
-  import { useLoadingStore } from '@/stores/loading'
-  const loadingStore = useLoadingStore()
 
   const props = defineProps({
     branchId: { type: [String, Number], required: true }
@@ -333,6 +331,7 @@
 
   const router = useRouter()
   const store = useBranchStore()
+  const loading = ref(false)
 
   const resolvedBuCode = computed(() => {
     return store.branch.tenant.business_type.code == 'RESTAURANT'
@@ -347,8 +346,14 @@
   // Re-fetch whenever the drawer opens with a different branch
   watch(
     () => props.branchId,
-    id => {
-      if (id) store.fetchBranchById(id)
+    async id => {
+      if (!id) return
+      loading.value = true
+      try {
+        await store.fetchBranchById(id)
+      } finally {
+        loading.value = false
+      }
     },
     { immediate: true }
   )
