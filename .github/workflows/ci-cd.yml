@@ -148,10 +148,10 @@ jobs:
             # restart needed. Migrations/cache DO need this explicit step: they
             # don't run just because a new image was pulled, and skipping this
             # means every new migration silently never reaches production.
-            if docker compose ps smart_store_backend | grep -q "Up"; then
+            if docker compose ps backend_service | grep -q "Up"; then
               echo ">>> Backend post-deploy"
-              docker compose exec -T smart_store_backend php artisan migrate --force
-              docker compose exec -T smart_store_backend php artisan optimize:clear
+              docker compose exec -T backend_service php artisan migrate --force
+              docker compose exec -T backend_service php artisan optimize:clear
             else
               echo ">>> Backend container not running — checking logs"
               docker logs smart_store_backend --tail=30
