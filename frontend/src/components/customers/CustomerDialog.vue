@@ -102,23 +102,23 @@ const submit = async () => {
         </p>
         <v-row dense>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="form.first_name" :label="$t('form.first_name') + ' *'" variant="outlined" density="comfortable" rounded="lg" :rules="[rules.required]" maxlength="80" />
+            <v-text-field v-model="form.first_name" :label="$t('form.first_name') + ' *'" variant="outlined" rounded="lg" :rules="[rules.required]" maxlength="80" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="form.last_name"  :label="$t('form.last_name')"  variant="outlined" density="comfortable" rounded="lg" maxlength="80" />
+            <v-text-field v-model="form.last_name"  :label="$t('form.last_name')"  variant="outlined" rounded="lg" maxlength="80" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="form.email" :label="$t('form.email')" type="email" variant="outlined" density="comfortable" rounded="lg" :rules="[rules.email]" maxlength="255" />
+            <v-text-field v-model="form.email" :label="$t('form.email')" type="email" variant="outlined" rounded="lg" :rules="[rules.email]" maxlength="255" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="form.phone" :label="$t('form.phone')" variant="outlined" density="comfortable" rounded="lg" :rules="[rules.phone]" maxlength="30" />
+            <v-text-field v-model="form.phone" :label="$t('form.phone')" variant="outlined" rounded="lg" :rules="[rules.phone]" maxlength="30" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-date-input v-model="form.date_of_birth" :label="$t('customers.field.date_of_birth')" density="comfortable" rounded="lg" />
+            <v-date-input v-model="form.date_of_birth" :label="$t('customers.field.date_of_birth')" rounded="lg" />
           </v-col>
           <v-col cols="12" sm="6">
             <v-select v-model="form.gender" :items="genderOptions" item-title="title" item-value="value"
-              :label="$t('customers.field.gender')" variant="outlined" density="comfortable" rounded="lg" clearable />
+              :label="$t('customers.field.gender')" variant="outlined" rounded="lg" clearable />
           </v-col>
         </v-row>
 
@@ -129,14 +129,14 @@ const submit = async () => {
         <v-row dense>
           <v-col cols="12" sm="6">
             <v-select v-model="form.source" :items="sourceOptions" item-title="title" item-value="value"
-              :label="$t('customers.field.source')" variant="outlined" density="comfortable" rounded="lg" clearable />
+              :label="$t('customers.field.source')" variant="outlined" rounded="lg" clearable />
           </v-col>
           <v-col cols="12" sm="6">
             <v-select v-model="form.preferred_language" :items="languageOptions" item-title="title" item-value="value"
-              :label="$t('customers.field.preferred_language')" variant="outlined" density="comfortable" rounded="lg" />
+              :label="$t('customers.field.preferred_language')" variant="outlined" rounded="lg" />
           </v-col>
           <v-col cols="12">
-            <v-textarea v-model="form.notes" :label="$t('form.notes')" variant="outlined" density="comfortable" rounded="lg" rows="2" auto-grow />
+            <v-textarea v-model="form.notes" :label="$t('form.notes')" variant="outlined" rounded="lg" rows="2" auto-grow />
           </v-col>
         </v-row>
 

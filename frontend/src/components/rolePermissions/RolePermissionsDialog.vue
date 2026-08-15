@@ -29,7 +29,6 @@
           :placeholder="$t('roles.search_permissions_placeholder')"
           prepend-inner-icon="mdi-magnify"
           variant="outlined"
-          density="compact"
           hide-details
           clearable
           rounded="lg"

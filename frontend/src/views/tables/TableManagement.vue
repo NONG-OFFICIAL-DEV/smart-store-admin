@@ -86,7 +86,6 @@
           item-title="name"
           :label="$t('tables.floor_plan')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           hide-details
           max-width="200"

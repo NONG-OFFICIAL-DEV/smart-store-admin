@@ -29,7 +29,6 @@
           ]"
           :label="$t('form.type')"
           clearable
-          density="compact"
         />
       </v-col>
     </v-row>

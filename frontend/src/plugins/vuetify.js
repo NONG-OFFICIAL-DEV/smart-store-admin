@@ -18,6 +18,7 @@ const DENSITY_FIELDS = [
   'VSelect',
   'VTextarea',
   'VAutocomplete',
+  'VCombobox',
   'VDateInput',
   'VDataTable',
   'VDataTableServer',
@@ -53,6 +54,11 @@ const vuetify = createVuetify({
       rows: 3
     },
     VAutocomplete: {
+      variant: 'outlined',
+      density: 'comfortable',
+      color: 'primary'
+    },
+    VCombobox: {
       variant: 'outlined',
       density: 'comfortable',
       color: 'primary'

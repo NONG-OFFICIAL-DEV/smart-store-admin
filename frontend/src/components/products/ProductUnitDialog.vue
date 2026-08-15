@@ -26,7 +26,6 @@
                 :label="t('unit.unit_name') + ' *'"
                 placeholder="can, pack, box, kg..."
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
                 clearable
@@ -80,7 +79,6 @@
                 :label="t('unit.display_label')"
                 placeholder="Can, 6-Pack, Case of 24"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :hint="t('unit.shown_to_cashier_hint')"
               />
@@ -94,7 +92,6 @@
                 :label="t('unit.qty_per_base') + ' *'"
                 min="0.001"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required, r.positive]"
                 :hint="t('unit.qty_per_base_hint')"
@@ -108,7 +105,6 @@
                 v-model="form.barcode"
                 :label="t('unit.barcode')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-barcode"
                 :hint="t('unit.barcode_hint')"
@@ -124,7 +120,6 @@
                 :label="t('unit.retail_price') + ' *'"
                 min="0"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
               >
@@ -144,7 +139,6 @@
                 :label="t('unit.wholesale_price')"
                 min="0"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 clearable
               >
@@ -164,7 +158,6 @@
                 :label="t('unit.cost_price')"
                 min="0"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :hint="t('unit.cost_price_hint')"
                 clearable

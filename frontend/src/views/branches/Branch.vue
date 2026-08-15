@@ -58,7 +58,6 @@
           item-value="value"
           :placeholder="t('branches.all_status')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           clearable
         />

@@ -28,7 +28,7 @@
     "reports": "Reports",
     "settings": "Settings",
     "users": "Users",
-    "roles": "Roles & Permissions",
+    "roles": "Roles",
     "activity_log": "Activity Log",
     "branches": "Branches",
     "staff": "Staff",
@@ -2080,7 +2080,6 @@
     }
   },
   "dashboard": {
-    "live_overview": "Live Overview",
     "good_morning": "Good morning",
     "good_afternoon": "Good afternoon",
     "good_evening": "Good evening",
@@ -2147,7 +2146,10 @@
       "promotion": "Promotion",
       "usage": "Usage",
       "expires": "Expires",
-      "status": "Status"
+      "status": "Status",
+      "type": "Type",
+      "discount": "Discount",
+      "duration": "Duration"
     },
     "empty": "No promotions found",
     "empty_coupon": "No coupons found",

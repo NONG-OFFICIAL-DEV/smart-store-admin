@@ -298,7 +298,6 @@
               :label="t('promotions.form.name')"
               placeholder="e.g. Weekend Special 20% Off"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               autofocus
               :rules="[v => !!v?.trim() || t('promotions.form.required')]"
@@ -365,7 +364,6 @@
               item-title="title"
               item-value="value"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               hide-details
             >
@@ -394,7 +392,6 @@
               type="number"
               min="0"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :rules="[
                 v => v > 0 || t('promotions.form.value_greater_than_zero')
@@ -411,7 +408,6 @@
               type="number"
               min="0"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :hint="t('promotions.form.max_discount_cap_hint')"
               persistent-hint
@@ -425,7 +421,6 @@
               type="number"
               min="0"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :hint="t('promotions.form.min_order_amount_hint')"
               persistent-hint
@@ -439,7 +434,6 @@
               type="number"
               min="0"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :hint="t('promotions.form.unlimited_hint')"
               persistent-hint
@@ -453,7 +447,6 @@
               type="number"
               min="0"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :hint="t('promotions.form.unlimited_hint')"
               persistent-hint
@@ -470,7 +463,6 @@
               v-model="form.start_at"
               :label="t('promotions.form.start_date')"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               input-format="DD-MM-YYYY"
               prepend-inner-icon="mdi-calendar-start-outline"
@@ -484,7 +476,6 @@
               v-model="form.end_at"
               :label="t('promotions.form.end_date')"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               input-format="DD-MM-YYYY"
               prepend-inner-icon="mdi-calendar-end-outline"

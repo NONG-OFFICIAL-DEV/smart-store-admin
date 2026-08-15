@@ -20,7 +20,6 @@
           :model-value="password"
           readonly
           variant="outlined"
-          density="comfortable"
           rounded="lg"
           :type="visible ? 'text' : 'password'"
           prepend-inner-icon="mdi-lock-outline"

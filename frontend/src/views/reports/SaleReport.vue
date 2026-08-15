@@ -564,7 +564,6 @@
                       'Search order #, customer…'
                     "
                     variant="outlined"
-                    density="compact"
                     rounded="lg"
                     hide-details
                     clearable
@@ -581,7 +580,6 @@
                     item-value="value"
                     :placeholder="t('order_report.filter.type') || 'Order Type'"
                     variant="outlined"
-                    density="compact"
                     rounded="lg"
                     hide-details
                     clearable
@@ -596,7 +594,6 @@
                     item-value="value"
                     :placeholder="t('order_report.filter.status') || 'Status'"
                     variant="outlined"
-                    density="compact"
                     rounded="lg"
                     hide-details
                     clearable

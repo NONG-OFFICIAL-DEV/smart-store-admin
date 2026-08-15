@@ -10,7 +10,6 @@
             item-title="name"
             item-value="id"
             variant="outlined"
-            density="compact"
             rounded="lg"
             hide-details
             @update:model-value="onSelect"
@@ -90,7 +89,6 @@
               prepend-icon=""
               prepend-inner-icon="mdi-calendar"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               :style="{ width: $vuetify.display.xs ? '100%' : '160px' }"
@@ -102,7 +100,6 @@
               prepend-icon=""
               prepend-inner-icon="mdi-calendar"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               :style="{ width: $vuetify.display.xs ? '100%' : '160px' }"

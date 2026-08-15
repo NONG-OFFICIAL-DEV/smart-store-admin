@@ -18,7 +18,6 @@
         v-model="form.name"
         :placeholder="$t('categories.form.name_placeholder')"
         variant="outlined"
-        density="comfortable"
         :rules="[v => !!v || $t('validation.required')]"
         required
       />

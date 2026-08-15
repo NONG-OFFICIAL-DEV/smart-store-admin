@@ -163,7 +163,6 @@
           item-value="id"
           :placeholder="$t('staff.filter.all_branches')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           clearable
         />
@@ -178,7 +177,6 @@
           item-value="id"
           :placeholder="$t('staff.filter.all_roles')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           clearable
         />

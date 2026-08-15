@@ -89,7 +89,6 @@ const submit = async () => {
                 :rules="[rules.required, rules.maxLen(50)]"
                 :label="$t('customers.address_dialog.label')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :hint="$t('customers.address_dialog.label_hint')"
                 persistent-hint
@@ -102,7 +101,6 @@ const submit = async () => {
                 :rules="[rules.required, rules.maxLen(255)]"
                 :label="$t('customers.address_dialog.address_line1')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>
@@ -113,7 +111,6 @@ const submit = async () => {
                 :rules="[rules.maxLen(255)]"
                 :label="$t('customers.address_dialog.address_line2')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>
@@ -124,7 +121,6 @@ const submit = async () => {
                 :rules="[rules.required, rules.maxLen(100)]"
                 :label="$t('customers.address_dialog.city')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>
@@ -136,7 +132,6 @@ const submit = async () => {
                 :label="$t('customers.address_dialog.latitude')"
                 type="number"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>
@@ -148,7 +143,6 @@ const submit = async () => {
                 :label="$t('customers.address_dialog.longitude')"
                 type="number"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>

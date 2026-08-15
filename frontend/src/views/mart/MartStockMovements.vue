@@ -73,7 +73,6 @@
               item-value="id"
               :placeholder="$t('stock_movements.filter.product_placeholder')"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               clearable
@@ -90,7 +89,6 @@
               item-value="value"
               :placeholder="$t('form.type')"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               clearable
@@ -103,7 +101,6 @@
             <v-date-input
               v-model="filterFrom"
               :label="$t('stock_movements.filter.from')"
-              density="compact"
               rounded="lg"
               hide-details
               @update:model-value="load"
@@ -115,7 +112,6 @@
             <v-date-input
               v-model="filterTo"
               :label="$t('stock_movements.filter.to')"
-              density="compact"
               rounded="lg"
               hide-details
               @update:model-value="load"

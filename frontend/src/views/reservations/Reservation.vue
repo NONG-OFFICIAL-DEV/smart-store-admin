@@ -65,7 +65,6 @@
                 <v-date-input
                   v-model="filterDate"
                   :label="$t('form.date')"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable
@@ -79,7 +78,6 @@
                   item-value="value"
                   :label="$t('form.status')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable
@@ -93,7 +91,6 @@
                   item-value="id"
                   :label="$t('reservations.field_table')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable
@@ -122,7 +119,6 @@
                   prepend-inner-icon="mdi-magnify"
                   :placeholder="$t('reservations.search_placeholder')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable

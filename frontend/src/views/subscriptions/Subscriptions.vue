@@ -14,7 +14,6 @@
           :items="statusOptions"
           :label="$t('form.status')"
           clearable
-          density="compact"
         />
       </v-col>
     </v-row>

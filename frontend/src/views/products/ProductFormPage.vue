@@ -41,7 +41,6 @@
                     item-value="id"
                     :label="t('products.field.tenant')"
                     variant="outlined"
-                    density="compact"
                     rounded="lg"
                     :rules="[r.required]"
                     prepend-inner-icon="mdi-domain"
@@ -169,7 +168,6 @@
                       v-model="form.name"
                       :label="t('products.field.productName')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       :rules="[r.required, r.maxLen(200)]"
                       prepend-inner-icon="mdi-package-variant"
@@ -185,7 +183,6 @@
                       item-value="id"
                       :label="t('products.field.category')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       :rules="[r.required]"
                       prepend-inner-icon="mdi-tag-outline"
@@ -196,7 +193,6 @@
                       v-model="form.description"
                       :label="t('products.field.description')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       rows="3"
                       hide-details
@@ -221,7 +217,6 @@
                       v-model="form.sku"
                       :label="t('products.field.sku')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details="auto"
                       :rules="[r.maxLen(60)]"
@@ -234,7 +229,6 @@
                       v-model="form.barcode"
                       :label="t('products.field.barcode')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details="auto"
                       :rules="[r.maxLen(60)]"
@@ -248,7 +242,6 @@
                       :label="t('products.field.sortOrder')"
                       type="number"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details="auto"
                       :rules="[r.nonNegativeInt]"
@@ -282,7 +275,6 @@
                         :label="t('products.field.prepTime')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         hide-details="auto"
                         :rules="[r.nonNegativeInt]"
@@ -298,7 +290,6 @@
                         :label="t('products.field.calories')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         hide-details="auto"
                         :rules="[r.nonNegativeInt]"
@@ -316,7 +307,6 @@
                           :items="cupSizeOptions"
                           :label="t('products.field.availableSizes')"
                           variant="outlined"
-                          density="compact"
                           rounded="lg"
                           hide-details
                           multiple
@@ -331,7 +321,6 @@
                           :items="temperatureOptions"
                           :label="t('products.field.temperatureOptionsLabel')"
                           variant="outlined"
-                          density="compact"
                           rounded="lg"
                           hide-details
                           multiple
@@ -349,7 +338,6 @@
                           :label="t('products.field.shelfLife')"
                           type="number"
                           variant="outlined"
-                          density="compact"
                           rounded="lg"
                           hide-details="auto"
                           :rules="[r.nonNegativeInt]"
@@ -399,7 +387,6 @@
                         :label="t('products.field.basePrice')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         :rules="[r.required, r.nonNegative]"
                         min="0"
@@ -420,7 +407,6 @@
                         :label="t('products.field.costPrice')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         :rules="[r.nonNegative]"
                         prepend-inner-icon="mdi-cash-minus"
@@ -484,7 +470,6 @@
                     >
                       <v-text-field
                         v-model="variant.name"
-                        density="compact"
                         variant="outlined"
                         rounded="lg"
                         hide-details
@@ -493,7 +478,6 @@
                       <v-text-field
                         v-model.number="variant.price_adjustment"
                         type="number"
-                        density="compact"
                         variant="outlined"
                         rounded="lg"
                         hide-details
@@ -557,7 +541,6 @@
                       <v-text-field
                         v-model="variant.name"
                         :placeholder="$t('products.variant.freeformNamePlaceholder')"
-                        density="compact"
                         variant="outlined"
                         rounded="lg"
                         hide-details
@@ -566,7 +549,6 @@
                       <v-text-field
                         v-model.number="variant.price_adjustment"
                         type="number"
-                        density="compact"
                         variant="outlined"
                         rounded="lg"
                         hide-details
@@ -641,7 +623,6 @@
                         :label="t('products.field.stockQuantity')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         hide-details="auto"
                         :rules="[r.nonNegativeInt]"
@@ -656,7 +637,6 @@
                         :label="t('products.field.lowStockAlert')"
                         type="number"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         hide-details="auto"
                         :rules="[r.nonNegativeInt]"
@@ -681,7 +661,6 @@
                         v-model="form.expiry_date"
                         :label="t('products.field.expiryDate')"
                         variant="outlined"
-                        density="compact"
                         rounded="lg"
                         hide-details
                         prepend-inner-icon="mdi-calendar-end-outline"
@@ -696,7 +675,6 @@
                           v-model="form.supplier_code"
                           :label="t('products.field.supplierCode')"
                           variant="outlined"
-                          density="compact"
                           rounded="lg"
                           hide-details="auto"
                           prepend-inner-icon="mdi-truck-delivery-outline"
@@ -779,7 +757,6 @@
                           :label="t('unit.unit_name') + ' *'"
                           :placeholder="t('unit.unit_name_placeholder')"
                           variant="outlined"
-                          density="compact"
                           rounded="lg"
                           :rules="[r.required]"
                           clearable
@@ -835,7 +812,6 @@
                           v-model.number="unit.qty_per_base"
                           :label="$t('unit.qty_per_base')"
                           type="number"
-                          density="compact"
                           variant="outlined"
                           rounded="lg"
                           hide-details="auto"
@@ -857,7 +833,6 @@
                         <v-text-field
                           v-model="unit.barcode"
                           :label="$t('unit.barcode')"
-                          density="compact"
                           variant="outlined"
                           rounded="lg"
                           hide-details
@@ -870,7 +845,6 @@
                           v-model.number="unit.retail_price"
                           :label="$t('unit.retail_price')"
                           type="number"
-                          density="compact"
                           variant="outlined"
                           rounded="lg"
                           hide-details="auto"
@@ -890,7 +864,6 @@
                           v-model.number="unit.wholesale_price"
                           :label="$t('unit.wholesale_price')"
                           type="number"
-                          density="compact"
                           variant="outlined"
                           rounded="lg"
                           hide-details="auto"
@@ -906,7 +879,6 @@
                           v-model.number="unit.cost_price"
                           :label="$t('unit.cost_price')"
                           type="number"
-                          density="compact"
                           variant="outlined"
                           rounded="lg"
                           :hint="unitMarginLabel(unit)"

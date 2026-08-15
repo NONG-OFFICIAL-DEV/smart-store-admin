@@ -59,7 +59,6 @@
                 item-value="id"
                 :placeholder="t('stock.adjust.branch_placeholder')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 hide-details="auto"
                 :rules="[r.required]"
@@ -81,7 +80,6 @@
                 item-value="id"
                 :placeholder="t('stock.adjust.product_placeholder')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 hide-details="auto"
                 :readonly="!!presetProduct"
@@ -105,7 +103,6 @@
                 item-value="id"
                 :placeholder="t('stock.adjust.unit_placeholder')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 hide-details="auto"
                 clearable
@@ -131,7 +128,6 @@
                 min="0.001"
                 :placeholder="form.movement_type === 'count' ? '0' : '1'"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 hide-details="auto"
                 :rules="[r.required, r.positive]"
@@ -169,7 +165,6 @@
                 v-model="form.notes"
                 :placeholder="t('stock.adjust.notes_placeholder')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 hide-details
               />

@@ -62,7 +62,6 @@
                 v-model="filters.search"
                 :placeholder="$t('ingredients.search_placeholder')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -76,7 +75,6 @@
                 :items="categoryOptions"
                 :placeholder="$t('form.category')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -90,7 +88,6 @@
                 item-value="value"
                 :placeholder="$t('form.status')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -104,7 +101,6 @@
                 item-value="value"
                 :placeholder="$t('ingredients.stock_alert')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable

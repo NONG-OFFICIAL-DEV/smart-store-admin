@@ -47,7 +47,6 @@
                 label="Search name, contact, phone, email"
                 prepend-inner-icon="mdi-magnify"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -60,7 +59,6 @@
                 :items="statusOptions"
                 label="Status"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable

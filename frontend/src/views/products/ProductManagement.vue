@@ -60,7 +60,6 @@
                 :placeholder="t('products.filter.placeholder')"
                 prepend-inner-icon="mdi-magnify"
                 variant="outlined"
-                density="compact"
                 hide-details
                 clearable
                 rounded="lg"
@@ -85,7 +84,6 @@
                 :items="availabilityOptions"
                 :label="t('products.filter.availability')"
                 variant="outlined"
-                density="compact"
                 hide-details
                 clearable
                 rounded="lg"

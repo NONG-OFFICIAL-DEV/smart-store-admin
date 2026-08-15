@@ -18,7 +18,7 @@
       </template>
     </custom-title>
 
-    <v-card rounded="xl" border elevation="0">
+    <v-card rounded="lg" border elevation="0">
       <v-data-table
         :headers="headers"
         :items="planStore.plans"

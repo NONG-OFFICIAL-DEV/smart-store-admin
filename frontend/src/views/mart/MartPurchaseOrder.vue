@@ -51,7 +51,6 @@
               v-model="filters.search"
               :placeholder="t('purchase_order.search_placeholder')"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               clearable
@@ -67,7 +66,6 @@
               item-value="value"
               :placeholder="t('form.status')"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               clearable

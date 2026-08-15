@@ -8,7 +8,6 @@
             :model-value="search"
             :placeholder="t('inventory_report.filter.search_placeholder')"
             variant="outlined"
-            density="compact"
             rounded="lg"
             hide-details
             clearable

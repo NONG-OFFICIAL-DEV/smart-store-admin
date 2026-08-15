@@ -24,7 +24,6 @@
         <v-date-input
           v-model="filterDateFrom"
           label="From Date"
-          density="compact"
           rounded="lg"
         />
       </v-col>
@@ -32,7 +31,6 @@
         <v-date-input
           v-model="filterDateTo"
           label="To Date"
-          density="compact"
           rounded="lg"
         />
       </v-col>
@@ -44,7 +42,6 @@
           item-title="name"
           label="Shift"
           variant="outlined"
-          density="compact"
           rounded="lg"
           clearable
         />
@@ -57,7 +54,6 @@
           item-title="full_name"
           label="Staff Member"
           variant="outlined"
-          density="compact"
           rounded="lg"
           clearable
         />

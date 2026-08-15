@@ -112,7 +112,6 @@
                     item-title="name"
                     item-value="id"
                     :label="t('sale.product')"
-                    density="compact"
                     :rules="[v => !!v || t('purchases.form.product_required')]"
                   />
                 </v-col>
@@ -122,7 +121,6 @@
                     v-model.number="item.quantity"
                     type="number"
                     :label="t('form.quantity')"
-                    density="compact"
                     min="1"
                     :rules="[v => v > 0 || t('purchases.form.quantity_positive')]"
                   />
@@ -133,7 +131,6 @@
                     v-model.number="item.cost_price"
                     type="number"
                     :label="t('form.cost_price')"
-                    density="compact"
                     min="0"
                     prefix="$"
                     :readonly="true"
@@ -147,7 +144,6 @@
                     type="number"
                     suffix="%"
                     :label="t('order.tax')"
-                    density="compact"
                     min="0"
                   />
                 </v-col>
@@ -158,7 +154,6 @@
                     type="number"
                     :label="t('form.discount')"
                     suffix="%"
-                    density="compact"
                     min="0"
                   />
                 </v-col>
@@ -168,7 +163,6 @@
                     prefix="$"
                     type="text"
                     :label="t('common.total')"
-                    density="compact"
                     min="0"
                     :readonly="true"
                     :disabled="!item.product_id"

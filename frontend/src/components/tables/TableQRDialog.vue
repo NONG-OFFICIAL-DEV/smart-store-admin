@@ -73,7 +73,6 @@
             :model-value="qrData.url"
             :label="$t('tables.qr.url_label')"
             variant="outlined"
-            density="compact"
             rounded="lg"
             readonly
             hide-details

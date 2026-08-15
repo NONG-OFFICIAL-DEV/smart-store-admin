@@ -14,7 +14,6 @@
           item-title="title"
           item-value="value"
           variant="outlined"
-          density="compact"
           hide-details
           rounded="lg"
           style="width: 130px"

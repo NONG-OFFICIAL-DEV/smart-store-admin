@@ -85,7 +85,6 @@
                     :rules="[r.required]"
                     maxlength="80"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -98,7 +97,6 @@
                     :hint="$t('subscription.plan_dialog.fields.code_hint')"
                     persistent-hint
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -112,7 +110,6 @@
                     min="0"
                     prepend-inner-icon="mdi-currency-usd"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -124,7 +121,6 @@
                     min="0"
                     prepend-inner-icon="mdi-currency-sign"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -138,7 +134,6 @@
                     min="1"
                     prepend-inner-icon="mdi-account-group-outline"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -151,7 +146,6 @@
                     min="1"
                     prepend-inner-icon="mdi-database-outline"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -165,7 +159,6 @@
                     persistent-hint
                     prepend-inner-icon="mdi-api"
                     rounded="lg"
-                    density="comfortable"
                     variant="outlined"
                   />
                 </v-col>
@@ -198,7 +191,6 @@
                       v-model="cycle.label"
                       :label="$t('subscription.plan_dialog.cycles.label')"
                       :rules="[r.required]"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />
@@ -211,7 +203,6 @@
                       item-value="value"
                       :label="$t('subscription.plan_dialog.cycles.months')"
                       :rules="[r.required]"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />
@@ -224,7 +215,6 @@
                       min="0"
                       max="100"
                       suffix="%"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />
@@ -302,7 +292,6 @@
                       v-model="feat.key"
                       :label="$t('subscription.plan_dialog.features.key')"
                       :rules="[r.required]"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />
@@ -312,7 +301,6 @@
                       v-model="feat.en"
                       :label="$t('subscription.plan_dialog.features.english')"
                       :rules="[r.required]"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />
@@ -321,7 +309,6 @@
                     <v-text-field
                       v-model="feat.km"
                       label="ខ្មែរ"
-                      density="compact"
                       rounded="lg"
                       variant="outlined"
                     />

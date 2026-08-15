@@ -78,7 +78,6 @@
                   item-value="value"
                   :label="t('modifiers.group.selection_type_label')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable
@@ -96,7 +95,6 @@
                   item-value="value"
                   :label="t('modifiers.group.required_toggle')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable
@@ -109,7 +107,6 @@
                   prepend-inner-icon="mdi-magnify"
                   :placeholder="t('modifiers.page.search_placeholder')"
                   variant="outlined"
-                  density="compact"
                   rounded="lg"
                   hide-details
                   clearable

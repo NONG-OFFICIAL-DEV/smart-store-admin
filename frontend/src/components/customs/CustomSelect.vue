@@ -108,7 +108,7 @@
     },
     density: {
       type: String,
-      default: 'compact'
+      default: undefined
     },
     rounded: {
       type: [String, Boolean],

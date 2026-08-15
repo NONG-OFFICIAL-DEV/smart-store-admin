@@ -102,7 +102,6 @@
                 :label="$t('stock.management.search_ingredient')"
                 prepend-inner-icon="mdi-magnify"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -117,7 +116,6 @@
                 item-title="name"
                 :label="$t('form.branch')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -129,7 +127,6 @@
                 :items="categoryOptions"
                 :label="$t('form.category')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -141,7 +138,6 @@
                 :items="stockStatusOptions"
                 :label="$t('products.filter.stock')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable

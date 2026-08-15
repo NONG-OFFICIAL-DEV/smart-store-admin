@@ -65,7 +65,6 @@
                 prepend-inner-icon="mdi-magnify"
                 :placeholder="$t('placeholder.search_staff')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable

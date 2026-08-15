@@ -23,7 +23,6 @@
           prepend-inner-icon="mdi-magnify"
           :placeholder="$t('modifiers.link.search_placeholder')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           hide-details
           clearable

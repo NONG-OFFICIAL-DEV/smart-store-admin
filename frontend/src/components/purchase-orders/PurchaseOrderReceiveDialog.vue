@@ -34,7 +34,7 @@
         v-model.number="item.qty_to_receive"
         type="number" :label="$t('po.receive_qty_max', { max: item.remaining })"
         :max="item.remaining" min="0"
-        variant="outlined" density="compact" rounded="lg"
+        variant="outlined" rounded="lg"
         hide-details
         :disabled="item.remaining === 0"
       />

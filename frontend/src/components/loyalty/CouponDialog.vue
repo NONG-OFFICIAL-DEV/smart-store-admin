@@ -69,7 +69,6 @@
               item-value="id"
               :label="t('coupons.dialog.linked_promotion')"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
             />
           </v-col>
@@ -79,7 +78,6 @@
               v-model="form.code"
               :label="t('coupons.dialog.coupon_code')"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               :hint="t('coupons.dialog.coupon_code_hint')"
               persistent-hint
@@ -92,7 +90,6 @@
               :label="t('coupons.dialog.usage_limit')"
               type="number"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
             />
           </v-col>
@@ -102,7 +99,6 @@
               v-model="form.expires_at"
               :label="t('coupons.dialog.expires_at')"
               variant="outlined"
-              density="comfortable"
               rounded="lg"
               prepend-inner-icon="mdi-calendar"
               append-inner-icon=""

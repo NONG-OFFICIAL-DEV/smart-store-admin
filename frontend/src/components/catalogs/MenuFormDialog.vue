@@ -112,7 +112,6 @@
           :placeholder="$t('menus.form.tenant_placeholder')"
           variant="outlined"
           rounded="lg"
-          density="comfortable"
           prepend-inner-icon="mdi-domain"
           :rules="[v => !!v || $t('menus.validation.tenant_required')]"
           class="mb-4"
@@ -131,7 +130,6 @@
         :placeholder="$t('menus.form.name_placeholder')"
         variant="outlined"
         rounded="lg"
-        density="comfortable"
         prepend-inner-icon="mdi-silverware-fork-knife"
         :rules="[
           v => !!v || $t('menus.validation.name_required'),

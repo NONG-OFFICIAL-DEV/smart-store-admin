@@ -84,7 +84,6 @@
                 v-model="pendingSearch"
                 :placeholder="t('products.filter.placeholder')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -100,7 +99,6 @@
                 item-value="value"
                 :placeholder="t('products.filter.stock')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -113,7 +111,6 @@
                 item-title="label"
                 item-value="value"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
               />

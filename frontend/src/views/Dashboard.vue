@@ -2,21 +2,11 @@
   <v-container fluid class="pa-0 dashboard">
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
     <div class="d-flex align-center justify-space-between mb-0">
-      <div>
-        <div class="d-flex align-center gap-2 mb-1">
-          <div class="live-dot" />
-          <span
-            class="text-caption text-medium-emphasis font-weight-medium tracking-wide"
-          >
-            {{ $t('dashboard.live_overview') }}
-          </span>
-        </div>
-        <custom-title
-          icon="mdi-view-dashboard-outline"
-          :title="`Good ${greeting}, ${userName} 👋`"
-          :subtitle="`${today} · ${$t('dashboard.branches_network', { count: branches.length })}`"
-        ></custom-title>
-      </div>
+      <custom-title
+        icon="mdi-view-dashboard-outline"
+        :title="`Good ${greeting}, ${userName}`"
+        :subtitle="`${today} · ${$t('dashboard.branches_network', { count: branches.length })}`"
+      ></custom-title>
       <div class="d-flex align-center gap-3">
         <v-select
           v-model="selectedPeriod"
@@ -24,7 +14,6 @@
           item-title="label"
           item-value="key"
           variant="outlined"
-          density="compact"
           hide-details
           rounded="lg"
           @update:model-value="onPeriodChange"

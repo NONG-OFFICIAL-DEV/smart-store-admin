@@ -21,7 +21,7 @@
                 :items="branchStore.branches?.data || branchStore.branches || []"
                 item-title="name" item-value="id"
                 :label="$t('po.field.branch')"
-                variant="outlined" density="comfortable" rounded="lg"
+                variant="outlined" rounded="lg"
                 :rules="[r.required]"
                 prepend-inner-icon="mdi-store-outline"
               />
@@ -33,7 +33,7 @@
                 v-model="form.supplier_id"
                 :items="supplierStore.suppliers.data" item-title="name" item-value="id"
                 :label="$t('po.field.supplier')"
-                variant="outlined" density="comfortable" rounded="lg"
+                variant="outlined" rounded="lg"
                 :rules="[r.required]"
                 prepend-inner-icon="mdi-truck-outline"
               />
@@ -43,8 +43,7 @@
             <v-col cols="12" sm="6">
               <v-date-input
                 v-model="form.expected_delivery"
-                :label="$t('form.expected_delivery')"
-                density="comfortable" rounded="lg"
+                :label="$t('form.expected_delivery')" rounded="lg"
               />
             </v-col>
 
@@ -53,7 +52,7 @@
               <v-textarea
                 v-model="form.notes"
                 :label="$t('form.notes')"
-                variant="outlined" density="comfortable" rounded="lg"
+                variant="outlined" rounded="lg"
                 rows="2" auto-grow
                 prepend-inner-icon="mdi-note-outline"
               />
@@ -77,7 +76,7 @@
                   v-model="item.ingredient_id"
                   :items="ingredients" item-title="name" item-value="id"
                   :label="$t('po.field.ingredient_n', { n: i + 1 })"
-                  variant="outlined" density="compact" rounded="lg"
+                  variant="outlined" rounded="lg"
                   hide-details
                   :rules="[r.required]"
                 />
@@ -86,7 +85,7 @@
                 <v-text-field
                   v-model.number="item.quantity_ordered"
                   type="number" :label="$t('po.field.qty')" min="0.001"
-                  variant="outlined" density="compact" rounded="lg"
+                  variant="outlined" rounded="lg"
                   hide-details
                   :rules="[r.required, r.positive]"
                 />
@@ -95,7 +94,7 @@
                 <v-text-field
                   v-model.number="item.unit_price"
                   type="number" :label="$t('po.field.unit_cost')" min="0"
-                  variant="outlined" density="compact" rounded="lg"
+                  variant="outlined" rounded="lg"
                   hide-details
                   prepend-inner-icon="mdi-currency-usd"
                   :rules="[r.required]"

@@ -50,7 +50,6 @@
                 item-value="id"
                 :label="t('branch_menu.filter_by_branch')"
                 variant="outlined"
-                density="compact"
                 clearable
                 hide-details
                 prepend-inner-icon="mdi-store"
@@ -64,7 +63,6 @@
                 item-value="id"
                 :label="t('branch_menu.filter_by_menu')"
                 variant="outlined"
-                density="compact"
                 clearable
                 hide-details
                 prepend-inner-icon="mdi-book-open-outline"

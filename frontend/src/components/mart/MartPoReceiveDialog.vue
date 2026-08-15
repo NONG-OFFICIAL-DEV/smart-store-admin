@@ -18,7 +18,6 @@
           v-model="notes"
           :label="$t('po.receive_notes_label')"
           variant="outlined"
-          density="compact"
           rounded="lg"
           class="mb-4"
           hide-details
@@ -66,7 +65,6 @@
               :max="remaining(item)"
               min="0"
               variant="outlined"
-              density="compact"
               rounded="lg"
               hide-details
               style="max-width: 200px"

@@ -102,7 +102,6 @@
         :model-value="imageUrl"
         :placeholder="$t('products.image.pasteUrl')"
         variant="outlined"
-        density="compact"
         rounded="lg"
         hide-details
         class="mt-3"

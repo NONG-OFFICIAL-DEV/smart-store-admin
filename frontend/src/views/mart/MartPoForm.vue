@@ -61,7 +61,6 @@
                 item-value="id"
                 :label="t('po.field.branch')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
               />
@@ -76,7 +75,6 @@
                 item-value="id"
                 :label="t('po.field.supplier')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 :rules="[r.required]"
               >
@@ -106,7 +104,6 @@
                 item-value="value"
                 :label="t('po.field.status')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
               />
             </v-col>
@@ -115,7 +112,6 @@
                 v-model="form.notes"
                 :label="t('po.field.note')"
                 variant="outlined"
-                density="comfortable"
                 rounded="lg"
                 rows="1"
                 auto-grow
@@ -239,7 +235,6 @@
                       item-value="id"
                       :label="t('po.field.product')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details
                       :rules="[r.required]"
@@ -274,7 +269,6 @@
                       item-value="id"
                       :label="t('po.field.unit')"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details
                       clearable
@@ -291,7 +285,6 @@
                       :label="t('po.field.qty')"
                       min="0.001"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details
                     />
@@ -305,7 +298,6 @@
                       :label="t('po.field.unit_cost')"
                       min="0"
                       variant="outlined"
-                      density="compact"
                       rounded="lg"
                       hide-details
                       :prefix="currencySymbol()"

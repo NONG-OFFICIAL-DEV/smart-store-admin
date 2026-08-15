@@ -61,7 +61,6 @@
                 v-model="filters.search"
                 :placeholder="$t('placeholder.search_po')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -78,7 +77,6 @@
                 item-value="value"
                 :placeholder="$t('form.status')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable
@@ -93,7 +91,6 @@
                 item-value="id"
                 :placeholder="$t('form.supplier')"
                 variant="outlined"
-                density="compact"
                 rounded="lg"
                 hide-details
                 clearable

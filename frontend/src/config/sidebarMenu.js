@@ -229,37 +229,6 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Reports & Analytics (tenant business data — not for super admin) ────
-  {
-    key: 'reports-analytics',
-    titleKey: 'menu.reports_analytics',
-    icon: 'mdi-chart-areaspline',
-    visible: ctx => !ctx.isSuperAdmin,
-    children: [
-      {
-        key: 'sales-report',
-        titleKey: 'menu.orders_analytics',
-        icon: 'mdi-chart-bar',
-        path: '/orders-reports',
-        permission: 'reports.view'
-      },
-      {
-        key: 'purchase-report',
-        titleKey: 'menu.purchase_reports',
-        icon: 'mdi-file-document-outline',
-        path: '/mart/reports/purchases',
-        permission: 'reports.view'
-      },
-      {
-        key: 'stock-report',
-        titleKey: 'menu.stock_reports',
-        icon: 'mdi-clipboard-list-outline',
-        path: '/stock-reports',
-        permission: 'reports.view'
-      }
-    ]
-  },
-
   // ── Staff & Workforce (tenant business data — not for super admin) ───────
   {
     key: 'staff-workforce',
@@ -287,6 +256,37 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-calendar-account-outline',
         path: '/shift-assignments',
         permission: 'shifts.manage'
+      }
+    ]
+  },
+
+  // ── Reports & Analytics (tenant business data — not for super admin) ────
+  {
+    key: 'reports-analytics',
+    titleKey: 'menu.reports_analytics',
+    icon: 'mdi-chart-areaspline',
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
+      {
+        key: 'sales-report',
+        titleKey: 'menu.orders_analytics',
+        icon: 'mdi-chart-bar',
+        path: '/orders-reports',
+        permission: 'reports.view'
+      },
+      {
+        key: 'purchase-report',
+        titleKey: 'menu.purchase_reports',
+        icon: 'mdi-file-document-outline',
+        path: '/mart/reports/purchases',
+        permission: 'reports.view'
+      },
+      {
+        key: 'stock-report',
+        titleKey: 'menu.stock_reports',
+        icon: 'mdi-clipboard-list-outline',
+        path: '/stock-reports',
+        permission: 'reports.view'
       }
     ]
   },
