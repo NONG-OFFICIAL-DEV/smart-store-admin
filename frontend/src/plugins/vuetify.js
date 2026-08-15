@@ -10,7 +10,17 @@ import { VDateInput } from 'vuetify/labs/VDateInput'
 import { VColorInput } from 'vuetify/labs/VColorInput'
 import { KhmerDateAdapter } from './khmerDateAdapter'
 
-export const appDensity = ref(localStorage.getItem('density') || 'default')
+// Vuetify's own density scale is 'default' (tallest) > 'comfortable' > 'compact'
+// (shortest). This app only ever offers two states in PreferencesDialog —
+// "Comfortable" and "Compact" — so any stored/legacy value of 'default'
+// (Vuetify's tallest, unused level) is normalized to 'comfortable' here.
+// Without this, a stored 'default' renders noticeably larger than the
+// 'comfortable' look every field was originally designed around.
+export function normalizeDensity(value) {
+  return value === 'default' || !value ? 'comfortable' : value
+}
+
+export const appDensity = ref(normalizeDensity(localStorage.getItem('density')))
 const savedLocale = localStorage.getItem('lang') || 'km'
 
 const DENSITY_FIELDS = [

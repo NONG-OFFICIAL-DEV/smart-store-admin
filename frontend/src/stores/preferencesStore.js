@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { appDensity } from '@/plugins/vuetify'
+import { appDensity, normalizeDensity } from '@/plugins/vuetify'
 
 export const usePreferencesStore = defineStore('preferences', () => {
-  const density = ref(localStorage.getItem('density') || 'default')
+  const density = ref(normalizeDensity(localStorage.getItem('density')))
 
   function setDensity(value) {
     density.value = value

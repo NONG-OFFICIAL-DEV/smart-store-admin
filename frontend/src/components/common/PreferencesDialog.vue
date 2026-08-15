@@ -104,6 +104,7 @@
   import { useI18n } from 'vue-i18n'
   import { useTheme, useLocale } from 'vuetify'
   import { usePreferencesStore } from '@/stores/preferencesStore'
+  import { normalizeDensity } from '@/plugins/vuetify'
   import AppDialog from '@/components/common/AppDialog.vue'
 
   const { current: vuetifyLocale } = useLocale()
@@ -174,11 +175,11 @@
   }
 
   // Density
-  const selectedDensity = ref(localStorage.getItem('density') || 'default')
+  const selectedDensity = ref(normalizeDensity(localStorage.getItem('density')))
 
   const densities = computed(() => [
     {
-      value: 'default',
+      value: 'comfortable',
       label: t('preferences.comfortable'),
       icon: 'mdi-view-agenda-outline'
     },
