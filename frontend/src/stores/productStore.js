@@ -13,21 +13,18 @@ import {
 export const useProductStore = defineStore('product', {
   state: () => ({
     products: [],
-    options: [],
     product: null,
     pagination: {}
   }),
 
   actions: {
+    // AppTable's fetch-fn contract: params -> { items, total }. Also keeps
+    // `products`/`pagination` populated for the stats panel on ProductManagement.vue.
     async fetchProducts(params = {}) {
       const res = await getAllProductsApi(params)
       this.products = res.data.data
       this.pagination = res.data.meta
-      return res.data.data
-    },
-    async fetchOptions(params = {}) {
-      const res = await getAllProductsApi(params)
-      this.options = res.data.data ?? []
+      return { items: res.data.data, total: res.data.meta.total }
     },
     async fetchProductById(id) {
       const res = await getProductByIdApi(id)
@@ -35,7 +32,7 @@ export const useProductStore = defineStore('product', {
     },
     async createProduct(data) {
       const res = await createProductApi(data)
-      this.products.unshift(res.data.data)
+      return res.data.data
     },
     async updateProduct(id, data) {
       const res = await updateProductApi(id, data)
@@ -43,7 +40,6 @@ export const useProductStore = defineStore('product', {
     },
     async deleteProduct(id) {
       await deleteProductApi(id)
-      this.products = this.products.filter(item => item.id !== id)
     },
     // ✅ Attach modifier groups to a product via pivot
     async attachModifierGroups({ product_id, modifier_group_ids }) {

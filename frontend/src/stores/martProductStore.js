@@ -27,12 +27,16 @@ export const useMartProductStore = defineStore('martProduct', {
   },
 
   actions: {
+    // AppTable's fetch-fn contract: params -> { items, total }. Also keeps
+    // `products`/`pagination` populated for other consumers (StockAdjustDialog,
+    // MartStockMovements, the summary cards on MartStockManagement.vue).
     async fetchMartProducts(filters = {}) {
       this.loading = true
       try {
         const res = await api.get('v1/mart/products', { params: filters })
         this.products = res.data.data
         this.pagination = res.data
+        return { items: res.data.data, total: res.data.total ?? 0 }
       } finally {
         this.loading = false
       }

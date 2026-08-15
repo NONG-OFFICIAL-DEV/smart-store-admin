@@ -18,25 +18,6 @@
             {{ t('btn.stats') }}
           </v-btn>
 
-          <!-- Show Filters toggle -->
-          <v-btn
-            :color="showFilters ? 'primary' : 'default'"
-            :variant="showFilters ? 'flat' : 'tonal'"
-            rounded="lg"
-            :prepend-icon="
-              showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-            "
-            @click="showFilters = !showFilters"
-          >
-            {{ t('btn.filter') }}
-            <v-badge
-              v-if="activeFilterCount > 0"
-              :content="activeFilterCount"
-              color="error"
-              floating
-            />
-          </v-btn>
-
           <v-btn
             color="primary"
             variant="flat"
@@ -74,83 +55,41 @@
       </v-row>
     </v-expand-transition>
 
-    <!-- ── Filter Panel ────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="lg" border elevation="0" class="mb-4">
-        <v-card-text class="pa-4">
-          <v-row dense align="center">
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="pendingSearch"
-                :placeholder="t('products.filter.placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="6" sm="3">
-              <v-select
-                v-model="pendingStockFilter"
-                :items="stockFilterOptions"
-                item-title="label"
-                item-value="value"
-                :placeholder="t('products.filter.stock')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col cols="6" sm="3">
-              <v-select
-                v-model="pendingSortBy"
-                :items="sortOptions"
-                item-title="label"
-                item-value="value"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
+    <!-- ── Filters ───────────────────────────────────────────────────────── -->
+    <v-row dense align="center" class="mb-2">
+      <v-col cols="6" sm="4">
+        <v-select
+          v-model="stockFilter"
+          :items="stockFilterOptions"
+          item-title="label"
+          item-value="value"
+          :label="t('products.filter.stock')"
+          variant="outlined"
+          rounded="lg"
+          clearable
+        />
+      </v-col>
+      <v-col cols="6" sm="4">
+        <v-select
+          v-model="sortBy"
+          :items="sortOptions"
+          item-title="label"
+          item-value="value"
+          variant="outlined"
+          rounded="lg"
+        />
+      </v-col>
+    </v-row>
 
     <!-- ── TABLE VIEW ──────────────────────────────────────────────────── -->
-    <v-card rounded="lg" border elevation="0">
-      <v-data-table-server
+    <v-card rounded="lg" border elevation="0" class="pa-4">
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="martProductStore.products"
-        :items-length="totalItems"
-        :no-data-text="$t('products.empty')"
-        item-value="id"
-        rounded="0"
-        @update:options="fetchOnOptions"
+        :fetch-fn="fetchMartProductsForTable"
+        :filters="filters"
+        :show-search="true"
+        :item-label="t('stock_overview.title')"
       >
         <!-- Product -->
         <template #item.name="{ item }">
@@ -266,7 +205,7 @@
             <div class="text-body-2 text-grey">{{$t('products.empty')}}</div>
           </div>
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- Adjust dialog -->
@@ -287,10 +226,10 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppTable } from '@nong-official-dev/core'
   import { adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import { useI18n } from 'vue-i18n'
-  import { useDataTable } from '@/composables/useServerTable'
 
   const { t } = useI18n()
   const router = useRouter()
@@ -300,63 +239,25 @@
   const { notif } = useAppUtils()
 
   // ── UI State ──────────────────────────────────────────────────────────────
+  const tableRef = ref(null)
   const showStats = ref(false)
-  const showFilters = ref(false)
   const adjustDialog = ref(false)
   const adjustTarget = ref(null)
   const adjusting = ref(false)
 
-  // ── Pending filter values (not applied yet) ───────────────────────────────
-  const pendingSearch = ref('')
-  const pendingStockFilter = ref(null)
-  const pendingSortBy = ref('name')
+  // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
+  // search is AppTable's own built-in field). ───────────────────────────────────
+  const stockFilter = ref(null)
+  const sortBy = ref('name')
 
-  // ── Applied filter values (sent to API) ───────────────────────────────────
-  const appliedFilters = ref({
-    search: '',
-    stock_filter: null,
-    sort_by: 'name'
-  })
+  const filters = computed(() => ({
+    stock_filter: stockFilter.value,
+    sort_by: sortBy.value
+  }))
 
-  // ── Active filter count for badge ─────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (appliedFilters.value.search) count++
-    if (appliedFilters.value.stock_filter) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
-  // ── Apply / Clear (aliased as onFilterChange / resetFilters) ──────────────
-  function applyFilters() {
-    appliedFilters.value = {
-      search: pendingSearch.value,
-      stock_filter: pendingStockFilter.value,
-      sort_by: pendingSortBy.value
-    }
-    refresh()
-  }
-
-  function clearFilters() {
-    pendingSearch.value = ''
-    pendingStockFilter.value = null
-    pendingSortBy.value = 'name'
-    appliedFilters.value = { search: '', stock_filter: null, sort_by: 'name' }
-    refresh()
-  }
-
-  const onFilterChange = applyFilters
-  const resetFilters = clearFilters
-
-  // ── useDataTable ───────────────────────────────────────────────────────────
-  const { fetchOnOptions, refresh } = useDataTable(
-    martProductStore.fetchMartProducts,
-    () => ({
-      search: appliedFilters.value.search,
-      stock_filter: appliedFilters.value.stock_filter,
-      sort_by: appliedFilters.value.sort_by
-    })
-  )
+  // ── AppTable's fetch-fn contract: params -> { items, total } ─────────────────
+  const fetchMartProductsForTable = params =>
+    martProductStore.fetchMartProducts(params)
 
   // ── Filter options ────────────────────────────────────────────────────────
   const stockFilterOptions = computed(() => [
@@ -372,8 +273,6 @@
   ]
 
   // ── Computed ──────────────────────────────────────────────────────────────
-  const totalItems = computed(() => martProductStore.pagination?.total ?? 0)
-
   const branchList = computed(() => {
     const b = branchStore.branches
     return Array.isArray(b) ? b : (b?.data ?? [])
@@ -502,7 +401,7 @@
       )
       notif('Stock adjusted', { type: 'success' })
       adjustDialog.value = false
-      refresh()
+      tableRef.value?.refresh()
     } catch (e) {
       notif(e.response?.data?.message ?? 'Failed', { type: 'error' })
     } finally {
