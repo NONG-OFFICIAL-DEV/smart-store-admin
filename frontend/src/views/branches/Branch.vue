@@ -72,13 +72,8 @@
             >
               <v-icon :icon="typeIcon(item.branch_type?.name)" size="18" />
             </v-avatar>
-            <div style="min-width: 0">
-              <div class="text-body-2 font-weight-medium text-truncate">
-                {{ item.name }}
-              </div>
-              <div class="text-caption text-grey text-truncate">
-                {{ item.full_address }}
-              </div>
+            <div class="text-body-2 font-weight-medium text-truncate">
+              {{ item.name }}
             </div>
           </div>
         </template>
@@ -322,9 +317,16 @@
       food_truck: 'mdi-truck-outline'
     })[type] || 'mdi-store-outline'
 
-  onMounted(() => {
+  onMounted(async () => {
     // Branches are scoped server-side by the user's own tenant_id.
     filterState.tenant = authStore.tenant_id
+
+    // Populate the branch-type filter dropdown — every branch shares the
+    // tenant's own business type, so this is the same fixed list regardless
+    // of which branch a filter is applied to.
+    if (authStore.business_type_id) {
+      await tenantStore.fetchBranchTypeByBusinessType(authStore.business_type_id)
+    }
   })
 </script>
 
