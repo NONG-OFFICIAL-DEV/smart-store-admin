@@ -26,6 +26,7 @@ export function useSidebarMenu(rawMenu) {
     isFood: authStore.isFood,
     isMart: authStore.isMart,
     hasPlan: level => authStore.hasPlan(level),
+    hasFeature: code => authStore.hasFeature(code),
     can: code => authStore.can(code),
     canAny: (...codes) => authStore.canAny(...codes)
   }))

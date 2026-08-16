@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', {
     isSuperAdmin: false,
     role_name:    null,
     permissions:  [],
+    features:     [],
     mustChangePassword: false,
 
     tenant_id: null,
@@ -60,6 +61,11 @@ export const useAuthStore = defineStore('auth', {
       const order = [PLANS.FREE, PLANS.START, PLANS.PRO, PLANS.ENTERPRISE]
       return order.indexOf(state.plan) >= order.indexOf(level)
     },
+
+    // Nav-level only — "does ANY of my branches support this" (owner) or
+    // "does my one branch support this" (staff). Real per-branch enforcement
+    // still happens server-side via the feature:CODE route middleware.
+    hasFeature: state => code => state.features.includes(code),
 
     // Category helpers — driven entirely by BU_CATEGORIES from businessTypes.js
     isFood: state => BU_CATEGORIES.food?.has(state.bu_type) ?? false,
@@ -147,6 +153,7 @@ export const useAuthStore = defineStore('auth', {
 
       this.me           = d.user           ?? {}
       this.permissions  = d.permissions    ?? []
+      this.features     = d.features       ?? []
       this.isSuperAdmin = d.is_super_admin ?? false
       this.isOwner      = d.is_owner       ?? false
       this.role_name    = d.role_name      ?? null

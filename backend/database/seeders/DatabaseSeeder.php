@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
             // TableSeeder::class,
             // Add other seeders here,
             // BusinessTypeSeeder::class,
-            // FeatureSeeder::class,
+            FeatureSeeder::class,
             // BranchTypeSeeder::class,
-            // BranchTypeFeatureSeeder::class,
+            BranchTypeFeatureSeeder::class,
             PermissionSeeder::class,
         ]);
         // \App\Models\User::firstOrCreate(

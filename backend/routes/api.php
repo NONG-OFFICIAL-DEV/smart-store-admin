@@ -310,7 +310,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Floor Plans & Tables ────────────────────────────────────────────────────
-    Route::middleware('permission:floor_plans.manage')->group(function () {
+    Route::middleware(['permission:floor_plans.manage', 'feature:TABLE_MGMT'])->group(function () {
         Route::apiResource('floor-plans', FloorPlanController::class);
         Route::apiResource('tables', TableController::class);
         Route::get('tables/{table}/qr-code/download', [TableController::class, 'downloadQrCode']);
@@ -326,7 +326,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Reservations ──────────────────────────────────────────────────────────
-    Route::middleware('permission:reservations.manage')->group(function () {
+    Route::middleware(['permission:reservations.manage', 'feature:RESERVATION'])->group(function () {
         Route::apiResource('reservations', ReservationController::class);
         Route::prefix('reservations/{reservation}')->group(function () {
             Route::patch('confirm', [ReservationController::class, 'confirm']);
@@ -371,7 +371,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Kitchen Display ───────────────────────────────────────────────────────
-    Route::middleware('permission:kitchen.manage')->group(function () {
+    Route::middleware(['permission:kitchen.manage', 'feature:KDS'])->group(function () {
         Route::apiResource('kitchen-tickets', KitchenDisplayTicketController::class);
         Route::prefix('kitchen-tickets/{ticket}')->group(function () {
             Route::patch('start',    [KitchenDisplayTicketController::class, 'start']);
@@ -405,6 +405,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Inventory ─────────────────────────────────────────────────────────────
+    // Not gated by feature:INVENTORY — the seeded branch_type_features map only
+    // lists INVENTORY for Mart branch types (raw stock tracking); restaurants
+    // use this same endpoint for ingredient/recipe stock, which isn't
+    // represented as a separate feature code yet. Gating this would break
+    // every food tenant's currently-working inventory tracking.
     Route::middleware('permission:inventory.manage')->group(function () {
         Route::apiResource('inventory-stock', InventoryStockController::class);
         Route::post('inventory-stock/adjust', [InventoryStockController::class, 'adjust']);

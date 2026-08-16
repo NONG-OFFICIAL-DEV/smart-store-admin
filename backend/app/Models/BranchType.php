@@ -29,4 +29,9 @@ class BranchType extends BaseModel
     {
         return $this->hasMany(Branch::class);
     }
+
+    public function hasFeature(string $code): bool
+    {
+        return in_array($code, Feature::codesForBranchType($this->id), true);
+    }
 }

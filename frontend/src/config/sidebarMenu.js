@@ -95,7 +95,7 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-table-chair',
         path: '/dining-table',
         permission: 'floor_plans.manage',
-        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro')
+        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro') && ctx.hasFeature('TABLE_MGMT')
       },
       {
         key: 'reservations',
@@ -103,7 +103,7 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-calendar-check-outline',
         path: '/reservations',
         permission: 'reservations.manage',
-        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro')
+        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro') && ctx.hasFeature('RESERVATION')
       },
       {
         key: 'customers',
@@ -193,6 +193,11 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-layers-triple-outline',
         path: '/stocks',
         permission: 'inventory.manage',
+        // Not gated by hasFeature('INVENTORY') — the seeded branch_type_features
+        // map only lists INVENTORY for Mart branch types (raw stock tracking);
+        // restaurants use this same screen for ingredient/recipe stock, which
+        // isn't represented as a separate feature code yet. Gating this would
+        // hide a screen every food tenant already actively uses.
         visible: ctx => ctx.isFood
       },
       {
@@ -201,7 +206,7 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-layers-triple-outline',
         path: '/mart/stock',
         permission: 'inventory.manage',
-        visible: ctx => ctx.isMart
+        visible: ctx => ctx.isMart && ctx.hasFeature('INVENTORY')
       },
       {
         key: 'purchase-orders-food',

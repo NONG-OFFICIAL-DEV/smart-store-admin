@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\EnsureBranchHasFeature;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'       => CheckPermission::class,
             'superadmin'       => EnsureSuperAdmin::class,
             'password.changed' => EnsurePasswordChanged::class,
+            'feature'          => EnsureBranchHasFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

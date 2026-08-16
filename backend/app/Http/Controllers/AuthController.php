@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Feature;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
@@ -240,6 +241,7 @@ class AuthController extends Controller
             'branch_name'       => null,
             'role_name'         => null,
             'permissions'       => [],
+            'features'          => [],
             'must_change_password' => $user->must_change_password,
         ];
 
@@ -249,6 +251,7 @@ class AuthController extends Controller
             return response()->json(array_merge($base, [
                 'is_super_admin' => true,
                 'permissions'    => Permission::allCodesCached(),
+                'features'       => Feature::allCodesCached(),
             ]));
         }
 
@@ -280,13 +283,18 @@ class AuthController extends Controller
                 // hasn't been provisioned yet for this tenant.
                 'permissions'      => $ownerRole?->permissions->pluck('code')->toArray()
                     ?? Permission::allCodesCached(),
+                // Not tied to one branch — the union across every branch this
+                // tenant owns, so nav stays visible if ANY branch supports a
+                // feature. Real enforcement for a specific branch still goes
+                // through the feature:CODE route middleware.
+                'features'         => Feature::codesForTenant($ownedTenant->id),
             ]));
         }
 
         // ── 3. Regular Staff ───────────────────────────────────────────────
         $staff = $user->staff()
             ->withoutGlobalScopes()          // ← bypass TenantScope
-            ->with(['role.permissions', 'branch', 'tenant.businessType', 'tenant.activeSubscription.plan'])
+            ->with(['role.permissions', 'branch.branchType', 'tenant.businessType', 'tenant.activeSubscription.plan'])
             ->first();
 
         if (!$staff) {
@@ -306,6 +314,9 @@ class AuthController extends Controller
             'currency'         => $staff->tenant?->currency,
             'plan'             => $staff->tenant?->activeSubscription?->plan?->code,
             'permissions'      => $staff->role->permissions->pluck('code')->toArray(),
+            'features'         => $staff->branch?->branch_type_id
+                ? Feature::codesForBranchType($staff->branch->branch_type_id)
+                : [],
         ]));
     }
 
