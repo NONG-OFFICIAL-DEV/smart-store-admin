@@ -123,6 +123,50 @@ class RoleServiceTest extends TestCase
         $this->assertSame(['Custom Cashier'], $customOnly);
     }
 
+    public function test_create_rejects_a_case_insensitive_duplicate_name_within_the_same_tenant(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+
+        Auth::login($ownerA);
+        $service = $this->app->make(RoleService::class);
+        $service->create(['name' => 'Shift Lead'], new Request());
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->create(['name' => 'shift lead'], new Request());
+    }
+
+    public function test_two_different_tenants_may_each_use_the_same_role_name(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        [$tenantB, $ownerB] = $this->makeTenantWithOwner('TenantB');
+
+        Auth::login($ownerA);
+        $service = $this->app->make(RoleService::class);
+        $service->create(['name' => 'Shift Lead'], new Request());
+
+        Auth::login($ownerB);
+        $role = $service->create(['name' => 'Shift Lead'], new Request());
+
+        $this->assertSame($tenantB->id, $role->tenant_id);
+    }
+
+    public function test_update_rejects_renaming_to_a_duplicate_but_allows_keeping_the_same_name(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+
+        Auth::login($ownerA);
+        $service = $this->app->make(RoleService::class);
+        $service->create(['name' => 'Cashier'], new Request());
+        $shiftLead = $service->create(['name' => 'Shift Lead'], new Request());
+
+        // No-op rename (same name) must not trip the uniqueness check against itself.
+        $unchanged = $service->update($shiftLead, ['name' => 'Shift Lead']);
+        $this->assertSame('Shift Lead', $unchanged->name);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->update($shiftLead, ['name' => 'Cashier']);
+    }
+
     public function test_sync_permissions_updates_role_permissions_and_is_reusable_from_update(): void
     {
         [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');

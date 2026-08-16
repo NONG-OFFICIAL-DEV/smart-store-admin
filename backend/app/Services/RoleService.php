@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RoleService extends BaseService
 {
@@ -33,7 +34,11 @@ class RoleService extends BaseService
      */
     public function create(array $data, Request $request): Role
     {
-        $data['tenant_id'] = $this->tenantResolver->resolve($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        $this->assertNameUnique($tenantId, $data['name']);
+
+        $data['tenant_id'] = $tenantId;
         $data['is_system'] = false;
 
         return $this->repository->create($data);
@@ -44,6 +49,10 @@ class RoleService extends BaseService
         $this->assertNotSystem($role);
 
         unset($data['is_system'], $data['tenant_id']);
+
+        if (array_key_exists('name', $data) && $data['name'] !== $role->name) {
+            $this->assertNameUnique($role->tenant_id, $data['name'], excludeRoleId: $role->id);
+        }
 
         $permissionIds = $data['permission_ids'] ?? null;
         unset($data['permission_ids']);
@@ -84,6 +93,25 @@ class RoleService extends BaseService
     {
         if ($role->is_system) {
             throw new SystemRoleLockedException();
+        }
+    }
+
+    // Case-insensitive, per-tenant — the DB's (tenant_id, code) unique index
+    // only covers the internal `code` slug (owner, etc.), never `name`, so
+    // nothing previously stopped a tenant from creating "Manager" and
+    // "manager" (or the exact same name twice) as separate role rows.
+    private function assertNameUnique(string $tenantId, string $name, ?string $excludeRoleId = null): void
+    {
+        $exists = Role::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])
+            ->when($excludeRoleId, fn ($query) => $query->where('id', '!=', $excludeRoleId))
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'name' => 'A role with this name already exists.',
+            ]);
         }
     }
 }

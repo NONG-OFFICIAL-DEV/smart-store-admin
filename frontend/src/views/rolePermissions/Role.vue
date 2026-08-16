@@ -104,6 +104,7 @@
       v-model="dialog"
       :edit-item="editItem"
       :loading="saving"
+      :server-errors-prop="dialogServerErrors"
       @saved="handleRoleSaved"
     />
 
@@ -124,11 +125,13 @@
   import { usePermissionStore } from '@/stores/permissionStore'
   import { useRoleStore } from '@/stores/roleStore'
   import { getAllRolesApi } from '@/api/roleService'
+  import { usePermission } from '@/composables/usePermission'
   import RoleFormDialog from '@/components/rolePermissions/RoleFormDialog.vue'
   import RolePermissionsDialog from '@/components/rolePermissions/RolePermissionsDialog.vue'
   import { useAppUtils, AppTable } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
+  const { isSuperAdmin } = usePermission()
 
   const roleStore = useRoleStore()
   const permStore = usePermissionStore()
@@ -141,6 +144,7 @@
   const editItem = ref(null)
   const activeRole = ref(null)
   const assignedPermIds = ref([])
+  const dialogServerErrors = ref({})
 
   const filters = ref({ is_system: null })
 
@@ -172,15 +176,18 @@
   // ── Role CRUD ─────────────────────────────────────────────────────────────────
   const openCreate = () => {
     editItem.value = null
+    dialogServerErrors.value = {}
     dialog.value = true
   }
   const openEdit = item => {
     editItem.value = item
+    dialogServerErrors.value = {}
     dialog.value = true
   }
 
   const handleRoleSaved = async payload => {
     saving.value = true
+    dialogServerErrors.value = {}
     try {
       if (payload.id) {
         await roleStore.updateRole(payload.id, payload)
@@ -192,6 +199,9 @@
       dialog.value = false
       tableRef.value?.refresh()
     } catch (e) {
+      if (e?.response?.status === 422) {
+        dialogServerErrors.value = e.response.data?.errors ?? {}
+      }
       notif(e?.response?.data?.message || t('unit.delete_failed'), { type: 'error' })
     } finally {
       saving.value = false

@@ -121,6 +121,42 @@ class StaffServiceTest extends TestCase
         ], new Request());
     }
 
+    public function test_a_shared_system_role_with_null_tenant_id_is_assignable(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        $sharedRole = Role::create(['tenant_id' => null, 'name' => 'Shared Template', 'is_system' => true]);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(StaffService::class);
+
+        $staff = $service->create([
+            'first_name' => 'Shared', 'last_name' => 'Role', 'email' => 'shared@example.test',
+            'password' => 'secret123', 'branch_id' => $branch->id, 'role_id' => $sharedRole->id,
+        ], new Request());
+
+        $this->assertSame($sharedRole->id, $staff->role_id);
+    }
+
+    public function test_an_orphaned_custom_role_with_null_tenant_id_is_not_assignable(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        // is_system defaults to false — this shape only exists from the old
+        // pre-refactor bug where tenant_id was never resolved on create.
+        $orphanedRole = Role::create(['tenant_id' => null, 'name' => 'Orphaned Custom Role']);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(StaffService::class);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $service->create([
+            'first_name' => 'Should', 'last_name' => 'Fail', 'email' => 'shouldfail@example.test',
+            'password' => 'secret123', 'branch_id' => $branch->id, 'role_id' => $orphanedRole->id,
+        ], new Request());
+    }
+
     public function test_reset_password_generates_a_new_temporary_password(): void
     {
         [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');

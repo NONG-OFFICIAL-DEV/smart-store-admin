@@ -12,6 +12,7 @@ use App\Services\RoleService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RoleController extends Controller
 {
@@ -40,7 +41,11 @@ class RoleController extends Controller
 
     public function store(StoreRoleRequest $request): JsonResponse
     {
-        $role = $this->roles->create($request->validated(), $request);
+        try {
+            $role = $this->roles->create($request->validated(), $request);
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422, $e->errors(), 'VALIDATION_FAILED');
+        }
 
         return $this->created(new RoleResource($role), 'Role created successfully.');
     }
@@ -56,6 +61,8 @@ class RoleController extends Controller
             $role = $this->roles->update($role, $request->validated());
         } catch (SystemRoleLockedException $e) {
             return $this->error($e->getMessage(), 403, [], 'SYSTEM_ROLE_LOCKED');
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422, $e->errors(), 'VALIDATION_FAILED');
         }
 
         return $this->success(new RoleResource($role), 'Role updated successfully.');

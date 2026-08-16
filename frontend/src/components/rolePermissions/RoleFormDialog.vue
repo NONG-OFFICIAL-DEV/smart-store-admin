@@ -23,9 +23,11 @@
                 variant="outlined"
                 prepend-inner-icon="mdi-shield-account"
                 :rules="[rules.required, rules.maxLen(80)]"
+                :error-messages="serverErrors.name"
                 counter="80"
                 :hint="$t('roles.field.name_hint')"
                 persistent-hint
+                @update:model-value="serverErrors.name = null"
               />
             </v-col>
             <v-col cols="12">
@@ -46,7 +48,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
 
@@ -54,7 +56,8 @@
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     editItem: { type: Object, default: null },
-    loading: { type: Boolean, default: false }
+    loading: { type: Boolean, default: false },
+    serverErrorsProp: { type: Object, default: () => ({}) }
   })
 
   const emit = defineEmits(['update:modelValue', 'saved'])
@@ -62,6 +65,15 @@
 
   // ── Refs ──────────────────────────────────────────────────────────────────────
   const formRef = ref(null)
+  const serverErrors = reactive({})
+
+  watch(
+    () => props.serverErrorsProp,
+    errs => {
+      Object.keys(serverErrors).forEach(k => delete serverErrors[k])
+      Object.assign(serverErrors, errs ?? {})
+    }
+  )
 
   const defaultForm = () => ({ id: null, name: '', description: '' })
   const form = ref(defaultForm())
@@ -77,6 +89,7 @@
   watch(
     () => props.editItem,
     item => {
+      Object.keys(serverErrors).forEach(k => delete serverErrors[k])
       form.value = item
         ? { id: item.id, name: item.name, description: item.description || '' }
         : defaultForm()
@@ -94,6 +107,7 @@
   const close = () => {
     formRef.value?.reset()
     form.value = defaultForm()
+    Object.keys(serverErrors).forEach(k => delete serverErrors[k])
     emit('update:modelValue', false)
   }
 </script>

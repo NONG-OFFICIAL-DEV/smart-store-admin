@@ -234,11 +234,15 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Roles & Permissions ───────────────────────────────────────────────────
+    // Creating a brand-new role is super-admin-only — tenant owners may still
+    // view/edit/delete/assign permissions for their own tenant's roles (all
+    // still gated by roles.manage below), just not mint new ones.
     Route::middleware('permission:roles.manage')->group(function () {
-        Route::apiResource('roles',       RoleController::class);
+        Route::apiResource('roles',       RoleController::class)->except(['store']);
         Route::apiResource('permissions', PermissionController::class);
         Route::post('roles/{role}/permissions/sync', [RoleController::class, 'syncPermissions']);
     });
+    Route::post('roles', [RoleController::class, 'store'])->middleware(['permission:roles.manage', 'superadmin']);
 
     // ── Staff ─────────────────────────────────────────────────────────────────
     Route::middleware('permission:staff.manage')->group(function () {

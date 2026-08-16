@@ -129,11 +129,25 @@ class StaffService extends BaseService
 
     // Staff role assignment must never be able to grant the protected Owner
     // role, and must never reach across into another tenant's roles.
+    //
+    // A role is assignable if it either belongs to this exact tenant, or is
+    // a genuine shared system template (tenant_id NULL AND is_system true —
+    // the same condition TenantScope itself uses to keep such roles visible
+    // to every tenant, see TenantScopeTest::test_system_roles_with_null_tenant_id_stay_visible_to_every_tenant).
+    // A stray custom role with a NULL tenant_id is NOT covered by that
+    // exception — that shape only exists from a historical bug where roles
+    // were created without ever resolving tenant_id, and must not be
+    // treated as legitimately shared.
     private function assertRoleAssignable(string $roleId, string $tenantId): void
     {
         $role = Role::withoutGlobalScopes()
             ->where('id', $roleId)
-            ->where('tenant_id', $tenantId)
+            ->where(function ($query) use ($tenantId) {
+                $query->where('tenant_id', $tenantId)
+                    ->orWhere(function ($shared) {
+                        $shared->whereNull('tenant_id')->where('is_system', true);
+                    });
+            })
             ->first();
 
         if (! $role) {
