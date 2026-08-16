@@ -17,7 +17,12 @@
     @submit="handleSubmit"
   >
         <v-form ref="formRef">
-          <v-row dense>
+          <!-- ── Basic Information ─────────────────────────────────────── -->
+          <div class="form-section-label mb-3">
+            <v-icon icon="mdi-account-outline" size="13" class="mr-1" />
+            {{ $t('users.dialog.section_basic') }}
+          </div>
+          <v-row dense class="mb-1">
             <!-- Avatar preview -->
             <v-col cols="3">
               <v-avatar
@@ -31,11 +36,12 @@
                 </span>
               </v-avatar>
             </v-col>
-            <v-col col="7">
+            <v-col cols="9">
               <v-text-field
                 v-model="form.avatar_url"
                 :label="$t('users.dialog.avatar_url')"
                 variant="outlined"
+                rounded="lg"
                 prepend-inner-icon="mdi-link"
                 :hint="$t('users.dialog.avatar_url_hint')"
                 persistent-hint
@@ -43,13 +49,14 @@
               />
             </v-col>
           </v-row>
-          <v-row>
+          <v-row dense>
             <!-- First Name -->
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="form.first_name"
                 :label="$t('form.first_name')"
                 variant="outlined"
+                rounded="lg"
                 prepend-inner-icon="mdi-account"
                 :rules="[rules.required, rules.maxLen(80)]"
                 :hint="$t('users.dialog.first_name_hint')"
@@ -63,26 +70,55 @@
                 v-model="form.last_name"
                 :label="$t('form.last_name')"
                 variant="outlined"
+                rounded="lg"
                 prepend-inner-icon="mdi-account"
                 :rules="[rules.required, rules.maxLen(80)]"
                 :hint="$t('users.dialog.last_name_hint')"
                 persistent-hint
               />
             </v-col>
+          </v-row>
 
+          <v-divider class="my-5" />
+
+          <!-- ── Contact & Preferences ─────────────────────────────────── -->
+          <div class="form-section-label mb-3">
+            <v-icon icon="mdi-card-account-details-outline" size="13" class="mr-1" />
+            {{ $t('users.dialog.section_contact') }}
+          </div>
+          <v-row dense>
             <!-- Email -->
             <v-col cols="12">
+              <p v-if="isEdit" class="text-caption text-medium-emphasis mb-1">
+                {{ $t('users.dialog.current_email_label') }}:
+                <span class="font-weight-medium">{{ originalEmail }}</span>
+              </p>
               <v-text-field
                 v-model="form.email"
                 :label="$t('form.email')"
                 variant="outlined"
+                rounded="lg"
                 type="email"
                 prepend-inner-icon="mdi-email-outline"
                 :rules="[rules.required, rules.email]"
+                :error-messages="serverErrors.email"
                 :hint="$t('users.dialog.email_hint')"
                 persistent-hint
+                @update:model-value="serverErrors.email = null"
               />
-              <!-- :disabled="isEdit" -->
+              <v-alert
+                v-if="emailChanged"
+                type="warning"
+                variant="tonal"
+                density="comfortable"
+                rounded="lg"
+                class="mt-3"
+                icon="mdi-alert-outline"
+              >
+                <span class="text-body-2">
+                  {{ $t('users.dialog.email_change_warning', { name: fullName }) }}
+                </span>
+              </v-alert>
             </v-col>
 
             <!-- Phone -->
@@ -91,6 +127,7 @@
                 v-model="form.phone"
                 :label="$t('form.phone')"
                 variant="outlined"
+                rounded="lg"
                 prepend-inner-icon="mdi-phone"
                 :rules="[rules.maxLen(30)]"
                 :hint="$t('users.dialog.phone_hint')"
@@ -108,20 +145,29 @@
                 item-value="value"
                 :label="$t('users.dialog.preferred_language')"
                 variant="outlined"
+                rounded="lg"
                 prepend-inner-icon="mdi-translate"
                 :hint="$t('users.dialog.preferred_language_hint')"
                 persistent-hint
                 clearable
               />
             </v-col>
+          </v-row>
 
-            <!-- Password (create only — editing a user never touches the password) -->
-            <template v-if="!isEdit">
+          <!-- ── Security (create only — editing a user never touches the password) ── -->
+          <template v-if="!isEdit">
+            <v-divider class="my-5" />
+            <div class="form-section-label mb-3">
+              <v-icon icon="mdi-lock-outline" size="13" class="mr-1" />
+              {{ $t('users.dialog.section_security') }}
+            </div>
+            <v-row dense>
               <v-col cols="12" sm="8">
                 <v-text-field
                   v-model="form.password"
                   :label="$t('form.password')"
                   variant="outlined"
+                  rounded="lg"
                   :type="showPassword ? 'text' : 'password'"
                   prepend-inner-icon="mdi-lock-outline"
                   :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -142,42 +188,45 @@
                   {{ $t('users.dialog.generate_password') }}
                 </v-btn>
               </v-col>
-            </template>
+            </v-row>
+          </template>
 
-            <!-- Active toggle -->
-            <v-col cols="12">
-              <div class="d-flex gap-6 flex-wrap mt-1">
-                <v-switch
-                  v-model="form.is_active"
-                  color="success"
-                  density="compact"
-                  hide-details
-                  inset
-                  :label="$t('users.dialog.account_active')"
-                />
-              </div>
-            </v-col>
-          </v-row>
+          <v-divider class="my-5" />
+
+          <!-- Active toggle -->
+          <div class="d-flex gap-6 flex-wrap">
+            <v-switch
+              v-model="form.is_active"
+              color="success"
+              density="compact"
+              hide-details
+              inset
+              :label="$t('users.dialog.account_active')"
+            />
+          </div>
         </v-form>
   </AppDialog>
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
   import { useAvatar } from '@/composables/useAvatar'
   import { usePasswordPolicy } from '@/composables/usePasswordPolicy'
+  import { useAppUtils } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { getAvatarColor } = useAvatar()
   const { generate, rules: passwordRules } = usePasswordPolicy()
+  const { confirm } = useAppUtils()
 
   // ── Props & Emits ─────────────────────────────────────────────────────────────
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     editItem: { type: Object, default: null },
-    loading: { type: Boolean, default: false }
+    loading: { type: Boolean, default: false },
+    serverErrorsProp: { type: Object, default: () => ({}) }
   })
 
   const emit = defineEmits(['update:modelValue', 'saved'])
@@ -191,6 +240,15 @@
   // ── Refs ──────────────────────────────────────────────────────────────────────
   const formRef = ref(null)
   const showPassword = ref(false)
+  const serverErrors = reactive({})
+
+  watch(
+    () => props.serverErrorsProp,
+    errs => {
+      Object.keys(serverErrors).forEach(k => delete serverErrors[k])
+      Object.assign(serverErrors, errs ?? {})
+    }
+  )
 
   // ── Constants ─────────────────────────────────────────────────────────────────
   const languages = [
@@ -215,6 +273,9 @@
 
   const form = ref(defaultForm())
   const isEdit = computed(() => !!props.editItem)
+  const originalEmail = ref('')
+  const emailChanged = computed(() => isEdit.value && form.value.email !== originalEmail.value)
+  const fullName = computed(() => `${form.value.first_name} ${form.value.last_name}`.trim())
 
   // ── Rules ─────────────────────────────────────────────────────────────────────
   const rules = {
@@ -242,6 +303,8 @@
     () => props.editItem,
     item => {
       showPassword.value = false
+      Object.keys(serverErrors).forEach(k => delete serverErrors[k])
+      originalEmail.value = item?.email ?? ''
       form.value = item
         ? {
             id: item.id,
@@ -268,6 +331,21 @@
     const { valid } = await formRef.value.validate()
     if (!valid) return
 
+    if (emailChanged.value) {
+      confirm({
+        title: t('users.dialog.confirm_email_change_title'),
+        message: t('users.dialog.confirm_email_change_message', {
+          name: fullName.value,
+          oldEmail: originalEmail.value,
+          newEmail: form.value.email
+        }),
+        options: { type: 'warning', width: 520 },
+        agree: () => emit('saved', { ...form.value }),
+        cancel: () => {}
+      })
+      return
+    }
+
     emit('saved', { ...form.value })
   }
 
@@ -275,5 +353,18 @@
     formRef.value?.reset()
     form.value = defaultForm()
     showPassword.value = false
+    Object.keys(serverErrors).forEach(k => delete serverErrors[k])
   }
 </script>
+
+<style scoped>
+  .form-section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgb(var(--v-theme-primary));
+    display: flex;
+    align-items: center;
+  }
+</style>

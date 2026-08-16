@@ -7,11 +7,9 @@
   import { getAllStaffApi } from '@/api/staffService'
   import { useAppUtils, AppTable } from '@nong-official-dev/core'
   import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
-  import { usePermission } from '@/composables/usePermission'
   import { useI18n } from 'vue-i18n'
   import { useAvatar, AVATAR_HEX_PALETTE } from '@/composables/useAvatar'
   const { t } = useI18n()
-  const { isSuperAdmin } = usePermission()
   const { getInitials, getAvatarColor } = useAvatar()
   const staffStore = useStaffStore()
   const branchStore = useBranchStore()
@@ -37,27 +35,20 @@
   // ── Table headers — only employee_code is in StaffRepository::ALLOWED_SORTS;
   // the rest fall back to a silent latest()-sort server-side, so they're not
   // marked sortable to avoid implying an order that isn't happening. ──────────
-  const tableHeaders = computed(() => {
-    const headers = [
+    const headers = computed(() => [
       { title: t('staff.table.name'), key: 'full_name', sortable: false },
       { title: t('staff.table.code'), key: 'employee_code', sortable: true },
       { title: t('staff.table.branch'), key: 'branch_name', sortable: false },
       { title: t('staff.table.role'), key: 'role_name', sortable: false },
       { title: t('staff.table.compensation'), key: 'salary', sortable: false },
-      { title: t('staff.table.status'), key: 'is_active', sortable: false }
-    ]
-
-    if (isSuperAdmin()) {
-      headers.push({
+      { title: t('staff.table.status'), key: 'is_active', sortable: false },
+      {
         title: t('staff.table.actions'),
         key: 'actions',
         sortable: false,
         width: '10%'
-      })
-    }
-
-    return headers
-  })
+      }
+    ])
 
   // ── Server-driven filters — matches StaffRepository's contract
   // (search/sortBy/sortDesc/page/perPage + branch_id/role_id). ─────────────────
@@ -139,7 +130,6 @@
     >
       <template #right>
         <v-btn
-          v-if="isSuperAdmin()"
           color="primary"
           prepend-icon="mdi-plus"
           rounded="lg"
@@ -186,7 +176,7 @@
     <v-card rounded="lg" border flat class="overflow-hidden pa-4">
       <AppTable
         ref="tableRef"
-        :headers="tableHeaders"
+        :headers="headers"
         :fetch-fn="fetchStaff"
         :filters="filters"
         item-label="staff"

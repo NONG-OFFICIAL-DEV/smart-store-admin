@@ -207,6 +207,7 @@
       v-model="dialog"
       :edit-item="editItem"
       :loading="saving"
+      :server-errors-prop="dialogServerErrors"
       @saved="handleUserSaved"
     />
 
@@ -237,6 +238,7 @@
   const dialog = ref(false)
   const saving = ref(false)
   const editItem = ref(null)
+  const dialogServerErrors = ref({})
   const tempPasswordDialog = ref(false)
   const temporaryPassword = ref('')
   // ── Table headers ─────────────────────────────────────────────────────────────
@@ -307,21 +309,28 @@
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const openCreate = () => {
     editItem.value = null
+    dialogServerErrors.value = {}
     dialog.value = true
   }
   const openEdit = item => {
     editItem.value = item
+    dialogServerErrors.value = {}
     dialog.value = true
   }
 
   const handleUserSaved = async payload => {
     saving.value = true
+    dialogServerErrors.value = {}
     try {
       if (payload.id) {
+        const emailChanged = editItem.value && payload.email !== editItem.value.email
         await store.updateUser(payload)
-        notif(t('users.page.messages.updated'), {
-          type: 'success'
-        })
+        notif(
+          emailChanged
+            ? t('users.page.messages.email_changed', { name: `${payload.first_name} ${payload.last_name}` })
+            : t('users.page.messages.updated'),
+          { type: 'success' }
+        )
       } else {
         await store.addUser(payload)
         notif(t('users.page.messages.created'), {
@@ -331,6 +340,9 @@
       tableRef.value?.refresh()
       dialog.value = false
     } catch (e) {
+      if (e?.response?.status === 422) {
+        dialogServerErrors.value = e.response.data?.errors ?? {}
+      }
       notif(e?.response?.data?.message || t('branch_menu.operation_failed'), {
         type: 'error'
       })

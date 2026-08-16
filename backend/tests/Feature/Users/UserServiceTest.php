@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Users;
 
+use App\Models\ActivityLog;
+use App\Models\RefreshToken;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\RefreshTokenService;
 use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -110,5 +114,48 @@ class UserServiceTest extends TestCase
 
         $this->assertNotEmpty($plain);
         $this->assertTrue($user->refresh()->must_change_password);
+    }
+
+    public function test_changing_email_resets_verification_revokes_sessions_and_logs_the_change(): void
+    {
+        $admin = User::create(['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin@example.test', 'is_super_admin' => true]);
+        Auth::login($admin);
+
+        $user = User::create([
+            'first_name' => 'Target', 'last_name' => 'User', 'email' => 'old@example.test',
+            'email_verified_at' => now(),
+        ]);
+
+        $this->app->make(RefreshTokenService::class)->issue($user, \Illuminate\Http\Request::create('/login'));
+        $this->assertSame(1, RefreshToken::where('user_id', $user->id)->whereNull('revoked_at')->count());
+
+        $service = $this->app->make(UserService::class);
+        $updated = $service->update($user, ['email' => 'new@example.test']);
+
+        $this->assertSame('new@example.test', $updated->email);
+        $this->assertNull($updated->email_verified_at);
+        $this->assertSame(0, RefreshToken::where('user_id', $user->id)->whereNull('revoked_at')->count());
+
+        $log = ActivityLog::where('action', 'user.email_changed_by_admin')->first();
+        $this->assertNotNull($log);
+        $this->assertSame($admin->id, $log->user_id);
+        $this->assertSame($user->id, $log->entity_id);
+        $this->assertSame('old@example.test', $log->payload['old_email']);
+        $this->assertSame('new@example.test', $log->payload['new_email']);
+    }
+
+    public function test_updating_without_changing_email_does_not_revoke_sessions_or_log(): void
+    {
+        $admin = User::create(['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin2@example.test', 'is_super_admin' => true]);
+        Auth::login($admin);
+
+        $user = User::create(['first_name' => 'Target', 'last_name' => 'User', 'email' => 'stays@example.test']);
+        $this->app->make(RefreshTokenService::class)->issue($user, \Illuminate\Http\Request::create('/login'));
+
+        $service = $this->app->make(UserService::class);
+        $service->update($user, ['email' => 'stays@example.test', 'phone' => '012345678']);
+
+        $this->assertSame(1, RefreshToken::where('user_id', $user->id)->whereNull('revoked_at')->count());
+        $this->assertNull(ActivityLog::where('action', 'user.email_changed_by_admin')->first());
     }
 }
