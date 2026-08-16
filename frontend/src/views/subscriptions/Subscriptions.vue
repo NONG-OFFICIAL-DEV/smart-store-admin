@@ -120,6 +120,19 @@
                 />
               </template>
             </v-tooltip>
+            <v-tooltip :text="$t('subscription.list.action.record_payment')">
+              <template #activator="{ props: tp }">
+                <v-btn
+                  v-bind="tp"
+                  icon="mdi-cash-plus"
+                  size="small"
+                  variant="text"
+                  rounded="lg"
+                  color="success"
+                  @click="openRecordPayment(item)"
+                />
+              </template>
+            </v-tooltip>
             <v-tooltip
               :text="['active', 'trial'].includes(item.status) ? $t('subscription.list.action.cancel') : $t('subscription.list.action.delete')"
             >
@@ -148,6 +161,13 @@
       :current-plan="assigningTenant?.plan"
       @saved="tableRef?.refresh()"
     />
+
+    <!-- ── Record Payment Dialog — manual reconciliation ledger entry ── -->
+    <RecordPaymentDialog
+      v-model="paymentDialog"
+      :tenant-id="payingTenant?.tenant_id"
+      :tenant-name="payingTenant?.tenant?.name"
+    />
   </v-container>
 </template>
 
@@ -160,6 +180,7 @@
   import { getAllsubscriptionsApi } from '@/api/subscriptionService'
   import { useDate } from '@/composables/useDate'
   import AssignPlanDialog from '@/components/subscriptions/AssignPlanDialog.vue'
+  import RecordPaymentDialog from '@/components/subscriptions/RecordPaymentDialog.vue'
 
   const { t } = useI18n()
   const router = useRouter()
@@ -175,6 +196,9 @@
   // ── Dialog
   const assignDialog = ref(false)
   const assigningTenant = ref(null)
+
+  const paymentDialog = ref(false)
+  const payingTenant = ref(null)
 
   // ── Table headers
   const headers = [
@@ -239,6 +263,11 @@
   const openAssign = item => {
     assigningTenant.value = item
     assignDialog.value = true
+  }
+
+  const openRecordPayment = item => {
+    payingTenant.value = item
+    paymentDialog.value = true
   }
 
   const viewHistory = item => {

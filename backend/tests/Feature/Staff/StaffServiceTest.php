@@ -7,10 +7,13 @@ use App\Models\Role;
 use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PlanService;
 use App\Services\StaffService;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
@@ -54,6 +57,82 @@ class StaffServiceTest extends TestCase
     private function makeRole(Tenant $tenant, string $name): Role
     {
         return Role::create(['tenant_id' => $tenant->id, 'name' => $name]);
+    }
+
+    private function assignPlanWithSeats(Tenant $tenant, User $owner, int $seats): void
+    {
+        $plan = $this->app->make(PlanService::class)->create([
+            'name' => 'Seat Limited', 'code' => 'seat-limited-'.uniqid(),
+            'price_usd' => 10, 'seats' => $seats, 'storage_gb' => 1,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+        ]);
+
+        $this->app->make(TenantSubscriptionService::class)
+            ->changePlan($tenant, $plan->id, $plan->billingCycles->first()->id, $owner->id);
+    }
+
+    public function test_create_rejects_a_staff_member_beyond_the_plan_seat_limit(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        $role = $this->makeRole($tenantA, 'Cashier');
+        $this->assignPlanWithSeats($tenantA, $ownerA, 1);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(StaffService::class);
+
+        $service->create([
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'email' => 'jane@example.test',
+            'password' => 'secret123',
+            'branch_id' => $branch->id,
+            'role_id' => $role->id,
+        ], new Request());
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('This plan is limited to 1 staff seats. Upgrade to add more.');
+
+        $service->create([
+            'first_name' => 'John',
+            'last_name' => 'Smith',
+            'email' => 'john@example.test',
+            'password' => 'secret123',
+            'branch_id' => $branch->id,
+            'role_id' => $role->id,
+        ], new Request());
+    }
+
+    public function test_create_allows_staff_up_to_exactly_the_plan_seat_limit(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        $role = $this->makeRole($tenantA, 'Cashier');
+        $this->assignPlanWithSeats($tenantA, $ownerA, 2);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(StaffService::class);
+
+        $service->create([
+            'first_name' => 'Jane',
+            'last_name' => 'Doe',
+            'email' => 'jane@example.test',
+            'password' => 'secret123',
+            'branch_id' => $branch->id,
+            'role_id' => $role->id,
+        ], new Request());
+
+        $staff = $service->create([
+            'first_name' => 'John',
+            'last_name' => 'Smith',
+            'email' => 'john@example.test',
+            'password' => 'secret123',
+            'branch_id' => $branch->id,
+            'role_id' => $role->id,
+        ], new Request());
+
+        $this->assertNotNull($staff->id);
+        $this->assertSame(2, Staff::where('tenant_id', $tenantA->id)->where('is_active', true)->count());
     }
 
     public function test_create_makes_a_user_and_staff_record_in_one_transaction(): void

@@ -20,6 +20,7 @@ class Plan extends Model
         'seats',
         'storage_gb',
         'api_limit',
+        'trial_days',
         'features',
         'is_active',
     ];

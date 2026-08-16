@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Invoice;
+use App\Models\Plan;
 use App\Models\PlanBillingCycle;
 use App\Models\SubscriptionPlanHistory;
 use App\Models\Tenant;
@@ -10,6 +12,7 @@ use App\Repositories\Contracts\TenantSubscriptionRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class TenantSubscriptionService extends BaseService
@@ -67,14 +70,24 @@ class TenantSubscriptionService extends BaseService
             $trialEndsAt = $wasTrial ? $current->trial_ends_at : null;
             $cycleId     = $newCycleId ?? $current?->billing_cycle_id;
 
+            // A trial only ever starts on a tenant's FIRST-EVER subscription —
+            // never on a plan switch for an already-provisioned tenant, which
+            // would otherwise let a paying (or previously-trialed) tenant
+            // reset into a free trial just by switching plans.
+            $startsNewTrial = !$current && (Plan::find($newPlanId)?->trial_days ?? 0) > 0;
+            if ($startsNewTrial) {
+                $trialEndsAt = now()->addDays(Plan::find($newPlanId)->trial_days);
+            }
+            $isTrial = $wasTrial || $startsNewTrial;
+
             if ($current) {
                 $current->update(['status' => 'cancelled', 'cancelled_at' => now()]);
             }
 
-            $periodStart = $wasTrial ? null : now();
+            $periodStart = $isTrial ? null : now();
             $periodEnd   = null;
 
-            if (!$wasTrial) {
+            if (!$isTrial) {
                 if (!$cycleId) {
                     throw new InvalidArgumentException(
                         'A billing cycle is required to start a non-trial subscription.'
@@ -89,7 +102,7 @@ class TenantSubscriptionService extends BaseService
                 'tenant_id'            => $tenant->id,
                 'plan_id'              => $newPlanId,
                 'billing_cycle_id'     => $cycleId,
-                'status'               => $wasTrial ? 'trial' : 'active',
+                'status'               => $isTrial ? 'trial' : 'active',
                 'trial_ends_at'        => $trialEndsAt,
                 'current_period_start' => $periodStart,
                 'current_period_end'   => $periodEnd,
@@ -190,6 +203,43 @@ class TenantSubscriptionService extends BaseService
 
             return $subscription->fresh();
         });
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // RECORD MANUAL PAYMENT — reconciliation ledger only. Records a payment
+    // that already happened (bank transfer, cash, etc.), so it's created
+    // 'paid' immediately rather than going through draft/pending. Does NOT
+    // create a PaymentTransaction row — that model is reserved for real
+    // gateway transactions (ABA/Bakong QR, webhook payloads), a separate,
+    // still-deferred integration.
+    // ──────────────────────────────────────────────────────────────────────────
+    public function recordManualPayment(Tenant $tenant, array $data): Invoice
+    {
+        $subscription = $tenant->activeSubscription;
+
+        if (! $subscription) {
+            throw ValidationException::withMessages([
+                'tenant_id' => 'This business has no active subscription to record a payment against.',
+            ]);
+        }
+
+        return Invoice::create([
+            'invoice_number' => 'INV-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
+            'tenant_id' => $tenant->id,
+            'subscription_id' => $subscription->id,
+            'amount_usd' => $data['amount_usd'],
+            'currency' => $data['currency'],
+            'status' => 'paid',
+            'paid_at' => $data['paid_at'],
+            'note' => $data['note'] ?? null,
+            'period_start' => $subscription->current_period_start,
+            'period_end' => $subscription->current_period_end,
+        ]);
+    }
+
+    public function listInvoices(Tenant $tenant): LengthAwarePaginator
+    {
+        return $tenant->invoices()->latest('paid_at')->paginate(15);
     }
 
     private function logHistory(

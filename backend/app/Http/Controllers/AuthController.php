@@ -6,6 +6,7 @@ use App\Models\Feature;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
+use App\Models\TenantSubscription;
 use App\Models\ActivityLog;
 use App\Rules\PasswordPolicy;
 use App\Services\PasswordService;
@@ -242,6 +243,8 @@ class AuthController extends Controller
             'role_name'         => null,
             'permissions'       => [],
             'features'          => [],
+            'subscription_status' => null,
+            'trial_ends_at'       => null,
             'must_change_password' => $user->must_change_password,
         ];
 
@@ -267,6 +270,8 @@ class AuthController extends Controller
                 ->with('permissions:id,code')
                 ->first();
 
+            $subscription = $this->lazilyExpireTrial($ownedTenant->activeSubscription);
+
             return response()->json(array_merge($base, [
                 'is_owner'         => true,
                 'tenant_id'        => $ownedTenant->id,
@@ -288,6 +293,8 @@ class AuthController extends Controller
                 // feature. Real enforcement for a specific branch still goes
                 // through the feature:CODE route middleware.
                 'features'         => Feature::codesForTenant($ownedTenant->id),
+                'subscription_status' => $subscription?->status,
+                'trial_ends_at'       => $subscription?->trial_ends_at,
             ]));
         }
 
@@ -300,6 +307,8 @@ class AuthController extends Controller
         if (!$staff) {
             return response()->json(['error' => 'No active staff record'], 403);
         }
+
+        $subscription = $this->lazilyExpireTrial($staff->tenant?->activeSubscription);
 
         return response()->json(array_merge($base, [
             'is_staff'         => true,
@@ -317,7 +326,23 @@ class AuthController extends Controller
             'features'         => $staff->branch?->branch_type_id
                 ? Feature::codesForBranchType($staff->branch->branch_type_id)
                 : [],
+            'subscription_status' => $subscription?->status,
+            'trial_ends_at'       => $subscription?->trial_ends_at,
         ]));
+    }
+
+    // Lazy trial expiry — there's no cron/scheduler running in this app (see
+    // TenantSubscriptionService), so a trial's end is only ever noticed the
+    // next time its tenant's own users hit me(), which is every login and
+    // every silent token refresh. Good enough: nothing meaningful happens on
+    // an account nobody is actively using anyway.
+    private function lazilyExpireTrial(?TenantSubscription $subscription): ?TenantSubscription
+    {
+        if ($subscription?->status === 'trial' && $subscription->trial_ends_at?->isPast()) {
+            $subscription->update(['status' => 'suspended']);
+        }
+
+        return $subscription;
     }
 
     // Exchanges a refresh token for a brand-new access+refresh pair.

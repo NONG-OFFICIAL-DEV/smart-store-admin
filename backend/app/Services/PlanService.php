@@ -36,6 +36,7 @@ class PlanService extends BaseService
                 'seats' => $data['seats'],
                 'storage_gb' => $data['storage_gb'],
                 'api_limit' => $data['api_limit'] ?? 0,
+                'trial_days' => $data['trial_days'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
@@ -65,6 +66,7 @@ class PlanService extends BaseService
                 'seats' => $data['seats'],
                 'storage_gb' => $data['storage_gb'],
                 'api_limit' => $data['api_limit'] ?? $plan->api_limit,
+                'trial_days' => $data['trial_days'] ?? $plan->trial_days,
                 'is_active' => $data['is_active'] ?? $plan->is_active,
             ]);
 

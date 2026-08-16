@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RecordTenantPaymentRequest;
+use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\TenantSubscriptionResource;
 use App\Models\PlanBillingCycle;
 use App\Models\Tenant;
@@ -11,6 +13,7 @@ use App\Services\TenantSubscriptionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class TenantSubscriptionController extends Controller
@@ -131,6 +134,34 @@ class TenantSubscriptionController extends Controller
         return $this->success(
             new TenantSubscriptionResource($subscription->load(['tenant:id,name,slug', 'plan:id,name,code,price_usd'])),
             'Subscription renewed successfully.'
+        );
+    }
+
+    // Manual payment reconciliation — records a payment already received
+    // (bank transfer, cash) as a real Invoice, without a gateway integration.
+    public function recordPayment(RecordTenantPaymentRequest $request, Tenant $tenant): JsonResponse
+    {
+        try {
+            $invoice = $this->service->recordManualPayment($tenant, $request->validated());
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422, $e->errors(), 'NO_ACTIVE_SUBSCRIPTION');
+        }
+
+        return $this->created(new InvoiceResource($invoice), 'Payment recorded successfully.');
+    }
+
+    public function payments(Tenant $tenant): JsonResponse
+    {
+        $paginator = $this->service->listInvoices($tenant);
+
+        return $this->success(
+            InvoiceResource::collection($paginator->items()),
+            meta: [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ]
         );
     }
 }

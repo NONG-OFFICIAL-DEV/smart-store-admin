@@ -163,6 +163,21 @@
                   />
                 </v-col>
 
+                <v-col cols="4">
+                  <v-text-field
+                    v-model="form.trial_days"
+                    :label="$t('subscription.plan_dialog.fields.trial_days')"
+                    type="number"
+                    min="0"
+                    max="365"
+                    :hint="$t('subscription.plan_dialog.fields.trial_days_hint')"
+                    persistent-hint
+                    prepend-inner-icon="mdi-calendar-clock-outline"
+                    rounded="lg"
+                    variant="outlined"
+                  />
+                </v-col>
+
                 <v-col cols="12">
                   <v-switch
                     v-model="form.is_active"
@@ -416,6 +431,7 @@
     seats: 1,
     storage_gb: 1,
     api_limit: 0,
+    trial_days: null,
     is_active: true,
     billing_cycles: [],
     features: []
@@ -464,6 +480,7 @@
           seats: plan.seats ?? 1,
           storage_gb: plan.storage_gb ?? 1,
           api_limit: plan.api_limit ?? 0,
+          trial_days: plan.trial_days ?? null,
           is_active: plan.is_active ?? true,
           billing_cycles: Array.isArray(plan.billing_cycles)
             ? plan.billing_cycles.map(c => ({ ...c }))

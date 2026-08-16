@@ -18,6 +18,7 @@ class PlanResource extends JsonResource
             'seats' => $this->seats,
             'storage_gb' => $this->storage_gb,
             'api_limit' => $this->api_limit,
+            'trial_days' => $this->trial_days,
             'is_active' => $this->is_active,
             'billing_cycles' => PlanBillingCycleResource::collection($this->whenLoaded('billingCycles')),
             'features' => PlanFeatureResource::collection($this->whenLoaded('features')),

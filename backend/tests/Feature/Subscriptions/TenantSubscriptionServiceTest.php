@@ -11,6 +11,7 @@ use App\Services\PlanService;
 use App\Services\SubscriptionPlanHistoryService;
 use App\Services\TenantSubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -48,7 +49,7 @@ class TenantSubscriptionServiceTest extends TestCase
         return [$tenant, $owner];
     }
 
-    private function makePlan(string $code): Plan
+    private function makePlan(string $code, ?int $trialDays = null): Plan
     {
         return $this->app->make(PlanService::class)->create([
             'name' => $code,
@@ -56,6 +57,7 @@ class TenantSubscriptionServiceTest extends TestCase
             'price_usd' => 10,
             'seats' => 1,
             'storage_gb' => 1,
+            'trial_days' => $trialDays,
             'billing_cycles' => [
                 ['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0],
             ],
@@ -79,6 +81,52 @@ class TenantSubscriptionServiceTest extends TestCase
         $this->assertNull($history->from_plan_id);
         $this->assertSame($plan->id, $history->to_plan_id);
         $this->assertSame('Initial assignment', $history->reason);
+    }
+
+    public function test_changePlan_starts_a_trial_when_the_plan_has_trial_days_and_this_is_the_first_subscription(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantTrial');
+        $plan = $this->makePlan('PLANTRIAL', trialDays: 14);
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $subscription = $service->changePlan($tenant, $plan->id, null, $owner->id, 'Self-registration');
+
+        $this->assertSame('trial', $subscription->status);
+        $this->assertNotNull($subscription->trial_ends_at);
+        $this->assertTrue($subscription->trial_ends_at->between(now()->addDays(13), now()->addDays(15)));
+        $this->assertNull($subscription->current_period_start);
+        $this->assertNull($subscription->current_period_end);
+    }
+
+    public function test_changePlan_does_not_start_a_trial_when_switching_plans_on_an_existing_subscription(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantNoResetTrial');
+        $paidPlan = $this->makePlan('PLANPAID');
+        $trialPlan = $this->makePlan('PLANTRIAL2', trialDays: 14);
+        $cycleId = $paidPlan->billingCycles->first()->id;
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        // Already an active, paying tenant on a plan with no trial.
+        $service->changePlan($tenant, $paidPlan->id, $cycleId, $owner->id, 'Initial assignment');
+
+        // Switching to a plan that DOES offer a trial must not reset them into one.
+        $switched = $service->changePlan($tenant, $trialPlan->id, $trialPlan->billingCycles->first()->id, $owner->id, 'Switched plans');
+
+        $this->assertSame('active', $switched->status);
+        $this->assertNull($switched->trial_ends_at);
+    }
+
+    public function test_changePlan_does_not_start_a_trial_when_the_plan_has_no_trial_days(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantNoTrial');
+        $plan = $this->makePlan('PLANNOTRIAL');
+        $cycleId = $plan->billingCycles->first()->id;
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $subscription = $service->changePlan($tenant, $plan->id, $cycleId, $owner->id);
+
+        $this->assertSame('active', $subscription->status);
+        $this->assertNull($subscription->trial_ends_at);
     }
 
     public function test_renew_extends_the_period_and_now_logs_history(): void
@@ -194,6 +242,64 @@ class TenantSubscriptionServiceTest extends TestCase
 
         $this->assertSame(1, $results->total());
         $this->assertSame($tenantAlpha->id, $results->first()->tenant_id);
+    }
+
+    public function test_recordManualPayment_creates_a_paid_invoice_against_the_active_subscription(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantPay');
+        $plan = $this->makePlan('PLANPAY');
+        $cycleId = $plan->billingCycles->first()->id;
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $subscription = $service->changePlan($tenant, $plan->id, $cycleId, $owner->id);
+
+        $invoice = $service->recordManualPayment($tenant, [
+            'amount_usd' => 25.50,
+            'currency' => 'USD',
+            'paid_at' => now(),
+            'note' => 'Bank transfer',
+        ]);
+
+        $this->assertSame($tenant->id, $invoice->tenant_id);
+        $this->assertSame($subscription->id, $invoice->subscription_id);
+        $this->assertSame('paid', $invoice->status);
+        $this->assertSame('25.50', $invoice->amount_usd);
+        $this->assertSame('Bank transfer', $invoice->note);
+        $this->assertNotNull($invoice->invoice_number);
+        $this->assertNotNull($invoice->paid_at);
+    }
+
+    public function test_recordManualPayment_rejects_a_tenant_with_no_active_subscription(): void
+    {
+        [$tenant] = $this->makeTenantWithOwner('TenantNoSub');
+        $service = $this->app->make(TenantSubscriptionService::class);
+
+        $this->expectException(ValidationException::class);
+        $service->recordManualPayment($tenant, [
+            'amount_usd' => 10,
+            'currency' => 'USD',
+            'paid_at' => now(),
+        ]);
+    }
+
+    public function test_listInvoices_only_returns_the_given_tenants_invoices(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantInvA');
+        [$tenantB, $ownerB] = $this->makeTenantWithOwner('TenantInvB');
+        $planA = $this->makePlan('PLANINVA');
+        $planB = $this->makePlan('PLANINVB');
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $service->changePlan($tenantA, $planA->id, $planA->billingCycles->first()->id, $ownerA->id);
+        $service->changePlan($tenantB, $planB->id, $planB->billingCycles->first()->id, $ownerB->id);
+
+        $service->recordManualPayment($tenantA, ['amount_usd' => 10, 'currency' => 'USD', 'paid_at' => now()]);
+        $service->recordManualPayment($tenantB, ['amount_usd' => 20, 'currency' => 'USD', 'paid_at' => now()]);
+
+        $results = $service->listInvoices($tenantA);
+
+        $this->assertSame(1, $results->total());
+        $this->assertSame($tenantA->id, $results->first()->tenant_id);
     }
 
     public function test_toggleActive_and_cancel_are_scoped_to_the_correct_tenant_subscription(): void

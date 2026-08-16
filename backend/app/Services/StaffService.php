@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Branch;
 use App\Models\Role;
 use App\Models\Staff;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Repositories\Contracts\StaffRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -37,6 +38,7 @@ class StaffService extends BaseService
     {
         $tenantId = $this->tenantResolver->resolve($request);
 
+        $this->assertSeatLimit($tenantId);
         $this->assertRoleAssignable($data['role_id'], $tenantId);
 
         return DB::transaction(function () use ($data, $tenantId) {
@@ -125,6 +127,27 @@ class StaffService extends BaseService
         }
 
         return $this->passwordService->adminReset($staff->user);
+    }
+
+    // plans.seats caps how many active staff a tenant may have — the
+    // tenant Owner isn't a Staff record and isn't counted against it (seats
+    // means team members, not the account holder). No subscription at all
+    // means no data to enforce against, so it's let through rather than
+    // blocked on a data gap (e.g. tenants created before this existed).
+    private function assertSeatLimit(string $tenantId): void
+    {
+        $plan = Tenant::find($tenantId)?->activeSubscription?->plan;
+        if (! $plan) {
+            return;
+        }
+
+        $activeSeats = Staff::where('tenant_id', $tenantId)->where('is_active', true)->count();
+
+        if ($activeSeats >= $plan->seats) {
+            throw ValidationException::withMessages([
+                'role_id' => "This plan is limited to {$plan->seats} staff seats. Upgrade to add more.",
+            ]);
+        }
     }
 
     // Staff role assignment must never be able to grant the protected Owner

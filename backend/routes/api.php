@@ -131,7 +131,7 @@ Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
 // =============================================================================
 // PROTECTED ROUTES (auth required)
 // =============================================================================
-Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(function () {
+Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.active'])->group(function () {
 
     // ── Auth (protected) ──────────────────────────────────────────────────────
     Route::prefix('auth')->group(function () {
@@ -146,7 +146,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     // their OWN tenant's profile (see TenantProfile.vue). Kept outside the
     // 'superadmin' group below, but TenantController::show() itself still
     // enforces that non-super-admins may only fetch their own tenant.
-    Route::get('/tenants/{tenant}', [TenantController::class, 'show']);
+    Route::get('/tenants/{tenant}', [TenantController::class, 'show'])->withoutMiddleware('subscription.active');
 
     // ── System / Super-admin only ──────────────────────────────────────────────
     Route::middleware('superadmin')->group(function () {
@@ -173,6 +173,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
 
         Route::get('subscription-plan-history', [SubscriptionPlanHistoryController::class, 'index']);
 
+        // Manual payment reconciliation ledger — records payments already
+        // received (bank transfer, cash) against a tenant's subscription.
+        Route::post('tenants/{tenant}/payments', [TenantSubscriptionController::class, 'recordPayment']);
+        Route::get('tenants/{tenant}/payments', [TenantSubscriptionController::class, 'payments']);
+
         Route::prefix('admin/dashboard')->group(function () {
             Route::get('stats',        [AdminDashboardController::class, 'stats']);
             Route::get('chart',        [AdminDashboardController::class, 'chart']);
@@ -187,8 +192,10 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // Tenant's own billing read — stays open to any authenticated tenant user
-    // (the controller itself enforces tenant isolation).
-    Route::get('plans/{tenant}/billing', [TenantController::class, 'getSubscriptionByTenant']);
+    // (the controller itself enforces tenant isolation). Exempt from
+    // subscription.active too — a suspended tenant must still be able to
+    // see their own billing status to know what to do about it.
+    Route::get('plans/{tenant}/billing', [TenantController::class, 'getSubscriptionByTenant'])->withoutMiddleware('subscription.active');
 
     // ── Self-service billing (Tenant Owner) ─────────────────────────────────────
     // Always resolves the CALLER'S OWN tenant — never accepts a client-supplied

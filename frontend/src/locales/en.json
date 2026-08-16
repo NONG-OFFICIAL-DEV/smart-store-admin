@@ -2006,7 +2006,9 @@
         "seats": "Seats *",
         "storage_gb": "Storage (GB) *",
         "api_limit": "API Limit",
-        "api_limit_hint": "0 = unlimited"
+        "api_limit_hint": "0 = unlimited",
+        "trial_days": "Trial Days",
+        "trial_days_hint": "Leave empty for no trial"
       },
       "cycles": {
         "description": "Define available billing periods and discounts.",
@@ -2090,7 +2092,8 @@
         "resume": "Resume subscription",
         "cancel": "Cancel subscription",
         "delete": "Delete subscription",
-        "view_history": "View history"
+        "view_history": "View history",
+        "record_payment": "Record payment"
       },
       "confirm_cancel": {
         "title": "Cancel Subscription",
@@ -2117,7 +2120,34 @@
       "changed_at": "Date",
       "none": "None",
       "system": "System",
-      "empty": "No subscription history for this tenant yet"
+      "empty": "No subscription history for this tenant yet",
+      "tabs": {
+        "plan_history": "Plan History",
+        "payments": "Payments"
+      }
+    },
+    "payment_dialog": {
+      "title": "Record Payment",
+      "subtitle": "Record a payment already received for this tenant",
+      "amount": "Amount (USD) *",
+      "currency": "Currency *",
+      "paid_at": "Paid On *",
+      "note": "Note",
+      "record": "Record Payment",
+      "recorded_success": "Payment recorded successfully."
+    },
+    "payments": {
+      "empty": "No payments recorded for this tenant yet",
+      "table": {
+        "invoice_number": "Invoice #",
+        "amount": "Amount",
+        "paid_at": "Paid On",
+        "note": "Note"
+      }
+    },
+    "trial_banner": {
+      "message": "Your trial ends in {count} day. | Your trial ends in {count} days.",
+      "action": "View Billing"
     },
     "status": {
       "trial": "Trial",

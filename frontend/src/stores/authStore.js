@@ -28,6 +28,8 @@ export const useAuthStore = defineStore('auth', {
     plan:      null,
     currency:  null,
     locale:    null,
+    subscription_status: null,
+    trial_ends_at: null,
 
     branch_id:   null,
     branch_name: null,
@@ -74,6 +76,14 @@ export const useAuthStore = defineStore('auth', {
     // Generic: authStore.isCategory('health') → true/false
     isCategory: state => category =>
       BU_CATEGORIES[category]?.has(state.bu_type) ?? false,
+
+    // Days left in the trial, or null if not on a trial / no end date.
+    // Super admin has no tenant subscription of their own.
+    trialDaysLeft: state => {
+      if (state.subscription_status !== 'trial' || !state.trial_ends_at) return null
+      const diff = Math.ceil((new Date(state.trial_ends_at) - new Date()) / 864e5)
+      return diff >= 0 ? diff : 0
+    },
   },
 
   actions: {
@@ -166,6 +176,8 @@ export const useAuthStore = defineStore('auth', {
       this.plan      = d.plan      ?? null
       this.currency  = d.currency  ?? null
       this.locale    = d.locale    ?? null
+      this.subscription_status = d.subscription_status ?? null
+      this.trial_ends_at       = d.trial_ends_at        ?? null
 
       this.branch_id   = d.branch_id   ?? null
       this.branch_name = d.branch_name ?? null

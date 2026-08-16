@@ -26,6 +26,7 @@ class UpdatePlanRequest extends FormRequest
             'seats' => ['required', 'integer', 'min:1'],
             'storage_gb' => ['required', 'integer', 'min:1'],
             'api_limit' => ['nullable', 'integer', 'min:0'],
+            'trial_days' => ['nullable', 'integer', 'min:0', 'max:365'],
             'is_active' => ['boolean'],
 
             'billing_cycles' => ['required', 'array', 'min:1'],

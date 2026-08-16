@@ -12,6 +12,23 @@
     <sidebar :user="user" v-model:rail="rail" />
     <v-main>
       <v-container class="px-4" fluid>
+        <v-alert
+          v-if="trialDaysLeft !== null"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          rounded="lg"
+          class="mb-4"
+          closable
+        >
+          {{ $t('subscription.trial_banner.message', { count: trialDaysLeft }) }}
+          <template #append>
+            <v-btn size="small" variant="text" color="warning" @click="$router.push('/tenants-billing')">
+              {{ $t('subscription.trial_banner.action') }}
+            </v-btn>
+          </template>
+        </v-alert>
+
         <router-view v-slot="{ Component, route }">
           <transition :name="route.meta.transitionName || 'fade'" mode="out-in">
             <component :is="Component" :key="route.path" />
@@ -38,6 +55,7 @@
   const branchName = computed(() => authStore.branch_name)
   const roleName = computed(() => authStore.role_name)
   const logo_url = computed(() => authStore.logo_url)
+  const trialDaysLeft = computed(() => authStore.trialDaysLeft)
 
   onMounted(() => {
     if (!authStore.me?.id) {

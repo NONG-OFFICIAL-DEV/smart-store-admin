@@ -5,7 +5,8 @@ import {
   deleteSubscriptionApi,
   toggleSubscriptionActiveApi,
   cancelSubscriptionApi,
-  renewSubscriptionApi
+  renewSubscriptionApi,
+  recordTenantPaymentApi
 } from '../api/subscriptionService'
 
 // List state lives in whichever page renders it (via AppTable, which owns
@@ -40,6 +41,10 @@ export const useSubscriptionStore = defineStore('subscription', {
     },
     async renewSubscription(id) {
       const res = await renewSubscriptionApi(id)
+      return res.data.data
+    },
+    async recordPayment(tenantId, data) {
+      const res = await recordTenantPaymentApi(tenantId, data)
       return res.data.data
     }
   }
