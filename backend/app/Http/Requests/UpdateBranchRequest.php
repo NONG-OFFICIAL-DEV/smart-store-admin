@@ -20,7 +20,6 @@ class UpdateBranchRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:150'],
-            'type' => ['nullable', 'in:restaurant,cafe,kiosk,food_truck'],
             'address_line1' => ['sometimes', 'required', 'string', 'max:255'],
             'address_line2' => ['nullable', 'string', 'max:255'],
             'city' => ['sometimes', 'required', 'string', 'max:100'],

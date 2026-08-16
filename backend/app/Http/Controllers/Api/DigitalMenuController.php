@@ -175,7 +175,6 @@ class DigitalMenuController extends Controller
             'id'                  => $branch->id,
             'name'                => $branch->name,
             'slug'                => $branch->slug,
-            'type'                => $branch->type,
             'address_line1'       => $branch->address_line1,
             'address_line2'       => $branch->address_line2,
             'city'                => $branch->city,

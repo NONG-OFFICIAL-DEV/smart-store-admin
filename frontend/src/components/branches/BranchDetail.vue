@@ -39,12 +39,12 @@
         <v-card-text>
           <div class="d-flex align-center gap-3 mb-3">
             <v-avatar
-              :color="typeColor(store.branch.type)"
+              :color="typeColor(store.branch.branch_type?.name)"
               size="52"
               rounded="xl"
               variant="tonal"
             >
-              <v-icon :icon="typeIcon(store.branch.type)" size="26" />
+              <v-icon :icon="store.branch.branch_type?.icon || typeIcon(store.branch.branch_type?.name)" size="26" />
             </v-avatar>
             <div class="flex-1 min-w-0">
               <div class="d-flex align-center flex-wrap gap-1 mb-1">
@@ -114,7 +114,7 @@
             <v-col cols="6" class="mt-2">
               <div class="text-tiny text-medium-emphasis">{{ $t('form.type') }}</div>
               <div class="text-body-2 text-capitalize">
-                {{ store.branch.type }}
+                {{ store.branch.branch_type?.name ?? '—' }}
               </div>
             </v-col>
             <v-col cols="6" class="mt-2">

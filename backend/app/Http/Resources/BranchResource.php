@@ -24,7 +24,6 @@ class BranchResource extends JsonResource
             'tenant_id' => $this->tenant_id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'type' => $this->type,
             'address_line1' => $this->address_line1,
             'address_line2' => $this->address_line2,
             'city' => $this->city,
@@ -46,7 +45,9 @@ class BranchResource extends JsonResource
 
             'branch_type' => $this->whenLoaded('branchType', fn () => [
                 'id' => $this->branchType->id,
+                'code' => $this->branchType->code,
                 'name' => $this->branchType->name,
+                'icon' => $this->branchType->icon,
             ]),
 
             'tenant' => $this->whenLoaded('tenant', fn () => [

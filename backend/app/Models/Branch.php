@@ -11,7 +11,6 @@ class Branch extends BaseModel
     protected $fillable = [
         'tenant_id',
         'name',
-        'type',
         'address_line1',
         'address_line2',
         'city',

@@ -19,7 +19,7 @@ class BranchRepository extends BaseRepository implements BranchRepositoryInterfa
 
     public function query(): Builder
     {
-        return $this->model->newQuery()->with(['tenant', 'branchType:id,name']);
+        return $this->model->newQuery()->with(['tenant', 'branchType:id,name,code,icon']);
     }
 
     protected function applyFilters(Builder $query, array $filters): void

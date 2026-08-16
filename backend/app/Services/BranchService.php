@@ -54,7 +54,7 @@ class BranchService extends BaseService
      */
     public function detail(Branch $branch): array
     {
-        $branch->load(['tenant.businessType', 'menus', 'staff.user', 'staff.role', 'tables']);
+        $branch->load(['tenant.businessType', 'branchType', 'menus', 'staff.user', 'staff.role', 'tables']);
 
         $today = now()->startOfDay();
         $todayOrders = Order::where('branch_id', $branch->id)

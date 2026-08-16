@@ -20,7 +20,6 @@ class StoreBranchRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:150'],
-            'type' => ['nullable', 'in:restaurant,cafe,kiosk,food_truck'],
             'address_line1' => ['required', 'string', 'max:255'],
             'address_line2' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
