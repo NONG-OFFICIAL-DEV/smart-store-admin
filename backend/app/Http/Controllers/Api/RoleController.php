@@ -74,6 +74,8 @@ class RoleController extends Controller
             $this->roles->delete($role);
         } catch (SystemRoleLockedException $e) {
             return $this->error($e->getMessage(), 403, [], 'SYSTEM_ROLE_LOCKED');
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422, $e->errors(), 'VALIDATION_FAILED');
         }
 
         return $this->noContent('Role deleted successfully.');

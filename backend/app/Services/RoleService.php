@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\SystemRoleLockedException;
 use App\Models\Role;
+use App\Models\Staff;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -75,6 +76,16 @@ class RoleService extends BaseService
         // (visible to every tenant) could otherwise be deleted by any one
         // of them.
         $this->assertNotSystem($role);
+
+        // staff.role_id is restrictOnDelete — without this check, deleting
+        // a role still assigned to staff throws a raw DB foreign-key
+        // violation that the controller doesn't catch, surfacing as an
+        // opaque 500 "Server Error" instead of a real message.
+        if (Staff::withoutGlobalScopes()->where('role_id', $role->id)->exists()) {
+            throw ValidationException::withMessages([
+                'id' => 'Cannot delete a role that is still assigned to staff. Reassign those staff to a different role first.',
+            ]);
+        }
 
         return $this->repository->delete($role);
     }

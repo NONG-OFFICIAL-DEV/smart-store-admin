@@ -3,8 +3,10 @@
 namespace Tests\Feature\Roles;
 
 use App\Exceptions\SystemRoleLockedException;
+use App\Models\Branch;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\RoleService;
@@ -105,6 +107,27 @@ class RoleServiceTest extends TestCase
 
         $this->expectException(SystemRoleLockedException::class);
         $service->delete($systemRole);
+    }
+
+    public function test_deleting_a_role_still_assigned_to_staff_is_rejected_with_a_clear_message(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = Branch::create([
+            'tenant_id' => $tenantA->id, 'name' => 'Main', 'address_line1' => '123 Main St', 'city' => 'Phnom Penh',
+        ]);
+        $staffUser = User::create(['first_name' => 'Staff', 'last_name' => 'Person', 'email' => 'staffperson2@example.test']);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(RoleService::class);
+        $role = $service->create(['name' => 'Cashier'], new Request());
+
+        Staff::withoutGlobalScopes()->create([
+            'tenant_id' => $tenantA->id, 'branch_id' => $branch->id, 'user_id' => $staffUser->id,
+            'role_id' => $role->id, 'employee_code' => 'EMP-1',
+        ]);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->delete($role);
     }
 
     public function test_list_can_filter_by_is_system(): void
