@@ -10,12 +10,14 @@ export const useReservationStore = defineStore('reservation', {
   }),
 
   actions: {
+    // AppTable's fetch-fn contract: params -> { items, total }.
     async fetchReservations(filters) {
       this.loading = true
       try {
         const res          = await getAllReservationsApi(filters)
         this.reservations  = res.data.data
         this.pagination    = res.data.meta
+        return { items: res.data.data, total: res.data.meta.total }
       } finally {
         this.loading = false
       }
@@ -31,16 +33,14 @@ export const useReservationStore = defineStore('reservation', {
     },
     async createReservation(data) {
       const res = await createReservationApi(data)
-      this.reservations.unshift(res.data.data)
+      return res.data.data
     },
     async updateReservation(id, data) {
-      const res   = await updateReservationApi(id, data)
-      const index = this.reservations.findIndex(item => item.id === id)
-      if (index !== -1) this.reservations[index] = res.data.data
+      const res = await updateReservationApi(id, data)
+      return res.data.data
     },
     async deleteReservation(id) {
       await deleteReservationApi(id)
-      this.reservations = this.reservations.filter(item => item.id !== id)
     },
   },
 })

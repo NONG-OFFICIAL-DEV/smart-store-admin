@@ -8,23 +8,6 @@
       >
         <template #right>
           <v-btn
-            :color="showFilters ? 'primary' : 'default'"
-            :variant="showFilters ? 'flat' : 'tonal'"
-            rounded="lg"
-            :prepend-icon="
-              showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-            "
-            @click="showFilters = !showFilters"
-          >
-            {{ $t('btn.filter') }}
-            <v-badge
-              v-if="activeFilterCount > 0"
-              :content="activeFilterCount"
-              color="error"
-              floating
-            />
-          </v-btn>
-          <v-btn
             color="primary"
             prepend-icon="mdi-calendar-plus"
             rounded="lg"
@@ -38,133 +21,85 @@
       </custom-title>
 
       <!-- Filters -->
-      <v-expand-transition>
-        <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-          <v-card-text>
-            <v-row dense align="center">
-              <v-col cols="12" sm="6" md="3">
-                <div class="d-flex ga-2">
-                  <v-btn-toggle
-                    v-model="dateQuickFilter"
-                    color="primary"
-                    variant="outlined"
-                    rounded="lg"
-                    density="comfortable"
-                    divided
-                  >
-                    <v-btn value="today" size="small" class="text-none">
-                      {{ $t('common.today') }}
-                    </v-btn>
-                    <v-btn value="all" size="small" class="text-none">
-                      {{ $t('common.all') }}
-                    </v-btn>
-                  </v-btn-toggle>
-                </div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <v-date-input
-                  v-model="filterDate"
-                  :label="$t('form.date')"
-                  rounded="lg"
-                  hide-details
-                  clearable
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <v-select
-                  v-model="filters.status"
-                  :items="statusOptions"
-                  item-title="label"
-                  item-value="value"
-                  :label="$t('form.status')"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  clearable
-                  prepend-inner-icon="mdi-filter-outline"
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <v-select
-                  v-model="filters.table_id"
-                  :items="tables"
-                  item-value="id"
-                  :label="$t('reservations.field_table')"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  clearable
-                  prepend-inner-icon="mdi-table-chair"
-                >
-                  <template #item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
-                      :title="
-                        $t('reservations.table_number', {
-                          n: item.raw.table_number
-                        })
-                      "
-                    />
-                  </template>
-                  <template #selection="{ item }">
-                    {{
-                      $t('reservations.table_number', { n: item.raw?.table_number })
-                    }}
-                  </template>
-                </v-select>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <v-text-field
-                  v-model="filters.search"
-                  prepend-inner-icon="mdi-magnify"
-                  :placeholder="$t('reservations.search_placeholder')"
-                  variant="outlined"
-                  rounded="lg"
-                  hide-details
-                  clearable
-                  @keyup.enter="onFilterChange"
-                />
-              </v-col>
-            </v-row>
-          </v-card-text>
-          <v-card-actions class="px-4">
-            <v-spacer />
-            <v-btn
-              v-if="hasActiveFilters"
+      <v-row dense align="center" class="mb-2">
+        <v-col cols="12" sm="6" md="2">
+          <div class="d-flex ga-2 mb-4">
+            <v-btn-toggle
+              v-model="dateQuickFilter"
+              color="primary"
+              variant="outlined"
               rounded="lg"
-              variant="tonal"
-              color="error"
-              prepend-icon="mdi-close"
-              @click="resetFilters"
+              divided
             >
-              {{ $t('btn.reset') }}
-            </v-btn>
-            <v-btn
-              class="bg-primary"
-              rounded="lg"
-              prepend-icon="mdi-magnify"
-              @click="onFilterChange"
-            >
-              {{ $t('btn.search') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-expand-transition>
+              <v-btn value="today" size="small" class="text-none">
+                {{ $t('common.today') }}
+              </v-btn>
+              <v-btn value="all" size="small" class="text-none">
+                {{ $t('common.all') }}
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-date-input
+            v-model="filterDate"
+            :label="$t('form.date')"
+            rounded="lg"
+            clearable
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-select
+            v-model="filters.status"
+            :items="statusOptions"
+            item-title="label"
+            item-value="value"
+            :label="$t('form.status')"
+            variant="outlined"
+            rounded="lg"
+            clearable
+            prepend-inner-icon="mdi-filter-outline"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-select
+            v-model="filters.table_id"
+            :items="tables"
+            item-value="id"
+            :label="$t('reservations.field_table')"
+            variant="outlined"
+            rounded="lg"
+            clearable
+            prepend-inner-icon="mdi-table-chair"
+          >
+            <template #item="{ props, item }">
+              <v-list-item
+                v-bind="props"
+                :title="
+                  $t('reservations.table_number', {
+                    n: item.raw.table_number
+                  })
+                "
+              />
+            </template>
+            <template #selection="{ item }">
+              {{
+                $t('reservations.table_number', { n: item.raw?.table_number })
+              }}
+            </template>
+          </v-select>
+        </v-col>
+      </v-row>
 
       <!-- Reservations table -->
-      <v-card rounded="lg" border elevation="0">
-        <v-data-table-server
-          v-model:items-per-page="storePagination.per_page"
-          v-model:page="storePagination.current_page"
-          :items-length="storePagination.total || 0"
-          v-model:sort-by="sortBy"
+      <v-card rounded="lg" border elevation="0" class="pa-4">
+        <AppTable
+          ref="tableRef"
           :headers="headers"
-          :items="reservations"
-          :loading="loading"
-          item-value="id"
-          hover
-          rounded="lg"
-          @update:options="loadItems"
+          :fetch-fn="fetchReservationsForTable"
+          :filters="tableFilters"
+          :show-search="true"
+          :item-label="$t('menu.reservations')"
         >
           <!-- Guest -->
           <template #item.customer_name="{ item }">
@@ -263,11 +198,7 @@
                 {{ $t('reservations.empty') }}
               </p>
               <p class="text-body-2 text-grey mb-4">
-                {{
-                  filters.search
-                    ? $t('reservations.empty_search')
-                    : $t('reservations.empty_period')
-                }}
+                {{ $t('reservations.empty_period') }}
               </p>
               <v-btn
                 color="primary"
@@ -279,7 +210,7 @@
               </v-btn>
             </div>
           </template>
-        </v-data-table-server>
+        </AppTable>
       </v-card>
     </v-container>
 
@@ -295,14 +226,14 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useReservationStore } from '@/stores/reservationStore'
   import { useTableStore } from '@/stores/tableStore'
   import ReservationFormDialog from '@/components/reservations/ReservationFormDialog.vue'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, useAppUtils } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { confirm, notif } = useAppUtils()
@@ -313,34 +244,32 @@
   const reservationStore = useReservationStore()
   const tableStore = useTableStore()
 
-  const { reservations, loading, pagination: storePagination } = storeToRefs(reservationStore)
   const { tables } = storeToRefs(tableStore)
 
+  const tableRef = ref(null)
   const saving = ref(false)
   const dialog = ref(false)
   const selectedItem = ref(null)
-  const showFilters = ref(false)
-  const sortBy = ref([])
 
   const todayStr = formatLocalDate(new Date())
 
+  // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
+  // search is AppTable's own built-in field). ───────────────────────────────────
   const filters = ref({
     date: todayStr,
     status: null,
-    table_id: route.query.table_id || null,
-    search: ''
+    table_id: route.query.table_id || null
   })
 
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (filters.value.date && filters.value.date !== todayStr) count++
-    if (filters.value.status) count++
-    if (filters.value.table_id) count++
-    if (filters.value.search?.trim()) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
+  const tableFilters = computed(() => ({
+    date: filters.value.date || undefined,
+    status: filters.value.status || undefined,
+    table_id: filters.value.table_id || undefined
+  }))
+
+  // ── AppTable's fetch-fn contract: params -> { items, total } ─────────────────
+  const fetchReservationsForTable = params =>
+    reservationStore.fetchReservations(params)
 
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
@@ -436,6 +365,7 @@
       notif(t('reservations.status_updated', { status }), {
         type: 'success'
       })
+      tableRef.value?.refresh()
     } catch (err) {
       notif(resolveErrorMessage(err, 'reservations.messages.save_failed'), {
         type: 'error'
@@ -463,6 +393,7 @@
           notif(t('reservations.messages.deleted'), {
             type: 'success'
           })
+          tableRef.value?.refresh()
         } catch (err) {
           notif(err.response?.data?.message ?? t('reservations.messages.delete_failed'), {
             type: 'error'
@@ -490,6 +421,7 @@
           type: 'success'
         }
       )
+      tableRef.value?.refresh()
     } catch (err) {
       notif(resolveErrorMessage(err, 'reservations.messages.save_failed'), {
         type: 'error'
@@ -513,58 +445,5 @@
     })[s] || '#9e9e9e'
 
 
-  // ── Fetch / filters / pagination ────────────────────────────────────────────────
-  const PER_PAGE = 12
-
-  // Called by v-data-table-server on mount and whenever page/sort/items-per-page
-  // change — filters are folded in here rather than passed separately.
-  const loadItems = async (options = {}) => {
-    const page = options.page || storePagination.value?.current_page || 1
-    const itemsPerPage = options.itemsPerPage || storePagination.value?.per_page || PER_PAGE
-    const sb = options.sortBy || sortBy.value
-
-    await reservationStore.fetchReservations({
-      page,
-      perPage: itemsPerPage,
-      sortBy: sb[0]?.key ?? null,
-      sortDesc: sb[0]?.order === 'desc',
-      date: filters.value.date || undefined,
-      status: filters.value.status || undefined,
-      table_id: filters.value.table_id || undefined,
-      search: filters.value.search || undefined
-    })
-  }
-
-  // Reset to page 1 and reload — used by the filter watchers below and the
-  // "Search"/"Reset" buttons in the filter panel.
-  const fetchData = () => {
-    if (storePagination.value) storePagination.value.current_page = 1
-    return loadItems({ page: 1 })
-  }
-
-  const onFilterChange = () => fetchData()
-
-  const resetFilters = () => {
-    filters.value.date = todayStr
-    filters.value.status = null
-    filters.value.table_id = null
-    filters.value.search = ''
-  }
-
-  let searchTimer = null
-  watch(
-    () => [filters.value.date, filters.value.status, filters.value.table_id],
-    () => fetchData()
-  )
-  watch(
-    () => filters.value.search,
-    () => {
-      clearTimeout(searchTimer)
-      searchTimer = setTimeout(fetchData, 400)
-    }
-  )
-
-  // No manual initial fetch here — v-data-table-server fires @update:options
-  // once on mount, which calls loadItems() itself.
   onMounted(() => tableStore.fetchTables())
 </script>
