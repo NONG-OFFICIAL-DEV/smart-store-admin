@@ -234,15 +234,22 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed'])->group(functio
     });
 
     // ── Roles & Permissions ───────────────────────────────────────────────────
-    // Creating a brand-new role is super-admin-only — tenant owners may still
-    // view/edit/delete/assign permissions for their own tenant's roles (all
-    // still gated by roles.manage below), just not mint new ones.
+    // Creating, editing, deleting a role and managing its permissions are all
+    // super-admin-only. Tenants keep read access (index/show) only so they
+    // can see which predefined roles exist to assign to their own staff —
+    // that assignment itself stays under staff.manage, unaffected here.
     Route::middleware('permission:roles.manage')->group(function () {
-        Route::apiResource('roles',       RoleController::class)->except(['store']);
-        Route::apiResource('permissions', PermissionController::class);
-        Route::post('roles/{role}/permissions/sync', [RoleController::class, 'syncPermissions']);
+        Route::get('roles',       [RoleController::class, 'index']);
+        Route::get('roles/{role}', [RoleController::class, 'show']);
     });
-    Route::post('roles', [RoleController::class, 'store'])->middleware(['permission:roles.manage', 'superadmin']);
+    Route::middleware(['permission:roles.manage', 'superadmin'])->group(function () {
+        Route::post('roles', [RoleController::class, 'store']);
+        Route::put('roles/{role}', [RoleController::class, 'update']);
+        Route::patch('roles/{role}', [RoleController::class, 'update']);
+        Route::delete('roles/{role}', [RoleController::class, 'destroy']);
+        Route::post('roles/{role}/permissions/sync', [RoleController::class, 'syncPermissions']);
+        Route::apiResource('permissions', PermissionController::class);
+    });
 
     // ── Staff ─────────────────────────────────────────────────────────────────
     Route::middleware('permission:staff.manage')->group(function () {
