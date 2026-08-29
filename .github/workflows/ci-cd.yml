@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Only one deploy runs at a time; newer runs cancel older ones in the
+# same group so the server always ends up at the latest commit.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
 jobs:
   # Detect which service(s) actually changed so build-push can skip
   # rebuilding/pushing images that didn't — cheaper CI runs, and it means
