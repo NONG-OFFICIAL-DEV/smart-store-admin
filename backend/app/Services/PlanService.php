@@ -46,7 +46,8 @@ class PlanService extends BaseService
 
             foreach ($data['features'] ?? [] as $i => $feature) {
                 $plan->features()->create([
-                    ...$feature,
+                    'key' => $feature['key'],
+                    'value' => $feature['value'],
                     'sort_order' => $feature['sort_order'] ?? $i,
                 ]);
             }
@@ -97,8 +98,7 @@ class PlanService extends BaseService
                     ['id' => $feature['id'] ?? null],
                     [
                         'key' => $feature['key'],
-                        'en' => $feature['en'],
-                        'km' => $feature['km'] ?? null,
+                        'value' => $feature['value'],
                         'sort_order' => $feature['sort_order'] ?? $i,
                     ]
                 );

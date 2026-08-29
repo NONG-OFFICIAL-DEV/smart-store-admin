@@ -170,16 +170,16 @@
                       </div> -->
 
                       <!-- Features -->
-                      <div v-if="plan.features?.length" class="flex-grow-1">
+                      <div v-if="planFeatureLines(plan).length" class="flex-grow-1">
                         <div
-                          v-for="f in plan.features"
-                          :key="f.key"
+                          v-for="line in planFeatureLines(plan)"
+                          :key="line.key"
                           class="d-flex align-start ga-1 mb-1"
                         >
                           <v-icon color="success" size="11" class="mt-1 flex-shrink-0">
                             mdi-check-circle-outline
                           </v-icon>
-                          <span class="text-caption">{{ f[locale] || f.en || f.key }}</span>
+                          <span class="text-caption">{{ line.text }}</span>
                         </div>
                       </div>
 
@@ -471,6 +471,17 @@ const getPlanPerMonth = plan => {
   const discount = Number(planCycle(plan)?.discount_percent || 0) / 100
   return (base * (1 - discount)).toFixed(2)
 }
+
+// Catalog-joined feature list — boolean-type entries show their label
+// only when true; text-type entries show the plan's own value text and
+// are skipped if no value has been set yet.
+const planFeatureLines = plan =>
+  (plan.feature_list ?? [])
+    .filter(f => (f.value_type === 'boolean' ? f.value : f.value?.en))
+    .map(f => ({
+      key: f.key,
+      text: f.value_type === 'boolean' ? f.label?.[locale.value] || f.label?.en : f.value?.[locale.value] || f.value?.en
+    }))
 
 const isCurrentPlan = plan => plan.id === props.currentPlan?.id
 const isSelected    = plan => selected.value?.id === plan.id

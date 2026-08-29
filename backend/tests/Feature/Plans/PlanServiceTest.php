@@ -39,13 +39,39 @@ class PlanServiceTest extends TestCase
                 ['label' => 'Yearly', 'months' => 12, 'discount_percent' => 20],
             ],
             'features' => [
-                ['key' => 'products_limit', 'en' => 'Up to 100 products'],
+                ['key' => 'products_limit', 'value' => ['en' => 'Up to 100 products', 'km' => null]],
             ],
         ]);
 
         $this->assertSame('pro', $plan->code);
         $this->assertCount(2, $plan->billingCycles);
         $this->assertCount(1, $plan->features);
+        $this->assertSame(['en' => 'Up to 100 products', 'km' => null], $plan->features->first()->value);
+    }
+
+    public function test_update_removes_dropped_features_and_upserts_the_rest(): void
+    {
+        $service = $this->app->make(PlanService::class);
+        $plan = $service->create([
+            'name' => 'Pro', 'code' => 'PROF', 'price_usd' => 29, 'seats' => 5, 'storage_gb' => 10,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+            'features' => [
+                ['key' => 'products_limit', 'value' => ['en' => 'Up to 20', 'km' => null]],
+                ['key' => 'inventory', 'value' => true],
+            ],
+        ]);
+        $productsFeatureId = $plan->features()->where('key', 'products_limit')->first()->id;
+
+        $updated = $service->update($plan, [
+            'name' => 'Pro', 'code' => 'PROF', 'price_usd' => 29, 'seats' => 5, 'storage_gb' => 10,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+            'features' => [
+                ['id' => $productsFeatureId, 'key' => 'products_limit', 'value' => ['en' => 'Up to 50', 'km' => null]],
+            ],
+        ]);
+
+        $this->assertCount(1, $updated->features);
+        $this->assertSame(['en' => 'Up to 50', 'km' => null], $updated->features->first()->value);
     }
 
     public function test_update_removes_dropped_cycles_and_upserts_the_rest(): void

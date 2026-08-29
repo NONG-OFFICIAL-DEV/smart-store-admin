@@ -419,13 +419,13 @@
                 </v-row>
 
                 <!-- Plan features list -->
-                <template v-if="plan?.features?.length">
+                <template v-if="planFeatureLines(plan).length">
                   <div class="section-label mb-3">{{ $t('tenant_details.included_features') }}</div>
                   <v-list density="compact" rounded="lg" border>
                     <v-list-item
-                      v-for="(feat, i) in plan.features"
-                      :key="i"
-                      :title="feat.en"
+                      v-for="line in planFeatureLines(plan)"
+                      :key="line.key"
+                      :title="line.text"
                       density="compact"
                     >
                       <template #prepend>
@@ -734,6 +734,18 @@
   const subscription = computed(() => tenantData.value?.subscription)
   const plan = computed(() => tenantData.value?.plan)
   const planHistory = computed(() => tenantData.value?.plan_history)
+
+  // Catalog-joined feature list — boolean-type entries show their label
+  // only when true; text-type entries show the plan's own value text and
+  // are skipped if no value has been set yet. English only, matching
+  // this page's existing behavior (super-admin view, no locale switch).
+  const planFeatureLines = plan =>
+    (plan?.feature_list ?? [])
+      .filter(f => (f.value_type === 'boolean' ? f.value : f.value?.en))
+      .map(f => ({
+        key: f.key,
+        text: f.value_type === 'boolean' ? f.label?.en : f.value?.en
+      }))
 
   onMounted(async () => {
     await tenantStore.fetchTenantById(route.params.id)

@@ -79,6 +79,7 @@ use App\Http\Controllers\Api\MartProductController;
 use App\Http\Controllers\Api\MartProductPerformanceController;
 use App\Http\Controllers\Api\MartPurchaseReportController;
 use App\Http\Controllers\Api\PlanController;
+use App\Http\Controllers\Api\PlanFeatureListingController;
 use App\Http\Controllers\Api\TenantSubscriptionController;
 use App\Http\Controllers\Api\SubscriptionPlanHistoryController;
 use App\Http\Controllers\Api\BillingController;
@@ -161,6 +162,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
 
         Route::apiResource('plans', PlanController::class);
         Route::patch('plans/{plan}/toggle-active', [PlanController::class, 'toggleActive']);
+        Route::apiResource('plan-feature-listings', PlanFeatureListingController::class)->except(['show']);
 
         // Subscriptions — assigning/changing a tenant's plan (store) and its
         // lifecycle (renew/cancel/toggle/destroy). No generic "update" route:

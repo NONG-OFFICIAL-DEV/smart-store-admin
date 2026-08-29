@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PlanFeatureValueType;
 use App\Models\Plan;
 use App\Models\PlanBillingCycle;
 use App\Models\PlanFeature;
+use App\Models\PlanFeatureListing;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -16,6 +18,8 @@ class PlanSeeder extends Seeder
         PlanFeature::truncate();
         PlanBillingCycle::truncate();
         Plan::truncate();
+
+        $this->seedFeatureCatalog();
 
         /*
         |--------------------------------------------------------------------------
@@ -138,6 +142,46 @@ class PlanSeeder extends Seeder
     }
 
     /**
+     * Seed the shared feature catalog (label + value type, defined once)
+     * that every plan's own features reference by key. All text type —
+     * mark any of these Boolean afterward through the admin UI once
+     * they're confirmed to be plain yes/no features.
+     */
+    private function seedFeatureCatalog(): void
+    {
+        $catalog = [
+            ['key' => 'products_limit', 'label_en' => 'Products limit', 'label_km' => 'ដែនកំណត់ផលិតផល'],
+            ['key' => 'single_branch', 'label_en' => '1 branch only', 'label_km' => 'ប្រើបានតែ 1 សាខា'],
+            ['key' => 'single_staff', 'label_en' => '1 staff account', 'label_km' => 'គណនីបុគ្គលិក 1'],
+            ['key' => 'basic_pos', 'label_en' => 'Basic POS', 'label_km' => 'POS មូលដ្ឋាន'],
+            ['key' => 'branches_limit', 'label_en' => 'Branches limit', 'label_km' => 'ដែនកំណត់សាខា'],
+            ['key' => 'staff_limit', 'label_en' => 'Staff limit', 'label_km' => 'ដែនកំណត់បុគ្គលិក'],
+            ['key' => 'sales_report', 'label_en' => 'Sales reports', 'label_km' => 'របាយការណ៍លក់'],
+            ['key' => 'inventory', 'label_en' => 'Inventory management', 'label_km' => 'គ្រប់គ្រងស្តុក'],
+            ['key' => 'unlimited_products', 'label_en' => 'Unlimited products', 'label_km' => 'ផលិតផលគ្មានដែនកំណត់'],
+            ['key' => 'advanced_reports', 'label_en' => 'Advanced sales reports', 'label_km' => 'របាយការណ៍លក់កម្រិតខ្ពស់'],
+            ['key' => 'qr_menu', 'label_en' => 'Digital menu (QR ordering)', 'label_km' => 'ម៉ឺនុយឌីជីថល (បញ្ជាទិញតាម QR)'],
+            ['key' => 'unlimited_branches', 'label_en' => 'Unlimited branches', 'label_km' => 'សាខាគ្មានដែនកំណត់'],
+            ['key' => 'unlimited_staff', 'label_en' => 'Unlimited staff accounts', 'label_km' => 'គណនីបុគ្គលិកគ្មានដែនកំណត់'],
+            ['key' => 'custom_reports', 'label_en' => 'Advanced + custom reports', 'label_km' => 'របាយការណ៍កម្រិតខ្ពស់ + ផ្ទាល់ខ្លួន'],
+            ['key' => 'priority_support', 'label_en' => 'Priority support', 'label_km' => 'ជំនួយអាទិភាព'],
+        ];
+
+        foreach ($catalog as $index => $listing) {
+            PlanFeatureListing::updateOrCreate(
+                ['key' => $listing['key']],
+                [
+                    'label_en' => $listing['label_en'],
+                    'label_km' => $listing['label_km'],
+                    'value_type' => PlanFeatureValueType::Text->value,
+                    'sort_order' => $index,
+                    'is_active' => true,
+                ]
+            );
+        }
+    }
+
+    /**
      * Create billing cycles for a plan
      */
     private function createBillingCycles(Plan $plan, array $cycles): void
@@ -162,8 +206,7 @@ class PlanSeeder extends Seeder
             PlanFeature::create([
                 'plan_id'    => $plan->id,
                 'key'        => $feature['key'],
-                'en'         => $feature['en'],
-                'km'         => $feature['km'],
+                'value'      => ['en' => $feature['en'], 'km' => $feature['km']],
                 'sort_order' => $index + 1,
             ]);
         }

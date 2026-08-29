@@ -7,6 +7,15 @@
     >
       <template #right>
         <v-btn
+          variant="tonal"
+          rounded="lg"
+          prepend-icon="mdi-format-list-bulleted"
+          class="mr-2"
+          @click="catalogDialog = true"
+        >
+          {{ $t('subscription.plan_feature_listings.manage_catalog') }}
+        </v-btn>
+        <v-btn
           color="primary"
           variant="flat"
           rounded="lg"
@@ -129,6 +138,8 @@
       :saving="saving"
       @submit="handleSubmit"
     />
+
+    <PlanFeatureListingManagerDialog v-model="catalogDialog" />
   </v-container>
 </template>
 
@@ -137,6 +148,7 @@
   import { useI18n } from 'vue-i18n'
   import { usePlanStore } from '@/stores/planStore'
   import PlanDialog from '../../components/subscriptions/PlanDialog.vue'
+  import PlanFeatureListingManagerDialog from '../../components/subscriptions/PlanFeatureListingManagerDialog.vue'
   import { useAppUtils } from '@nong-official-dev/core'
 
   const { t } = useI18n()
@@ -148,6 +160,7 @@
   const editingPlan = ref(null)
   const saving = ref(false)
   const loading = ref(false)
+  const catalogDialog = ref(false)
 
   // Table headers
   const headers = [

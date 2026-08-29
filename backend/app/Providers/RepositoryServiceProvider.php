@@ -27,6 +27,7 @@ use App\Repositories\Contracts\ModifierOptionRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\Contracts\PlanFeatureListingRepositoryInterface;
 use App\Repositories\Contracts\PlanRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\PromotionRepositoryInterface;
@@ -68,6 +69,7 @@ use App\Repositories\Eloquent\ModifierOptionRepository;
 use App\Repositories\Eloquent\NotificationRepository;
 use App\Repositories\Eloquent\PaymentRepository;
 use App\Repositories\Eloquent\PermissionRepository;
+use App\Repositories\Eloquent\PlanFeatureListingRepository;
 use App\Repositories\Eloquent\PlanRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\PromotionRepository;
@@ -132,6 +134,7 @@ class RepositoryServiceProvider extends ServiceProvider
         NotificationRepositoryInterface::class => NotificationRepository::class,
         BusinessTypeRepositoryInterface::class => BusinessTypeRepository::class,
         PlanRepositoryInterface::class => PlanRepository::class,
+        PlanFeatureListingRepositoryInterface::class => PlanFeatureListingRepository::class,
         PurchaseOrderRepositoryInterface::class => PurchaseOrderRepository::class,
         MartPurchaseOrderRepositoryInterface::class => MartPurchaseOrderRepository::class,
         DailySalesSummaryRepositoryInterface::class => DailySalesSummaryRepository::class,

@@ -61,14 +61,6 @@
         </v-tab>
         <v-tab value="features">
           {{ $t('subscription.plan_dialog.tabs.features') }}
-          <v-icon
-            v-if="tabErrors.features"
-            size="14"
-            color="error"
-            class="ms-1"
-          >
-            mdi-alert-circle
-          </v-icon>
         </v-tab>
       </v-tabs>
     </template>
@@ -300,60 +292,47 @@
                 {{ $t('subscription.plan_dialog.features.description') }}
               </div>
 
-              <div v-for="(feat, i) in form.features" :key="i" class="mb-3">
-                <v-row dense>
-                  <v-col cols="12" sm="3">
-                    <v-text-field
-                      v-model="feat.key"
-                      :label="$t('subscription.plan_dialog.features.key')"
-                      :rules="[r.required]"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <v-text-field
-                      v-model="feat.en"
-                      :label="$t('subscription.plan_dialog.features.english')"
-                      :rules="[r.required]"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="10" sm="4">
-                    <v-text-field
-                      v-model="feat.km"
-                      label="ខ្មែរ"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="2"
-                    sm="1"
-                    class="d-flex align-center justify-center"
-                  >
-                    <v-btn
-                      icon="mdi-delete-outline"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      @click="removeFeature(i)"
-                    />
-                  </v-col>
-                </v-row>
-              </div>
+              <p v-if="!activeFeatures.length" class="text-caption text-medium-emphasis">
+                {{ $t('subscription.plan_dialog.features.no_catalog_features') }}
+              </p>
 
-              <v-btn
-                variant="tonal"
-                rounded="lg"
-                size="small"
-                prepend-icon="mdi-plus"
-                color="primary"
-                @click="addFeature"
-              >
-                {{ $t('subscription.plan_dialog.features.add_feature') }}
-              </v-btn>
+              <v-row v-for="listing in activeFeatures" :key="listing.id" class="mb-1" dense align="center">
+                <v-col cols="12" sm="4" class="text-body-2">{{ listing.label.en }}</v-col>
+                <v-col cols="12" sm="8">
+                  <v-switch
+                    v-if="listing.value_type === 'boolean'"
+                    :model-value="featureValue(listing.key, true)"
+                    density="compact"
+                    hide-details
+                    color="primary"
+                    @update:model-value="setFeatureValue(listing.key, $event)"
+                  />
+                  <v-row v-else dense>
+                    <v-col cols="6">
+                      <v-text-field
+                        :model-value="featureValue(listing.key, false).en"
+                        density="compact"
+                        hide-details
+                        :label="$t('subscription.plan_dialog.features.english')"
+                        rounded="lg"
+                        variant="outlined"
+                        @update:model-value="updateFeatureText(listing.key, 'en', $event)"
+                      />
+                    </v-col>
+                    <v-col cols="6">
+                      <v-text-field
+                        :model-value="featureValue(listing.key, false).km"
+                        density="compact"
+                        hide-details
+                        label="ខ្មែរ"
+                        rounded="lg"
+                        variant="outlined"
+                        @update:model-value="updateFeatureText(listing.key, 'km', $event)"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
             </v-window-item>
           </v-window>
         </v-form>
@@ -364,8 +343,11 @@
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { usePlanFeatureListingStore } from '@/stores/planFeatureListingStore'
 
   const { t } = useI18n()
+  const catalogStore = usePlanFeatureListingStore()
+  const activeFeatures = computed(() => catalogStore.items.filter(item => item.is_active))
 
   const props = defineProps({
     editingPlan: { type: Object, default: null },
@@ -443,7 +425,7 @@
   // Only show tab error badges after the user has attempted to submit once.
   const tabErrors = computed(() => {
     if (!submitted.value)
-      return { basic: false, cycles: false, features: false }
+      return { basic: false, cycles: false }
 
     const isEmpty = v => v === null || v === undefined || v === ''
 
@@ -458,11 +440,7 @@
       c => isEmpty(c.label) || isEmpty(c.months)
     )
 
-    const features = form.value.features.some(
-      f => isEmpty(f.key) || isEmpty(f.en)
-    )
-
-    return { basic, cycles, features }
+    return { basic, cycles }
   })
 
   // Watch editing plan
@@ -496,8 +474,10 @@
     { immediate: true }
   )
 
-  // Reset submitted state when dialog closes
+  // Reset submitted state when dialog closes; fetch the feature catalog
+  // when it opens so the features tab always reflects the live catalog.
   watch(model, open => {
+    if (open) catalogStore.fetch()
     if (!open) submitted.value = false
   })
 
@@ -525,17 +505,32 @@
     }
   }
 
-  const addFeature = () => {
-    form.value.features.push({
-      key: '',
-      en: '',
-      km: '',
-      sort_order: form.value.features.length
-    })
+  // Features tab is catalog-driven — no free add/remove. A row only
+  // exists in form.features once its value has actually been touched;
+  // until then featureValue() below supplies a sensible default so the
+  // control still renders.
+  function featureRowFor(key) {
+    return form.value.features.find(f => f.key === key)
   }
 
-  const removeFeature = i => {
-    form.value.features.splice(i, 1)
+  function setFeatureValue(key, value) {
+    const existing = featureRowFor(key)
+    if (existing) {
+      existing.value = value
+    } else {
+      form.value.features.push({ key, value })
+    }
+  }
+
+  function featureValue(key, isBoolean) {
+    const existing = featureRowFor(key)
+    if (existing) return existing.value
+    return isBoolean ? false : { en: '', km: '' }
+  }
+
+  function updateFeatureText(key, lang, text) {
+    const current = featureValue(key, false)
+    setFeatureValue(key, { ...current, [lang]: text })
   }
 
   const submit = async () => {
@@ -548,7 +543,6 @@
     if (!valid) {
       if (tabErrors.value.basic) tab.value = 'basic'
       else if (tabErrors.value.cycles) tab.value = 'cycles'
-      else if (tabErrors.value.features) tab.value = 'features'
       return
     }
 

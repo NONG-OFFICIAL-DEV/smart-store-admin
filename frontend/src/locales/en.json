@@ -2021,9 +2021,8 @@
       },
       "features": {
         "description": "List features included in this plan.",
-        "key": "Key *",
         "english": "English *",
-        "add_feature": "Add Feature"
+        "no_catalog_features": "No active features in the catalog yet. Use \"Manage Features\" to add some."
       },
       "create_plan": "Create Plan",
       "months": {
@@ -2040,6 +2039,35 @@
       }
     },
     "month_short": "/mo",
+    "plan_feature_listings": {
+      "manage_catalog": "Manage Features",
+      "manage_catalog_hint": "Shared feature catalog — every plan picks its own value for each active row below.",
+      "add_feature": "Add Feature",
+      "new_title": "New Feature",
+      "edit_title": "Edit Feature",
+      "fields": {
+        "key": "Key *",
+        "key_hint": "e.g. inventory (lowercase, digits, underscores only)",
+        "key_format_error": "Only lowercase letters, digits, and underscores are allowed.",
+        "label_en": "English Label *",
+        "label_km": "Khmer Label",
+        "value_type": "Value Type",
+        "sort_order": "Sort Order"
+      },
+      "value_types": {
+        "text": "Text",
+        "boolean": "Yes / No"
+      },
+      "confirm_delete": {
+        "title": "Delete Feature",
+        "message": "Are you sure you want to delete \"{label}\"?"
+      },
+      "messages": {
+        "created": "Feature created successfully",
+        "updated": "Feature updated successfully",
+        "deleted": "Feature deleted successfully"
+      }
+    },
     "plan": {
       "title": "Plans",
       "subtitle": "Define subscription plans for tenants",

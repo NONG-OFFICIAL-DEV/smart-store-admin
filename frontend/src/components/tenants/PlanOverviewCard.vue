@@ -146,15 +146,20 @@
 
   defineEmits(['upgrade', 'pay', 'renew'])
 
-  // Translated Features
+  // Translated Features — catalog-joined list (label + this plan's value).
+  // Boolean-type entries only show when true (the label itself is the
+  // feature name, e.g. "Inventory management"); text-type entries show
+  // the plan's own value text (e.g. "Up to 20 products") and are skipped
+  // if no value has been set yet.
   const translatedFeatures = computed(() => {
-    const features = props.plan.features ?? []
-    return features.map(f => {
-      if (typeof f === 'object' && f.key) {
-        return f[locale.value] || f.en || f.key
-      }
-      return f
-    })
+    const featureList = props.plan.feature_list ?? []
+    return featureList
+      .filter(f => (f.value_type === 'boolean' ? f.value : f.value?.en))
+      .map(f =>
+        f.value_type === 'boolean'
+          ? f.label?.[locale.value] || f.label?.en
+          : f.value?.[locale.value] || f.value?.en
+      )
   })
 
   const cyclePrice = computed(() => {

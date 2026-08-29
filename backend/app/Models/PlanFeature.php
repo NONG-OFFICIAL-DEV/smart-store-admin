@@ -11,8 +11,15 @@ class PlanFeature extends Model
     use HasUuids;
 
     protected $fillable = [
-        'plan_id', 'key', 'en', 'km', 'sort_order'
+        'plan_id', 'key', 'value', 'sort_order'
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'value' => 'array',
+        ];
+    }
 
     public function plan(): BelongsTo
     {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PlanFeatureValueType;
+use App\Models\PlanFeatureListing;
 use App\Traits\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,10 +39,41 @@ class StorePlanRequest extends FormRequest
 
             'features' => ['nullable', 'array'],
             'features.*.key' => ['required', 'string', 'max:80'],
-            'features.*.en' => ['required', 'string', 'max:255'],
-            'features.*.km' => ['nullable', 'string', 'max:255'],
+            'features.*.value' => ['required'],
             'features.*.sort_order' => ['nullable', 'integer'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            // Not filtered to is_active — a plan can legitimately keep a
+            // value for a key that was later deactivated (not deleted) in
+            // the catalog. Only a nonexistent (or soft-deleted) key is
+            // "unknown" here.
+            $catalog = PlanFeatureListing::query()->get()->keyBy('key');
+
+            foreach ($this->input('features', []) as $i => $feature) {
+                $key = $feature['key'] ?? null;
+                $listing = $key ? $catalog->get($key) : null;
+
+                if (! $listing) {
+                    $validator->errors()->add("features.{$i}.key", "Unknown feature key \"{$key}\".");
+
+                    continue;
+                }
+
+                $value = $feature['value'] ?? null;
+
+                if ($listing->value_type === PlanFeatureValueType::Boolean) {
+                    if (! is_bool($value)) {
+                        $validator->errors()->add("features.{$i}.value", "The \"{$key}\" feature must be true or false.");
+                    }
+                } elseif (! is_array($value) || empty($value['en'])) {
+                    $validator->errors()->add("features.{$i}.value.en", "The \"{$key}\" feature's English value is required.");
+                }
+            }
+        });
     }
 
     protected function failedValidation(Validator $validator)
