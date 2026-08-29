@@ -146,6 +146,14 @@ jobs:
             docker compose exec -T backend_service php artisan optimize:clear
             docker compose exec -T backend_service php artisan optimize
 
+            # Restart PHP-FPM workers so they pick up the fresh route/config
+            # cache from bootstrap/cache (bind-mounted from the host). Without
+            # this, long-lived FPM workers can serve stale in-process state
+            # (or stale OPcache bytecode) from before optimize ran.
+            echo ">>> Restarting PHP-FPM to load fresh cache"
+            docker compose exec -T backend_service supervisorctl restart php-fpm
+            sleep 3
+
             # Poll instead of a flat sleep — recreated containers can take
             # a variable amount of time to come up, and a fixed sleep is
             # either too short (flaky) or wastes time on a fast start.
@@ -169,7 +177,10 @@ jobs:
               exit 1
             fi
             if [ "$CODE" = "404" ]; then
-              echo "!!! /api/me returned 404 on the host port — route cache/code is stale. Deploy failed."
+              echo "!!! /api/me returned 404 — dumping diagnostics"
+              docker compose exec -T backend_service php artisan route:list --path=api/me 2>&1 || true
+              docker compose logs backend_service --tail=30
+              docker compose logs webserver --tail=20
               exit 1
             fi
             echo ">>> App responding correctly (status $CODE)"
