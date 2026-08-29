@@ -5,17 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# Only one deploy runs at a time; newer runs cancel older ones in the
-# same group so the server always ends up at the latest commit.
 concurrency:
   group: deploy-production
   cancel-in-progress: true
 
 jobs:
-  # Detect which service(s) actually changed so build-push can skip
-  # rebuilding/pushing images that didn't — cheaper CI runs, and it means
-  # a Docker Hub `:latest` tag genuinely only moves when its own service
-  # changed, not on every unrelated push.
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -46,7 +40,6 @@ jobs:
       IMAGE_FRONTEND: ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-frontend
       IMAGE_WEBSERVER: ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver
       IMAGE_TAG: ${{ github.sha }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -79,7 +72,6 @@ jobs:
             -t $IMAGE_FRONTEND:latest \
             -t $IMAGE_FRONTEND:$IMAGE_TAG \
             ./frontend
-
           docker push $IMAGE_FRONTEND:latest
           docker push $IMAGE_FRONTEND:$IMAGE_TAG
 
@@ -107,20 +99,15 @@ jobs:
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
-        env:
-          # Optional — set this secret to enable the extra public-domain
-          # check at the end of the script; leave it unset to skip it.
-          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: PUBLIC_URL
           script: |
             set -e
             cd ~/smart-store
 
-            echo ">>> Pulling changed images"
+            echo ">>> Pulling images"
             if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-backend:latest
             fi
@@ -131,16 +118,9 @@ jobs:
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver:latest
             fi
 
-            echo ">>> Stopping containers"
+            echo ">>> Restarting containers"
             docker compose down --remove-orphans || true
-            # Force-remove any containers by name that survived the above
-            # (e.g. from a previously failed deploy that exited with || true).
-            # Without this, Docker DNS on the shared 'web' network may still
-            # resolve 'backend_service' to the old container, causing nginx to
-            # round-robin between the old (stale routes) and new container.
             docker rm -f smart_store_backend smart_store_webserver smart_store_frontend 2>/dev/null || true
-
-            echo ">>> Starting containers"
             docker compose up -d --remove-orphans
 
             if ! docker compose ps backend_service | grep -q "Up"; then
@@ -149,71 +129,30 @@ jobs:
               exit 1
             fi
 
-            # Remove any stale host-side bootstrap/cache directory left over
-            # from the old docker-compose.yml that bind-mounted it. The mount
-            # no longer exists, but the host directory might and could confuse
-            # anyone who looks. Clean it up proactively.
-            rm -rf ~/smart-store/backend/bootstrap/cache || true
-
-            # Migrations/cache: applies schema changes and rebuilds the
-            # bootstrap cache inside the container's own ephemeral filesystem
-            # (no bind-mount means there is no host-side stale cache to worry
-            # about — the container always starts with the image's clean state).
-            echo ">>> Running migrations and clearing cache"
+            echo ">>> Running migrations"
             docker compose exec -T backend_service php artisan migrate --force
+
+            echo ">>> Rebuilding cache"
             docker compose exec -T backend_service php artisan optimize:clear
             docker compose exec -T backend_service php artisan optimize
-
-            # Restart PHP-FPM workers so they pick up the fresh route/config
-            # cache. Without this, long-lived FPM workers can serve stale
-            # in-process state or OPcache bytecode from before optimize ran.
-            echo ">>> Restarting PHP-FPM to load fresh cache"
             docker compose exec -T backend_service supervisorctl restart php-fpm
-            # Wait for all draining old workers to exit before polling.
-            # php-fpm uses graceful shutdown: old workers finish their
-            # in-flight requests before dying, so a quick poll can still
-            # hit an old worker. 10s covers the default process_control_timeout.
             sleep 10
 
-            # Poll until we get a 401 (route found, auth required).
-            # We keep looping on 000 (not up yet) AND on 404 (draining old
-            # FPM worker still alive). Breaking on the first non-000 used to
-            # catch a transient 404 from an old worker and fail the deploy.
-            echo ">>> Waiting for /api/me to return 401 (route live)"
+            echo ">>> Health check"
             CODE="000"
             for i in $(seq 1 20); do
               CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:84/api/me || echo "000")
-              echo "  probe $i: $CODE"
-              if [ "$CODE" = "401" ] || [ "$CODE" = "200" ]; then
-                break
-              fi
+              [ "$CODE" = "401" ] || [ "$CODE" = "200" ] && break
               sleep 3
             done
             if [ "$CODE" != "401" ] && [ "$CODE" != "200" ]; then
-              echo "!!! /api/me returned $CODE after all probes — dumping diagnostics"
+              echo "!!! Health check failed (got $CODE)"
               docker compose exec -T backend_service php artisan route:list --path=api/me 2>&1 || true
               docker compose logs backend_service --tail=50
-              docker compose logs webserver --tail=20
               exit 1
             fi
-            echo ">>> App responding correctly (status $CODE)"
 
-            # This check is best-effort and non-blocking: if it fails while
-            # the host-port check above passed, the deploy itself is fine —
-            # the problem is in whatever sits in front of that public URL
-            # (DNS, CDN cache, reverse proxy), which this pipeline doesn't
-            # manage and shouldn't fail the deploy over.
-            if [ -n "$PUBLIC_URL" ]; then
-              PUBLIC_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PUBLIC_URL/api/me" || echo "000")
-              if [ "$PUBLIC_CODE" = "404" ]; then
-                echo "!!! WARNING: $PUBLIC_URL/api/me returned 404 even though localhost:84 is fine."
-                echo "!!! Check whatever sits in front of that domain (CDN/reverse-proxy cache, DNS) — not this deploy."
-              else
-                echo ">>> Public URL check passed (status $PUBLIC_CODE)"
-              fi
-            fi
-
-            echo ">>> Cleaning up dangling images"
+            echo ">>> Cleaning up"
             docker image prune -f
 
             echo ">>> Deploy complete"
