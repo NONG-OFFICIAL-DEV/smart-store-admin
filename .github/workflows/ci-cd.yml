@@ -125,8 +125,16 @@ jobs:
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver:latest
             fi
 
-            echo ">>> Restarting containers"
+            echo ">>> Stopping containers"
             docker compose down --remove-orphans || true
+            # Force-remove any containers by name that survived the above
+            # (e.g. from a previously failed deploy that exited with || true).
+            # Without this, Docker DNS on the shared 'web' network may still
+            # resolve 'backend_service' to the old container, causing nginx to
+            # round-robin between the old (stale routes) and new container.
+            docker rm -f smart_store_backend smart_store_webserver smart_store_frontend 2>/dev/null || true
+
+            echo ">>> Starting containers"
             docker compose up -d --remove-orphans
 
             if ! docker compose ps backend_service | grep -q "Up"; then
@@ -155,34 +163,30 @@ jobs:
             # in-process state or OPcache bytecode from before optimize ran.
             echo ">>> Restarting PHP-FPM to load fresh cache"
             docker compose exec -T backend_service supervisorctl restart php-fpm
-            sleep 3
+            # Wait for all draining old workers to exit before polling.
+            # php-fpm uses graceful shutdown: old workers finish their
+            # in-flight requests before dying, so a quick poll can still
+            # hit an old worker. 10s covers the default process_control_timeout.
+            sleep 10
 
-            # Poll instead of a flat sleep — recreated containers can take
-            # a variable amount of time to come up, and a fixed sleep is
-            # either too short (flaky) or wastes time on a fast start.
-            # GET /api/me with no token must come back 401 (route exists,
-            # auth required); a 404 means the app itself doesn't have the
-            # route (stale cache/code) even after optimize:clear above.
-            echo ">>> Waiting for the app to respond on the host port"
-            READY=""
-            for i in $(seq 1 15); do
+            # Poll until we get a 401 (route found, auth required).
+            # We keep looping on 000 (not up yet) AND on 404 (draining old
+            # FPM worker still alive). Breaking on the first non-000 used to
+            # catch a transient 404 from an old worker and fail the deploy.
+            echo ">>> Waiting for /api/me to return 401 (route live)"
+            CODE="000"
+            for i in $(seq 1 20); do
               CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:84/api/me || echo "000")
-              if [ "$CODE" != "000" ]; then
-                READY=1
+              echo "  probe $i: $CODE"
+              if [ "$CODE" = "401" ] || [ "$CODE" = "200" ]; then
                 break
               fi
-              sleep 2
+              sleep 3
             done
-            if [ -z "$READY" ]; then
-              echo "!!! App never responded on http://localhost:84 after 30s"
-              docker compose logs backend_service --tail=50
-              docker compose logs webserver --tail=50
-              exit 1
-            fi
-            if [ "$CODE" = "404" ]; then
-              echo "!!! /api/me returned 404 — dumping diagnostics"
+            if [ "$CODE" != "401" ] && [ "$CODE" != "200" ]; then
+              echo "!!! /api/me returned $CODE after all probes — dumping diagnostics"
               docker compose exec -T backend_service php artisan route:list --path=api/me 2>&1 || true
-              docker compose logs backend_service --tail=30
+              docker compose logs backend_service --tail=50
               docker compose logs webserver --tail=20
               exit 1
             fi
