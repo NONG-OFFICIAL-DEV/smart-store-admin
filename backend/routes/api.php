@@ -85,11 +85,7 @@ use App\Http\Controllers\Api\SubscriptionPlanHistoryController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\TelegramSettingController;
 
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'API is working'
-    ]);
-});
+Route::get('/test', [AuthController::class, 'test']);
 
 // ── Public routes (no auth needed) ──────────────────────────────────────────
 Route::post('/login',     [AuthController::class, 'login'])->middleware('throttle:login');

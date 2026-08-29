@@ -29,6 +29,11 @@ class AuthController extends Controller
 {
     private const TWO_FACTOR_CHALLENGE_TTL_MINUTES = 5;
 
+    public function test(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(['message' => 'API is working']);
+    }
+
     // Login user
     public function login(
         Request $request,
