@@ -158,6 +158,22 @@ jobs:
               exit 1
             fi
 
+            # Route/config cache lives in bootstrap/cache, which is bind-mounted
+            # from the host (see docker-compose.yml) — it survives image pulls,
+            # so a route added/changed in this deploy can silently 404 in prod
+            # if optimize:clear above ever fails to run (wrong service name,
+            # container not ready yet, etc.). Fail the pipeline loudly instead
+            # of finding out from a user: GET /api/me with no token must come
+            # back 401 (route exists, auth required) — a 404 here means the
+            # route table itself is stale.
+            echo ">>> Smoke test: verifying routes are live (not stale cache)"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://admin.nexstacktech.com/api/me)
+            if [ "$STATUS" = "404" ]; then
+              echo "!!! /api/me returned 404 — route cache is stale even after optimize:clear. Deploy failed."
+              exit 1
+            fi
+            echo ">>> Smoke test passed (status $STATUS)"
+
             echo ">>> POST CLEANUP"
             docker system prune -f
 
