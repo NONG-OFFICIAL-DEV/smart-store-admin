@@ -5,10 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# =========================
-# 1. Detect changed paths
-# =========================
 jobs:
+  # Detect which service(s) actually changed so build-push can skip
+  # rebuilding/pushing images that didn't — cheaper CI runs, and it means
+  # a Docker Hub `:latest` tag genuinely only moves when its own service
+  # changed, not on every unrelated push.
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -31,9 +32,6 @@ jobs:
               - backend/nginx/**
               - docker-compose.yml
 
-# =========================
-# 2. Build & Push images
-# =========================
   build-push:
     runs-on: ubuntu-latest
     needs: changes
@@ -52,17 +50,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ---------- Backend ----------
       - name: Build & push backend
-        # if: needs.changes.outputs.backend == 'true'
+        if: needs.changes.outputs.backend == 'true'
         run: |
           docker build -t $IMAGE_BACKEND:latest -t $IMAGE_BACKEND:$IMAGE_TAG ./backend
           docker push $IMAGE_BACKEND:latest
           docker push $IMAGE_BACKEND:$IMAGE_TAG
 
-      # ---------- Frontend ----------
       - name: Build & push frontend
-        # if: needs.changes.outputs.frontend == 'true'
+        if: needs.changes.outputs.frontend == 'true'
         run: |
           docker build \
             --build-arg GITHUB_TOKEN=${{ secrets.NPM_TOKEN }} \
@@ -81,25 +77,20 @@ jobs:
           docker push $IMAGE_FRONTEND:latest
           docker push $IMAGE_FRONTEND:$IMAGE_TAG
 
-      # ---------- Webserver ----------
       - name: Build & push webserver
-        # if: needs.changes.outputs.webserver == 'true'
+        if: needs.changes.outputs.webserver == 'true'
         run: |
           docker build -t $IMAGE_WEBSERVER:latest -t $IMAGE_WEBSERVER:$IMAGE_TAG ./backend/nginx
           docker push $IMAGE_WEBSERVER:latest
           docker push $IMAGE_WEBSERVER:$IMAGE_TAG
 
-# =========================
-# 3. Deploy
-# =========================
   deploy:
     runs-on: ubuntu-latest
     needs: [changes, build-push]
     steps:
       - uses: actions/checkout@v4
 
-      # ── NEW: Copy docker-compose.yml to server ──
-      - name: Copy docker-compose to server
+      - name: Copy docker-compose.yml to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -110,71 +101,94 @@ jobs:
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
+        env:
+          # Optional — set this secret to enable the extra public-domain
+          # check at the end of the script; leave it unset to skip it.
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: PUBLIC_URL
           script: |
             set -e
             cd ~/smart-store
 
-            echo ">>> PRE CLEANUP (avoid disk full)"
-            docker system prune -a -f
-            
-            echo ">>> Pull only changed images"
-
-            # if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
+            echo ">>> Pulling changed images"
+            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-backend:latest
-            # fi
-
-            # if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
+            fi
+            if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-frontend:latest
-            # fi
-
-            # if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
+            fi
+            if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
               docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver:latest
-            # fi
+            fi
 
-            echo ">>> Restart containers"
+            echo ">>> Restarting containers"
             docker compose down --remove-orphans || true
             docker compose up -d --remove-orphans
 
-            # ✅ Wait for backend to be ready
-            echo ">>> Waiting for backend to start..."
-            sleep 15
-
-            # Full container recreation above already restarts php-fpm/reverb/queue
-            # fresh via supervisord's own autostart — no separate supervisorctl
-            # restart needed. Migrations/cache DO need this explicit step: they
-            # don't run just because a new image was pulled, and skipping this
-            # means every new migration silently never reaches production.
-            if docker compose ps backend_service | grep -q "Up"; then
-              echo ">>> Backend post-deploy"
-              docker compose exec -T backend_service php artisan migrate --force
-              docker compose exec -T backend_service php artisan optimize:clear
-            else
-              echo ">>> Backend container not running — checking logs"
-              docker logs smart_store_backend --tail=30
+            if ! docker compose ps backend_service | grep -q "Up"; then
+              echo "!!! backend_service failed to start"
+              docker compose logs backend_service --tail=50
               exit 1
             fi
 
-            # Route/config cache lives in bootstrap/cache, which is bind-mounted
-            # from the host (see docker-compose.yml) — it survives image pulls,
-            # so a route added/changed in this deploy can silently 404 in prod
-            # if optimize:clear above ever fails to run (wrong service name,
-            # container not ready yet, etc.). Fail the pipeline loudly instead
-            # of finding out from a user: GET /api/me with no token must come
-            # back 401 (route exists, auth required) — a 404 here means the
-            # route table itself is stale.
-            echo ">>> Smoke test: verifying routes are live (not stale cache)"
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://admin.nexstacktech.com/api/me)
-            if [ "$STATUS" = "404" ]; then
-              echo "!!! /api/me returned 404 — route cache is stale even after optimize:clear. Deploy failed."
+            # Migrations/cache don't run just because a new image was
+            # pulled — this is the one step that actually applies a new
+            # deploy's schema changes and clears any stale bootstrap cache
+            # (bootstrap/cache is bind-mounted from the host in
+            # docker-compose.yml, so a stale route/config cache would
+            # otherwise survive indefinitely across redeploys).
+            echo ">>> Running migrations and clearing cache"
+            docker compose exec -T backend_service php artisan migrate --force
+            docker compose exec -T backend_service php artisan optimize:clear
+
+            # Poll instead of a flat sleep — recreated containers can take
+            # a variable amount of time to come up, and a fixed sleep is
+            # either too short (flaky) or wastes time on a fast start.
+            # GET /api/me with no token must come back 401 (route exists,
+            # auth required); a 404 means the app itself doesn't have the
+            # route (stale cache/code) even after optimize:clear above.
+            echo ">>> Waiting for the app to respond on the host port"
+            READY=""
+            for i in $(seq 1 15); do
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:84/api/me || echo "000")
+              if [ "$CODE" != "000" ]; then
+                READY=1
+                break
+              fi
+              sleep 2
+            done
+            if [ -z "$READY" ]; then
+              echo "!!! App never responded on http://localhost:84 after 30s"
+              docker compose logs backend_service --tail=50
+              docker compose logs webserver --tail=50
               exit 1
             fi
-            echo ">>> Smoke test passed (status $STATUS)"
+            if [ "$CODE" = "404" ]; then
+              echo "!!! /api/me returned 404 on the host port — route cache/code is stale. Deploy failed."
+              exit 1
+            fi
+            echo ">>> App responding correctly (status $CODE)"
 
-            echo ">>> POST CLEANUP"
-            docker system prune -f
+            # This check is best-effort and non-blocking: if it fails while
+            # the host-port check above passed, the deploy itself is fine —
+            # the problem is in whatever sits in front of that public URL
+            # (DNS, CDN cache, reverse proxy), which this pipeline doesn't
+            # manage and shouldn't fail the deploy over.
+            if [ -n "$PUBLIC_URL" ]; then
+              PUBLIC_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PUBLIC_URL/api/me" || echo "000")
+              if [ "$PUBLIC_CODE" = "404" ]; then
+                echo "!!! WARNING: $PUBLIC_URL/api/me returned 404 even though localhost:84 is fine."
+                echo "!!! Check whatever sits in front of that domain (CDN/reverse-proxy cache, DNS) — not this deploy."
+              else
+                echo ">>> Public URL check passed (status $PUBLIC_CODE)"
+              fi
+            fi
 
-            echo ">>> Deploy complete ✅"
+            echo ">>> Cleaning up dangling images"
+            docker image prune -f
+
+            echo ">>> Deploy complete"
