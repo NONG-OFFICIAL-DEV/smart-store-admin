@@ -9,7 +9,6 @@ services:
       - ./backend/.env
     volumes:
       - smart_store_backend_storage:/var/www/html/storage
-      - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
     command: >
       sh -c "chown -R www-data:www-data storage bootstrap/cache &&
             chmod -R 775 storage bootstrap/cache &&

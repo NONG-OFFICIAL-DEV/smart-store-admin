@@ -135,21 +135,24 @@ jobs:
               exit 1
             fi
 
-            # Migrations/cache don't run just because a new image was
-            # pulled — this is the one step that actually applies a new
-            # deploy's schema changes and clears any stale bootstrap cache
-            # (bootstrap/cache is bind-mounted from the host in
-            # docker-compose.yml, so a stale route/config cache would
-            # otherwise survive indefinitely across redeploys).
+            # Remove any stale host-side bootstrap/cache directory left over
+            # from the old docker-compose.yml that bind-mounted it. The mount
+            # no longer exists, but the host directory might and could confuse
+            # anyone who looks. Clean it up proactively.
+            rm -rf ~/smart-store/backend/bootstrap/cache || true
+
+            # Migrations/cache: applies schema changes and rebuilds the
+            # bootstrap cache inside the container's own ephemeral filesystem
+            # (no bind-mount means there is no host-side stale cache to worry
+            # about — the container always starts with the image's clean state).
             echo ">>> Running migrations and clearing cache"
             docker compose exec -T backend_service php artisan migrate --force
             docker compose exec -T backend_service php artisan optimize:clear
             docker compose exec -T backend_service php artisan optimize
 
             # Restart PHP-FPM workers so they pick up the fresh route/config
-            # cache from bootstrap/cache (bind-mounted from the host). Without
-            # this, long-lived FPM workers can serve stale in-process state
-            # (or stale OPcache bytecode) from before optimize ran.
+            # cache. Without this, long-lived FPM workers can serve stale
+            # in-process state or OPcache bytecode from before optimize ran.
             echo ">>> Restarting PHP-FPM to load fresh cache"
             docker compose exec -T backend_service supervisorctl restart php-fpm
             sleep 3
