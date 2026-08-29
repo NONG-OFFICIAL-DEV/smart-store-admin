@@ -552,7 +552,22 @@
       return
     }
 
-    emit('submit', { ...form.value })
+    // Drop feature entries whose catalog key no longer exists at all
+    // (deleted, not just deactivated — catalogStore.items already excludes
+    // soft-deleted rows the same way the backend's validator does). The
+    // features tab has no way to see or edit these anymore, so silently
+    // carrying them through on every save would otherwise permanently
+    // block saving this plan the moment their catalog entry is removed.
+    // Guarded on the catalog actually being loaded — if it somehow isn't
+    // (fetch still in flight), skip filtering rather than risk wiping
+    // every feature out from under an unrelated field edit.
+    let features = form.value.features
+    if (catalogStore.items.length) {
+      const catalogKeys = new Set(catalogStore.items.map((item) => item.key))
+      features = features.filter((f) => catalogKeys.has(f.key))
+    }
+
+    emit('submit', { ...form.value, features })
   }
 </script>
 
