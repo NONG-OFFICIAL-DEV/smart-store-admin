@@ -227,6 +227,21 @@ export const useAuthStore = defineStore('auth', {
       this.unread_notifications_count = d.unread_notifications_count ?? 0
       this.mustChangePassword = d.must_change_password ?? false
 
+      // /me sits outside EnsureSubscriptionActive's gate, so this is the one
+      // reliable source of "am I blocked" that survives a page refresh —
+      // the api.js interceptor's event-driven update reacts faster to a
+      // live 403, but a full reload has no 403 to react to yet (the banner
+      // would otherwise silently vanish on refresh, even though the block
+      // is still in effect). Mirrors EnsureSubscriptionActive's exact
+      // precedence: tenant suspension first, then subscription status.
+      if (d.tenant_is_active === false) {
+        this.blockedApiError = { code: 'TENANT_SUSPENDED', message: null }
+      } else if (['cancelled', 'suspended'].includes(d.subscription_status)) {
+        this.blockedApiError = { code: 'SUBSCRIPTION_STATUS_BLOCKED', message: null }
+      } else {
+        this.blockedApiError = null
+      }
+
       if (this.me?.id) connectEcho()
     },
   },

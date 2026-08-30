@@ -163,7 +163,7 @@
                 color="primary"
                 rounded="lg"
                 prepend-icon="mdi-plus"
-                @click="openAssignPlan(item)"
+                @click="openManageSubscription(item)"
               >
                 {{ $t('subscription.list.assign_plan') }}
               </v-btn>
@@ -230,6 +230,12 @@
                   @click="openUsersDialog(item)"
                 />
                 <v-list-item
+                  :title="$t('subscription.manage_subscription')"
+                  prepend-icon="mdi-crown-outline"
+                  class="text-deep-purple"
+                  @click="openManageSubscription(item)"
+                />
+                <v-list-item
                   :title="$t('impersonation.log_in_as_tenant')"
                   prepend-icon="mdi-login-variant"
                   class="text-indigo"
@@ -287,15 +293,6 @@
       </AppTable>
     </v-card>
 
-    <!-- ── Assign / Change Plan Dialog ── -->
-    <AssignPlanDialog
-      v-model="assignPlanDialog"
-      :tenant-id="assigningTenant?.id"
-      :tenant-name="assigningTenant?.name"
-      :current-plan="assigningTenant?.active_subscription?.plan"
-      @saved="() => tableRef?.refresh()"
-    />
-
     <!-- ── Manage Users Dialog ── -->
     <AdminTenantUsersDialog v-model="usersDialog" :tenant="usersTarget" />
   </v-container>
@@ -304,7 +301,6 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import CustomSelect from '@/components/customs/CustomSelect.vue'
-  import AssignPlanDialog from '@/components/subscriptions/AssignPlanDialog.vue'
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAuthStore } from '@/stores/authStore'
   import { usePlanStore } from '../../stores/planStore'
@@ -328,8 +324,6 @@
   const tableRef = ref(null)
   const saving = ref(false)
   const manageBusinessTypesDialog = ref(false)
-  const assignPlanDialog = ref(false)
-  const assigningTenant = ref(null)
   const usersDialog = ref(false)
   const usersTarget = ref(null)
   const impersonatingId = ref(null)
@@ -463,9 +457,8 @@
     router.push({ name: 'tenant-edit', params: { id: t.id } })
   }
 
-  const openAssignPlan = tenant => {
-    assigningTenant.value = tenant
-    assignPlanDialog.value = true
+  const openManageSubscription = tenant => {
+    router.push({ name: 'tenant-subscription', params: { id: tenant.id }, query: { tenantName: tenant.name } })
   }
 
   const openUsersDialog = tenant => {

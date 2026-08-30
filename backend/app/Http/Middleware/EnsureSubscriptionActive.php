@@ -32,6 +32,20 @@ class EnsureSubscriptionActive
 
     private const BLOCKED_STATUSES = ['suspended', 'cancelled'];
 
+    // A tenant blocked only because its subscription lapsed/was cancelled
+    // (not because a super admin suspended the tenant itself) can still
+    // reach these to pay/renew its own way out — otherwise the billing
+    // page it gets redirected to is useless (can view its own status via
+    // plans/{tenant}/billing, which is exempt at the route level, but
+    // couldn't act on it). Deliberately NOT exempted for TENANT_SUSPENDED
+    // below — an admin-imposed suspension is meant to require the admin
+    // to reactivate it, not be payable away.
+    private const SUBSCRIPTION_SELF_SERVICE_ROUTES = [
+        'api/v1/billing/plans',
+        'api/v1/billing/change-plan',
+        'api/v1/billing/renew',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = auth()->user();
@@ -66,6 +80,10 @@ class EnsureSubscriptionActive
             ?->status;
 
         if (in_array($status, self::BLOCKED_STATUSES, true)) {
+            if ($request->is(...self::SUBSCRIPTION_SELF_SERVICE_ROUTES)) {
+                return $next($request);
+            }
+
             return $this->error(
                 'Your subscription is not active. Please renew your plan to continue.',
                 403,

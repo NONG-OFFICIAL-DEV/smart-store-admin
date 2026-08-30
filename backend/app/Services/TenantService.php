@@ -44,7 +44,18 @@ class TenantService extends BaseService
     }
 
     /**
-     * @return array{tenant: Tenant, subscription: mixed, plan: mixed, active_billing_cycle: mixed, billing_cycles: mixed, invoices: mixed, plan_history: mixed}
+     * Backs GET /tenants/{tenant} — shared by TenantDetails.vue, the
+     * Profile page's tenant card, and TenantBilling.vue's incidental
+     * refresh call. invoices/plan_history/billing_cycles were dropped:
+     * none of those three consumers ever read them from this endpoint
+     * (TenantBilling.vue gets its own invoices/plan_history from
+     * subscriptionDetail() below, via a separate route) — invoices in
+     * particular was being eager-loaded and serialized on every call
+     * without a single consumer ever rendering it. billing_cycles was
+     * also silently N+1'ing (billingCycles was never actually
+     * eager-loaded on the subscriptions.plan relation above it).
+     *
+     * @return array{tenant: Tenant, subscription: mixed, plan: mixed, active_billing_cycle: mixed}
      */
     public function detail(Tenant $tenant): array
     {
@@ -54,9 +65,6 @@ class TenantService extends BaseService
             'branches',
             'subscriptions.plan',
             'subscriptions.billingCycle',
-            'invoices.paymentTransactions',
-            'subscriptionPlanHistory.fromPlan',
-            'subscriptionPlanHistory.toPlan',
         ]);
 
         $activeSubscription = $tenant->subscriptions
@@ -64,18 +72,11 @@ class TenantService extends BaseService
             ->sortByDesc('created_at')
             ->first();
 
-        $activeCycles = $activeSubscription?->plan?->billingCycles
-            ->where('is_active', true)
-            ->values();
-
         return [
             'tenant' => $tenant,
             'subscription' => $activeSubscription,
             'plan' => $activeSubscription?->plan,
             'active_billing_cycle' => $activeSubscription?->billingCycle,
-            'billing_cycles' => $activeCycles,
-            'invoices' => $tenant->invoices->sortByDesc('created_at')->values(),
-            'plan_history' => $tenant->subscriptionPlanHistory->sortByDesc('changed_at')->values(),
         ];
     }
 

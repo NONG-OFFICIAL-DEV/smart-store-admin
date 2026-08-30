@@ -125,6 +125,32 @@ class TenantServiceTest extends TestCase
         return $plan;
     }
 
+    /**
+     * invoices/plan_history/billing_cycles were dropped from detail()'s
+     * response — none of GET /tenants/{tenant}'s three consumers
+     * (TenantDetails.vue, Profile.vue, TenantBilling.vue's incidental
+     * refresh) ever read them from this endpoint; TenantDetails.vue's own
+     * "Plan History" tab and invoices display were removed in the same
+     * pass that prompted this trim.
+     */
+    public function test_detail_only_returns_the_fields_its_consumers_actually_use(): void
+    {
+        $this->seedFreePlan();
+        [$tenant] = $this->makeTenantWithOwner('DetailShape');
+        $this->app->make(\App\Services\TenantSubscriptionService::class)->changePlan(
+            tenant: $tenant,
+            newPlanId: Plan::where('code', 'free')->firstOrFail()->id,
+            newCycleId: PlanBillingCycle::first()->id,
+            changedBy: $tenant->owner_user_id,
+        );
+
+        $result = $this->app->make(TenantService::class)->detail($tenant->fresh());
+
+        $this->assertSame(['tenant', 'subscription', 'plan', 'active_billing_cycle'], array_keys($result));
+        $this->assertNotNull($result['subscription']);
+        $this->assertSame('free', $result['plan']->code);
+    }
+
     public function test_isVisibleTo_allows_owner_staff_and_super_admin_but_rejects_others(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');

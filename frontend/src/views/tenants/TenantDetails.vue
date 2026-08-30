@@ -20,6 +20,16 @@
 
       <template #right>
         <v-btn
+          prepend-icon="mdi-crown-outline"
+          rounded="lg"
+          variant="tonal"
+          color="deep-purple"
+          class="me-2"
+          @click="openManageSubscription"
+        >
+          {{ $t('subscription.manage_subscription') }}
+        </v-btn>
+        <v-btn
           prepend-icon="mdi-pencil"
           rounded="lg"
           variant="flat"
@@ -30,6 +40,7 @@
         </v-btn>
       </template>
     </AppPageHeader>
+
 
     <!-- ── Identity banner ── -->
     <v-card rounded="xl" border elevation="0" class="mb-4 overflow-hidden">
@@ -114,10 +125,6 @@
               <v-icon size="15" class="mr-1">mdi-information-outline</v-icon>
               {{ $t('order_report.tabs.overview') }}
             </v-tab>
-            <v-tab value="subscription">
-              <v-icon size="15" class="mr-1">mdi-crown-outline</v-icon>
-              {{ $t('tenant_details.tabs.subscription') }}
-            </v-tab>
             <v-tab value="branches">
               <v-icon size="15" class="mr-1">mdi-store-outline</v-icon>
               {{ $t('tenant_profile.kpi.branches') }}
@@ -125,17 +132,6 @@
                 v-if="tenant.branches?.length"
                 :content="tenant.branches.length"
                 color="primary"
-                inline
-                class="ml-1"
-              />
-            </v-tab>
-            <v-tab value="history">
-              <v-icon size="15" class="mr-1">mdi-history</v-icon>
-              {{ $t('tenant_details.tabs.history') }}
-              <v-badge
-                v-if="planHistory?.length"
-                :content="planHistory.length"
-                color="grey"
                 inline
                 class="ml-1"
               />
@@ -271,174 +267,6 @@
               </v-card>
             </v-window-item>
 
-            <!-- ══ SUBSCRIPTION ══ -->
-            <v-window-item value="subscription">
-              <!-- Trial / expiry alert -->
-              <v-alert
-                v-if="subscription?.status === 'trial'"
-                type="info"
-                variant="tonal"
-                icon="mdi-clock-outline"
-                rounded="lg"
-                density="compact"
-                class="mb-4"
-              >
-                {{ $t('tenant_details.trial_ends_on') }}
-                <strong>{{ formatDate(subscription.trial_ends_at) }}</strong>
-                ({{ daysUntilTrial }} {{ $t('tenant_details.days_remaining') }})
-              </v-alert>
-              <v-alert
-                v-else-if="isExpiringSoon"
-                type="warning"
-                variant="tonal"
-                icon="mdi-alert-circle-outline"
-                rounded="lg"
-                density="compact"
-                class="mb-4"
-              >
-                {{ $t('tenant_details.period_ends_in') }}
-                <strong>{{ daysUntilExpiry }}</strong>
-                {{ $t('tenant_details.days_suffix') }}
-              </v-alert>
-
-              <!-- No subscription yet — tenant was created without a plan -->
-              <v-card
-                v-if="!subscription"
-                rounded="lg"
-                variant="outlined"
-                class="pa-8 text-center"
-              >
-                <v-icon size="40" color="grey-lighten-1">mdi-crown-off-outline</v-icon>
-                <div class="text-body-2 text-medium-emphasis mt-3 mb-4">
-                  {{ $t('tenant_details.no_subscription') }}
-                </div>
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  rounded="lg"
-                  prepend-icon="mdi-plus"
-                  :to="{ name: 'subscriptions' }"
-                >
-                  {{ $t('tenant_details.assign_plan') }}
-                </v-btn>
-              </v-card>
-
-              <template v-else>
-                <!-- Plan overview -->
-                <v-card
-                  rounded="lg"
-                  variant="tonal"
-                  :color="planColor"
-                  class="pa-4 mb-4"
-                >
-                  <div class="d-flex align-center justify-space-between">
-                    <div class="d-flex align-center ga-3">
-                      <v-avatar
-                        :color="planColor"
-                        variant="flat"
-                        size="44"
-                        rounded="lg"
-                      >
-                        <v-icon :icon="planIcon" size="22" color="white" />
-                      </v-avatar>
-                      <div>
-                        <div class="text-h6 font-weight-bold">
-                          {{ plan?.name }}
-                        </div>
-                        <div class="text-caption text-medium-emphasis">
-                          ${{ plan?.price_usd }} {{ $t('tenant_create.per_month_suffix') }}
-                        </div>
-                      </div>
-                    </div>
-                    <v-chip
-                      :color="subscriptionStatusColor"
-                      variant="flat"
-                      size="small"
-                    >
-                      {{ subscriptionStatusLabel.toUpperCase() }}
-                    </v-chip>
-                  </div>
-
-                  <!-- Plan features -->
-                  <div class="d-flex flex-wrap ga-2 mt-3">
-                    <v-chip size="x-small" variant="tonal" :color="planColor">
-                      {{ $t('subscription.plan.seats_count', plan?.seats ?? 0) }}
-                    </v-chip>
-                    <v-chip size="x-small" variant="tonal" :color="planColor">
-                      {{ plan?.storage_gb }}{{ $t('tenant_create.storage_suffix') }}
-                    </v-chip>
-                    <v-chip size="x-small" variant="tonal" :color="planColor">
-                      {{
-                        plan?.api_limit > 0
-                          ? plan.api_limit.toLocaleString() + ' ' + $t('tenant_create.api_calls_suffix')
-                          : $t('tenant_create.unlimited_api')
-                      }}
-                    </v-chip>
-                  </div>
-                </v-card>
-
-                <!-- Billing period -->
-                <div class="section-label mb-3">{{ $t('tenant_details.billing_period') }}</div>
-                <v-row dense class="mb-4">
-                  <v-col cols="12" sm="4">
-                    <div class="info-tile pa-3">
-                      <div class="info-tile-label">{{ $t('subscription.list.field.period_start') }}</div>
-                      <div class="info-tile-value">
-                        {{
-                          subscription?.current_period_start
-                            ? formatDate(subscription.current_period_start)
-                            : '—'
-                        }}
-                      </div>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <div class="info-tile pa-3">
-                      <div class="info-tile-label">{{ $t('subscription.list.field.period_end') }}</div>
-                      <div class="info-tile-value">
-                        {{
-                          subscription?.current_period_end
-                            ? formatDate(subscription.current_period_end)
-                            : '—'
-                        }}
-                      </div>
-                    </div>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <div class="info-tile pa-3">
-                      <div class="info-tile-label">{{ $t('tenant_details.trial_ends') }}</div>
-                      <div class="info-tile-value">
-                        {{
-                          subscription?.trial_ends_at
-                            ? formatDate(subscription.trial_ends_at)
-                            : $t('common.na')
-                        }}
-                      </div>
-                    </div>
-                  </v-col>
-                </v-row>
-
-                <!-- Plan features list -->
-                <template v-if="planFeatureLines(plan).length">
-                  <div class="section-label mb-3">{{ $t('tenant_details.included_features') }}</div>
-                  <v-list density="compact" rounded="lg" border>
-                    <v-list-item
-                      v-for="line in planFeatureLines(plan)"
-                      :key="line.key"
-                      :title="line.text"
-                      density="compact"
-                    >
-                      <template #prepend>
-                        <v-icon size="14" color="success" class="me-2">
-                          mdi-check-circle
-                        </v-icon>
-                      </template>
-                    </v-list-item>
-                  </v-list>
-                </template>
-              </template>
-            </v-window-item>
-
             <!-- ══ BRANCHES ══ -->
             <v-window-item value="branches">
               <div v-if="!tenant.branches?.length" class="text-center py-10">
@@ -514,55 +342,6 @@
               </v-row>
             </v-window-item>
 
-            <!-- ══ PLAN HISTORY ══ -->
-            <v-window-item value="history">
-              <div v-if="!planHistory?.length" class="text-center py-10">
-                <v-icon size="48" color="grey-lighten-1">mdi-history</v-icon>
-                <div class="text-body-2 text-medium-emphasis mt-3">
-                  {{ $t('tenant_details.no_plan_history') }}
-                </div>
-              </div>
-
-              <v-timeline
-                v-else
-                density="compact"
-                side="end"
-                truncate-line="both"
-              >
-                <v-timeline-item
-                  v-for="entry in planHistory"
-                  :key="entry.id"
-                  size="x-small"
-                  :dot-color="entry.from_plan_id ? 'primary' : 'success'"
-                >
-                  <div class="d-flex align-start justify-space-between">
-                    <div>
-                      <div class="text-body-2 font-weight-medium">
-                        <template v-if="!entry.from_plan_id">
-                          {{ $t('tenant_details.initial_plan') }}
-                          <strong>{{ entry.to_plan?.name }}</strong>
-                        </template>
-                        <template v-else>
-                          {{ entry.from_plan?.name }} →
-                          <strong>{{ entry.to_plan?.name }}</strong>
-                        </template>
-                      </div>
-                      <div
-                        v-if="entry.reason"
-                        class="text-caption text-medium-emphasis"
-                      >
-                        {{ entry.reason }}
-                      </div>
-                    </div>
-                    <div
-                      class="text-caption text-medium-emphasis ms-3 text-no-wrap"
-                    >
-                      {{ formatDate(entry.changed_at) }}
-                    </div>
-                  </div>
-                </v-timeline-item>
-              </v-timeline>
-            </v-window-item>
           </v-window>
         </v-card>
       </v-col>
@@ -613,7 +392,7 @@
               variant="tonal"
               rounded="lg"
               prepend-icon="mdi-plus"
-              :to="{ name: 'subscriptions' }"
+              @click="openManageSubscription"
             >
               {{ $t('tenant_details.assign_plan') }}
             </v-btn>
@@ -726,6 +505,10 @@
   const tab = ref('overview')
   const togglingActive = ref(false)
 
+  const openManageSubscription = () => {
+    router.push({ name: 'tenant-subscription', params: { id: route.params.id }, query: { tenantName: tenant.value?.name } })
+  }
+
   // ── The store should hold the full response: { tenant, subscription, plan, plan_history, invoices }
   const tenantData = computed(() => tenantStore.tenantDetail)
 
@@ -733,19 +516,6 @@
   const tenant = computed(() => tenantData.value?.tenant)
   const subscription = computed(() => tenantData.value?.subscription)
   const plan = computed(() => tenantData.value?.plan)
-  const planHistory = computed(() => tenantData.value?.plan_history)
-
-  // Catalog-joined feature list — boolean-type entries show their label
-  // only when true; text-type entries show the plan's own value text and
-  // are skipped if no value has been set yet. English only, matching
-  // this page's existing behavior (super-admin view, no locale switch).
-  const planFeatureLines = plan =>
-    (plan?.feature_list ?? [])
-      .filter(f => (f.value_type === 'boolean' ? f.value : f.value?.en))
-      .map(f => ({
-        key: f.key,
-        text: f.value_type === 'boolean' ? f.label?.en : f.value?.en
-      }))
 
   onMounted(async () => {
     await tenantStore.fetchTenantById(route.params.id)
@@ -765,11 +535,6 @@
 
   const planColor = computed(
     () => PLAN_UI[plan.value?.code?.toLowerCase()]?.color ?? 'grey'
-  )
-  const planIcon = computed(
-    () =>
-      PLAN_UI[plan.value?.code?.toLowerCase()]?.icon ??
-      'mdi-help-circle-outline'
   )
 
   const cyclePrice = computed(() => {
@@ -814,22 +579,6 @@
 
   // ── Dates & expiry
   const formatDate = d => (d ? formatShortDate(d) : t('common.na'))
-
-  const daysUntilExpiry = computed(() => {
-    const end = subscription.value?.current_period_end
-    if (!end) return null
-    return Math.round((new Date(end) - new Date()) / 864e5)
-  })
-
-  const daysUntilTrial = computed(() => {
-    const end = subscription.value?.trial_ends_at
-    if (!end) return null
-    return Math.round((new Date(end) - new Date()) / 864e5)
-  })
-
-  const isExpiringSoon = computed(
-    () => daysUntilExpiry.value !== null && daysUntilExpiry.value < 14
-  )
 
   // ── Actions
   const toggleActive = async () => {

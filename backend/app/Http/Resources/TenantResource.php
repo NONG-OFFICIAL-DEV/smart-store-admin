@@ -33,6 +33,8 @@ class TenantResource extends JsonResource
                 'icon' => $this->businessType?->icon,
             ]),
             'active_subscription' => $this->whenLoaded('activeSubscription', fn () => $this->activeSubscription ? [
+                'id' => $this->activeSubscription->id,
+                'status' => $this->activeSubscription->status,
                 'plan' => [
                     'name' => $this->activeSubscription->plan?->name,
                     'code' => $this->activeSubscription->plan?->code,

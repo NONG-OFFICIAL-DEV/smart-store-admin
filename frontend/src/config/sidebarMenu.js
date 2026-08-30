@@ -56,12 +56,6 @@ export const SIDEBAR_MENU = [
         titleKey: 'menu.pricing_plans',
         icon: 'mdi-wallet-membership',
         path: '/plan'
-      },
-      {
-        key: 'subscriptions',
-        titleKey: 'menu.subscriptions',
-        icon: 'mdi-credit-card-outline',
-        path: '/subscriptions'
       }
     ]
   },

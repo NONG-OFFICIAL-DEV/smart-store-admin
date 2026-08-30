@@ -59,6 +59,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
       },
       {
+        path: '/tenants/:id/subscription',
+        name: 'tenant-subscription',
+        component: () => import('@/views/tenants/TenantSubscriptionPage.vue'),
+        meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
+      },
+      {
         path: '/tenants/:id',
         name: 'tenant-details',
         component: () => import('@/views/tenants/TenantDetails.vue'),
@@ -331,18 +337,6 @@ const routes = [
         name: 'plans',
         component: () => import('@/views/subscriptions/Plan.vue'),
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
-        path: '/subscriptions',
-        name: 'subscriptions',
-        component: () => import('@/views/subscriptions/Subscriptions.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
-        path: '/subscriptions/history/:tenantId',
-        name: 'subscription-history',
-        component: () => import('@/views/subscriptions/SubscriptionHistory.vue'),
-        meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
       },
       {
         path: '/customers',

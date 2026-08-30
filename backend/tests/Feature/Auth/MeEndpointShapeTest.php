@@ -54,4 +54,29 @@ class MeEndpointShapeTest extends TestCase
         $this->assertArrayNotHasKey('password_hash', $body['user']);
         $this->assertArrayNotHasKey('notify_email', $body['user']);
     }
+
+    public function test_tenant_is_active_reflects_the_owners_tenant_flag(): void
+    {
+        $owner = User::create([
+            'email' => 'suspended@example.test', 'first_name' => 'S', 'last_name' => 'O',
+        ]);
+        Tenant::create(['name' => 'T', 'slug' => 't-2', 'owner_user_id' => $owner->id, 'is_active' => false]);
+        Auth::login($owner);
+
+        $body = $this->callMe();
+
+        $this->assertFalse($body['tenant_is_active']);
+    }
+
+    public function test_tenant_is_active_defaults_true_for_a_super_admin(): void
+    {
+        $admin = User::create([
+            'email' => 'admin@example.test', 'first_name' => 'A', 'last_name' => 'D', 'is_super_admin' => true,
+        ]);
+        Auth::login($admin);
+
+        $body = $this->callMe();
+
+        $this->assertTrue($body['tenant_is_active']);
+    }
 }

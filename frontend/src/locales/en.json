@@ -1980,6 +1980,10 @@
     "upgrade_plan": "Upgrade Plan",
     "renew_plan": "Renew Subscription",
     "no_active_plan": "No Active Plan",
+    "manage_subscription": "Manage Subscription",
+    "manage_dialog": {
+      "title": "Manage Subscription — {name}"
+    },
     "billed": "Billed",
     "month": "month",
     "whats_included": "What's included",

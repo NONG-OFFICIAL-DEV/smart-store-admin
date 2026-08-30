@@ -11,6 +11,7 @@ use App\Services\PlanService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -67,11 +68,11 @@ class EnsureSubscriptionActiveTest extends TestCase
         ]);
     }
 
-    private function handle(): mixed
+    private function handle(string $path = '/api/v1/dashboard/stats', string $method = 'GET'): mixed
     {
         $middleware = new EnsureSubscriptionActive;
 
-        return $middleware->handle(Request::create('/v1/dashboard/stats', 'GET'), fn () => response('ok'));
+        return $middleware->handle(Request::create($path, $method), fn () => response('ok'));
     }
 
     public function test_super_admin_always_bypasses(): void
@@ -138,5 +139,48 @@ class EnsureSubscriptionActiveTest extends TestCase
         Auth::login($owner);
 
         $this->assertSame(200, $this->handle()->getStatusCode());
+    }
+
+    #[DataProvider('selfServiceBillingRoutes')]
+    public function test_subscription_status_blocked_tenant_can_still_reach_self_service_billing(string $path, string $method): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('SelfServiceRenew');
+        $this->makeSubscription($tenant, 'cancelled');
+        Auth::login($owner);
+
+        $this->assertSame(200, $this->handle($path, $method)->getStatusCode());
+    }
+
+    public static function selfServiceBillingRoutes(): array
+    {
+        return [
+            ['/api/v1/billing/plans', 'GET'],
+            ['/api/v1/billing/change-plan', 'POST'],
+            ['/api/v1/billing/renew', 'POST'],
+        ];
+    }
+
+    public function test_suspended_tenant_cannot_use_self_service_billing_to_unlock_itself(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('SuspendedNoEscape', isActive: false);
+        $this->makeSubscription($tenant, 'cancelled');
+        Auth::login($owner);
+
+        $response = $this->handle('/api/v1/billing/change-plan', 'POST');
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('TENANT_SUSPENDED', json_decode($response->getContent(), true)['code']);
+    }
+
+    public function test_subscription_status_blocked_tenant_is_still_blocked_on_unrelated_routes(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('StillBlockedElsewhere');
+        $this->makeSubscription($tenant, 'cancelled');
+        Auth::login($owner);
+
+        $response = $this->handle('/api/v1/dashboard/stats', 'GET');
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('SUBSCRIPTION_STATUS_BLOCKED', json_decode($response->getContent(), true)['code']);
     }
 }

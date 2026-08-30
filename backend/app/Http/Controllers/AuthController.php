@@ -250,6 +250,13 @@ class AuthController extends Controller
             'features'          => [],
             'subscription_status' => null,
             'trial_ends_at'       => null,
+            // EnsureSubscriptionActive's other block condition (Tenant.is_active
+            // === false) — /me is deliberately outside that middleware's gate,
+            // so this is the only reliable way the frontend can tell "am I
+            // blocked" on page load/refresh without waiting for some other
+            // request to happen to 403 first. true by default (not blocked) —
+            // a super admin has no tenant of their own to be suspended.
+            'tenant_is_active'    => true,
             'must_change_password' => $user->must_change_password,
             // Layout.vue's notification-bell badge reads this — was always
             // 0 because this key was never set at all. NotificationService
@@ -306,6 +313,7 @@ class AuthController extends Controller
                 'features'         => Feature::codesForTenant($ownedTenant->id),
                 'subscription_status' => $subscription?->status,
                 'trial_ends_at'       => $subscription?->trial_ends_at,
+                'tenant_is_active'    => $ownedTenant->is_active,
             ]));
         }
 
@@ -339,6 +347,7 @@ class AuthController extends Controller
                 : [],
             'subscription_status' => $subscription?->status,
             'trial_ends_at'       => $subscription?->trial_ends_at,
+            'tenant_is_active'    => $staff->tenant?->is_active ?? true,
         ]));
     }
 

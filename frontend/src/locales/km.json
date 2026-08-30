@@ -1960,6 +1960,10 @@
     "upgrade_plan": "ដំឡើងគម្រោង",
     "renew_plan": "បន្តការជាវ",
     "no_active_plan": "មិនមានគម្រោងសកម្ម",
+    "manage_subscription": "គ្រប់គ្រងការជាវ",
+    "manage_dialog": {
+      "title": "គ្រប់គ្រងការជាវ — {name}"
+    },
     "billed": "វិក្កយបត្រ",
     "month": "ខែ",
     "whats_included": "អ្វីដែលបានរាប់បញ្ចូល",
