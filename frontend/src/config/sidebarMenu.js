@@ -284,13 +284,30 @@ export const SIDEBAR_MENU = [
         titleKey: 'menu.purchase_reports',
         icon: 'mdi-file-document-outline',
         path: '/mart/reports/purchases',
-        permission: 'reports.view'
+        permission: 'reports.view',
+        visible: ctx => ctx.isMart
       },
       {
         key: 'stock-report',
         titleKey: 'menu.stock_reports',
         icon: 'mdi-clipboard-list-outline',
         path: '/stock-reports',
+        permission: 'reports.view',
+        visible: ctx => ctx.isMart
+      },
+      {
+        key: 'revenue-report',
+        titleKey: 'menu.revenue_reports',
+        icon: 'mdi-cash-multiple',
+        path: '/revenue-reports',
+        permission: 'reports.view'
+      },
+      {
+        key: 'ingredient-inventory-report',
+        titleKey: 'menu.ingredient_inventory_reports',
+        icon: 'mdi-food-variant',
+        visible: ctx => ctx.isFood,
+        path: '/ingredient-inventory-reports',
         permission: 'reports.view'
       }
     ]

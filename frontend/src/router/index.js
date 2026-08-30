@@ -209,6 +209,18 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade' }
       },
       {
+        path: '/revenue-reports',
+        name: 'RevenueReport',
+        component: () => import('@/views/reports/RevenueReport.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      {
+        path: '/ingredient-inventory-reports',
+        name: 'IngredientInventoryReport',
+        component: () => import('@/views/reports/IngredientInventoryReport.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      {
         path: '/audit-logs',
         name: 'AuditLogs',
         component: () => import('@/views/auditLogs/AuditLogPage.vue'),

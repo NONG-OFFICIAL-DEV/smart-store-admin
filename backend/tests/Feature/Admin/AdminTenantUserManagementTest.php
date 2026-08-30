@@ -170,6 +170,36 @@ class AdminTenantUserManagementTest extends TestCase
         $this->assertTrue($staffB->fresh()->is_active);
     }
 
+    public function test_deactivate_reactivate_and_reset_password_each_log_an_activity_entry(): void
+    {
+        $admin = User::create([
+            'email' => 'super3@example.test',
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+            'is_super_admin' => true,
+        ]);
+        Auth::guard('api')->login($admin);
+
+        [$tenant] = $this->makeTenantWithOwner('Tenant');
+        [$staff, $staffUser] = $this->makeStaff($tenant, 'Staff');
+
+        $service = $this->app->make(AdminTenantUserService::class);
+        $service->deactivate($tenant, $staffUser);
+        $service->reactivate($tenant, $staffUser);
+        $service->resetPassword($tenant, $staffUser);
+
+        foreach (['admin.user_deactivated', 'admin.user_reactivated', 'admin.user_password_reset'] as $action) {
+            $log = ActivityLog::withoutGlobalScopes()
+                ->where('action', $action)
+                ->where('entity_id', $staffUser->id)
+                ->first();
+
+            $this->assertNotNull($log, "Expected an activity log row for {$action}");
+            $this->assertSame($tenant->id, $log->tenant_id);
+            $this->assertSame($admin->id, $log->user_id);
+        }
+    }
+
     public function test_impersonating_a_tenant_returns_a_valid_token_for_its_owner_and_logs_it(): void
     {
         $admin = User::create([

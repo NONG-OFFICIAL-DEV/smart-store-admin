@@ -57,6 +57,8 @@ class AdminTenantUserService
 
         $staff->update(['is_active' => false]);
 
+        $this->logAdminAction($tenant, 'admin.user_deactivated', $user->id, "Super admin deactivated {$user->full_name} ({$tenant->name})");
+
         return $this->staffRow($staff->fresh(['user', 'role', 'branch']));
     }
 
@@ -72,6 +74,8 @@ class AdminTenantUserService
 
         $staff->update(['is_active' => true]);
 
+        $this->logAdminAction($tenant, 'admin.user_reactivated', $user->id, "Super admin reactivated {$user->full_name} ({$tenant->name})");
+
         return $this->staffRow($staff->fresh(['user', 'role', 'branch']));
     }
 
@@ -79,17 +83,17 @@ class AdminTenantUserService
     {
         $this->assertBelongsToTenant($tenant, $user);
 
-        return $this->passwords->adminReset($user);
+        $temporaryPassword = $this->passwords->adminReset($user);
+
+        $this->logAdminAction($tenant, 'admin.user_password_reset', $user->id, "Super admin reset {$user->full_name}'s password ({$tenant->name})");
+
+        return $temporaryPassword;
     }
 
     /**
      * Issues a real access token for the tenant's owner — no refresh token,
      * so the impersonation session just expires with the access token's
-     * normal TTL rather than being renewable forever. Logged by hand
-     * (not via ActivityLog::log()) because that helper infers tenant_id
-     * from the ACTING user, which is null for a super admin — this row
-     * needs the IMPERSONATED tenant's real id so it shows up in that
-     * tenant's own activity trail, not as a null/shared-tenant row.
+     * normal TTL rather than being renewable forever.
      */
     public function impersonate(Tenant $tenant): array
     {
@@ -102,6 +106,23 @@ class AdminTenantUserService
         }
 
         $accessToken = JWTAuth::fromUser($tenant->owner);
+
+        $this->logAdminAction($tenant, 'admin.impersonation_started', $tenant->owner->id, "Super admin impersonated {$tenant->owner->full_name} (owner of {$tenant->name})");
+
+        return [
+            'access_token' => $accessToken,
+            'owner' => $this->ownerRow($tenant->owner),
+        ];
+    }
+
+    /**
+     * Hand-built (not via ActivityLog::log()) because that helper infers
+     * tenant_id from the ACTING user, which is null for a super admin —
+     * every row here needs the AFFECTED tenant's real id so it shows up
+     * in that tenant's own activity trail, not as a null/shared-tenant row.
+     */
+    protected function logAdminAction(Tenant $tenant, string $action, string $entityId, string $description): void
+    {
         $admin = auth()->user();
 
         ActivityLog::create([
@@ -109,18 +130,13 @@ class AdminTenantUserService
             'user_id' => $admin?->id,
             'user_name' => $admin ? trim($admin->first_name.' '.$admin->last_name) : null,
             'user_email' => $admin?->email,
-            'action' => 'admin.impersonation_started',
+            'action' => $action,
             'entity_type' => 'User',
-            'entity_id' => $tenant->owner->id,
-            'description' => "Super admin impersonated {$tenant->owner->full_name} (owner of {$tenant->name})",
+            'entity_id' => $entityId,
+            'description' => $description,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);
-
-        return [
-            'access_token' => $accessToken,
-            'owner' => $this->ownerRow($tenant->owner),
-        ];
     }
 
     /**

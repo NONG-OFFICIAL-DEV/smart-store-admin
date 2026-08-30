@@ -12,11 +12,14 @@ use App\Models\Category;
 use App\Models\Payment;
 use App\Models\ProductUnit;
 use App\Models\StockMovement;
+use App\Traits\ResolvesBranchContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MartPosController extends Controller
 {
+    use ResolvesBranchContext;
+
     // ── POST /api/v1/mart/pos/orders ──────────────────────────────────────────
     public function storeOrders(Request $request)
     {
@@ -366,7 +369,7 @@ class MartPosController extends Controller
             'search'      => 'nullable|string|max:100',
         ]);
 
-        $branchId = $request->branch_id ?? auth()->user()->staff->branch_id;
+        $branchId = $this->resolveBranchId($request);
         $from     = $request->date_from ? $request->date_from . ' 00:00:00' : null;
         $to       = $request->date_to   ? $request->date_to   . ' 23:59:59' : null;
 

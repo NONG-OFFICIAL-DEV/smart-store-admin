@@ -47,6 +47,16 @@ class DailySalesSummaryController extends Controller
         return $this->success(new DailySalesSummaryResource($summary), 'Daily sales summary generated successfully.');
     }
 
+    public function revenue(Request $request): JsonResponse
+    {
+        return $this->success($this->summaries->revenue($request->only(['branch_id', 'date_from', 'date_to'])));
+    }
+
+    public function topCustomers(Request $request): JsonResponse
+    {
+        return $this->success($this->summaries->topCustomers($request->only(['branch_id', 'date_from', 'date_to', 'limit'])));
+    }
+
     private function paginated($paginator): JsonResponse
     {
         return $this->success(

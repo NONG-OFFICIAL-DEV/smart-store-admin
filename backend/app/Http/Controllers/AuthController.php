@@ -221,7 +221,7 @@ class AuthController extends Controller
     }
 
 
-    public function me(Request $request)
+    public function me(Request $request, \App\Services\NotificationService $notifications)
     {
         // ── jwt.auth middleware already authenticated this request —
         // reuse its resolved user instead of re-parsing the token ────────────
@@ -251,6 +251,12 @@ class AuthController extends Controller
             'subscription_status' => null,
             'trial_ends_at'       => null,
             'must_change_password' => $user->must_change_password,
+            // Layout.vue's notification-bell badge reads this — was always
+            // 0 because this key was never set at all. NotificationService
+            // already has the correct "visible to this user" query (accounts
+            // for direct user_id targeting as well as role_id/branch_id
+            // broadcasts), reused as-is rather than duplicating that logic here.
+            'unread_notifications_count' => $notifications->unreadCount($user),
         ];
 
         // ── 1. Super Admin ─────────────────────────────────────────

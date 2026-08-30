@@ -42,6 +42,8 @@
     "orders_analytics": "Orders Analytics",
     "purchase_reports": "Purchase Reports",
     "stock_reports": "Stock Reports",
+    "revenue_reports": "Revenue Reports",
+    "ingredient_inventory_reports": "Ingredient Inventory",
     "product_performance": "Product Performance",
     "sales_report": "Sales Report",
     "profit_loss": "Profit & Loss",
@@ -3349,5 +3351,60 @@
       "rejected": "Purchase rejected",
       "ai_fetch_failed": "Failed to fetch AI suggestions:"
     }
+  },
+  "revenue_report": {
+    "title": "Revenue Report",
+    "subtitle": "Completed-order revenue and top-spending customers",
+    "tabs": {
+      "revenue": "Revenue",
+      "top_customers": "Top Customers"
+    },
+    "summary": {
+      "total_revenue": "Total Revenue",
+      "total_orders": "Total Orders",
+      "avg_order_value": "Avg. Order Value"
+    },
+    "chart": {
+      "title": "Revenue Over Time"
+    },
+    "table": {
+      "customer": "Customer",
+      "email": "Email",
+      "orders": "Orders",
+      "total_spent": "Total Spent",
+      "avg_order_value": "Avg. Order Value",
+      "unknown_customer": "Unknown"
+    },
+    "empty": "No data for the selected period",
+    "load_failed": "Failed to load the revenue report"
+  },
+  "ingredient_inventory_report": {
+    "title": "Ingredient Inventory Report",
+    "subtitle": "Stock levels and movement for ingredient-based branches",
+    "tabs": {
+      "overview": "Overview",
+      "low_stock": "Low Stock",
+      "movements": "Movements"
+    },
+    "summary": {
+      "total_ingredients": "Total Ingredients",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
+    "overview": {
+      "needs_attention": "Needs Attention",
+      "all_stocked": "All ingredients are well-stocked"
+    },
+    "table": {
+      "ingredient": "Ingredient",
+      "unit": "Unit",
+      "on_hand": "On Hand",
+      "reorder_point": "Reorder Point"
+    },
+    "movement": {
+      "title": "Movement Summary",
+      "select_range": "No movements in the selected period"
+    },
+    "load_failed": "Failed to load the inventory report"
   }
 }

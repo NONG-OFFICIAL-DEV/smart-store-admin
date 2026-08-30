@@ -34,16 +34,21 @@ class OrderExportController extends Controller
         // ever reaching that check.
         $tenantId = $this->tenantResolver->resolveOrNull($request);
 
+        // Orders have no tenant_id column of their own — tenancy is only
+        // indirect, via branch_id → Branch.tenant_id (same pattern as
+        // OrderController::orderReport()).
+        $branchIds = $tenantId ? \App\Models\Branch::where('tenant_id', $tenantId)->pluck('id') : collect();
+
         // ── Build query (same filters as index) ───────────────────────────────
         $orders = Order::with([
             'branch:id,name',
-            'customer:id,name,phone,tier',
+            'customer:id,first_name,last_name,phone,loyalty_tier',
             'items.product:id,name,sku,barcode',
         ])
             ->when(
                 !auth()->user()->is_super_admin,
                 fn($q) =>
-                $q->where('tenant_id', $tenantId)
+                $q->whereIn('branch_id', $branchIds)
             )
             ->when($request->branch_id,    fn($q) => $q->where('branch_id',      $request->branch_id))
             ->when($request->status,       fn($q) => $q->where('status',         $request->status))
@@ -60,7 +65,8 @@ class OrderExportController extends Controller
                         ->orWhereHas(
                             'customer',
                             fn($q3) =>
-                            $q3->where('name',  'like', "%{$request->search}%")
+                            $q3->where('first_name', 'like', "%{$request->search}%")
+                                ->orWhere('last_name', 'like', "%{$request->search}%")
                                 ->orWhere('phone', 'like', "%{$request->search}%")
                         )
                 )
@@ -209,9 +215,9 @@ class OrderExportController extends Controller
             $data = [
                 $order->order_number,
                 $order->branch?->name ?? '',
-                $order->customer?->name ?? 'Walk-in',
+                $order->customer?->full_name ?? 'Walk-in',
                 $order->customer?->phone ?? '',
-                $order->customer?->tier ?? 'regular',
+                $order->customer?->loyalty_tier ?? 'regular',
                 $order->order_type ?? '',
                 $order->items->count(),
                 (float) ($order->subtotal ?? 0),

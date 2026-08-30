@@ -61,6 +61,7 @@ use App\Http\Controllers\Api\CouponController;
 
 // ── Reporting ──────────────────────────────────────────────────────────────
 use App\Http\Controllers\Api\DailySalesSummaryController;
+use App\Http\Controllers\Api\InventoryReportController;
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\BranchMenuController;
 use App\Http\Controllers\Api\DashboardController;
@@ -486,15 +487,14 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
             Route::get('sales',         [DailySalesSummaryController::class, 'index']);
             Route::get('sales/{date}',  [DailySalesSummaryController::class, 'show']);
             // Reuses the existing, working DashboardController::topProducts()
-            // implementation rather than duplicating the same aggregation —
-            // topCustomers/revenue/staffReport had no implementation
-            // anywhere (not even dead code) to migrate; building them means
-            // designing new analytics logic from scratch (date ranges,
-            // ranking definitions, etc.), not fixing/relocating something
-            // that already exists. Removed rather than left pointing at
-            // nonexistent methods; revisit as a real feature request if
-            // these reports are actually needed.
+            // implementation rather than duplicating the same aggregation.
             Route::get('top-products',  [DashboardController::class, 'topProducts']);
+            // revenue/topCustomers query Order directly (no OrderRepository
+            // exists project-wide) — see DailySalesSummaryService for the
+            // aggregation logic. staffReport is still not built (no spec).
+            Route::get('revenue',       [DailySalesSummaryController::class, 'revenue']);
+            Route::get('top-customers', [DailySalesSummaryController::class, 'topCustomers']);
+            Route::get('inventory',     [InventoryReportController::class, 'index']);
         });
 
         // ── Activity Logs ─────────────────────────────────────────────────────

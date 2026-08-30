@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Traits\ResolvesBranchContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MartProductPerformanceController extends Controller
 {
+    use ResolvesBranchContext;
+
     /**
      * GET /api/v1/mart/reports/product-performance
      */
@@ -21,8 +24,8 @@ class MartProductPerformanceController extends Controller
             'branch_id' => 'nullable|uuid|exists:branches,id',
         ]);
 
-        $tenantId = auth()->user()->staff->tenant_id;
-        $branchId = $request->branch_id ?? auth()->user()->staff->branch_id;
+        $tenantId = $this->resolveTenantId();
+        $branchId = $this->resolveBranchId($request);
         $from     = $request->date_from . ' 00:00:00';
         $to       = $request->date_to   . ' 23:59:59';
 
