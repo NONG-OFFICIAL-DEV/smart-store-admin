@@ -214,6 +214,12 @@
               size="small"
               @click="openEdit(item)"
             />
+            <v-btn
+              icon="mdi-account-multiple-outline"
+              variant="text"
+              size="small"
+              @click="openUsersDialog(item)"
+            />
 
             <v-tooltip
               :text="
@@ -282,6 +288,9 @@
       :current-plan="assigningTenant?.active_subscription?.plan"
       @saved="() => tableRef?.refresh()"
     />
+
+    <!-- ── Manage Users Dialog ── -->
+    <AdminTenantUsersDialog v-model="usersDialog" :tenant="usersTarget" />
   </v-container>
 </template>
 
@@ -297,6 +306,7 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import BusinessTypeManagerDialog from '@/components/business/BusinessTypeManagerDialog.vue'
+  import AdminTenantUsersDialog from '@/components/tenants/AdminTenantUsersDialog.vue'
 
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
@@ -311,6 +321,8 @@
   const manageBusinessTypesDialog = ref(false)
   const assignPlanDialog = ref(false)
   const assigningTenant = ref(null)
+  const usersDialog = ref(false)
+  const usersTarget = ref(null)
   const planFilter = ref([])
   const businessFiter = ref([])
   const activeFilter = ref('')
@@ -444,6 +456,11 @@
   const openAssignPlan = tenant => {
     assigningTenant.value = tenant
     assignPlanDialog.value = true
+  }
+
+  const openUsersDialog = tenant => {
+    usersTarget.value = tenant
+    usersDialog.value = true
   }
 
   const toggleActive = async tenant => {

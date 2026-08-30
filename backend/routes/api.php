@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TwoFactorAuthController;
 use App\Http\Controllers\Api\V1\UserController;
 
 // ── Multi-Tenancy ──────────────────────────────────────────────────────────
+use App\Http\Controllers\Api\AdminTenantUserController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchHourController;
@@ -152,6 +153,13 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::post('tenants/{tenant}/toggle-active', [TenantController::class, 'toggleActive']);
         Route::post('tenants/{tenant}/reset-owner-password', [TenantController::class, 'resetOwnerPassword']);
         Route::post('tenants/{tenant}/transfer-ownership', [TenantController::class, 'transferOwnership']);
+
+        Route::prefix('tenants/{tenant}/users')->group(function () {
+            Route::get('/', [AdminTenantUserController::class, 'index']);
+            Route::post('/{user}/deactivate', [AdminTenantUserController::class, 'deactivate']);
+            Route::post('/{user}/reactivate', [AdminTenantUserController::class, 'reactivate']);
+            Route::post('/{user}/reset-password', [AdminTenantUserController::class, 'resetPassword']);
+        });
 
         Route::apiResource('business-types', BusinessTypeController::class)
             ->except(['index', 'show']);

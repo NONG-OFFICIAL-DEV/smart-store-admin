@@ -66,7 +66,7 @@
     width: 100%;
     overflow-x: hidden;
     overscroll-behavior-x: none;
-    height: 100%;
+    min-height: 100%;
   }
 
   #app {

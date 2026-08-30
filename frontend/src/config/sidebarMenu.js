@@ -304,12 +304,6 @@ export const SIDEBAR_MENU = [
     visible: ctx => ctx.isSuperAdmin,
     children: [
       {
-        key: 'users',
-        titleKey: 'menu.users',
-        icon: 'mdi-account-cog-outline',
-        path: '/users-management'
-      },
-      {
         key: 'roles',
         titleKey: 'menu.roles',
         icon: 'mdi-shield-account-outline',

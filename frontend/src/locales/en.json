@@ -3268,6 +3268,27 @@
       }
     }
   },
+  "admin_tenant_users": {
+    "dialog_title": "Manage Users — {name}",
+    "role": "Role",
+    "fields": {
+      "name": "Name",
+      "email": "Email"
+    },
+    "actions": {
+      "reset_password": "Reset Password",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate"
+    },
+    "confirm_deactivate_title": "Deactivate this user?",
+    "confirm_reactivate_title": "Reactivate this user?",
+    "confirm_message": "This affects \"{name}\"'s access to this tenant.",
+    "messages": {
+      "deactivated_success": "User deactivated successfully.",
+      "reactivated_success": "User reactivated successfully.",
+      "action_error": "Could not complete this action."
+    }
+  },
   "filters": {
     "food": "Food",
     "utilities": "Utilities",

@@ -130,14 +130,11 @@
 <style scoped>
   /* ── Container ────────────────────────────────────────────────────────── */
   .login-container {
-    height: 100vh;
+    min-height: 100vh;
     overflow: hidden;
   }
 
-  /* Dark theme's default surface (~#212121) reads as too dark/flat for a
-     full-height panel — lighten it a touch here. Overriding the variable
-     itself (rather than just .right-panel's background) means the login
-     card picks up the same lighter tone too, since v-card's own background
+  /* Dark theme's default surface (~#212121)
      reads from this same --v-theme-surface variable. */
   :global(.v-theme--dark) .login-container {
     --v-theme-surface: 40, 42, 50;

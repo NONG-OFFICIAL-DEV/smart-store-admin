@@ -41,12 +41,6 @@ const routes = [
     meta: { transition: 'fade' },
     children: [
       {
-        path: '/users-management',
-        name: 'usersManagement',
-        component: () => import('@/views/users/UserManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
         path: '/tenants',
         name: 'tenants',
         component: () => import('@/views/tenants/TenantView.vue'),
