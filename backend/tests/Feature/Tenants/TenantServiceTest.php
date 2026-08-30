@@ -3,9 +3,12 @@
 namespace Tests\Feature\Tenants;
 
 use App\Models\Branch;
+use App\Models\Plan;
+use App\Models\PlanBillingCycle;
 use App\Models\Role;
 use App\Models\Staff;
 use App\Models\Tenant;
+use App\Models\TenantSubscription;
 use App\Models\User;
 use App\Services\TenantService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,6 +68,7 @@ class TenantServiceTest extends TestCase
 
     public function test_create_provisions_owner_tenant_and_owner_role(): void
     {
+        $this->seedFreePlan();
         $service = $this->app->make(TenantService::class);
 
         $result = $service->create([
@@ -81,6 +85,44 @@ class TenantServiceTest extends TestCase
 
         $this->assertSame($owner->id, $tenant->owner_user_id);
         $this->assertTrue(Role::where('tenant_id', $tenant->id)->where('is_system', true)->exists());
+    }
+
+    public function test_create_assigns_the_free_plan_by_default(): void
+    {
+        $this->seedFreePlan();
+        $service = $this->app->make(TenantService::class);
+
+        $result = $service->create([
+            'owner_first_name' => 'Jane',
+            'owner_last_name' => 'Doe',
+            'owner_email' => 'jane2@example.test',
+            'owner_password' => 'SuperSecret123!',
+            'name' => 'Jane Shop 2',
+            'business_type_id' => \App\Models\BusinessType::create(['code' => 'mart', 'name' => 'Mart'])->id,
+        ], null);
+
+        $subscription = TenantSubscription::withoutGlobalScopes()
+            ->where('tenant_id', $result['tenant_id'])
+            ->first();
+
+        $this->assertNotNull($subscription);
+        $this->assertSame('active', $subscription->status);
+        $this->assertSame('free', $subscription->plan->code);
+    }
+
+    private function seedFreePlan(): Plan
+    {
+        $plan = Plan::create(['name' => 'Free', 'code' => 'free', 'price_usd' => 0, 'is_active' => true]);
+
+        PlanBillingCycle::create([
+            'plan_id' => $plan->id,
+            'label' => 'Monthly',
+            'months' => 1,
+            'discount_percent' => 0,
+            'is_active' => true,
+        ]);
+
+        return $plan;
     }
 
     public function test_isVisibleTo_allows_owner_staff_and_super_admin_but_rejects_others(): void

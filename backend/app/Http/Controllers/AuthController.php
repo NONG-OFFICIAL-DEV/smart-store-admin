@@ -231,7 +231,7 @@ class AuthController extends Controller
         // overrides what actually differs, so the frontend never has to
         // guess whether a key is simply missing vs. genuinely null.
         $base = [
-            'user'              => $user,
+            'user'              => $this->meUserShape($user),
             'is_super_admin'    => false,
             'is_owner'          => false,
             'is_staff'          => false,
@@ -340,6 +340,28 @@ class AuthController extends Controller
             'subscription_status' => $subscription?->status,
             'trial_ends_at'       => $subscription?->trial_ends_at,
         ]));
+    }
+
+    // A plain array, not the raw model — 'user' => $user used to dump every
+    // column plus whatever relations happened to already be loaded on this
+    // request's auth()->user() instance (e.g. ownedTenant, accessed a few
+    // lines below and elsewhere), which serialized as a full nested tenant
+    // object under user.owned_tenant. Trimmed to exactly what the frontend
+    // reads from authStore.me: id/email/full_name/avatar_url (profile) and
+    // two_factor_confirmed_at (security settings) — plus first_name/last_name,
+    // which AppBar.vue's getInitials()/getAvatarColor() need split out (not
+    // derivable from full_name alone without re-parsing it).
+    private function meUserShape(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'full_name' => $user->full_name,
+            'avatar_url' => $user->avatar_url,
+            'two_factor_confirmed_at' => $user->two_factor_confirmed_at,
+        ];
     }
 
     // Lazy trial expiry — there's no cron/scheduler running in this app (see

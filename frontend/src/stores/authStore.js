@@ -40,6 +40,13 @@ export const useAuthStore = defineStore('auth', {
     // { tenantName } while a super admin is impersonating a tenant owner,
     // else null. Only ever set/cleared by impersonateTenant()/returnToAdmin().
     impersonating: null,
+
+    // { code, message } when the most recent API response was blocked by
+    // EnsureSubscriptionActive (TENANT_SUSPENDED / SUBSCRIPTION_STATUS_BLOCKED),
+    // else null. Set/cleared entirely by api.js's response interceptor —
+    // not derived from subscription_status, since TENANT_SUSPENDED has no
+    // corresponding subscription_status value at all (it's a separate flag).
+    blockedApiError: null,
   }),
 
   getters: {
@@ -89,9 +96,14 @@ export const useAuthStore = defineStore('auth', {
       const diff = Math.ceil((new Date(state.trial_ends_at) - new Date()) / 864e5)
       return diff >= 0 ? diff : 0
     },
+
   },
 
   actions: {
+    setBlockedApiError(error) {
+      this.blockedApiError = error
+    },
+
     async login({ email, password }) {
       const response = await authService.userLogin(email, password)
 

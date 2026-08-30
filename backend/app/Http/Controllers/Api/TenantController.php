@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTenantRequest;
 use App\Http\Requests\TransferTenantOwnershipRequest;
 use App\Http\Requests\UpdateTenantRequest;
+use App\Http\Resources\TenantResource;
 use App\Models\Tenant;
 use App\Services\TenantService;
 use App\Traits\ApiResponse;
@@ -29,7 +30,7 @@ class TenantController extends Controller
         ]));
 
         return $this->success(
-            $paginator->items(),
+            TenantResource::collection($paginator->items()),
             meta: [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

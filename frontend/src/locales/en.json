@@ -2179,6 +2179,9 @@
       "message": "Your trial ends in {count} day. | Your trial ends in {count} days.",
       "action": "View Billing"
     },
+    "blocked_banner": {
+      "action": "Renew Plan"
+    },
     "status": {
       "trial": "Trial",
       "expired": "Expired",
@@ -3406,5 +3409,9 @@
       "select_range": "No movements in the selected period"
     },
     "load_failed": "Failed to load the inventory report"
+  },
+  "apiErrors": {
+    "TENANT_SUSPENDED": "This account has been suspended. Please contact support.",
+    "SUBSCRIPTION_STATUS_BLOCKED": "Your subscription is not active. Please renew your plan to continue."
   }
 }

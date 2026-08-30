@@ -183,12 +183,13 @@ class TenantService extends BaseService
     }
 
     /**
-     * Tenant creation deliberately does NOT touch subscriptions/plans — a
-     * tenant can exist with zero subscription rows until an admin
-     * explicitly assigns one from the Subscriptions screen
-     * (TenantSubscriptionController). The one exception is self-service
-     * signup (see TenantController::store()), which assigns a default
-     * plan itself right after calling this.
+     * Every tenant — admin-created or self-service — leaves this on the
+     * free plan by default, never with zero subscription rows. Previously
+     * only self-service signup got a default plan; an admin-created tenant
+     * was left with subscription_status=null until someone came back to
+     * assign one, and EnsureSubscriptionActive deliberately treats "no
+     * subscription record" as a data gap rather than a billing violation
+     * — so that tenant could use the app indefinitely with no plan at all.
      *
      * $temporary controls whether the owner's password is flagged for a
      * forced change on first login — true for admin-created tenants
@@ -230,17 +231,36 @@ class TenantService extends BaseService
             // ownership transfer that Owner status is ever established.
             $this->ownerRoleProvisioner->ensureFor($tenant);
 
+            $this->assignFreePlan($tenant, $owner->id);
+
             return ['tenant_id' => $tenant->id, 'owner_id' => $owner->id];
         });
     }
 
     /**
+     * 'free' is a permanent, always-seeded plan (PlanSeeder) — firstOrFail()
+     * is deliberate, not defensive: a missing free plan is a real
+     * misconfiguration that should surface loudly rather than silently
+     * leaving every new tenant planless again.
+     */
+    private function assignFreePlan(Tenant $tenant, string $ownerId): void
+    {
+        $freePlan = Plan::where('code', 'free')->firstOrFail();
+        $cycleId = $freePlan->billingCycles()->where('is_active', true)->value('id');
+
+        $this->subscriptions->changePlan(
+            tenant: $tenant,
+            newPlanId: $freePlan->id,
+            newCycleId: $cycleId,
+            changedBy: $ownerId,
+            reason: 'Default plan on tenant creation',
+        );
+    }
+
+    /**
      * The public self-service signup path (TenantController::store() when
-     * called with no authenticated user) — on top of create(), this also
-     * assigns the default free plan (a brand new tenant can't be left with
-     * zero subscription rows the way an admin-created one deliberately can
-     * be, since nobody's coming back later to assign one) and immediately
-     * logs the new owner in.
+     * called with no authenticated user) — on top of create() (which
+     * already assigns the free plan), this immediately logs the new owner in.
      *
      * @return array{tenant_id: string, owner_id: string, token: string, token_type: string, expires_in: int, refresh_token: string, refresh_expires_in: int}
      */
@@ -248,17 +268,6 @@ class TenantService extends BaseService
     {
         $result = $this->create($validated, $logoUrl, temporary: false);
         $owner = User::findOrFail($result['owner_id']);
-
-        $freePlan = Plan::where('code', 'free')->firstOrFail();
-        $cycleId = $freePlan->billingCycles()->where('is_active', true)->value('id');
-
-        $this->subscriptions->changePlan(
-            tenant: Tenant::findOrFail($result['tenant_id']),
-            newPlanId: $freePlan->id,
-            newCycleId: $cycleId,
-            changedBy: $owner->id,
-            reason: 'Self-registration default plan',
-        );
 
         $token = JWTAuth::fromUser($owner);
         $refreshToken = $this->refreshTokenService->issue($owner, $request);
