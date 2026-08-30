@@ -51,4 +51,15 @@ class AdminTenantUserController extends Controller
 
         return $this->success(['temporary_password' => $temporaryPassword]);
     }
+
+    public function impersonate(Tenant $tenant): JsonResponse
+    {
+        try {
+            $result = $this->users->impersonate($tenant);
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422, $e->errors(), 'NO_OWNER_ACCOUNT');
+        }
+
+        return $this->success($result);
+    }
 }

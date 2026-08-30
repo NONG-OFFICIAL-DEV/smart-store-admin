@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\ActivityLog;
 use App\Models\Branch;
 use App\Models\Role;
 use App\Models\Staff;
@@ -9,9 +10,11 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\AdminTenantUserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  * Covers the super-admin "Manage Users" feature on the Tenant page —
@@ -165,5 +168,59 @@ class AdminTenantUserManagementTest extends TestCase
         $service->deactivate($tenantA, $staffUserB);
 
         $this->assertTrue($staffB->fresh()->is_active);
+    }
+
+    public function test_impersonating_a_tenant_returns_a_valid_token_for_its_owner_and_logs_it(): void
+    {
+        $admin = User::create([
+            'email' => 'super@example.test',
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+            'is_super_admin' => true,
+        ]);
+        Auth::guard('api')->login($admin);
+
+        [$tenant, $owner] = $this->makeTenantWithOwner('Tenant');
+
+        $result = $this->app->make(AdminTenantUserService::class)->impersonate($tenant);
+
+        $this->assertNotEmpty($result['access_token']);
+        $authenticated = JWTAuth::setToken($result['access_token'])->authenticate();
+        $this->assertSame($owner->id, $authenticated->id);
+
+        $log = ActivityLog::withoutGlobalScopes()
+            ->where('action', 'admin.impersonation_started')
+            ->where('entity_id', $owner->id)
+            ->first();
+        $this->assertNotNull($log);
+        $this->assertSame($tenant->id, $log->tenant_id);
+        $this->assertSame($admin->id, $log->user_id);
+    }
+
+    public function test_impersonating_a_tenant_with_no_owner_is_rejected(): void
+    {
+        $admin = User::create([
+            'email' => 'super2@example.test',
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+            'is_super_admin' => true,
+        ]);
+        Auth::guard('api')->login($admin);
+
+        $orphanOwner = User::create([
+            'email' => 'orphan@example.test',
+            'first_name' => 'Orphan',
+            'last_name' => 'Owner',
+            'is_super_admin' => false,
+        ]);
+        $tenant = Tenant::create([
+            'name' => 'Orphan Tenant',
+            'slug' => 'orphan-tenant',
+            'owner_user_id' => $orphanOwner->id,
+        ]);
+        $orphanOwner->delete();
+
+        $this->expectException(ValidationException::class);
+        $this->app->make(AdminTenantUserService::class)->impersonate($tenant->fresh());
     }
 }

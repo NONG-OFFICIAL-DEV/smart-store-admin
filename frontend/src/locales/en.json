@@ -3270,6 +3270,7 @@
   },
   "admin_tenant_users": {
     "dialog_title": "Manage Users — {name}",
+    "manage_users": "Manage Users",
     "role": "Role",
     "fields": {
       "name": "Name",
@@ -3288,6 +3289,12 @@
       "reactivated_success": "User reactivated successfully.",
       "action_error": "Could not complete this action."
     }
+  },
+  "impersonation": {
+    "log_in_as_tenant": "Log in as Tenant",
+    "banner_text": "Viewing as {name}",
+    "return_to_admin": "Return to Admin",
+    "error": "Could not log in as this tenant."
   },
   "filters": {
     "food": "Food",

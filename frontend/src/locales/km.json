@@ -3250,6 +3250,7 @@
   },
   "admin_tenant_users": {
     "dialog_title": "គ្រប់គ្រងអ្នកប្រើប្រាស់ — {name}",
+    "manage_users": "គ្រប់គ្រងអ្នកប្រើប្រាស់",
     "role": "តួនាទី",
     "fields": {
       "name": "ឈ្មោះ",
@@ -3268,6 +3269,12 @@
       "reactivated_success": "បានធ្វើឱ្យអ្នកប្រើប្រាស់សកម្មឡើងវិញដោយជោគជ័យ។",
       "action_error": "មិនអាចបំពេញសកម្មភាពនេះបានទេ។"
     }
+  },
+  "impersonation": {
+    "log_in_as_tenant": "ចូលជាអ្នកជួល",
+    "banner_text": "កំពុងមើលជា {name}",
+    "return_to_admin": "ត្រឡប់ទៅអ្នកគ្រប់គ្រង",
+    "error": "មិនអាចចូលជាអ្នកជួលនេះបានទេ។"
   },
   "filters": {
     "food": "អាហារ",

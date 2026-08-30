@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  * Super-admin scoped: view one tenant's users (owner + staff), deactivate/
@@ -78,6 +80,47 @@ class AdminTenantUserService
         $this->assertBelongsToTenant($tenant, $user);
 
         return $this->passwords->adminReset($user);
+    }
+
+    /**
+     * Issues a real access token for the tenant's owner — no refresh token,
+     * so the impersonation session just expires with the access token's
+     * normal TTL rather than being renewable forever. Logged by hand
+     * (not via ActivityLog::log()) because that helper infers tenant_id
+     * from the ACTING user, which is null for a super admin — this row
+     * needs the IMPERSONATED tenant's real id so it shows up in that
+     * tenant's own activity trail, not as a null/shared-tenant row.
+     */
+    public function impersonate(Tenant $tenant): array
+    {
+        $tenant->loadMissing('owner');
+
+        if (! $tenant->owner) {
+            throw ValidationException::withMessages([
+                'tenant' => 'This tenant has no owner account to impersonate.',
+            ]);
+        }
+
+        $accessToken = JWTAuth::fromUser($tenant->owner);
+        $admin = auth()->user();
+
+        ActivityLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $admin?->id,
+            'user_name' => $admin ? trim($admin->first_name.' '.$admin->last_name) : null,
+            'user_email' => $admin?->email,
+            'action' => 'admin.impersonation_started',
+            'entity_type' => 'User',
+            'entity_id' => $tenant->owner->id,
+            'description' => "Super admin impersonated {$tenant->owner->full_name} (owner of {$tenant->name})",
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return [
+            'access_token' => $accessToken,
+            'owner' => $this->ownerRow($tenant->owner),
+        ];
     }
 
     /**

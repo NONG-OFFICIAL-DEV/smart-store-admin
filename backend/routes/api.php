@@ -156,6 +156,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
 
         Route::prefix('tenants/{tenant}/users')->group(function () {
             Route::get('/', [AdminTenantUserController::class, 'index']);
+            Route::post('/impersonate', [AdminTenantUserController::class, 'impersonate']);
             Route::post('/{user}/deactivate', [AdminTenantUserController::class, 'deactivate']);
             Route::post('/{user}/reactivate', [AdminTenantUserController::class, 'reactivate']);
             Route::post('/{user}/reset-password', [AdminTenantUserController::class, 'resetPassword']);

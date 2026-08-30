@@ -5,6 +5,7 @@
     <Confirm ref="confirmRef" /> -->
     <AppConfirmDialog />
     <CoreNotificationAlert />
+    <ImpersonationBanner />
 
     <router-view />
   </v-app>
@@ -16,6 +17,7 @@
   // import NotificationAlert from '@nong-official-dev/core/plugins/notif/NotificationAlert.vue'
   // import Notif from '@/components/global/Notification.vue'
   import AppConfirmDialog from '@/components/common/AppConfirmDialog.vue'
+  import ImpersonationBanner from '@/components/global/ImpersonationBanner.vue'
   // import TokenExpired from '@/components/common/TokenExpired.vue'
 
   // Refs to components

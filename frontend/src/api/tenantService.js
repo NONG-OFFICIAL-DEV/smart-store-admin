@@ -20,3 +20,4 @@ export const reactivateAdminTenantUserApi = (tenantId, userId) =>
   http.post(`/v1/tenants/${tenantId}/users/${userId}/reactivate`)
 export const resetAdminTenantUserPasswordApi = (tenantId, userId) =>
   http.post(`/v1/tenants/${tenantId}/users/${userId}/reset-password`)
+export const impersonateTenantApi = tenantId => http.post(`/v1/tenants/${tenantId}/users/impersonate`)

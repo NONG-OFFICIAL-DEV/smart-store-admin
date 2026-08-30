@@ -4,6 +4,7 @@ import authService from '../api/auth'
 import { PLANS } from '@/constants/plan'
 import { BU_CATEGORIES } from '@/constants/businessTypes'
 import { connectEcho, disconnectEcho } from '@/utils/echo'
+import { impersonateTenantApi } from '@/api/tenantService'
 
 export { BU_CATEGORIES }   // re-export so existing imports still work
 
@@ -35,6 +36,10 @@ export const useAuthStore = defineStore('auth', {
     branch_name: null,
 
     unread_notifications_count: 0,
+
+    // { tenantName } while a super admin is impersonating a tenant owner,
+    // else null. Only ever set/cleared by impersonateTenant()/returnToAdmin().
+    impersonating: null,
   }),
 
   getters: {
@@ -136,6 +141,31 @@ export const useAuthStore = defineStore('auth', {
       await authService.userLogout(refreshToken).catch(() => {})
       localStorage.removeItem('refresh_token')
       disconnectEcho()
+    },
+
+    // Swaps only the access token — refresh_token in localStorage keeps
+    // pointing at the admin's OWN session on purpose. The impersonation
+    // token has no refresh token of its own, so once it expires the very
+    // next request's 401 silently refreshes back into the admin's own
+    // identity via that untouched refresh_token — natural, safe expiry
+    // with no separate revoke endpoint needed.
+    async impersonateTenant(tenantId, tenantName) {
+      const { data } = await impersonateTenantApi(tenantId)
+      sessionStorage.setItem('pre_impersonation_token', this.token)
+      this.token = data.data.access_token
+      localStorage.setItem('token', data.data.access_token)
+      this.impersonating = { tenantName }
+      await this.fetchMe()
+    },
+
+    async returnToAdmin() {
+      const adminToken = sessionStorage.getItem('pre_impersonation_token')
+      if (!adminToken) return
+      sessionStorage.removeItem('pre_impersonation_token')
+      this.token = adminToken
+      localStorage.setItem('token', adminToken)
+      this.impersonating = null
+      await this.fetchMe()
     },
 
     // Silently exchange the current refresh token for a fresh access+refresh

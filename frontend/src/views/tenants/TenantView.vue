@@ -200,57 +200,64 @@
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <div class="d-flex gap-1 justify-end">
-            <v-btn
-              icon="mdi-eye-outline"
-              variant="text"
-              size="small"
-              color="primary"
-              :to="`/tenants/${item.id}`"
-            />
-            <v-btn
-              icon="mdi-pencil-outline"
-              variant="text"
-              size="small"
-              @click="openEdit(item)"
-            />
-            <v-btn
-              icon="mdi-account-multiple-outline"
-              variant="text"
-              size="small"
-              @click="openUsersDialog(item)"
-            />
-
-            <v-tooltip
-              :text="
-                item.is_active
-                  ? $t('tenant_details.suspend_tenant')
-                  : $t('tenant_details.activate_tenant')
-              "
-            >
-              <template #activator="{ props: ttProps }">
+          <div class="d-flex justify-end">
+            <v-menu>
+              <template #activator="{ props: menuProps }">
                 <v-btn
-                  v-bind="ttProps"
-                  :icon="
+                  icon="mdi-dots-vertical"
+                  variant="text"
+                  size="small"
+                  v-bind="menuProps"
+                />
+              </template>
+              <v-list density="compact" min-width="200">
+                <v-list-item
+                  :title="$t('btn.view')"
+                  prepend-icon="mdi-eye-outline"
+                  class="text-primary"
+                  :to="`/tenants/${item.id}`"
+                />
+                <v-list-item
+                  :title="$t('btn.edit')"
+                  prepend-icon="mdi-pencil-outline"
+                  class="text-info"
+                  @click="openEdit(item)"
+                />
+                <v-list-item
+                  :title="$t('admin_tenant_users.manage_users')"
+                  prepend-icon="mdi-account-multiple-outline"
+                  class="text-secondary"
+                  @click="openUsersDialog(item)"
+                />
+                <v-list-item
+                  :title="$t('impersonation.log_in_as_tenant')"
+                  prepend-icon="mdi-login-variant"
+                  class="text-indigo"
+                  :disabled="impersonatingId === item.id"
+                  @click="loginAsTenant(item)"
+                />
+                <v-list-item
+                  :title="
+                    item.is_active
+                      ? $t('tenant_details.suspend_tenant')
+                      : $t('tenant_details.activate_tenant')
+                  "
+                  :prepend-icon="
                     item.is_active
                       ? 'mdi-pause-circle-outline'
                       : 'mdi-play-circle-outline'
                   "
-                  :color="item.is_active ? 'warning' : 'success'"
-                  variant="text"
-                  size="small"
+                  :class="item.is_active ? 'text-warning' : 'text-success'"
                   @click="toggleActive(item)"
                 />
-              </template>
-            </v-tooltip>
-
-            <v-btn
-              icon="mdi-delete-outline"
-              color="error"
-              variant="text"
-              size="small"
-              @click="confirmDelete(item)"
-            />
+                <v-list-item
+                  :title="$t('btn.delete')"
+                  prepend-icon="mdi-delete-outline"
+                  class="text-error"
+                  @click="confirmDelete(item)"
+                />
+              </v-list>
+            </v-menu>
           </div>
         </template>
 
@@ -299,6 +306,7 @@
   import CustomSelect from '@/components/customs/CustomSelect.vue'
   import AssignPlanDialog from '@/components/subscriptions/AssignPlanDialog.vue'
   import { useTenantStore } from '@/stores/tenantStore'
+  import { useAuthStore } from '@/stores/authStore'
   import { usePlanStore } from '../../stores/planStore'
   import { storeToRefs } from 'pinia'
   import { AppTable, useAppUtils } from '@nong-official-dev/core'
@@ -313,6 +321,7 @@
   const router = useRouter()
 
   const tenantStore = useTenantStore()
+  const authStore = useAuthStore()
   const planStore = usePlanStore()
   const { businessTypes } = storeToRefs(tenantStore)
 
@@ -323,6 +332,7 @@
   const assigningTenant = ref(null)
   const usersDialog = ref(false)
   const usersTarget = ref(null)
+  const impersonatingId = ref(null)
   const planFilter = ref([])
   const businessFiter = ref([])
   const activeFilter = ref('')
@@ -461,6 +471,18 @@
   const openUsersDialog = tenant => {
     usersTarget.value = tenant
     usersDialog.value = true
+  }
+
+  const loginAsTenant = async tenant => {
+    impersonatingId.value = tenant.id
+    try {
+      await authStore.impersonateTenant(tenant.id, tenant.name)
+      router.push('/dashboard')
+    } catch {
+      notif(t('impersonation.error'), { type: 'error' })
+    } finally {
+      impersonatingId.value = null
+    }
   }
 
   const toggleActive = async tenant => {
