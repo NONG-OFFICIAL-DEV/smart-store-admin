@@ -37,11 +37,7 @@
       </v-col>
 
       <!-- ── Right panel ─────────────────────────────────────────────────── -->
-      <v-col
-        cols="12"
-        md="6"
-        class="d-flex flex-column right-panel"
-      >
+      <v-col cols="12" md="6" class="d-flex flex-column right-panel">
         <!-- Header — logo (visible when the left panel is hidden, i.e. on
              mobile) + language/theme switchers. Kept out of the form card
              itself so it's reachable from every auth page uniformly. -->
@@ -50,7 +46,9 @@
             <div class="brand-icon-wrapper-sm mr-2">
               <v-icon icon="mdi-store-outline" size="16" color="white" />
             </div>
-            <span class="text-body-1 font-weight-black">{{ t('app.name') }}</span>
+            <span class="text-body-1 font-weight-black">
+              {{ t('app.name') }}
+            </span>
           </div>
           <v-spacer class="d-none d-md-flex" />
 
@@ -71,20 +69,20 @@
               :title="t('preferences.theme')"
               @click="toggleTheme"
             >
-              <v-icon :icon="isDark ? 'mdi-white-balance-sunny' : 'mdi-moon-waning-crescent'" size="20" />
+              <v-icon
+                :icon="
+                  isDark
+                    ? 'mdi-white-balance-sunny'
+                    : 'mdi-moon-waning-crescent'
+                "
+                size="20"
+              />
             </v-btn>
           </div>
         </div>
 
-        <div class="d-flex align-center justify-center flex-grow-1 px-4">
-          <v-card
-            flat
-            class="px-4 px-sm-10"
-            width="100%"
-            max-width="500"
-          >
-            <slot />
-          </v-card>
+        <div class="auth-form-panel__content">
+          <slot />
         </div>
       </v-col>
     </v-row>
@@ -132,6 +130,17 @@
   .login-container {
     min-height: 100vh;
     overflow: hidden;
+  }
+
+  .auth-form-panel__content {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 8px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   /* Dark theme's default surface (~#212121)

@@ -35,7 +35,9 @@
     <v-form ref="formRef" class="fade-in" @submit.prevent="handleRegister">
       <v-row dense>
         <v-col cols="6">
-          <label class="text-caption ml-1">{{ t('register.owner_first_name') }}</label>
+          <label class="text-caption ml-1">
+            {{ t('register.owner_first_name') }}
+          </label>
           <v-text-field
             v-model="form.owner_first_name"
             variant="outlined"
@@ -47,7 +49,9 @@
           />
         </v-col>
         <v-col cols="6">
-          <label class="text-caption ml-1">{{ t('register.owner_last_name') }}</label>
+          <label class="text-caption ml-1">
+            {{ t('register.owner_last_name') }}
+          </label>
           <v-text-field
             v-model="form.owner_last_name"
             variant="outlined"
@@ -59,33 +63,41 @@
           />
         </v-col>
       </v-row>
-
-      <label class="text-caption ml-1">{{ t('register.business_name') }}</label>
-      <v-text-field
-        v-model="form.name"
-        variant="outlined"
-        rounded="lg"
-        prepend-inner-icon="mdi-storefront-outline"
-        class="mt-1"
-        :rules="[required]"
-        :error-messages="errors.name"
-        :disabled="loading"
-      />
-
-      <label class="text-caption ml-1">{{ t('register.business_type') }}</label>
-      <v-select
-        v-model="form.business_type_id"
-        :items="businessTypes"
-        item-title="name"
-        item-value="id"
-        variant="outlined"
-        rounded="lg"
-        prepend-inner-icon="mdi-shape-outline"
-        class="mt-1"
-        :rules="[required]"
-        :error-messages="errors.business_type_id"
-        :disabled="loading"
-      />
+      <v-row dense>
+        <v-col cols="6">
+          <label class="text-caption ml-1">
+            {{ t('register.business_name') }}
+          </label>
+          <v-text-field
+            v-model="form.name"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-storefront-outline"
+            class="mt-1"
+            :rules="[required]"
+            :error-messages="errors.name"
+            :disabled="loading"
+          />
+        </v-col>
+        <v-col cols="6">
+          <label class="text-caption ml-1">
+            {{ t('register.business_type') }}
+          </label>
+          <v-select
+            v-model="form.business_type_id"
+            :items="businessTypes"
+            item-title="name"
+            item-value="id"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-shape-outline"
+            class="mt-1"
+            :rules="[required]"
+            :error-messages="errors.business_type_id"
+            :disabled="loading"
+          />
+        </v-col>
+      </v-row>
 
       <label class="text-caption ml-1">{{ t('register.owner_email') }}</label>
       <v-text-field
@@ -99,7 +111,9 @@
         :disabled="loading"
       />
 
-      <label class="text-caption ml-1">{{ t('register.owner_password') }}</label>
+      <label class="text-caption ml-1">
+        {{ t('register.owner_password') }}
+      </label>
       <v-text-field
         v-model="form.owner_password"
         :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
@@ -128,7 +142,10 @@
 
       <div class="text-center mt-6 text-caption">
         {{ t('register.have_account') }}
-        <router-link :to="{ name: 'Login' }" class="text-primary font-weight-medium">
+        <router-link
+          :to="{ name: 'Login' }"
+          class="text-primary font-weight-medium"
+        >
           {{ t('register.login_link') }}
         </router-link>
       </div>
@@ -165,8 +182,13 @@
   })
 
   const errors = reactive({
-    owner_first_name: '', owner_last_name: '', owner_email: '',
-    owner_password: '', name: '', business_type_id: '', general: ''
+    owner_first_name: '',
+    owner_last_name: '',
+    owner_email: '',
+    owner_password: '',
+    name: '',
+    business_type_id: '',
+    general: ''
   })
 
   const required = v => !!v || t('form.required')
@@ -189,7 +211,9 @@
   })
 
   function clearErrors() {
-    Object.keys(errors).forEach(k => { errors[k] = '' })
+    Object.keys(errors).forEach(k => {
+      errors[k] = ''
+    })
   }
 
   const handleRegister = async () => {
@@ -267,7 +291,13 @@
     animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
