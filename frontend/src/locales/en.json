@@ -2211,6 +2211,7 @@
       "switch_to": "Switch to {name}",
       "upgrade_to": "Upgrade to {name}",
       "downgrade_to": "Downgrade to {name}",
+      "free_downgrade_blocked": "Not available once you've had a paid plan. Contact support to move back to Free.",
       "change_success": "Plan changed successfully.",
       "change_failed": "Failed to change plan. Please try again.",
       "renew_confirm_title": "Renew subscription",

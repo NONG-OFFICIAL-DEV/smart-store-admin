@@ -44,6 +44,12 @@ class TenantSubscriptionService extends BaseService
     //      - If already active (or this is a first assignment): start a
     //        fresh billing period immediately.
     //   3. Append to subscription_plan_history.
+    //
+    //  $isSelfService: true only for the tenant-owner-facing endpoint
+    //  (BillingController::changePlan). Blocks selecting a $0 plan once the
+    //  tenant has ever held a paid one — the superadmin endpoint
+    //  (TenantSubscriptionController::store) is exempt so support can still
+    //  move a tenant back to Free.
     // ──────────────────────────────────────────────────────────────────────────
     public function changePlan(
         Tenant $tenant,
@@ -51,8 +57,9 @@ class TenantSubscriptionService extends BaseService
         ?string $newCycleId,
         string $changedBy,
         string $reason = 'Plan change',
+        bool $isSelfService = false,
     ): TenantSubscription {
-        return DB::transaction(function () use ($tenant, $newPlanId, $newCycleId, $changedBy, $reason) {
+        return DB::transaction(function () use ($tenant, $newPlanId, $newCycleId, $changedBy, $reason, $isSelfService) {
             // Lock the row so two concurrent plan-change requests for the same
             // tenant can't both read the same "current" subscription before
             // either commits.
@@ -61,6 +68,20 @@ class TenantSubscriptionService extends BaseService
                 ->lockForUpdate()
                 ->latest('created_at')
                 ->first();
+
+            $newPlan = Plan::findOrFail($newPlanId);
+
+            if ($isSelfService && (float) $newPlan->price_usd <= 0) {
+                $hasHadPaidPlan = TenantSubscription::where('tenant_id', $tenant->id)
+                    ->whereHas('plan', fn ($q) => $q->where('price_usd', '>', 0))
+                    ->exists();
+
+                if ($hasHadPaidPlan) {
+                    throw new InvalidArgumentException(
+                        'Downgrading to the Free plan is not available here once your business has had a paid plan. Please contact support.'
+                    );
+                }
+            }
 
             $fromPlanId = $current?->plan_id;
             // Capture BEFORE cancelling — update() below mutates $current's
@@ -73,15 +94,24 @@ class TenantSubscriptionService extends BaseService
             // A trial only ever starts on a tenant's FIRST-EVER subscription —
             // never on a plan switch for an already-provisioned tenant, which
             // would otherwise let a paying (or previously-trialed) tenant
-            // reset into a free trial just by switching plans.
-            $startsNewTrial = !$current && (Plan::find($newPlanId)?->trial_days ?? 0) > 0;
+            // reset into a free trial just by switching plans. Checking only
+            // "no CURRENT active/trial row" isn't enough on its own — a
+            // lapsed trial (status -> suspended) or a cancellation removes the
+            // row from that check, so tenants.trial_used_at is the durable
+            // guard: set once, the first time a trial is granted, and never
+            // cleared, so it survives cancel/suspend/resubscribe.
+            $startsNewTrial = !$current && !$tenant->trial_used_at && (int) ($newPlan->trial_days ?? 0) > 0;
             if ($startsNewTrial) {
-                $trialEndsAt = now()->addDays(Plan::find($newPlanId)->trial_days);
+                $trialEndsAt = now()->addDays($newPlan->trial_days);
             }
             $isTrial = $wasTrial || $startsNewTrial;
 
             if ($current) {
                 $current->update(['status' => 'cancelled', 'cancelled_at' => now()]);
+            }
+
+            if ($startsNewTrial) {
+                $tenant->forceFill(['trial_used_at' => now()])->save();
             }
 
             $periodStart = $isTrial ? null : now();

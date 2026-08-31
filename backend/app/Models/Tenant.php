@@ -26,6 +26,7 @@ class Tenant extends BaseModel
 
     protected $casts = [
         'plan_expires_at' => 'datetime',
+        'trial_used_at'   => 'datetime',
         'is_active'       => 'boolean',
         'bu_type' => 'string',
     ];

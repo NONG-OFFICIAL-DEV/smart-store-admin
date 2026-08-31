@@ -138,7 +138,7 @@
     "footer": "Nexstack Tech"
   },
   "preferences": {
-    "title": "ការកំណត់",
+    "title": "ជម្រើស",
     "subtitle": "កំណត់បទពិសោធន៍របស់អ្នក",
     "language": "ភាសា",
     "theme": "រូបរាង",
@@ -2191,6 +2191,7 @@
       "switch_to": "ប្តូរទៅ {name}",
       "upgrade_to": "ដំឡើងទៅ {name}",
       "downgrade_to": "បន្ថយទៅ {name}",
+      "free_downgrade_blocked": "មិនអាចធ្វើបានទេ បន្ទាប់ពីអ្នកធ្លាប់ប្រើគម្រោងបង់ប្រាក់។ សូមទាក់ទងផ្នែកគាំទ្រដើម្បីត្រឡប់ទៅគម្រោងឥតគិតថ្លៃវិញ។",
       "change_success": "ប្តូរគម្រោងបានជោគជ័យ។",
       "change_failed": "ប្តូរគម្រោងបរាជ័យ។ សូមព្យាយាមម្តងទៀត។",
       "renew_confirm_title": "បន្តការជាវ",

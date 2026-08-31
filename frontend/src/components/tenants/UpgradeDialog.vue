@@ -86,6 +86,7 @@
                       'plan-card--selected': isSelected(plan),
                       'plan-card--current':  isCurrentPlan(plan),
                       'plan-card--popular':  plan.popular && !isSelected(plan) && !isCurrentPlan(plan),
+                      'plan-card--blocked':  isFreeDowngradeBlocked(plan),
                     }"
                     variant="outlined"
                     @click="selectPlan(plan)"
@@ -190,6 +191,15 @@
                         style="opacity:.6"
                       >
                         {{ t('subscription.upgrade_dialog.current_plan_label') }}
+                      </div>
+
+                      <!-- Blocked free-downgrade explanation -->
+                      <div
+                        v-if="isFreeDowngradeBlocked(plan)"
+                        class="text-center text-caption text-medium-emphasis mt-3"
+                        style="opacity:.7"
+                      >
+                        <v-icon size="12" class="me-1">mdi-lock-outline</v-icon>{{ t('subscription.upgrade_dialog.free_downgrade_blocked') }}
                       </div>
 
                     </v-card-text>
@@ -486,8 +496,17 @@ const planFeatureLines = plan =>
 const isCurrentPlan = plan => plan.id === props.currentPlan?.id
 const isSelected    = plan => selected.value?.id === plan.id
 
+// Mirrors the backend guard in TenantSubscriptionService::changePlan() —
+// self-service can't select Free once the tenant currently holds a paid
+// plan. The backend is the source of truth (it also blocks this after a
+// cancel/suspend, which this simple currentPlan check can't see), this is
+// just so the dialog doesn't let the user pick it and then show a
+// server error.
+const isFreeDowngradeBlocked = plan =>
+  isFree(plan) && !isCurrentPlan(plan) && Number(props.currentPlan?.price_usd ?? 0) > 0
+
 const selectPlan = plan => {
-  if (isCurrentPlan(plan)) return
+  if (isCurrentPlan(plan) || isFreeDowngradeBlocked(plan)) return
   selected.value = plan
 }
 
@@ -546,7 +565,7 @@ async function confirm() {
   border-color: rgba(var(--v-border-color), 0.16) !important;
 }
 
-.plan-card:hover:not(.plan-card--current) {
+.plan-card:hover:not(.plan-card--current):not(.plan-card--blocked) {
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07) !important;
 }
@@ -564,6 +583,16 @@ async function confirm() {
 .plan-card--current {
   cursor: default;
   opacity: 0.52;
+}
+
+.plan-card--blocked {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.plan-card--blocked:hover {
+  transform: none;
+  box-shadow: none !important;
 }
 
 /* ── Check icon animation ── */

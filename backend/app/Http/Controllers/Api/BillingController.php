@@ -53,6 +53,7 @@ class BillingController extends Controller
                 newCycleId: $validated['billing_cycle_id'],
                 changedBy: $request->user()->id,
                 reason: 'Plan changed by tenant owner (self-service)',
+                isSelfService: true,
             );
         } catch (InvalidArgumentException $e) {
             abort(422, $e->getMessage());
