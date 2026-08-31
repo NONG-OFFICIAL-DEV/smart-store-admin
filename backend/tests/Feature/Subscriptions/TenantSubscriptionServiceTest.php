@@ -129,6 +129,89 @@ class TenantSubscriptionServiceTest extends TestCase
         $this->assertNull($subscription->trial_ends_at);
     }
 
+    public function test_changePlan_does_not_grant_a_new_trial_after_the_first_trial_is_cancelled(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantTrialCancel');
+        $trialPlan = $this->makePlan('PLANTRIALCANCEL', trialDays: 14);
+        $otherTrialPlan = $this->makePlan('PLANTRIALCANCEL2', trialDays: 30);
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $first = $service->changePlan($tenant, $trialPlan->id, null, $owner->id, 'First trial');
+        $this->assertSame('trial', $first->status);
+
+        $service->cancel($first, $owner->id);
+
+        // Tenant cancelled before the trial even expired — must not be able
+        // to pick another trial-eligible plan and get a fresh trial_ends_at.
+        $second = $service->changePlan($tenant, $otherTrialPlan->id, $otherTrialPlan->billingCycles->first()->id, $owner->id, 'Resubscribe after cancel');
+
+        $this->assertSame('active', $second->status);
+        $this->assertNull($second->trial_ends_at);
+    }
+
+    public function test_changePlan_does_not_grant_a_new_trial_after_the_first_trial_is_suspended(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantTrialSuspend');
+        $trialPlan = $this->makePlan('PLANTRIALSUSPEND', trialDays: 14);
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $first = $service->changePlan($tenant, $trialPlan->id, null, $owner->id, 'First trial');
+
+        // Simulate the trial lapsing the way AuthController::lazilyExpireTrial() does.
+        $first->update(['status' => 'suspended']);
+
+        $second = $service->changePlan($tenant, $trialPlan->id, $trialPlan->billingCycles->first()->id, $owner->id, 'Resubscribe after trial lapsed');
+
+        $this->assertSame('active', $second->status);
+        $this->assertNull($second->trial_ends_at);
+    }
+
+    public function test_self_service_changePlan_rejects_downgrade_to_free_once_a_paid_plan_was_held(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantFreeDowngrade');
+        $paidPlan = $this->makePlan('PLANPAIDFORFREE');
+        $freePlan = $this->app->make(PlanService::class)->create([
+            'name' => 'FREEPLAN',
+            'code' => 'FREEPLAN',
+            'price_usd' => 0,
+            'seats' => 1,
+            'storage_gb' => 1,
+            'billing_cycles' => [
+                ['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0],
+            ],
+        ]);
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $service->changePlan($tenant, $paidPlan->id, $paidPlan->billingCycles->first()->id, $owner->id, 'Upgrade to paid', isSelfService: true);
+
+        $this->expectException(InvalidArgumentException::class);
+        $service->changePlan($tenant, $freePlan->id, $freePlan->billingCycles->first()->id, $owner->id, 'Attempt downgrade to free', isSelfService: true);
+    }
+
+    public function test_admin_changePlan_can_still_downgrade_to_free_for_support(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantFreeDowngradeAdmin');
+        $paidPlan = $this->makePlan('PLANPAIDFORFREEADMIN');
+        $freePlan = $this->app->make(PlanService::class)->create([
+            'name' => 'FREEPLANADMIN',
+            'code' => 'FREEPLANADMIN',
+            'price_usd' => 0,
+            'seats' => 1,
+            'storage_gb' => 1,
+            'billing_cycles' => [
+                ['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0],
+            ],
+        ]);
+
+        $service = $this->app->make(TenantSubscriptionService::class);
+        $service->changePlan($tenant, $paidPlan->id, $paidPlan->billingCycles->first()->id, $owner->id, 'Upgrade to paid');
+
+        // isSelfService defaults to false — the superadmin path is unaffected.
+        $downgraded = $service->changePlan($tenant, $freePlan->id, $freePlan->billingCycles->first()->id, $owner->id, 'Support downgrade to free');
+
+        $this->assertSame($freePlan->id, $downgraded->plan_id);
+    }
+
     public function test_renew_extends_the_period_and_now_logs_history(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantB');
