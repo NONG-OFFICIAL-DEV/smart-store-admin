@@ -8,15 +8,23 @@
 //
 // Node shape:
 //   key         — stable, unique identifier (used for :key and open-state)
-//   titleKey    — i18n key under "menu.*"
+//   titleKey    — i18n key (any namespace — dotted path, e.g. "menu.orders"
+//                 or "settings.title" if reusing a label from elsewhere)
 //   icon        — mdi icon name
-//   path        — route path (leaf items only)
+//   path        — route path (leaf items only) — a plain string, OR
+//                 `ctx => string` when the destination depends on tenant
+//                 context (e.g. business type)
 //   permission  — string | string[] — permission code(s) required (array = ANY)
 //   visible     — ctx => boolean — escape hatch for role/plan/business-type
 //                 rules that aren't permission codes (combined with
 //                 `permission` via AND when both are present)
 //   badge       — optional short label chip (e.g. food/mart route split)
-//   children    — nested items (groups); group auto-hides when empty
+//   emphasize   — group-level flag: renders with visual emphasis (POS is the
+//                 primary workspace and should stand out from the rest)
+//   children    — nested items (groups); group auto-hides when empty.
+//                 NOTE: only 2 levels are supported (Sidebar.vue renders a
+//                 group's children as flat leaves) — do not nest a group
+//                 inside a group's children.
 //
 // To add a new module: add one leaf (or one child inside an existing group).
 // Nothing else needs to change — Sidebar.vue and useSidebarMenu.js are generic.
@@ -38,7 +46,7 @@ export const SIDEBAR_MENU = [
     visible: ctx => ctx.isSuperAdmin
   },
 
-  // ── Business Management (super admin only) ──────────────────────────────
+  // ── Business Management (super admin only — their own operational area) ─
   {
     key: 'business-management',
     titleKey: 'menu.business_management',
@@ -60,12 +68,49 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Sales & Front of House ───────────────────────────────────────────────
+  // ── POS — the primary workspace for tenant staff/owners ──────────────────
   {
-    key: 'sales-front-of-house',
-    titleKey: 'menu.sales_operations',
-    icon: 'mdi-storefront-outline',
+    key: 'pos',
+    titleKey: 'menu.pos',
+    icon: 'mdi-point-of-sale',
+    emphasize: true,
+    visible: ctx => !ctx.isSuperAdmin,
     children: [
+      {
+        key: 'quick-sale',
+        titleKey: 'menu.quick_sale',
+        icon: 'mdi-lightning-bolt-outline',
+        // Deep-link straight into the right POS for this tenant's business
+        // type — skips the Operation.vue launcher for the common case.
+        // Falls back to the launcher only when neither category matches.
+        path: ctx => (ctx.isMart ? '/pos/retail' : ctx.isFood ? '/pos/food' : '/operation'),
+        permission: 'orders.manage'
+      },
+      {
+        key: 'orders',
+        titleKey: 'menu.orders',
+        icon: 'mdi-receipt-text-outline',
+        path: '/orders',
+        permission: 'reports.view'
+      }
+    ]
+  },
+
+  // ── Operations — catalog, inventory, front-of-house, customers ──────────
+  {
+    key: 'operations',
+    titleKey: 'menu.ops',
+    icon: 'mdi-storefront-outline',
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
+      {
+        key: 'kitchen',
+        titleKey: 'menu.kitchen',
+        icon: 'mdi-chef-hat',
+        path: '/kitchen',
+        permission: 'kitchen.manage',
+        visible: ctx => ctx.isFood && ctx.hasFeature('KDS')
+      },
       {
         key: 'branches',
         titleKey: 'menu.branches',
@@ -75,13 +120,6 @@ export const SIDEBAR_MENU = [
         // Tenant business data — super admin's permission bypass would
         // otherwise still show this (see router's superAdminAccessible).
         visible: ctx => !ctx.isSuperAdmin
-      },
-      {
-        key: 'operation',
-        titleKey: 'menu.operation',
-        icon: 'mdi-cash-register',
-        path: '/operation',
-        permission: 'orders.manage'
       },
       {
         key: 'dining-table',
@@ -114,17 +152,7 @@ export const SIDEBAR_MENU = [
         path: '/loyalty',
         permission: 'promotions.manage',
         visible: ctx => !ctx.isSuperAdmin && ctx.hasPlan('pro')
-      }
-    ]
-  },
-
-  // ── Product & Catalog (tenant business data — not for super admin) ──────
-  {
-    key: 'product-catalog',
-    titleKey: 'menu.product_catalog',
-    icon: 'mdi-tag-outline',
-    visible: ctx => !ctx.isSuperAdmin,
-    children: [
+      },
       {
         key: 'categories',
         titleKey: 'menu.categories',
@@ -170,17 +198,7 @@ export const SIDEBAR_MENU = [
         path: '/branch-menus',
         permission: 'menus.manage',
         visible: ctx => ctx.isFood
-      }
-    ]
-  },
-
-  // ── Inventory & Purchasing (tenant business data — not for super admin) ─
-  {
-    key: 'inventory-purchasing',
-    titleKey: 'menu.inventory_purchasing',
-    icon: 'mdi-warehouse',
-    visible: ctx => !ctx.isSuperAdmin,
-    children: [
+      },
       {
         key: 'stock-overview-food',
         titleKey: 'menu.stock_overview',
@@ -228,41 +246,10 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Staff & Workforce (tenant business data — not for super admin) ───────
+  // ── Business — reports and workforce management ──────────────────────────
   {
-    key: 'staff-workforce',
-    titleKey: 'menu.staff_workforce',
-    icon: 'mdi-account-group-outline',
-    visible: ctx => !ctx.isSuperAdmin,
-    children: [
-      {
-        key: 'staff-list',
-        titleKey: 'menu.staff_list',
-        icon: 'mdi-account-multiple-outline',
-        path: '/staff-management',
-        permission: 'staff.manage'
-      },
-      {
-        key: 'shift-management',
-        titleKey: 'menu.shift',
-        icon: 'mdi-clock-outline',
-        path: '/shift-management',
-        permission: 'shifts.manage'
-      },
-      {
-        key: 'shift-assignments',
-        titleKey: 'menu.shift_assign',
-        icon: 'mdi-calendar-account-outline',
-        path: '/shift-assignments',
-        permission: 'shifts.manage'
-      }
-    ]
-  },
-
-  // ── Reports & Analytics (tenant business data — not for super admin) ────
-  {
-    key: 'reports-analytics',
-    titleKey: 'menu.reports_analytics',
+    key: 'business',
+    titleKey: 'menu.business',
     icon: 'mdi-chart-areaspline',
     visible: ctx => !ctx.isSuperAdmin,
     children: [
@@ -303,50 +290,80 @@ export const SIDEBAR_MENU = [
         visible: ctx => ctx.isFood,
         path: '/ingredient-inventory-reports',
         permission: 'reports.view'
+      },
+      {
+        key: 'cash-register',
+        titleKey: 'menu.cash_register',
+        icon: 'mdi-cash-register',
+        path: '/cash-register',
+        permission: 'payments.manage'
+      },
+      {
+        key: 'staff-list',
+        titleKey: 'menu.staff_list',
+        icon: 'mdi-account-multiple-outline',
+        path: '/staff-management',
+        permission: 'staff.manage'
+      },
+      {
+        key: 'shift-management',
+        titleKey: 'menu.shift',
+        icon: 'mdi-clock-outline',
+        path: '/shift-management',
+        permission: 'shifts.manage'
+      },
+      {
+        key: 'shift-assignments',
+        titleKey: 'menu.shift_assign',
+        icon: 'mdi-calendar-account-outline',
+        path: '/shift-assignments',
+        permission: 'shifts.manage'
       }
     ]
   },
 
-  // ── System Administration (super admin only) ────────────────────────────
+  // ── Settings — pinned last; a general entry for everyone, plus super
+  //    admin-only system administration folded in underneath ──────────────
   {
-    key: 'system-administration',
-    titleKey: 'menu.system_administration',
-    icon: 'mdi-shield-crown-outline',
-    visible: ctx => ctx.isSuperAdmin,
+    key: 'system',
+    titleKey: 'menu.setting',
+    icon: 'mdi-cog-outline',
+    visible: () => true,
     children: [
+      {
+        key: 'general-settings',
+        titleKey: 'settings.title',
+        icon: 'mdi-shield-lock-outline',
+        path: '/settings-security',
+        visible: () => true
+      },
+      {
+        key: 'telegram-settings',
+        titleKey: 'menu.telegram_settings',
+        icon: 'mdi-send-outline',
+        path: '/telegram-settings',
+        visible: ctx => ctx.isSuperAdmin
+      },
       {
         key: 'roles',
         titleKey: 'menu.roles',
         icon: 'mdi-shield-account-outline',
-        path: '/roles-management'
+        path: '/roles-management',
+        visible: ctx => ctx.isSuperAdmin
       },
       {
         key: 'permissions',
         titleKey: 'menu.access_rights',
         icon: 'mdi-lock-outline',
-        path: '/role-permissions'
+        path: '/role-permissions',
+        visible: ctx => ctx.isSuperAdmin
       },
       {
         key: 'activity-log',
         titleKey: 'menu.activity_log',
         icon: 'mdi-history',
-        path: '/audit-logs'
-      }
-    ]
-  },
-
-  // ── Setting (super admin only) ───────────────────────────────────────────
-  {
-    key: 'setting',
-    titleKey: 'menu.setting',
-    icon: 'mdi-cog-outline',
-    visible: ctx => ctx.isSuperAdmin,
-    children: [
-      {
-        key: 'telegram-settings',
-        titleKey: 'menu.telegram_settings',
-        icon: 'mdi-send-outline',
-        path: '/telegram-settings'
+        path: '/audit-logs',
+        visible: ctx => ctx.isSuperAdmin
       }
     ]
   }

@@ -36,6 +36,8 @@
     "shift": "គ្រប់គ្រងវេន",
     "shift_assign": "ការចាត់តាំងវេន",
     "tables": "តុ",
+    "kitchen": "ផ្ទះបាយ",
+    "cash_register": "ប្រអប់សាច់ប្រាក់",
     "menus": "ឈុតម៉ឺនុយ",
     "promotions": "ការផ្សព្វផ្សាយ",
     "menu_management": "គ្រប់គ្រងម៉ឺនុយ",
@@ -69,7 +71,12 @@
     "reports_analytics": "របាយការណ៍",
     "staff_workforce": "បុគ្គលិក",
     "system_administration": "គ្រប់គ្រងប្រព័ន្ធ",
-    "setting": "ការកំណត់"
+    "setting": "ការកំណត់",
+    "pos": "POS",
+    "quick_sale": "លក់រហ័ស",
+    "orders": "ការបញ្ជាទិញ",
+    "ops": "ប្រតិបត្តិការ",
+    "business": "អាជីវកម្ម"
   },
   "btn": {
     "create": "បង្កើត",
@@ -294,6 +301,27 @@
     "create_account": "បង្កើតគណនី",
     "have_account": "មានគណនីរួចហើយ?",
     "login_link": "ចូលប្រើ"
+  },
+  "cash_register": {
+    "open_label": "កាសាបើក",
+    "closed_label": "កាសាបិទ",
+    "panel_title": "ប្រអប់សាច់ប្រាក់",
+    "opening_float": "ប្រាក់ដើមទុន",
+    "opened_at": "ពេលបើក",
+    "close_register": "បិទកាសា",
+    "actual_cash": "ប្រាក់ដែលរាប់បានជាក់ស្តែង",
+    "notes_optional": "កំណត់ចំណាំ (មិនចាំបាច់)",
+    "confirm_close": "បញ្ជាក់ការបិទ",
+    "open_prompt": "បើកសម័យសាច់ប្រាក់ថ្មីសម្រាប់សាខានេះ។",
+    "open_register": "បើកកាសា",
+    "opened_success": "កាសាត្រូវបានបើក។",
+    "closed_success": "កាសាត្រូវបានបិទ។",
+    "action_failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។"
+  },
+  "shortcuts": {
+    "title": "គន្លឹះក្តារចុច",
+    "search": "ផ្តោតលើការស្វែងរក",
+    "close": "បិទប្រអប់"
   },
   "forgot_password": {
     "tagline": "សង្គ្រោះគណនី",
@@ -629,47 +657,6 @@
     "no_items_hint": "ចុច \"បន្ថែមទំនិញ\" ដើម្បីចាប់ផ្តើមបង្កើតការបញ្ជាទិញរបស់អ្នក",
     "add_first_product": "បន្ថែមទំនិញដំបូង",
     "load_failed": "បរាជ័យក្នុងការទាញយកបញ្ជាទិញ"
-  },
-  "pos": {
-    "title": "កន្លែងលក់",
-    "cart": "រទេះទំនិញ",
-    "empty_cart": "រទេះទំនិញទទេ",
-    "add_products": "បន្ថែមផលិតផលពីបញ្ជី",
-    "subtotal": "សរុបរង",
-    "discount": "បញ្ចុះតម្លៃ",
-    "tax": "ពន្ធ",
-    "total": "សរុប",
-    "checkout": "ទូទាត់",
-    "payment": "ការបង់ប្រាក់",
-    "total_due": "ចំនួនត្រូវបង់",
-    "cash_tendered": "ប្រាក់ដែលទទួល",
-    "change": "ប្រាក់អាប់",
-    "confirm_payment": "បញ្ជាក់ការបង់ប្រាក់",
-    "order_completed": "កម្មង់បានបញ្ចប់!",
-    "items_count": "{n} មុខ",
-    "customer_type": {
-      "retail": "លក់រាយ",
-      "wholesale": "លក់ដុំ"
-    },
-    "payment_method": {
-      "cash": "សាច់ប្រាក់",
-      "card": "កាតធនាគារ",
-      "qr": "QR កូដ",
-      "transfer": "ផ្ទេរប្រាក់"
-    },
-    "out_of_stock": "អស់ស្តុក",
-    "low_stock": "ស្តុកទាប",
-    "all_products": "ផលិតផលទាំងអស់",
-    "select_unit": "ជ្រើសរើសឯកតា",
-    "quantity": "បរិមាណ",
-    "unit_price": "តម្លៃក្នុងមួយឯកតា",
-    "current_order": "កម្មង់បច្ចុប្បន្ន",
-    "add_discount": "បន្ថែមការបញ្ចុះតម្លៃ",
-    "apply_discount": "អនុវត្តការបញ្ចុះតម្លៃ",
-    "coupon_code": "លេខកូដគូប៉ុង",
-    "max_available": "អតិបរមា: {n}",
-    "insufficient_stock": "ស្តុកមិនគ្រប់គ្រាន់",
-    "scan_barcode": "ស្កែនបាកូដ..."
   },
   "order": {
     "order_number": "លេខកម្មង់",
@@ -2253,7 +2240,86 @@
     "pos_food_title": "POS ភោជនីយដ្ឋាន & កាហ្វេ",
     "pos_food_subtitle": "បើកប្រព័ន្ធ POS ភោជនីយដ្ឋាន & កាហ្វេ",
     "pos_retail_title": "POS សម្រាប់លក់រាយ",
-    "pos_retail_subtitle": "បើកប្រព័ន្ធ POS សម្រាប់ហាងលក់រាយ"
+    "pos_retail_subtitle": "បើកប្រព័ន្ធ POS សម្រាប់ហាងលក់រាយ",
+    "quick_sale": {
+      "badge": "ថ្មី",
+      "food_title": "លក់រហ័ស",
+      "food_subtitle": "ទទួលការបញ្ជាទិញអាហារដោយមិនចាំបាច់ចាកចេញពីកម្មវិធីនេះ",
+      "retail_title": "លក់រហ័ស",
+      "retail_subtitle": "ធ្វើការលក់រាយដោយមិនចាំបាច់ចាកចេញពីកម្មវិធីនេះ"
+    }
+  },
+  "pos": {
+    "branch_label": "សាខា",
+    "select_branch": "សូមជ្រើសរើសសាខាដើម្បីចាប់ផ្តើមលក់។",
+    "settings": {
+      "title": "ការកំណត់ POS"
+    },
+    "retail": {
+      "title": "លក់រហ័ស - លក់រាយ",
+      "customer_type": "ប្រភេទអតិថិជន",
+      "customer_types": {
+        "retail": "លក់រាយ",
+        "wholesale": "លក់ដុំ"
+      }
+    },
+    "food": {
+      "title": "លក់រហ័ស - អាហារ"
+    },
+    "grid": {
+      "search_placeholder": "ស្វែងរកផលិតផល ឬស្កេនបាកូដ",
+      "all_categories": "ទាំងអស់",
+      "no_products": "រកមិនឃើញផលិតផលទេ។",
+      "stock": {
+        "in_stock": "មានស្តុក",
+        "low_stock": "ស្តុកទាប",
+        "out_of_stock": "អស់ស្តុក"
+      }
+    },
+    "cart": {
+      "title": "កម្មង់បច្ចុប្បន្ន",
+      "clear": "សម្អាត",
+      "empty_title": "មិនទាន់មានទំនិញ",
+      "empty_helper": "ជ្រើសរើសផលិតផល ឬស្កេនបាកូដដើម្បីចាប់ផ្តើមកម្មង់។",
+      "empty_search_hint": "ស្វែងរកផលិតផល",
+      "notes_placeholder": "កំណត់ចំណាំ (មិនចាំបាច់)",
+      "subtotal": "សរុបរង",
+      "checkout": "ទូទាត់"
+    },
+    "checkout": {
+      "title": "ទូទាត់",
+      "subtitle": "បញ្ចប់ការលក់",
+      "total_estimate": "សរុបប៉ាន់ស្មាន",
+      "total_note": "ពន្ធ និងការបញ្ចុះតម្លៃត្រូវបានគណនាដោយម៉ាស៊ីនមេនៅពេលដាក់ស្នើ។",
+      "payment_method": "វិធីបង់ប្រាក់",
+      "methods": {
+        "cash": "សាច់ប្រាក់",
+        "card": "កាត",
+        "qr": "QR"
+      },
+      "cash_tendered": "ប្រាក់ដែលបានទទួល",
+      "change": "ប្រាក់អាប់",
+      "submit": "បញ្ចប់ការលក់",
+      "success": "ការលក់បានបញ្ចប់។",
+      "failed": "មិនអាចបញ្ចប់ការលក់បានទេ។ សូមព្យាយាមម្តងទៀត។"
+    },
+    "receipt": {
+      "title": "បង្កាន់ដៃ",
+      "order_number": "លេខបញ្ជាទិញ",
+      "queue_number": "លេខរង់ចាំ",
+      "cashier": "អ្នកគិតលុយ",
+      "date": "កាលបរិច្ឆេទ",
+      "subtotal": "សរុបរង",
+      "discount": "បញ្ចុះតម្លៃ",
+      "tax": "ពន្ធ",
+      "service_charge": "ថ្លៃសេវា",
+      "total": "សរុប",
+      "payment_method": "វិធីបង់ប្រាក់",
+      "cash_tendered": "ប្រាក់ដែលបានទទួល",
+      "change_given": "ប្រាក់អាប់ដែលបានប្រគល់",
+      "print": "បោះពុម្ព",
+      "new_sale": "លក់ថ្មី"
+    }
   },
   "promotions": {
     "title": "ការផ្សព្វផ្សាយ និងការបញ្ចុះតម្លៃ",
@@ -2674,7 +2740,100 @@
     "delete_title": "លុបតួនាទី?",
     "delete_message": "លុប <strong>{name}។</strong>? <br/> អ្នកប្រើប្រាស់ដែលមានតួនាទីនេះនឹងបាត់បង់សិទ្ធិចូលប្រើ។"
   },
+  "cash_register_admin": {
+    "title": "ប្រអប់សាច់ប្រាក់",
+    "subtitle": "ពិនិត្យមើលសម័យប្រអប់សាច់ប្រាក់នៅគ្រប់សាខា។",
+    "empty": "រកមិនឃើញសម័យប្រអប់សាច់ប្រាក់ទេ។",
+    "staff_label": "បុគ្គលិក",
+    "filters": {
+      "status": "ស្ថានភាព"
+    },
+    "status": {
+      "open": "កំពុងបើក",
+      "closed": "បានបិទ"
+    },
+    "columns": {
+      "branch": "សាខា",
+      "staff": "បុគ្គលិក",
+      "status": "ស្ថានភាព",
+      "variance": "ភាពខុសគ្នា"
+    }
+  },
+  "orders_admin": {
+    "title": "ការបញ្ជាទិញ",
+    "subtitle": "រកមើល និងត្រងការបញ្ជាទិញទាំងអស់ដែលបានធ្វើតាមប្រព័ន្ធ POS។",
+    "stats": {
+      "total_orders": "ការបញ្ជាទិញសរុប",
+      "total_revenue": "ចំណូលសរុប"
+    },
+    "filters": {
+      "status": "ស្ថានភាព",
+      "order_type": "ប្រភេទការបញ្ជាទិញ",
+      "date_from": "ពី",
+      "date_to": "ដល់"
+    },
+    "walk_in": "អតិថិជនចូលមក",
+    "empty": "រកមិនឃើញការបញ្ជាទិញទេ។",
+    "columns": {
+      "order": "ការបញ្ជាទិញ",
+      "customer": "អតិថិជន",
+      "type": "ប្រភេទ",
+      "items": "មុខទំនិញ",
+      "total": "សរុប",
+      "payment": "ការទូទាត់",
+      "status": "ស្ថានភាព"
+    },
+    "detail": {
+      "status": "ស្ថានភាព",
+      "table": "តុ",
+      "total": "សរុប"
+    },
+    "status": {
+      "draft": "សេចក្តីព្រាង",
+      "pending": "កំពុងរង់ចាំ",
+      "confirmed": "បានបញ្ជាក់",
+      "preparing": "កំពុងរៀបចំ",
+      "ready": "រួចរាល់",
+      "served": "បានបម្រើ",
+      "completed": "បានបញ្ចប់",
+      "cancelled": "បានលុបចោល",
+      "refunded": "បានសង​ប្រាក់វិញ"
+    },
+    "order_type": {
+      "dine_in": "ញាំនៅហាង",
+      "takeaway": "ខ្ចប់យកទៅ",
+      "delivery": "ដឹកជញ្ជូន",
+      "online": "អនឡាញ"
+    }
+  },
+  "kitchen": {
+    "title": "ផ្ទះបាយ",
+    "subtitle": "តាមដានការរៀបចំម្ហូបជាបន្តបន្ទាប់។",
+    "new_ticket": "សំបុត្រថ្មី",
+    "no_tickets": "មិនមានសំបុត្រនៅទីនេះទេ។",
+    "table_prefix": "តុ",
+    "items_count": "{n} មុខ",
+    "start": "ចាប់ផ្តើម",
+    "complete": "បញ្ចប់",
+    "columns": {
+      "new": "ថ្មី",
+      "preparing": "កំពុងធ្វើ",
+      "ready": "រួចរាល់"
+    },
+    "elapsed_minutes": "{n} នាទី",
+    "action_failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
+    "create_ticket": "បង្កើតសំបុត្រ",
+    "order_number_label": "លេខបញ្ជាទិញ ឬលេខសម្គាល់",
+    "station_label": "ស្ថានីយ៍",
+    "station_placeholder": "ឧ. ចង្ក្រានអាំង, បារ, បង្អែម",
+    "priority_label": "អាទិភាព (1 = បន្ទាន់, 5 = ធម្មតា)",
+    "order_not_found": "រកមិនឃើញការបញ្ជាទិញទេ។",
+    "created_success": "សំបុត្របានបង្កើត។"
+  },
   "tables": {
+    "current_order": {
+      "items_count": "{n} មុខ"
+    },
     "dialog": {
       "edit_title": "កែសម្រួលតុ",
       "add_title": "បន្ថែមតុ",

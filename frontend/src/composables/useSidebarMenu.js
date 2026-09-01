@@ -50,9 +50,13 @@ export function useSidebarMenu(rawMenu) {
       key: node.key,
       title: t(node.titleKey),
       icon: node.icon,
-      path: node.path,
+      // `path` can be a function of ctx — used by nav items whose destination
+      // depends on the tenant's business type (e.g. Quick Sale routing
+      // straight to the retail vs food POS instead of a generic launcher).
+      path: typeof node.path === 'function' ? node.path(ctx.value) : node.path,
       newTab: node.newTab,
-      badge: typeof node.badge === 'function' ? node.badge(ctx.value) : node.badge
+      badge: typeof node.badge === 'function' ? node.badge(ctx.value) : node.badge,
+      emphasize: node.emphasize
     }
     if (node.children) {
       resolved.children = node.children.filter(isVisible).map(resolveNode)

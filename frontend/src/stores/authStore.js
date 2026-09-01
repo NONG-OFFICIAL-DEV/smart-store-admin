@@ -34,6 +34,10 @@ export const useAuthStore = defineStore('auth', {
 
     branch_id:   null,
     branch_name: null,
+    // Only ever set for a Staff row — null for owners/super admins, who
+    // have no Staff record and so can't personally open a cash drawer
+    // (CashDrawer is staff_id-scoped).
+    staff_id:    null,
 
     unread_notifications_count: 0,
 
@@ -223,6 +227,7 @@ export const useAuthStore = defineStore('auth', {
 
       this.branch_id   = d.branch_id   ?? null
       this.branch_name = d.branch_name ?? null
+      this.staff_id    = d.staff_id    ?? null
 
       this.unread_notifications_count = d.unread_notifications_count ?? 0
       this.mustChangePassword = d.must_change_password ?? false

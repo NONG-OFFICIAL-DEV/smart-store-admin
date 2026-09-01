@@ -4,6 +4,8 @@ import {
   getTableByIdApi,
   createTableApi,
   updateTableApi,
+  updateTableStatusApi,
+  getActiveOrderByTableApi,
   deleteTableApi,
   getQrCode,
   downloadQrCode,
@@ -15,7 +17,10 @@ export const useTableStore = defineStore('table', {
     tables: [],
     table: null,
     pagination: {},
-    qrData: {}
+    qrData: {},
+    // Lazily populated per table id, only when its detail is actually
+    // opened — avoids one active-order request per table on every load.
+    activeOrders: {}
   }),
 
   actions: {
@@ -36,6 +41,16 @@ export const useTableStore = defineStore('table', {
       const res = await updateTableApi(id, data)
       const index = this.tables.findIndex(item => item.id === id)
       if (index !== -1) this.tables[index] = res.data.data
+    },
+    async updateTableStatus(id, status) {
+      const res = await updateTableStatusApi(id, status)
+      const index = this.tables.findIndex(item => item.id === id)
+      if (index !== -1) this.tables[index] = res.data.data
+    },
+    async fetchActiveOrderForTable(id) {
+      const res = await getActiveOrderByTableApi(id)
+      this.activeOrders = { ...this.activeOrders, [id]: res.data.data }
+      return res.data.data
     },
     async deleteTable(id) {
       await deleteTableApi(id)

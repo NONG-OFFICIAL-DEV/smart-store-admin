@@ -11,8 +11,8 @@ export const useFloorPlanStore = defineStore('floorPlan', {
   actions: {
     async fetchFloorPlans(filters) {
       const res          = await getAllFloorPlansApi(filters)
-      this.floorPlans    = res.data.data.data
-      this.pagination    = res.data.data
+      this.floorPlans    = res.data.data
+      this.pagination    = res.data.meta
     },
     async fetchFloorPlanById(id) {
       const res        = await getFloorPlanByIdApi(id)

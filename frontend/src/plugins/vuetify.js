@@ -90,6 +90,25 @@ const vuetify = createVuetify({
           warning: '#FB8C00',
           error: '#B00020'
         }
+      },
+      // Same brand hues as `light`, lightened/desaturated for contrast on a
+      // dark surface — previously missing entirely, so PreferencesDialog's
+      // Dark/Auto option silently fell back to Vuetify's generic default
+      // dark palette instead of this app's own brand. `background`/`surface`
+      // and friends are left unset on purpose — Vuetify's own dark defaults
+      // for those are already sensible and shouldn't be second-guessed here.
+      dark: {
+        dark: true,
+        colors: {
+          primary: '#26C6DA',
+          secondary: '#D690AC',
+          textField: '#4DD0E1',
+          icon: '#D8A8BC',
+          btnEdit: '#D8A8BC',
+          gray: '#2A2A2A',
+          warning: '#FFB74D',
+          error: '#EF5350'
+        }
       }
     }
   },

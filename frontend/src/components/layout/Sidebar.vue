@@ -46,6 +46,9 @@
     <!-- MENU -->
     <v-list v-model:opened="openGroups" nav density="compact" class="sidebar-list">
       <div v-for="link in filteredMenu" :key="link.key">
+        <!-- Settings is pinned last, visually separated from the working groups -->
+        <v-divider v-if="link.key === 'system'" class="my-2 mx-2" />
+
         <!-- ── SINGLE ITEM ───────────────────────────────────────────────── -->
         <template v-if="!link.children">
           <v-tooltip v-if="rail" location="right">
@@ -83,7 +86,10 @@
             :prepend-icon="link.icon"
             rounded="lg"
             class="mb-1 rail-group-trigger"
-            :class="{ 'active-item': isRailGroupHighlighted(link) }"
+            :class="{
+              'active-item': isRailGroupHighlighted(link),
+              'pos-group-trigger': link.emphasize
+            }"
             @click="showFlyout(link, $event)"
           />
         </template>
@@ -97,6 +103,7 @@
               :title="link.title"
               rounded="lg"
               class="mb-1"
+              :class="{ 'pos-group-header': link.emphasize }"
             />
           </template>
 
@@ -129,25 +136,6 @@
       </div>
     </v-list>
 
-    <!-- FOOTER -->
-    <template #append>
-      <div class="border-top bg-grey version">
-        <div v-if="!rail" class="text-center pa-3">
-          <p class="text-overline mb-1">Nexstack v0.0.1</p>
-        </div>
-        <v-list v-else>
-          <v-tooltip location="right">
-            <template #activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                prepend-icon="mdi-information-outline"
-              />
-            </template>
-            <span>Nexstack v0.0.1</span>
-          </v-tooltip>
-        </v-list>
-      </div>
-    </template>
   </v-navigation-drawer>
 
   <!-- ── RAIL FLYOUT SUBMENU ──────────────────────────────────────────────────── -->
@@ -156,6 +144,7 @@
       <div
         v-if="flyout.visible && flyout.group"
         class="rail-flyout"
+        :class="{ 'pos-flyout': flyout.group.emphasize }"
         :style="{ top: flyout.anchorY + 'px' }"
       >
         <!-- @mouseleave="hideFlyout" -->
@@ -257,6 +246,29 @@
     width: 4px;
     background: rgb(var(--v-theme-primary));
     border-radius: 0 4px 4px 0;
+  }
+
+  /* ── POS group — visually emphasized as the primary workspace ──────────── */
+  .pos-group-header,
+  .pos-group-trigger {
+    background: rgba(var(--v-theme-primary), 0.08) !important;
+    border: 1px solid rgba(var(--v-theme-primary), 0.18);
+  }
+
+  .pos-group-header :deep(.v-list-item-title),
+  .pos-group-header :deep(.v-icon),
+  .pos-group-trigger :deep(.v-icon) {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 700;
+  }
+
+  .pos-flyout {
+    border: 1px solid rgba(var(--v-theme-primary), 0.18);
+  }
+
+  .pos-flyout .flyout-header {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 700;
   }
 
   /* ── Rail: center icons, strip extra padding ────────────────────────────── */

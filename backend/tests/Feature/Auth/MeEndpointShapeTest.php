@@ -3,6 +3,9 @@
 namespace Tests\Feature\Auth;
 
 use App\Http\Controllers\AuthController;
+use App\Models\Branch;
+use App\Models\Role;
+use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -66,6 +69,38 @@ class MeEndpointShapeTest extends TestCase
         $body = $this->callMe();
 
         $this->assertFalse($body['tenant_is_active']);
+    }
+
+    /**
+     * staff_id backs the app bar's cash-register status/open action
+     * (CashDrawer is staff_id-scoped) — owners have no Staff row of their
+     * own, so it must stay null for them, not silently fall back to
+     * anything else.
+     */
+    public function test_staff_id_is_set_for_staff_but_null_for_owner(): void
+    {
+        $owner = User::create([
+            'email' => 'owner2@example.test', 'first_name' => 'Own', 'last_name' => 'Er',
+        ]);
+        $tenant = Tenant::create(['name' => 'T', 'slug' => 't-3', 'owner_user_id' => $owner->id]);
+        Auth::login($owner);
+        $ownerBody = $this->callMe();
+        $this->assertNull($ownerBody['staff_id']);
+
+        $branch = Branch::create(['tenant_id' => $tenant->id, 'name' => 'B', 'address_line1' => 'x', 'city' => 'y']);
+        $staffUser = User::create([
+            'email' => 'cashier@example.test', 'first_name' => 'Cash', 'last_name' => 'Ier',
+        ]);
+        $staff = Staff::create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'user_id' => $staffUser->id,
+            'role_id' => Role::create(['tenant_id' => $tenant->id, 'name' => 'Cashier Role'])->id,
+        ]);
+        Auth::login($staffUser);
+
+        $staffBody = $this->callMe();
+        $this->assertSame($staff->id, $staffBody['staff_id']);
     }
 
     public function test_tenant_is_active_defaults_true_for_a_super_admin(): void

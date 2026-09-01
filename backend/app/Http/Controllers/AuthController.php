@@ -245,6 +245,12 @@ class AuthController extends Controller
             'plan'              => null,
             'branch_id'         => null,
             'branch_name'       => null,
+            // Only ever set for a Staff row (see branch 3 below) — owners
+            // and super admins have no Staff record of their own, so a
+            // cash-drawer session (which is staff_id-scoped) can't be
+            // opened "as" them; the app bar's register status is read-only
+            // for those roles.
+            'staff_id'          => null,
             'role_name'         => null,
             'permissions'       => [],
             'features'          => [],
@@ -338,6 +344,7 @@ class AuthController extends Controller
             'logo_url'         => $staff->tenant?->logo_url,
             'branch_name'      => $staff->branch?->name,
             'branch_id'        => $staff->branch_id,
+            'staff_id'         => $staff->id,
             'role_name'        => $staff->role->name,
             'currency'         => $staff->tenant?->currency,
             'plan'             => $staff->tenant?->activeSubscription?->plan?->code,

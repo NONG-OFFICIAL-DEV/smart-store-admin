@@ -5,6 +5,10 @@ export const getAllTablesApi = filters =>
 export const getTableByIdApi = id => http.get(`/v1/tables/${id}`)
 export const createTableApi = data => http.post('/v1/tables', data)
 export const updateTableApi = (id, data) => http.put(`/v1/tables/${id}`, data)
+export const updateTableStatusApi = (id, status) =>
+  http.patch(`/v1/tables/${id}/status`, { status })
+export const getActiveOrderByTableApi = id =>
+  http.get(`/v1/tables/${id}/active-order`)
 export const deleteTableApi = id => http.delete(`/v1/tables/${id}`)
 // Get QR code info
 export const getQrCode = id => {

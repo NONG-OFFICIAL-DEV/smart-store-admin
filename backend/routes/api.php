@@ -336,7 +336,10 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
     });
     Route::get('tables/{table}/qr-code', [TableController::class, 'qrCode']);
     Route::prefix('tables/{table}')->group(function () {
-        Route::get('active-order',   [OrderController::class, 'activeByTable']);
+        // OrderController::byTable() — finds the table's current non-terminal
+        // order; a dedicated activeByTable() method was routed here but never
+        // existed on the controller (would 500 if ever hit).
+        Route::get('active-order',   [OrderController::class, 'byTable']);
         Route::get('reservations',   [ReservationController::class, 'byTable']);
     });
 

@@ -95,6 +95,36 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/pos/retail',
+        name: 'pos-retail',
+        component: () => import('@/views/pos/RetailPos.vue'),
+        meta: { requiresAuth: true, permission: 'orders.manage', transition: 'fade' }
+      },
+      {
+        path: '/pos/food',
+        name: 'pos-food',
+        component: () => import('@/views/pos/FoodPos.vue'),
+        meta: { requiresAuth: true, permission: 'orders.manage', transition: 'fade' }
+      },
+      {
+        path: '/orders',
+        name: 'orders-admin',
+        component: () => import('@/views/orders/OrdersManagement.vue'),
+        meta: { requiresAuth: true, permission: 'reports.view', transition: 'fade' }
+      },
+      {
+        path: '/kitchen',
+        name: 'kitchen',
+        component: () => import('@/views/kitchen/KitchenDisplay.vue'),
+        meta: { requiresAuth: true, permission: 'kitchen.manage', transition: 'fade' }
+      },
+      {
+        path: '/cash-register',
+        name: 'cash-register',
+        component: () => import('@/views/cashRegister/CashRegisterManagement.vue'),
+        meta: { requiresAuth: true, permission: 'payments.manage', transition: 'fade' }
+      },
+      {
         path: '/categories',
         name: 'categories',
         component: () => import('@/views/catalogs/CategoryView.vue'),

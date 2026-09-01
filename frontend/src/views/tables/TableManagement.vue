@@ -81,7 +81,7 @@
       <v-col cols="12" sm="auto">
         <v-select
           v-model="selectedFloorPlan"
-          :items="floorPlanOptions"
+          :items="floorPlanFilterOptions"
           item-value="id"
           item-title="name"
           :label="$t('tables.floor_plan')"
@@ -334,6 +334,26 @@
       body-class="pa-4"
       :hide-actions="true"
     >
+      <div v-if="activeOrderLoading" class="d-flex justify-center py-4">
+        <v-progress-circular indeterminate color="primary" size="24" />
+      </div>
+
+      <v-card
+        v-else-if="activeOrder"
+        rounded="lg"
+        variant="tonal"
+        color="primary"
+        class="pa-3 mb-4"
+      >
+        <div class="d-flex justify-space-between align-center mb-1">
+          <span class="text-body-2 font-weight-bold">{{ activeOrder.order_number }}</span>
+          <span class="text-body-2 font-weight-black">{{ formatMoney(activeOrder.total_amount) }}</span>
+        </div>
+        <div class="text-caption text-medium-emphasis">
+          {{ $t('tables.current_order.items_count', { n: activeOrder.items?.length ?? 0 }) }}
+        </div>
+      </v-card>
+
       <v-row dense>
         <v-col v-for="s in statusOptions" :key="s.value" cols="6">
           <v-btn
@@ -367,6 +387,7 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useTableStore } from '@/stores/tableStore'
+  import { useFloorPlanStore } from '@/stores/floorPlanStore'
   import TableFormDialog from '@/components/tables/TableFormDialog.vue'
   import TableQRDialog from '@/components/tables/TableQRDialog.vue'
   import AppDialog from '@/components/common/AppDialog.vue'
@@ -383,9 +404,13 @@
 
   const router = useRouter()
   const tableStore = useTableStore()
+  const floorPlanStore = useFloorPlanStore()
 
   // ← store.tables, store.pagination
   const { tables } = storeToRefs(tableStore)
+
+  const activeOrder = ref(null)
+  const activeOrderLoading = ref(false)
 
   const loading = ref(false)
   const saving = ref(false)
@@ -398,8 +423,13 @@
   const statusTarget = ref(null)
   const newStatus = ref(null)
 
-  // Mock floor plans — replace with store
-  const floorPlanOptions = ref([{ id: null, name: t('tables.all_floors') }])
+  // Real floor plans only — used by the create/edit form's picker.
+  const floorPlanOptions = computed(() => floorPlanStore.floorPlans)
+  // Same list plus a synthetic "All floors" option — used by the filter bar only.
+  const floorPlanFilterOptions = computed(() => [
+    { id: null, name: t('tables.all_floors') },
+    ...floorPlanStore.floorPlans
+  ])
 
   // Stats
   const stats = computed(() => [
@@ -497,9 +527,18 @@
     dialog.value = true
   }
 
-  const openStatusChange = t => {
+  const openStatusChange = async t => {
     statusTarget.value = t
     statusDialog.value = true
+    activeOrder.value = null
+    if (t.status === 'occupied') {
+      activeOrderLoading.value = true
+      try {
+        activeOrder.value = await tableStore.fetchActiveOrderForTable(t.id)
+      } finally {
+        activeOrderLoading.value = false
+      }
+    }
   }
   const openReservation = t =>
     router.push({ name: 'Reservations', query: { table_id: t.id } })
@@ -508,8 +547,7 @@
     newStatus.value = status
     saving.value = true
     try {
-      // store.updateTable replaces item in tables array
-      await tableStore.updateTable(statusTarget.value.id, { status })
+      await tableStore.updateTableStatus(statusTarget.value.id, status)
       statusDialog.value = false
       notif(
         t('tables.messages.status_changed', {
@@ -608,6 +646,9 @@
       inactive: t('status.inactive')
     })[s] || s
 
+  const formatMoney = value =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
+
   const shapeLabel = shape =>
     ({
       round: t('tables.shapes.round'),
@@ -629,11 +670,10 @@
     return {} // grid layout fallback via CSS
   }
 
-  // store.fetchTables sets store.tables (note: res.data.data.data in your store)
   onMounted(async () => {
     loading.value = true
     try {
-      await tableStore.fetchTables()
+      await Promise.all([tableStore.fetchTables(), floorPlanStore.fetchFloorPlans()])
     } finally {
       loading.value = false
     }

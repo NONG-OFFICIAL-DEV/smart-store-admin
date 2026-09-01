@@ -36,6 +36,8 @@
     "shift": "Shift",
     "shift_assign": "Shift Assignment",
     "tables": "Tables",
+    "kitchen": "Kitchen",
+    "cash_register": "Cash Register",
     "menus": "Menus",
     "promotions": "Promotions",
     "menu_management": "Menu",
@@ -69,7 +71,12 @@
     "reports_analytics": "Reports",
     "staff_workforce": "Staff",
     "system_administration": "System Admin",
-    "setting": "Setting"
+    "setting": "Settings",
+    "pos": "POS",
+    "quick_sale": "Quick Sale",
+    "orders": "Orders",
+    "ops": "Operations",
+    "business": "Business"
   },
   "btn": {
     "create": "Create",
@@ -292,6 +299,27 @@
     "create_account": "Create Account",
     "have_account": "Already have an account?",
     "login_link": "Sign in"
+  },
+  "cash_register": {
+    "open_label": "Register Open",
+    "closed_label": "Register Closed",
+    "panel_title": "Cash Register",
+    "opening_float": "Opening Float",
+    "opened_at": "Opened At",
+    "close_register": "Close Register",
+    "actual_cash": "Actual Cash Counted",
+    "notes_optional": "Notes (optional)",
+    "confirm_close": "Confirm Close",
+    "open_prompt": "Open a new cash session for this branch.",
+    "open_register": "Open Register",
+    "opened_success": "Register opened.",
+    "closed_success": "Register closed.",
+    "action_failed": "Something went wrong. Please try again."
+  },
+  "shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "search": "Focus search",
+    "close": "Close dialog"
   },
   "forgot_password": {
     "tagline": "ACCOUNT RECOVERY",
@@ -634,47 +662,6 @@
     "no_items_hint": "Click \"Add Product\" to start building your order",
     "add_first_product": "Add First Product",
     "load_failed": "Failed to load PO"
-  },
-  "pos": {
-    "title": "Point of Sale",
-    "cart": "Cart",
-    "empty_cart": "Cart is empty",
-    "add_products": "Add products from the list",
-    "subtotal": "Subtotal",
-    "discount": "Discount",
-    "tax": "Tax",
-    "total": "Total",
-    "checkout": "Checkout",
-    "payment": "Payment",
-    "total_due": "Total Due",
-    "cash_tendered": "Cash Tendered",
-    "change": "Change",
-    "confirm_payment": "Confirm Payment",
-    "order_completed": "Order Completed!",
-    "items_count": "{n} item | {n} items",
-    "customer_type": {
-      "retail": "Retail",
-      "wholesale": "Wholesale"
-    },
-    "payment_method": {
-      "cash": "Cash",
-      "card": "Card",
-      "qr": "QR",
-      "transfer": "Transfer"
-    },
-    "out_of_stock": "Out of Stock",
-    "low_stock": "Low Stock",
-    "all_products": "All Products",
-    "select_unit": "Select Unit",
-    "quantity": "Quantity",
-    "unit_price": "Unit Price",
-    "current_order": "Current Order",
-    "add_discount": "Add Discount / Coupon",
-    "apply_discount": "Apply Discount",
-    "coupon_code": "Coupon Code",
-    "max_available": "Max: {n} available",
-    "insufficient_stock": "Insufficient stock",
-    "scan_barcode": "Scan barcode..."
   },
   "order": {
     "order_number": "Order Number",
@@ -2273,7 +2260,86 @@
     "pos_food_title": "Food & Cafe POS",
     "pos_food_subtitle": "Open food & cafe POS system",
     "pos_retail_title": "Retail POS",
-    "pos_retail_subtitle": "Open retail & mart POS system"
+    "pos_retail_subtitle": "Open retail & mart POS system",
+    "quick_sale": {
+      "badge": "New",
+      "food_title": "Quick Sale",
+      "food_subtitle": "Take a food order without leaving this app",
+      "retail_title": "Quick Sale",
+      "retail_subtitle": "Take a retail sale without leaving this app"
+    }
+  },
+  "pos": {
+    "branch_label": "Branch",
+    "select_branch": "Select a branch to start selling.",
+    "settings": {
+      "title": "POS Settings"
+    },
+    "retail": {
+      "title": "Retail Quick Sale",
+      "customer_type": "Customer type",
+      "customer_types": {
+        "retail": "Retail",
+        "wholesale": "Wholesale"
+      }
+    },
+    "food": {
+      "title": "Food Quick Sale"
+    },
+    "grid": {
+      "search_placeholder": "Search products or scan barcode",
+      "all_categories": "All",
+      "no_products": "No products found.",
+      "stock": {
+        "in_stock": "In stock",
+        "low_stock": "Low stock",
+        "out_of_stock": "Out of stock"
+      }
+    },
+    "cart": {
+      "title": "Current Order",
+      "clear": "Clear",
+      "empty_title": "No items yet",
+      "empty_helper": "Select a product or scan a barcode to start an order.",
+      "empty_search_hint": "Search products",
+      "notes_placeholder": "Note (optional)",
+      "subtotal": "Subtotal",
+      "checkout": "Checkout"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "subtitle": "Complete the sale",
+      "total_estimate": "Estimated total",
+      "total_note": "Tax and any discount are calculated by the server on submit.",
+      "payment_method": "Payment method",
+      "methods": {
+        "cash": "Cash",
+        "card": "Card",
+        "qr": "QR"
+      },
+      "cash_tendered": "Cash tendered",
+      "change": "Change due",
+      "submit": "Complete sale",
+      "success": "Sale completed.",
+      "failed": "Could not complete the sale. Please try again."
+    },
+    "receipt": {
+      "title": "Receipt",
+      "order_number": "Order #",
+      "queue_number": "Queue #",
+      "cashier": "Cashier",
+      "date": "Date",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "service_charge": "Service charge",
+      "total": "Total",
+      "payment_method": "Payment method",
+      "cash_tendered": "Cash tendered",
+      "change_given": "Change given",
+      "print": "Print",
+      "new_sale": "New sale"
+    }
   },
   "promotions": {
     "title": "Promotions, Loyalty & Discounts",
@@ -2694,7 +2760,100 @@
     "delete_title": "Delete Role?",
     "delete_message": "Delete <strong>{name}.</strong>? <br/> Users with this role will lose their access."
   },
+  "cash_register_admin": {
+    "title": "Cash Register",
+    "subtitle": "Review cash-drawer sessions across every branch.",
+    "empty": "No cash-drawer sessions found.",
+    "staff_label": "Staff",
+    "filters": {
+      "status": "Status"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "columns": {
+      "branch": "Branch",
+      "staff": "Staff",
+      "status": "Status",
+      "variance": "Variance"
+    }
+  },
+  "orders_admin": {
+    "title": "Orders",
+    "subtitle": "Browse and filter every order placed through the POS.",
+    "stats": {
+      "total_orders": "Total Orders",
+      "total_revenue": "Total Revenue"
+    },
+    "filters": {
+      "status": "Status",
+      "order_type": "Order Type",
+      "date_from": "From",
+      "date_to": "To"
+    },
+    "walk_in": "Walk-in Customer",
+    "empty": "No orders found.",
+    "columns": {
+      "order": "Order",
+      "customer": "Customer",
+      "type": "Type",
+      "items": "Items",
+      "total": "Total",
+      "payment": "Payment",
+      "status": "Status"
+    },
+    "detail": {
+      "status": "Status",
+      "table": "Table",
+      "total": "Total"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "served": "Served",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    },
+    "order_type": {
+      "dine_in": "Dine In",
+      "takeaway": "Takeaway",
+      "delivery": "Delivery",
+      "online": "Online"
+    }
+  },
+  "kitchen": {
+    "title": "Kitchen",
+    "subtitle": "Track order preparation in real time.",
+    "new_ticket": "New Ticket",
+    "no_tickets": "No tickets here.",
+    "table_prefix": "Table",
+    "items_count": "{n} item | {n} items",
+    "start": "Start",
+    "complete": "Complete",
+    "columns": {
+      "new": "New",
+      "preparing": "Preparing",
+      "ready": "Ready"
+    },
+    "elapsed_minutes": "{n} min",
+    "action_failed": "Something went wrong. Please try again.",
+    "create_ticket": "Create Ticket",
+    "order_number_label": "Order number or ID",
+    "station_label": "Station",
+    "station_placeholder": "e.g. Grill, Bar, Pastry",
+    "priority_label": "Priority (1 = urgent, 5 = normal)",
+    "order_not_found": "Order not found.",
+    "created_success": "Ticket created."
+  },
   "tables": {
+    "current_order": {
+      "items_count": "{n} item | {n} items"
+    },
     "dialog": {
       "edit_title": "Edit Table",
       "add_title": "Add Table",

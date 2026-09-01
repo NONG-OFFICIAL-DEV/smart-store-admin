@@ -26,6 +26,23 @@
         </v-chip>
       </div>
 
+      <!-- Register status — only meaningful for staff (owners have no Staff
+           row of their own, so there's nothing personal to open/close) -->
+      <template v-if="authStore.staff_id">
+        <v-divider class="mx-3 d-none d-md-block" inset vertical />
+        <v-chip
+          size="small"
+          variant="tonal"
+          :color="registerOpen ? 'success' : 'default'"
+          class="d-none d-md-inline-flex"
+          rounded="lg"
+          :prepend-icon="registerOpen ? 'mdi-circle' : 'mdi-circle-outline'"
+          @click="openRegisterPanel"
+        >
+          {{ registerOpen ? t('cash_register.open_label') : t('cash_register.closed_label') }}
+        </v-chip>
+      </template>
+
       <v-divider class="mx-3" inset vertical />
       <template v-slot:append>
         <!-- Notifications -->
@@ -175,6 +192,113 @@
 
     <!-- Preferences Dialog -->
     <PreferencesDialog v-model="prefDialog" />
+
+    <!-- Cash Register panel -->
+    <AppDialog
+      v-model="registerDialog"
+      :title="t('cash_register.panel_title')"
+      :subtitle="branchName"
+      icon="mdi-cash-register"
+      :color="registerOpen ? 'success' : 'primary'"
+      :max-width="380"
+      :loading="registerBusy"
+      hide-actions
+      @close="registerDialog = false"
+    >
+      <div v-if="registerOpen && !closing">
+        <div class="d-flex justify-space-between text-body-2 mb-2">
+          <span class="text-medium-emphasis">{{ t('cash_register.opening_float') }}</span>
+          <span class="font-weight-bold">{{ formatMoney(currentDrawer?.opening_float) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-2 mb-4">
+          <span class="text-medium-emphasis">{{ t('cash_register.opened_at') }}</span>
+          <span class="font-weight-bold">{{ formatDateTime(currentDrawer?.opened_at) }}</span>
+        </div>
+        <v-btn
+          color="error"
+          variant="tonal"
+          block
+          rounded="lg"
+          prepend-icon="mdi-lock-outline"
+          @click="closing = true"
+        >
+          {{ t('cash_register.close_register') }}
+        </v-btn>
+      </div>
+
+      <div v-else-if="registerOpen && closing">
+        <v-text-field
+          v-model.number="actualCash"
+          type="number"
+          min="0"
+          step="0.01"
+          :label="t('cash_register.actual_cash')"
+          variant="outlined"
+          rounded="lg"
+        />
+        <v-textarea
+          v-model="closeNotes"
+          :label="t('cash_register.notes_optional')"
+          variant="outlined"
+          rounded="lg"
+          rows="2"
+        />
+        <div class="d-flex gap-2">
+          <v-btn variant="tonal" rounded="lg" class="flex-1-1" @click="closing = false">
+            {{ t('btn.cancel') }}
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            class="flex-1-1"
+            :disabled="actualCash === null || actualCash === ''"
+            @click="confirmClose"
+          >
+            {{ t('cash_register.confirm_close') }}
+          </v-btn>
+        </div>
+      </div>
+
+      <div v-else>
+        <p class="text-body-2 text-medium-emphasis mb-3">{{ t('cash_register.open_prompt') }}</p>
+        <v-text-field
+          v-model.number="openingFloat"
+          type="number"
+          min="0"
+          step="0.01"
+          :label="t('cash_register.opening_float')"
+          variant="outlined"
+          rounded="lg"
+        />
+        <v-btn
+          color="success"
+          variant="flat"
+          block
+          rounded="lg"
+          prepend-icon="mdi-lock-open-variant-outline"
+          @click="confirmOpen"
+        >
+          {{ t('cash_register.open_register') }}
+        </v-btn>
+      </div>
+    </AppDialog>
+
+    <!-- Keyboard Shortcuts panel -->
+    <AppDialog
+      v-model="shortcutsDialog"
+      :title="t('shortcuts.title')"
+      icon="mdi-keyboard-outline"
+      :max-width="360"
+      hide-submit
+      :cancel-text="t('btn.close')"
+      @close="shortcutsDialog = false"
+    >
+      <div v-for="row in shortcutRows" :key="row.keys" class="d-flex justify-space-between align-center mb-3">
+        <span class="text-body-2">{{ row.label }}</span>
+        <kbd class="shortcut-key">{{ row.keys }}</kbd>
+      </div>
+    </AppDialog>
   </div>
 </template>
 
@@ -185,9 +309,11 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import PreferencesDialog from '../common/PreferencesDialog.vue'
+  import AppDialog from '@/components/common/AppDialog.vue'
   import { useAvatar } from '@/composables/useAvatar'
   import { usePermission } from '@/composables/usePermission'
   import { useDate } from '@/composables/useDate'
+  import { useCashDrawerStore } from '@/stores/cashDrawerStore'
   import { getEcho } from '@/utils/echo'
   import {
     getAllNotificationsApi,
@@ -212,6 +338,7 @@
   const { isSuperAdmin } = usePermission()
 
   const authStore = useAuthStore()
+  const cashDrawerStore = useCashDrawerStore()
   const router = useRouter()
   const theme = useTheme()
 
@@ -242,6 +369,91 @@
     userMenu.value = false
     prefDialog.value = true
   }
+
+  // ── Cash register ──────────────────────────────────────────────────────
+  const registerOpen = ref(false)
+  const currentDrawer = ref(null)
+  const registerDialog = ref(false)
+  const registerBusy = ref(false)
+  const closing = ref(false)
+  const actualCash = ref(null)
+  const closeNotes = ref('')
+  const openingFloat = ref(0)
+
+  async function loadRegisterState() {
+    if (!authStore.staff_id) return
+    await cashDrawerStore.fetchCashDrawers({
+      staff_id: authStore.staff_id,
+      is_open: true,
+      perPage: 1
+    })
+    const drawer = cashDrawerStore.cashDrawers[0] ?? null
+    currentDrawer.value = drawer
+    registerOpen.value = !!drawer
+  }
+
+  function openRegisterPanel() {
+    closing.value = false
+    actualCash.value = null
+    closeNotes.value = ''
+    openingFloat.value = 0
+    registerDialog.value = true
+  }
+
+  async function confirmOpen() {
+    registerBusy.value = true
+    try {
+      await cashDrawerStore.openCashDrawer({
+        branch_id: authStore.branch_id,
+        staff_id: authStore.staff_id,
+        opening_float: openingFloat.value || 0
+      })
+      await loadRegisterState()
+      notif(t('cash_register.opened_success'), { type: 'success' })
+      registerDialog.value = false
+    } catch {
+      notif(t('cash_register.action_failed'), { type: 'error' })
+    } finally {
+      registerBusy.value = false
+    }
+  }
+
+  async function confirmClose() {
+    if (!currentDrawer.value) return
+    registerBusy.value = true
+    try {
+      await cashDrawerStore.closeCashDrawer(currentDrawer.value.id, {
+        actual_cash: actualCash.value,
+        notes: closeNotes.value || undefined
+      })
+      await loadRegisterState()
+      notif(t('cash_register.closed_success'), { type: 'success' })
+      registerDialog.value = false
+    } catch {
+      notif(t('cash_register.action_failed'), { type: 'error' })
+    } finally {
+      registerBusy.value = false
+    }
+  }
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value ?? 0)
+  }
+
+  // ── Keyboard shortcuts ─────────────────────────────────────────────────
+  const shortcutsDialog = ref(false)
+  const shortcutRows = computed(() => [
+    { keys: '⌘/Ctrl K', label: t('shortcuts.search') },
+    { keys: 'Esc', label: t('shortcuts.close') }
+  ])
+
+  function openShortcuts() {
+    userMenu.value = false
+    shortcutsDialog.value = true
+  }
   const menuItems = computed(() => [
     {
       title: 'profile.title',
@@ -257,6 +469,11 @@
       title: 'preferences.title',
       icon: 'mdi-tune-variant',
       action: () => openPreferences()
+    },
+    {
+      title: 'shortcuts.title',
+      icon: 'mdi-keyboard-outline',
+      action: () => openShortcuts()
     },
     // Super admin isn't tied to any tenant, so there's no plan/subscription to show
     ...(authStore.isSuperAdmin
@@ -308,12 +525,14 @@
   onMounted(() => {
     const echo = getEcho()
     const userId = authStore.me?.id
-    if (!echo || !userId) return
+    if (echo && userId) {
+      notificationChannel = echo.private(`App.Models.User.${userId}`)
+      notificationChannel.listen('.notification.created', () => {
+        bellRef.value?.refresh()
+      })
+    }
 
-    notificationChannel = echo.private(`App.Models.User.${userId}`)
-    notificationChannel.listen('.notification.created', () => {
-      bellRef.value?.refresh()
-    })
+    loadRegisterState()
   })
 
   onUnmounted(() => {
@@ -419,5 +638,15 @@
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+
+  .shortcut-key {
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(var(--v-theme-on-surface), 0.08);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
   }
 </style>
