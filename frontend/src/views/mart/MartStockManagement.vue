@@ -158,15 +158,7 @@
 
         <!-- Status -->
         <template #item.status="{ item }">
-          <v-chip
-            size="small"
-            rounded="lg"
-            variant="tonal"
-            :color="statusColor(item)"
-            :prepend-icon="statusIcon(item)"
-          >
-            {{ statusLabel(item) }}
-          </v-chip>
+          <AppStatusChip :status="stockStatus(item)" :map="stockStatusMap" size="small" />
         </template>
 
         <!-- Actions -->
@@ -226,7 +218,7 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip } from '@nong-official-dev/core'
   import { adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import { useI18n } from 'vue-i18n'
@@ -344,22 +336,15 @@
     return 'text-success'
   }
 
-  const statusLabel = p => {
-    if (p.stock_quantity <= 0) return t('stock_overview.table.out_stock')
-    if (p.reorder_level && p.stock_quantity <= p.reorder_level)
-      return t('stock_overview.table.low_stock')
-    return t('stock_overview.table.in_stock')
+  const stockStatus = p => {
+    if (p.stock_quantity <= 0) return 'out_of_stock'
+    if (p.reorder_level && p.stock_quantity <= p.reorder_level) return 'low_stock'
+    return 'in_stock'
   }
-  const statusColor = p => {
-    if (p.stock_quantity <= 0) return 'error'
-    if (p.reorder_level && p.stock_quantity <= p.reorder_level) return 'warning'
-    return 'success'
-  }
-  const statusIcon = p => {
-    if (p.stock_quantity <= 0) return 'mdi-alert-circle'
-    if (p.reorder_level && p.stock_quantity <= p.reorder_level)
-      return 'mdi-alert'
-    return 'mdi-check-circle'
+  const stockStatusMap = {
+    out_of_stock: { color: 'error', label: t('stock_overview.table.out_stock') },
+    low_stock: { color: 'warning', label: t('stock_overview.table.low_stock') },
+    in_stock: { color: 'success', label: t('stock_overview.table.in_stock') }
   }
 
   const stockByUnits = product => {

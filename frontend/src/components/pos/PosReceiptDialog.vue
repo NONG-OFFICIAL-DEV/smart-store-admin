@@ -6,6 +6,7 @@
     icon="mdi-receipt-text-outline"
     color="success"
     :max-width="420"
+    :persistent="false"
     hide-submit
     :cancel-text="$t('btn.close')"
     @update:model-value="$emit('update:modelValue', $event)"

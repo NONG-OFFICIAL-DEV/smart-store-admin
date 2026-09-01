@@ -299,25 +299,13 @@ export const SIDEBAR_MENU = [
         permission: 'payments.manage'
       },
       {
-        key: 'staff-list',
-        titleKey: 'menu.staff_list',
+        key: 'workforce',
+        titleKey: 'workforce.title',
         icon: 'mdi-account-multiple-outline',
-        path: '/staff-management',
-        permission: 'staff.manage'
-      },
-      {
-        key: 'shift-management',
-        titleKey: 'menu.shift',
-        icon: 'mdi-clock-outline',
-        path: '/shift-management',
-        permission: 'shifts.manage'
-      },
-      {
-        key: 'shift-assignments',
-        titleKey: 'menu.shift_assign',
-        icon: 'mdi-calendar-account-outline',
-        path: '/shift-assignments',
-        permission: 'shifts.manage'
+        path: '/workforce',
+        // Any = visible if the user can reach at least one of the 3 tabs
+        // merged into this page (Staff / Shifts / Assignments).
+        permission: ['staff.manage', 'shifts.manage']
       }
     ]
   },

@@ -229,14 +229,7 @@
 
         <!-- Status -->
         <template #item.is_active="{ item }">
-          <v-chip
-            size="small"
-            rounded="lg"
-            variant="tonal"
-            :color="item.is_active ? 'success' : 'error'"
-          >
-            {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="small" />
         </template>
 
         <!-- Actions -->
@@ -293,6 +286,7 @@
   import { useI18n } from 'vue-i18n'
   import { useIngredientStore } from '@/stores/ingredientStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppStatusChip } from '@nong-official-dev/core'
   import IngredientDialog from '@/components/ingredients/IngredientDialog.vue'
   import AppDialog from '@/components/common/AppDialog.vue'
 

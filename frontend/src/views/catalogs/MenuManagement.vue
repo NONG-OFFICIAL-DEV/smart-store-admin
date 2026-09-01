@@ -198,18 +198,7 @@
 
         <!-- Active -->
         <template #item.is_active="{ item }">
-          <v-chip
-            size="small"
-            :color="item.is_active ? 'success' : 'error'"
-            variant="tonal"
-            :prepend-icon="
-              item.is_active
-                ? 'mdi-check-circle-outline'
-                : 'mdi-minus-circle-outline'
-            "
-          >
-            {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="small" />
         </template>
 
         <!-- Created at -->
@@ -311,7 +300,7 @@
   import { useBranchMenuStore } from '@/stores/branchMenuStore'
   import { useCategoryStore } from '@/stores/categoryStore'
   import { useBranchStore } from '@/stores/branchStore'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import MenuFormDialog from '@/components/catalogs/MenuFormDialog.vue'
   import BranchMenuFormDialog from '@/components/catalogs/BranchMenuFormDialog.vue'

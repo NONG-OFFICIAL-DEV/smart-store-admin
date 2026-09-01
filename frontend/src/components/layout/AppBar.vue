@@ -290,6 +290,7 @@
       :title="t('shortcuts.title')"
       icon="mdi-keyboard-outline"
       :max-width="360"
+      :persistent="false"
       hide-submit
       :cancel-text="t('btn.close')"
       @close="shortcutsDialog = false"
@@ -446,7 +447,8 @@
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
   const shortcutsDialog = ref(false)
   const shortcutRows = computed(() => [
-    { keys: '⌘/Ctrl K', label: t('shortcuts.search') },
+    { keys: '⌘/Ctrl K · F2', label: t('shortcuts.search') },
+    { keys: 'F10', label: t('shortcuts.checkout') },
     { keys: 'Esc', label: t('shortcuts.close') }
   ])
 

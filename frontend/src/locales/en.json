@@ -319,6 +319,7 @@
   "shortcuts": {
     "title": "Keyboard Shortcuts",
     "search": "Focus search",
+    "checkout": "Checkout",
     "close": "Close dialog"
   },
   "forgot_password": {
@@ -966,6 +967,11 @@
       "available": "Available",
       "featured": "Featured"
     },
+    "stock_status": {
+      "in_stock": "In Stock",
+      "low_stock": "Low Stock",
+      "out_of_stock": "Out of Stock"
+    },
     "empty": "No products found",
     "empty_sub": "Add your first product to get started",
     "filter": {
@@ -1556,6 +1562,14 @@
     "no_sales": "No sales in this period",
     "all_sold": "All products had sales this period!"
   },
+  "workforce": {
+    "title": "Workforce",
+    "tabs": {
+      "staff": "Staff",
+      "shifts": "Shifts",
+      "assignments": "Assignments"
+    }
+  },
   "staff": {
     "title": "Staff Management",
     "subtitle": "Manage your team members and their access",
@@ -1763,6 +1777,12 @@
   "shift_assignments": {
     "title": "Shift Assignments",
     "subtitle": "Assign staff members to shifts",
+    "status": {
+      "completed": "Completed",
+      "clocked_in": "Clocked In",
+      "absent": "Absent",
+      "scheduled": "Scheduled"
+    },
     "table": {
       "staff": "Staff",
       "shift": "Shift",
@@ -1869,6 +1889,20 @@
       "warning": "This password won't be shown again — copy it now.",
       "copied": "Password copied to clipboard",
       "done": "Done"
+    },
+    "status": {
+      "trial": "Trial",
+      "active": "Active",
+      "expired": "Expired",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "delivered": "Delivered",
+      "inactive": "Inactive",
+      "locked": "Locked"
     }
   },
   "unit": {
@@ -2219,6 +2253,12 @@
     "good_afternoon": "Good afternoon",
     "good_evening": "Good evening",
     "branches_network": "{count} branches across your network",
+    "top_products": "Top Products",
+    "top_products_subtitle": "Best sellers for the selected period",
+    "units_sold": "{count} sold",
+    "no_top_products": "No sales yet for this period.",
+    "payment_methods": "Payment Methods",
+    "no_payments": "No payments yet for this period.",
     "periods": {
       "today": "Today",
       "week": "Week",
@@ -2651,6 +2691,14 @@
     }
   },
   "reservations": {
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "seated": "Seated",
+      "completed": "Completed",
+      "no_show": "No Show",
+      "cancelled": "Cancelled"
+    },
     "dialog": {
       "edit": "Edit Reservation",
       "new": "New Reservation",

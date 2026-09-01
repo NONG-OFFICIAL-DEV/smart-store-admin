@@ -93,13 +93,7 @@
         </template>
 
         <template #item.is_active="{ item }">
-          <v-chip
-            size="x-small"
-            :color="item.is_active ? 'success' : 'default'"
-            variant="flat"
-          >
-            {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
         </template>
 
         <template #item.actions="{ item }">
@@ -149,7 +143,7 @@
   import { usePlanStore } from '@/stores/planStore'
   import PlanDialog from '../../components/subscriptions/PlanDialog.vue'
   import PlanFeatureListingManagerDialog from '../../components/subscriptions/PlanFeatureListingManagerDialog.vue'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()

@@ -71,12 +71,19 @@
 <script setup>
   import { ref, computed, onMounted, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useDisplay } from 'vuetify'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
   import { useRouter } from 'vue-router'
 
-  const rail = ref(localStorage.getItem('sidebar-rail') === 'true')
+  const { mdAndDown } = useDisplay()
+
+  // Only fall back to viewport width when the user has never chosen a state
+  // themselves (no stored preference yet) — a tablet-width screen starts
+  // collapsed to rail mode, but an explicit prior choice is always respected.
+  const storedRail = localStorage.getItem('sidebar-rail')
+  const rail = ref(storedRail === null ? mdAndDown.value : storedRail === 'true')
   const authStore = useAuthStore()
   const router = useRouter()
   const { t, te } = useI18n()

@@ -112,6 +112,28 @@
           </div>
         </template>
 
+        <!-- Price -->
+        <template #item.base_price="{ item }">
+          <span class="text-body-2 font-weight-medium">{{ formatMoney(item.base_price) }}</span>
+        </template>
+
+        <!-- Stock -->
+        <template #item.stock_quantity="{ item }">
+          <span v-if="item.track_stock" class="text-body-2">{{ item.stock_quantity }}</span>
+          <span v-else class="text-body-2 text-medium-emphasis">—</span>
+        </template>
+
+        <!-- Stock status -->
+        <template #item.stock_status="{ item }">
+          <AppStatusChip
+            v-if="stockStatus(item)"
+            :status="stockStatus(item)"
+            :map="stockStatusMap"
+            size="small"
+          />
+          <span v-else class="text-body-2 text-medium-emphasis">—</span>
+        </template>
+
         <!-- Available -->
         <template #item.is_available="{ item }">
           <v-switch
@@ -177,7 +199,7 @@
   import { storeToRefs } from 'pinia'
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
-  import { AppTable, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
 
@@ -227,6 +249,11 @@
       key: 'category.name',
       sortable: false
     },
+    // `base_price` is the one extra column in ProductRepository::SORTABLE
+    // besides name/created_at/is_available — safe to mark sortable.
+    { title: t('products.table.price'), key: 'base_price', sortable: true },
+    { title: t('products.table.stock'), key: 'stock_quantity', sortable: false },
+    { title: t('products.table.status'), key: 'stock_status', sortable: false },
     {
       title: t('products.table.available'),
       key: 'is_available',
@@ -285,6 +312,23 @@
       item.is_available = !item.is_available // revert optimistic update
       notif(`Failed to update ${item.name}`, { type: 'error' })
     }
+  }
+
+  // ── Price/stock display ──────────────────────────────────────────────────────
+  const formatMoney = value =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
+
+  // Untracked items (e.g. made-to-order food) have no meaningful stock state.
+  const stockStatus = item => {
+    if (!item.track_stock) return null
+    if (item.stock_quantity <= 0) return 'out_of_stock'
+    if (item.reorder_level && item.stock_quantity <= item.reorder_level) return 'low_stock'
+    return 'in_stock'
+  }
+  const stockStatusMap = {
+    out_of_stock: { color: 'error', label: t('products.stock_status.out_of_stock') },
+    low_stock: { color: 'warning', label: t('products.stock_status.low_stock') },
+    in_stock: { color: 'success', label: t('products.stock_status.in_stock') }
   }
 
   // ── Delete ────────────────────────────────────────────────────────────────────

@@ -215,21 +215,24 @@
   watch(branchId, loadProducts)
   watch(search, loadProducts)
 
-  function handleSearchShortcut(e) {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+  function handlePosShortcuts(e) {
+    if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || e.key === 'F2') {
       e.preventDefault()
       productGridRef.value?.focus()
+    } else if (e.key === 'F10') {
+      e.preventDefault()
+      if (posStore.items.length) checkoutOpen.value = true
     }
   }
 
   onMounted(async () => {
-    window.addEventListener('keydown', handleSearchShortcut)
+    window.addEventListener('keydown', handlePosShortcuts)
     await branchStore.fetchBranches?.()
     await loadCategories()
     if (branchId.value) await loadProducts()
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleSearchShortcut)
+    window.removeEventListener('keydown', handlePosShortcuts)
   })
 </script>

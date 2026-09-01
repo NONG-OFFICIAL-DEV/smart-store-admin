@@ -122,13 +122,7 @@
                   : t('tenant_details.branch_closed')
               }}
             </v-chip>
-            <v-chip
-              :color="item.is_active ? 'primary' : 'default'"
-              size="x-small"
-              variant="tonal"
-            >
-              {{ item.is_active ? t('status.active') : t('status.inactive') }}
-            </v-chip>
+            <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
           </div>
         </template>
 
@@ -188,7 +182,7 @@
   import { usePermission } from '@/composables/usePermission'
   import { useAuthStore } from '@/stores/authStore'
   import { getAllBranchesApi } from '@/api/branchService'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import BranchDialog from '@/components/branches/BranchDialog.vue'
   import BranchDetail from '@/components/branches/BranchDetail.vue'
   import CustomSelect from '@/components/customs/CustomSelect.vue'

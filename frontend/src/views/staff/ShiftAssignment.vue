@@ -1,6 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+      v-if="!hideHeader"
       icon="mdi-calendar-account-outline"
       :title="$t('shift_assignments.title')"
       :subtitle="$t('shift_assignments.subtitle')"
@@ -128,14 +129,7 @@
 
         <!-- Status column -->
         <template #[`item.status`]="{ item }">
-          <v-chip
-            :color="statusColor(item)"
-            size="small"
-            variant="tonal"
-            :prepend-icon="statusIcon(item)"
-          >
-            {{ statusLabel(item) }}
-          </v-chip>
+          <AppStatusChip :status="assignmentStatus(item)" :map="assignmentStatusMap" size="small" />
         </template>
 
         <!-- Actions column -->
@@ -179,7 +173,7 @@
   import { useStaffStore } from '@/stores/staffStore'
   import { shiftAssignmentService } from '@/api/shiftAssignmentService'
   import StaffShiftFormDialog from '@/components/staff/StaffShiftFormDialog.vue'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
@@ -191,6 +185,10 @@
     formatTime
   } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
+
+  defineProps({
+    hideHeader: { type: Boolean, default: false }
+  })
 
   const route = useRoute()
   const staffShiftStore = useShiftAssignmentStore()
@@ -335,23 +333,18 @@
   }
 
   // ── Status helpers ────────────────────────────────────────────────────────────
-  const statusLabel = item => {
-    if (item.actual_end) return 'Completed'
-    if (item.actual_start) return 'Clocked In'
-    if (isPast(item)) return 'Absent'
-    return 'Scheduled'
+  // Derived, not a stored field — AppStatusChip just needs a status key back.
+  const assignmentStatus = item => {
+    if (item.actual_end) return 'completed'
+    if (item.actual_start) return 'clocked_in'
+    if (isPast(item)) return 'absent'
+    return 'scheduled'
   }
-  const statusColor = item => {
-    if (item.actual_end) return 'grey'
-    if (item.actual_start) return 'success'
-    if (isPast(item)) return 'error'
-    return 'warning'
-  }
-  const statusIcon = item => {
-    if (item.actual_end) return 'mdi-clock-check-outline'
-    if (item.actual_start) return 'mdi-clock-in'
-    if (isPast(item)) return 'mdi-account-off-outline'
-    return 'mdi-clock-outline'
+  const assignmentStatusMap = {
+    completed: { color: 'grey', label: t('shift_assignments.status.completed') },
+    clocked_in: { color: 'success', label: t('shift_assignments.status.clocked_in') },
+    absent: { color: 'error', label: t('shift_assignments.status.absent') },
+    scheduled: { color: 'warning', label: t('shift_assignments.status.scheduled') }
   }
   const isPast = item => {
     if (!item.shift_date || !item.shift?.start_time) return false
@@ -384,6 +377,8 @@
       staffStore.fetchStaff({ perPage: 100 })
     ])
   })
+
+  defineExpose({ openCreate })
 </script>
 
 <style scoped>

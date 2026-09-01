@@ -5,10 +5,16 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useRoleStore } from '@/stores/roleStore'
   import { getAllStaffApi } from '@/api/staffService'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
   import { useI18n } from 'vue-i18n'
   import { useAvatar, AVATAR_HEX_PALETTE } from '@/composables/useAvatar'
+  // Hides this page's own header when it's embedded as a tab inside
+  // WorkforceHub.vue, which renders one consolidated header instead.
+  defineProps({
+    hideHeader: { type: Boolean, default: false }
+  })
+
   const { t } = useI18n()
   const { getInitials, getAvatarColor } = useAvatar()
   const staffStore = useStaffStore()
@@ -119,11 +125,14 @@
     branchStore.fetchBranches({ perPage: 100 })
     roleStore.fetchRoles({ perPage: 100 })
   })
+
+  defineExpose({ openCreate })
 </script>
 
 <template>
   <v-container fluid class="pa-0">
     <custom-title
+      v-if="!hideHeader"
       icon="mdi-account-group"
       :title="$t('staff.title')"
       :subtitle="$t('staff.subtitle')"
@@ -206,13 +215,7 @@
 
         <!-- Status chip -->
         <template #[`item.is_active`]="{ item }">
-          <v-chip
-            :color="item.is_active ? 'success' : 'grey'"
-            size="x-small"
-            variant="tonal"
-          >
-            {{ item.is_active ? 'Active' : 'Inactive' }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
         </template>
 
         <!-- Compensation -->

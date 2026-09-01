@@ -102,14 +102,7 @@
       >
         <!-- Status chip -->
         <template #item.is_active="{ item }">
-          <v-chip
-            :color="item.is_active ? 'success' : 'error'"
-            size="x-small"
-            variant="tonal"
-            label
-          >
-            {{ item.is_active ? 'Active' : 'Inactive' }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
         </template>
 
         <!-- Payment terms -->
@@ -154,6 +147,7 @@
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppStatusChip } from '@nong-official-dev/core'
   import SupplierDialog from '@/components/SupplierDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()

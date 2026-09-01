@@ -57,14 +57,7 @@
 
         <!-- Status Column -->
         <template #item.is_active="{ item }">
-          <v-chip
-            :color="item.is_active ? 'success' : 'default'"
-            variant="tonal"
-            size="small"
-            rounded="md"
-          >
-            {{ item.is_active ? t('status.active') : t('status.inactive') }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="small" />
         </template>
 
         <!-- Actions Column -->
@@ -104,7 +97,7 @@ import { ref, reactive, computed } from 'vue'
 import { useCategoryStore } from '@/stores/categoryStore'
 import CategoryDialog from '@/components/catalogs/CategoryDialog.vue'
 import { getAllCategoriesApi } from '@/api/categoryService'
-import { useAppUtils, AppTable } from '@nong-official-dev/core'
+import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
 import { usePermission } from '@/composables/usePermission'
 import { useI18n } from 'vue-i18n'
 import { useAvatar } from '@/composables/useAvatar'

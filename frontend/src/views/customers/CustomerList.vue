@@ -6,7 +6,7 @@
   import CustomerDialog from '@/components/customers/CustomerDialog.vue'
   import CustomerAddressDialog from '@/components/customers/CustomerAddressDialog.vue'
   import CustomerDetailPanel from '@/components/customers/CustomerDetailPanel.vue'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
 
@@ -319,13 +319,7 @@
 
         <!-- Status column -->
         <template #[`item.is_active`]="{ item }">
-          <v-chip
-            :color="item.is_active ? 'success' : 'grey'"
-            size="x-small"
-            label
-          >
-            {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
-          </v-chip>
+          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
         </template>
 
         <!-- Actions column -->

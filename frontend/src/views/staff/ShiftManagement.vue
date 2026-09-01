@@ -2,6 +2,7 @@
   <div>
     <v-container fluid class="pa-0">
       <custom-title
+        v-if="!hideHeader"
         icon="mdi-calendar-clock"
         :title="$t('shifts.title')"
         :subtitle="$t('shifts.subtitle')"
@@ -97,13 +98,7 @@
 
           <!-- Status -->
           <template #[`item.is_active`]="{ item }">
-            <v-chip
-              :color="item.is_active ? 'success' : 'grey'"
-              size="x-small"
-              variant="tonal"
-            >
-              {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
-            </v-chip>
+            <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
           </template>
 
           <!-- Actions -->
@@ -149,9 +144,13 @@
   import { ref, computed } from 'vue'
   import { useShiftStore } from '@/stores/shiftStore'
   import { getAllShiftsApi } from '@/api/shiftService'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import ShiftFormDialog from '@/components/staff/ShiftFormDialog.vue'
   import { useI18n } from 'vue-i18n'
+
+  defineProps({
+    hideHeader: { type: Boolean, default: false }
+  })
 
   const { t } = useI18n()
   const shiftStore = useShiftStore()
@@ -252,6 +251,8 @@
       full_day: '#10b981',
       split: '#ef4444'
     })[type] || '#6b7280'
+
+  defineExpose({ openCreate })
 </script>
 
 <style scoped>

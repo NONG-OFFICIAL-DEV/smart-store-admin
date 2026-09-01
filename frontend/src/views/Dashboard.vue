@@ -266,6 +266,93 @@
             </v-list>
           </v-card-text>
         </v-card>
+
+        <!-- ── Top Products ─────────────────────────────────────────────────── -->
+        <v-card rounded="xl" elevation="0" border class="mt-4">
+          <v-card-title class="pa-5 pb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ $t('dashboard.top_products') }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              {{ $t('dashboard.top_products_subtitle') }}
+            </div>
+          </v-card-title>
+          <v-divider />
+          <v-list class="pa-2">
+            <v-skeleton-loader
+              v-if="store.loading.topProducts"
+              v-for="n in 3"
+              :key="n"
+              type="list-item-two-line"
+              class="mb-1"
+            />
+            <template v-else>
+              <v-list-item
+                v-for="product in store.topProducts"
+                :key="product.name"
+                rounded="lg"
+                class="mb-1"
+              >
+                <template #prepend>
+                  <v-avatar size="38" rounded="lg" color="grey-lighten-3">
+                    <v-img v-if="product.image_url" :src="product.image_url" cover />
+                    <v-icon v-else icon="mdi-package-variant" size="18" color="grey" />
+                  </v-avatar>
+                </template>
+                <v-list-item-title class="text-body-2 font-weight-medium">
+                  {{ product.name }}
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-caption">
+                  {{ t('dashboard.units_sold', { count: product.sold }) }}
+                </v-list-item-subtitle>
+                <template #append>
+                  <span class="text-body-2 font-weight-bold">{{ format(product.revenue) }}</span>
+                </template>
+              </v-list-item>
+              <div
+                v-if="!store.topProducts.length"
+                class="text-center py-6 text-medium-emphasis text-body-2"
+              >
+                {{ $t('dashboard.no_top_products') }}
+              </div>
+            </template>
+          </v-list>
+        </v-card>
+
+        <!-- ── Payment Methods ──────────────────────────────────────────────── -->
+        <v-card rounded="xl" elevation="0" border class="mt-4">
+          <v-card-title class="pa-5 pb-3">
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ $t('dashboard.payment_methods') }}
+            </div>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <v-skeleton-loader v-if="store.loading.stats" type="list-item-two-line" />
+            <template v-else-if="paymentBreakdown.length">
+              <div
+                v-for="(row, idx) in paymentBreakdown"
+                :key="row.method"
+                class="mb-3"
+              >
+                <div class="d-flex justify-space-between text-body-2 mb-1">
+                  <span class="text-capitalize">{{ row.method?.replace('_', ' ') }}</span>
+                  <span class="font-weight-bold">{{ format(row.amount) }}</span>
+                </div>
+                <v-progress-linear
+                  :model-value="row.percent"
+                  :color="branchColor(idx)"
+                  rounded
+                  height="6"
+                  bg-color="grey-lighten-3"
+                />
+              </div>
+            </template>
+            <div v-else class="text-center py-4 text-medium-emphasis text-body-2">
+              {{ $t('dashboard.no_payments') }}
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
@@ -319,6 +406,12 @@
   // ── Data ───────────────────────────────────────────────────────────────────────
   const kpis = computed(() => store.stats?.kpis ?? [])
   const branches = computed(() => store.stats?.branches ?? [])
+
+  const paymentBreakdown = computed(() => {
+    const rows = store.stats?.payment_breakdown ?? []
+    const max = Math.max(...rows.map(r => r.amount), 1)
+    return rows.map(r => ({ ...r, percent: Math.round((r.amount / max) * 100) }))
+  })
 
   const branchColors = [
     'primary',

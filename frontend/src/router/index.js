@@ -288,22 +288,29 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/workforce',
+        name: 'workforce',
+        component: () => import('@/views/staff/WorkforceHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      // Staff/Shifts/ShiftAssignments were merged into one tabbed Workforce
+      // page — these keep the old names/paths resolvable (bookmarks, and
+      // ShiftManagement.vue's own `:to="{ name: 'ShiftAssignments', ... }"`
+      // row action) by redirecting into the hub with the right tab selected.
+      {
         path: '/staff-management',
         name: 'Staff',
-        component: () => import('@/views/staff/StaffManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'staff' } })
       },
       {
         path: '/shift-assignments',
         name: 'ShiftAssignments',
-        component: () => import('@/views/staff/ShiftAssignment.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'assignments' } })
       },
       {
         path: '/shift-management',
         name: 'Shifts',
-        component: () => import('@/views/staff/ShiftManagement.vue'),
-        meta: { transition: 'fade' }
+        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'shifts' } })
       },
       {
         path: '/dining-table',

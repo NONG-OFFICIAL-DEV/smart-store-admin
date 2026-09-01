@@ -148,9 +148,7 @@
 
           <!-- Status -->
           <template #item.status="{ item }">
-            <v-chip :color="statusColor(item.status)" size="small" variant="tonal">
-              {{ item.status }}
-            </v-chip>
+            <AppStatusChip :status="item.status" :map="reservationStatusMap" size="small" />
           </template>
 
           <!-- Actions — status transitions live in one menu instead of a
@@ -233,7 +231,7 @@
   import { useReservationStore } from '@/stores/reservationStore'
   import { useTableStore } from '@/stores/tableStore'
   import ReservationFormDialog from '@/components/reservations/ReservationFormDialog.vue'
-  import { AppTable, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { confirm, notif } = useAppUtils()
@@ -434,15 +432,14 @@
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const initials = name => getInitials(name)
 
-  const statusColor = s =>
-    ({
-      pending: '#ff9800',
-      confirmed: '#4caf50',
-      seated: '#2196f3',
-      completed: '#9e9e9e',
-      no_show: '#f44336',
-      cancelled: '#9e9e9e'
-    })[s] || '#9e9e9e'
+  const reservationStatusMap = {
+    pending: { color: 'warning', label: t('reservations.status.pending') },
+    confirmed: { color: 'success', label: t('reservations.status.confirmed') },
+    seated: { color: 'info', label: t('reservations.status.seated') },
+    completed: { color: 'grey', label: t('reservations.status.completed') },
+    no_show: { color: 'error', label: t('reservations.status.no_show') },
+    cancelled: { color: 'grey', label: t('reservations.status.cancelled') }
+  }
 
 
   onMounted(() => tableStore.fetchTables())
