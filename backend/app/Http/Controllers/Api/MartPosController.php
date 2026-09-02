@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
@@ -30,6 +31,7 @@ class MartPosController extends Controller
             'cash_tendered'               => 'nullable|numeric|min:0',
             'notes'                       => 'nullable|string|max:500',
             'discount_amount'             => 'nullable|numeric|min:0',
+            'customer_id'                 => 'nullable|uuid',
             'items'                       => 'required|array|min:1',
             'items.*.product_id'          => 'required|uuid|exists:products,id',
             'items.*.product_unit_id'     => 'nullable|uuid|exists:product_units,id',
@@ -42,6 +44,14 @@ class MartPosController extends Controller
         $cashier      = auth()->user();
         $staff        = $cashier->staff;
         $customerType = $request->customer_type ?? 'retail';
+
+        // Resolved through the model layer (not a raw `exists:` rule) so a
+        // cross-tenant id gets a clean 422 instead of silently bypassing
+        // TenantScope — optional, so absence is fine (walk-in sale).
+        $customer = $request->filled('customer_id') ? Customer::find($request->customer_id) : null;
+        if ($request->filled('customer_id') && ! $customer) {
+            abort(response()->json(['success' => false, 'message' => 'Customer not found.'], 422));
+        }
 
         $paymentMethodMap = [
             'cash'     => 'cash',
@@ -56,7 +66,8 @@ class MartPosController extends Controller
             $cashier,
             $staff,
             $customerType,
-            $paymentMethodMap
+            $paymentMethodMap,
+            $customer
         ) {
             $subtotal    = 0;
             $itemsData   = [];
@@ -161,6 +172,7 @@ class MartPosController extends Controller
                 'branch_id'             => $branch->id,
                 'cashier_id'            => $staff?->id,
                 'order_type'            => 'takeaway',
+                'customer_id'           => $customer?->id,
                 'status'                => 'completed',
                 'source'                => 'pos',
                 'customer_type'         => $orderCustomerType,
@@ -242,8 +254,9 @@ class MartPosController extends Controller
                     'cash_tendered'  => $cashTendered,
                     'change_given'   => $changeGiven,
                     'payment_id'     => $payment->id,
+                    'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
                     'items'          => $order->items,
-                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType),
+                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType, $customer),
                 ],
             ], 201);
         });
@@ -318,7 +331,7 @@ class MartPosController extends Controller
         return response()->json(['success' => true, 'data' => $categories]);
     }
 
-    private function buildReceipt(Order $order, Payment $payment, Branch $branch, string $customerType): array
+    private function buildReceipt(Order $order, Payment $payment, Branch $branch, string $customerType, ?Customer $customer = null): array
     {
         return [
             'order_number'   => $order->order_number,
@@ -327,6 +340,7 @@ class MartPosController extends Controller
             'branch_phone'   => $branch->phone   ?? null,
             'cashier'        => auth()->user()?->email,
             'customer_type'  => $customerType,
+            'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
             'date'           => now()->toDateTimeString(),
             'items'          => $order->items->map(fn($i) => [
                 'name'        => $i->product_name,

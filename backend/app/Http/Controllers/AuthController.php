@@ -243,6 +243,7 @@ class AuthController extends Controller
             'currency'          => null,
             'locale'            => null,
             'plan'              => null,
+            'pos_settings'      => Tenant::DEFAULT_POS_SETTINGS,
             'branch_id'         => null,
             'branch_name'       => null,
             // Only ever set for a Staff row (see branch 3 below) — owners
@@ -306,6 +307,7 @@ class AuthController extends Controller
                 'currency'         => $ownedTenant->currency,
                 'locale'           => $ownedTenant->locale,
                 'plan'             => $ownedTenant->activeSubscription?->plan?->code,
+                'pos_settings'     => $ownedTenant->pos_settings ?? Tenant::DEFAULT_POS_SETTINGS,
                 'branch_id'        => null,       // access ALL branches
                 'role_name'        => 'Owner',
                 // Falls back to the full catalog if the Owner role somehow
@@ -348,6 +350,7 @@ class AuthController extends Controller
             'role_name'        => $staff->role->name,
             'currency'         => $staff->tenant?->currency,
             'plan'             => $staff->tenant?->activeSubscription?->plan?->code,
+            'pos_settings'     => $staff->tenant?->pos_settings ?? Tenant::DEFAULT_POS_SETTINGS,
             'permissions'      => $staff->role->permissions->pluck('code')->toArray(),
             'features'         => $staff->branch?->branch_type_id
                 ? Feature::codesForBranchType($staff->branch->branch_type_id)

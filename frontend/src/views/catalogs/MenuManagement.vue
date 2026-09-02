@@ -1,41 +1,34 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-food"
-      :title="$t('menus.list.title')"
-      :subtitle="$t('menus.list.subtitle')"
-    >
-      <template #right>
-        <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ $t('btn.filter') }}
-          <!-- badge shows how many filters are active -->
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-plus"
-          rounded="lg"
-          elevation="0"
-          class="ms-2"
-          @click="openAddDialog"
-        >
-          {{ $t('menus.dialog.create_menu') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showFilters ? 'primary' : 'default'"
+        :variant="showFilters ? 'flat' : 'tonal'"
+        rounded="lg"
+        :prepend-icon="
+          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+        "
+        @click="showFilters = !showFilters"
+      >
+        {{ $t('btn.filter') }}
+        <!-- badge shows how many filters are active -->
+        <v-badge
+          v-if="activeFilterCount > 0"
+          :content="activeFilterCount"
+          color="error"
+          floating
+        />
+      </v-btn>
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="lg"
+        elevation="0"
+        @click="openAddDialog"
+      >
+        {{ $t('menus.dialog.create_menu') }}
+      </v-btn>
+    </div>
 
     <!-- ── Stats ──────────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-5">

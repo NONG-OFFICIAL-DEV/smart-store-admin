@@ -22,7 +22,12 @@ class HospitalityPosController extends Controller
 
         $branch = Branch::findOrFail($request->branch_id);
 
-        $products = Product::with(['variants', 'category:id,name'])
+        $products = Product::with([
+            'variants',
+            'category:id,name',
+            'modifierGroups' => fn($q) => $q->orderBy('product_modifier_groups.sort_order'),
+            'modifierGroups.options' => fn($q) => $q->where('is_available', true)->orderBy('sort_order'),
+        ])
 
             ->where('tenant_id', $branch->tenant_id)
             ->where('is_available', true)

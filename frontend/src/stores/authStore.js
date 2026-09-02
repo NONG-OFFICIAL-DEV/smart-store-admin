@@ -32,12 +32,30 @@ export const useAuthStore = defineStore('auth', {
     subscription_status: null,
     trial_ends_at: null,
 
+    // Which POS controls actually show on the POS screen — a tenant-
+    // configurable subset (Settings > POS). Defaults match the backend's
+    // Tenant::DEFAULT_POS_SETTINGS so the POS screens work sensibly even
+    // before fetchMe() resolves.
+    posSettings: {
+      order_types: ['dine_in', 'takeaway', 'delivery'],
+      customer_selection: true,
+      order_notes: true
+    },
+
     branch_id:   null,
     branch_name: null,
     // Only ever set for a Staff row — null for owners/super admins, who
     // have no Staff record and so can't personally open a cash drawer
     // (CashDrawer is staff_id-scoped).
     staff_id:    null,
+
+    // The branch currently being operated on (POS, etc.) — distinct from
+    // branch_id above. Staff are pinned to their one assigned branch
+    // (always forced equal to branch_id, never user-changeable). An owner
+    // has no single branch_id (they can see all of them), so this is the
+    // one they've actively picked via the sidebar branch switcher —
+    // persisted across sessions, restored from localStorage on load.
+    activeBranchId: localStorage.getItem('active_branch_id') || null,
 
     unread_notifications_count: 0,
 
@@ -224,10 +242,16 @@ export const useAuthStore = defineStore('auth', {
       this.locale    = d.locale    ?? null
       this.subscription_status = d.subscription_status ?? null
       this.trial_ends_at       = d.trial_ends_at        ?? null
+      if (d.pos_settings) this.posSettings = d.pos_settings
 
       this.branch_id   = d.branch_id   ?? null
       this.branch_name = d.branch_name ?? null
       this.staff_id    = d.staff_id    ?? null
+
+      // Staff can never work outside their assigned branch — force it,
+      // overriding any stale localStorage value (e.g. left over from a
+      // previous owner session on a shared device).
+      if (this.branch_id) this.setActiveBranch(this.branch_id)
 
       this.unread_notifications_count = d.unread_notifications_count ?? 0
       this.mustChangePassword = d.must_change_password ?? false
@@ -248,6 +272,12 @@ export const useAuthStore = defineStore('auth', {
       }
 
       if (this.me?.id) connectEcho()
+    },
+
+    setActiveBranch(branchId) {
+      this.activeBranchId = branchId
+      if (branchId) localStorage.setItem('active_branch_id', branchId)
+      else localStorage.removeItem('active_branch_id')
     },
   },
 })

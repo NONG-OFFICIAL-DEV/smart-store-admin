@@ -1,32 +1,17 @@
 <template>
   <div>
-    <!-- Header -->
-    <custom-title
-      icon="mdi-cart-arrow-down"
-      :title="t('purchase_order.title')"
-      :subtitle="t('purchase_order.subtitle')"
-    >
-      <template #right>
-        <!-- <v-btn
-          variant="tonal"
-          rounded="lg"
-          prepend-icon="mdi-alert-circle-outline"
-          color="warning"
-          :to="{ name: 'MartLowStock' }"
-        >
-          Low Stock
-        </v-btn> -->
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          @click="openCreate"
-        >
+    <!-- Actions -->
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openCreate"
+      >
         {{ t('btn.create_po') }}
-        </v-btn>
-      </template>
-    </custom-title>
+      </v-btn>
+    </div>
 
     <!-- Stats row -->
     <v-row dense class="mb-4">

@@ -1,40 +1,33 @@
 <template>
   <div>
-    <custom-title
-      :title="$t('po.title')"
-      icon="mdi-cart-arrow-down"
-      :subtitle="$t('po.subtitle')"
-    >
-      <template #right>
-        <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ $t('btn.filter') }}
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          class="ms-2"
-          @click="openCreate"
-        >
-          {{ $t('btn.create_po') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showFilters ? 'primary' : 'default'"
+        :variant="showFilters ? 'flat' : 'tonal'"
+        rounded="lg"
+        :prepend-icon="
+          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+        "
+        @click="showFilters = !showFilters"
+      >
+        {{ $t('btn.filter') }}
+        <v-badge
+          v-if="activeFilterCount > 0"
+          :content="activeFilterCount"
+          color="error"
+          floating
+        />
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openCreate"
+      >
+        {{ $t('btn.create_po') }}
+      </v-btn>
+    </div>
 
     <!-- ── Stats ──────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-4">

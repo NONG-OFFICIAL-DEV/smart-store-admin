@@ -92,34 +92,6 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-receipt-text-outline',
         path: '/orders',
         permission: 'reports.view'
-      }
-    ]
-  },
-
-  // ── Operations — catalog, inventory, front-of-house, customers ──────────
-  {
-    key: 'operations',
-    titleKey: 'menu.ops',
-    icon: 'mdi-storefront-outline',
-    visible: ctx => !ctx.isSuperAdmin,
-    children: [
-      {
-        key: 'kitchen',
-        titleKey: 'menu.kitchen',
-        icon: 'mdi-chef-hat',
-        path: '/kitchen',
-        permission: 'kitchen.manage',
-        visible: ctx => ctx.isFood && ctx.hasFeature('KDS')
-      },
-      {
-        key: 'branches',
-        titleKey: 'menu.branches',
-        icon: 'mdi-store-outline',
-        path: '/branches',
-        permission: 'branches.manage',
-        // Tenant business data — super admin's permission bypass would
-        // otherwise still show this (see router's superAdminAccessible).
-        visible: ctx => !ctx.isSuperAdmin
       },
       {
         key: 'dining-table',
@@ -138,112 +110,48 @@ export const SIDEBAR_MENU = [
         visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro') && ctx.hasFeature('RESERVATION')
       },
       {
-        key: 'customers',
-        titleKey: 'menu.customers',
-        icon: 'mdi-account-group-outline',
-        path: '/customers',
-        permission: 'customers.manage',
-        visible: ctx => !ctx.isSuperAdmin
-      },
-      {
-        key: 'loyalty',
-        titleKey: 'menu.promotions',
-        icon: 'mdi-gift-outline',
-        path: '/loyalty',
-        permission: 'promotions.manage',
-        visible: ctx => !ctx.isSuperAdmin && ctx.hasPlan('pro')
-      },
-      {
-        key: 'categories',
-        titleKey: 'menu.categories',
-        icon: 'mdi-shape-outline',
-        path: '/categories',
-        permission: 'categories.manage'
-      },
-      {
-        key: 'products',
-        titleKey: 'menu.products',
-        icon: 'mdi-tag-outline',
-        path: '/products',
-        permission: 'products.manage'
-      },
-      {
-        key: 'ingredients',
-        titleKey: 'menu.ingredients',
-        icon: 'mdi-tree',
-        path: '/ingredients',
-        permission: 'ingredients.manage',
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'modifiers',
-        titleKey: 'menu.modifiers',
-        icon: 'mdi-tune-variant',
-        path: '/product-modifier-groups',
-        permission: 'products.manage',
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'menus',
-        titleKey: 'menu.menus',
-        icon: 'mdi-menu',
-        path: '/menu-management',
-        permission: 'menus.manage',
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'branch-menus',
-        titleKey: 'menu.branch_menus',
-        icon: 'mdi-book-open-variant',
-        path: '/branch-menus',
-        permission: 'menus.manage',
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'stock-overview-food',
-        titleKey: 'menu.stock_overview',
-        icon: 'mdi-layers-triple-outline',
-        path: '/stocks',
-        permission: 'inventory.manage',
-        // Not gated by hasFeature('INVENTORY') — the seeded branch_type_features
-        // map only lists INVENTORY for Mart branch types (raw stock tracking);
-        // restaurants use this same screen for ingredient/recipe stock, which
-        // isn't represented as a separate feature code yet. Gating this would
-        // hide a screen every food tenant already actively uses.
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'stock-overview-mart',
-        titleKey: 'menu.stock_overview',
-        icon: 'mdi-layers-triple-outline',
-        path: '/mart/stock',
-        permission: 'inventory.manage',
-        visible: ctx => ctx.isMart && ctx.hasFeature('INVENTORY')
-      },
-      {
-        key: 'purchase-orders-food',
-        titleKey: 'menu.purchase_order',
-        icon: 'mdi-cart-arrow-down',
-        path: '/purchases',
-        permission: 'purchase_orders.manage',
-        visible: ctx => ctx.isFood
-      },
-      {
-        key: 'purchase-orders-mart',
-        titleKey: 'menu.purchase_order',
-        icon: 'mdi-cart-arrow-down',
-        path: '/mart/purchase-order',
-        permission: 'purchase_orders.manage',
-        visible: ctx => ctx.isMart
-      },
-      {
-        key: 'suppliers',
-        titleKey: 'menu.suppliers',
-        icon: 'mdi-truck-delivery-outline',
-        path: '/suppliers',
-        permission: 'suppliers.manage'
+        key: 'kitchen',
+        titleKey: 'menu.kitchen',
+        icon: 'mdi-chef-hat',
+        path: '/kitchen',
+        permission: 'kitchen.manage',
+        visible: ctx => ctx.isFood && ctx.hasFeature('KDS')
       }
     ]
+  },
+
+  // ── Products — full sales catalog (products, categories, modifiers,
+  //    menus, branch menus, ingredients) as one tabbed page. See
+  //    views/catalogs/CatalogHub.vue.
+  {
+    key: 'catalog',
+    titleKey: 'catalog_hub.title',
+    icon: 'mdi-tag-multiple-outline',
+    path: '/catalog',
+    permission: ['categories.manage', 'products.manage', 'menus.manage', 'ingredients.manage'],
+    visible: ctx => !ctx.isSuperAdmin
+  },
+
+  // ── Inventory — stock, purchase orders (food+mart variants), suppliers ──
+  //    merged into one tabbed page. See views/stocks/InventoryHub.vue.
+  {
+    key: 'inventory',
+    titleKey: 'inventory_hub.title',
+    icon: 'mdi-warehouse',
+    path: '/inventory',
+    permission: ['inventory.manage', 'purchase_orders.manage', 'suppliers.manage'],
+    visible: ctx => !ctx.isSuperAdmin
+  },
+
+  // ── Customers — customer list + loyalty/promotions merged into one ──────
+  //    tabbed page. See views/customers/CustomersHub.vue.
+  {
+    key: 'customers',
+    titleKey: 'customers_hub.title',
+    icon: 'mdi-account-group-outline',
+    path: '/customers-hub',
+    permission: ['customers.manage', 'promotions.manage'],
+    visible: ctx => !ctx.isSuperAdmin
   },
 
   // ── Business — reports and workforce management ──────────────────────────
@@ -314,13 +222,24 @@ export const SIDEBAR_MENU = [
   //    admin-only system administration folded in underneath ──────────────
   {
     key: 'system',
-    titleKey: 'menu.setting',
+    titleKey: 'menu.system',
     icon: 'mdi-cog-outline',
     visible: () => true,
     children: [
       {
+        key: 'settings-hub',
+        titleKey: 'settings_hub.title',
+        icon: 'mdi-tune-variant',
+        path: '/settings',
+        permission: 'branches.manage',
+        // Company Info + Branch tabs — tenant business data — super admin's
+        // permission bypass would otherwise still show this (see router's
+        // superAdminAccessible).
+        visible: ctx => !ctx.isSuperAdmin
+      },
+      {
         key: 'general-settings',
-        titleKey: 'settings.title',
+        titleKey: 'menu.security',
         icon: 'mdi-shield-lock-outline',
         path: '/settings-security',
         visible: () => true
@@ -334,10 +253,16 @@ export const SIDEBAR_MENU = [
       },
       {
         key: 'roles',
-        titleKey: 'menu.roles',
+        titleKey: 'menu.users_roles',
         icon: 'mdi-shield-account-outline',
         path: '/roles-management',
-        visible: ctx => ctx.isSuperAdmin
+        permission: 'roles.manage',
+        // Tenant owners (and any staff explicitly granted roles.manage) can
+        // now create/edit roles for their own tenant — super admin's
+        // permission bypass would otherwise still show this (see router's
+        // superAdminAccessible); the raw permission-catalog page below
+        // stays super-admin-only, it's shared system-wide reference data.
+        visible: ctx => !ctx.isSuperAdmin
       },
       {
         key: 'permissions',

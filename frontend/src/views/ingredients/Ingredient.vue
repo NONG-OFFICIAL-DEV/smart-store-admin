@@ -1,41 +1,34 @@
 <template>
   <div>
-    <custom-title
-      icon="mdi-tree"
-      :title="$t('ingredients.title')"
-      :subtitle="$t('ingredients.subtitle')"
-    >
-      <template #right>
-        <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ $t('btn.filter') }}
-          <!-- badge shows how many filters are active -->
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          class="ms-2"
-          @click="openCreate"
-        >
-          {{ $t('ingredients.add') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showFilters ? 'primary' : 'default'"
+        :variant="showFilters ? 'flat' : 'tonal'"
+        rounded="lg"
+        :prepend-icon="
+          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+        "
+        @click="showFilters = !showFilters"
+      >
+        {{ $t('btn.filter') }}
+        <!-- badge shows how many filters are active -->
+        <v-badge
+          v-if="activeFilterCount > 0"
+          :content="activeFilterCount"
+          color="error"
+          floating
+        />
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openCreate"
+      >
+        {{ $t('ingredients.add') }}
+      </v-btn>
+    </div>
 
     <!-- ── Stats ──────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-4">

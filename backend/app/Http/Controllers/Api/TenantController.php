@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTenantRequest;
 use App\Http\Requests\TransferTenantOwnershipRequest;
+use App\Http\Requests\UpdateTenantProfileRequest;
 use App\Http\Requests\UpdateTenantRequest;
 use App\Http\Resources\TenantResource;
 use App\Models\Tenant;
@@ -129,6 +130,23 @@ class TenantController extends Controller
         $this->tenants->update($tenant, $request->validated());
 
         return $this->success(null, 'Tenant updated successfully');
+    }
+
+    /**
+     * Self-service company-info update — the "Company Info" tab in
+     * Settings. Only the tenant's owner (or a super admin) may call this;
+     * staff, even with a broad permission grant, cannot — company
+     * branding/locale isn't a delegable permission today.
+     */
+    public function updateProfile(UpdateTenantProfileRequest $request, Tenant $tenant): JsonResponse
+    {
+        if (! $request->user()->is_super_admin && $tenant->owner_user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $tenant = $this->tenants->updateProfile($tenant, $request->validated());
+
+        return $this->success($tenant, 'Company info updated successfully');
     }
 
     public function getSubscriptionByTenant(Request $request, Tenant $tenant): JsonResponse

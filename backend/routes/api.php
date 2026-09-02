@@ -147,6 +147,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
     // enforces that non-super-admins may only fetch their own tenant.
     Route::get('/tenants/{tenant}', [TenantController::class, 'show'])->withoutMiddleware('subscription.active');
 
+    // Tenant self-service company-info update (Settings > Company Info tab)
+    // — owner-only, enforced inside the controller (not superadmin-gated,
+    // deliberately narrower field set than the admin update() below).
+    Route::put('/tenants/{tenant}/profile', [TenantController::class, 'updateProfile']);
+
     // ── System / Super-admin only ──────────────────────────────────────────────
     Route::middleware('superadmin')->group(function () {
         Route::apiResource('tenants', TenantController::class)->except(['show']);
@@ -249,21 +254,33 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
     });
 
     // ── Roles & Permissions ───────────────────────────────────────────────────
-    // Creating, editing, deleting a role and managing its permissions are all
-    // super-admin-only. Tenants keep read access (index/show) only so they
-    // can see which predefined roles exist to assign to their own staff —
-    // that assignment itself stays under staff.manage, unaffected here.
+    // Creating/editing/deleting a role and syncing its permissions are now
+    // reachable by a tenant Owner (or any staff explicitly granted
+    // roles.manage) — RoleService already fully guards this: is_system is
+    // never client-settable (RoleService::create()), the protected Owner
+    // role can't be touched by anyone (assertNotSystem()), and tenant_id is
+    // always server-resolved, never client-supplied. The permission catalog
+    // itself (the fixed list of codes tenants pick from) stays
+    // super-admin-only — it's shared system-wide reference data, not
+    // tenant-owned business data.
     Route::middleware('permission:roles.manage')->group(function () {
         Route::get('roles',       [RoleController::class, 'index']);
         Route::get('roles/{role}', [RoleController::class, 'show']);
-    });
-    Route::middleware(['permission:roles.manage', 'superadmin'])->group(function () {
         Route::post('roles', [RoleController::class, 'store']);
         Route::put('roles/{role}', [RoleController::class, 'update']);
         Route::patch('roles/{role}', [RoleController::class, 'update']);
         Route::delete('roles/{role}', [RoleController::class, 'destroy']);
         Route::post('roles/{role}/permissions/sync', [RoleController::class, 'syncPermissions']);
-        Route::apiResource('permissions', PermissionController::class);
+        // Read-only catalog list — a tenant needs this to render which
+        // permission codes exist when building a role's checkbox list.
+        Route::get('permissions', [PermissionController::class, 'index']);
+        Route::get('permissions/{permission}', [PermissionController::class, 'show']);
+    });
+    Route::middleware(['permission:roles.manage', 'superadmin'])->group(function () {
+        Route::post('permissions', [PermissionController::class, 'store']);
+        Route::put('permissions/{permission}', [PermissionController::class, 'update']);
+        Route::patch('permissions/{permission}', [PermissionController::class, 'update']);
+        Route::delete('permissions/{permission}', [PermissionController::class, 'destroy']);
     });
 
     // ── Staff ─────────────────────────────────────────────────────────────────

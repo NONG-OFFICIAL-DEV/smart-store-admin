@@ -129,19 +129,6 @@
       }
     })
   }
-
-  // ── Stats — derived from the currently loaded page only (pre-existing
-  // limitation, not a true across-all-pages total). ───────────────────────────
-  const stats = computed(() => {
-    const all = customerStore.customers
-    return {
-      total: all.length,
-      active: all.filter(c => c.is_active).length,
-      optedIn: all.filter(c => c.marketing_opt_in).length,
-      points: all.reduce((s, c) => s + (c.loyalty_points || 0), 0)
-    }
-  })
-
   // ── Table headers ────────────────────────────────────────────────────────────
   const headers = computed(() => [
     {
@@ -178,75 +165,18 @@
 
 <template>
   <v-container fluid class="pa-0">
-    <!-- ── Header ──────────────────────────────────────────── -->
-    <custom-title icon="mdi-account-group" :title="$t('customers.title')" :subtitle="$t('customers.subtitle')">
-      <template #right>
-        <v-btn
-          color="primary"
-          rounded="lg"
-          elevation="2"
-          prepend-icon="mdi-account-plus"
-          @click="openNewCustomer"
-        >
-          {{ $t('btn.add_customer') }}
-        </v-btn>
-      </template>
-    </custom-title>
-
-    <!-- ── Stat Cards ──────────────────────────────────────── -->
-    <v-row dense class="mb-5">
-      <v-col
-        cols="6"
-        md="3"
-        v-for="card in [
-          {
-            label: $t('customers.stats.total'),
-            value: stats.total,
-            icon: 'mdi-account-group',
-            color: 'brown-darken-2'
-          },
-          {
-            label: $t('status.active'),
-            value: stats.active,
-            icon: 'mdi-account-check',
-            color: 'green-darken-2'
-          },
-          {
-            label: $t('customers.stats.opted_in'),
-            value: stats.optedIn,
-            icon: 'mdi-email-newsletter',
-            color: 'blue-darken-2'
-          },
-          {
-            label: $t('customers.stats.total_points'),
-            value: stats.points,
-            icon: 'mdi-star-circle',
-            color: 'amber-darken-2'
-          }
-        ]"
-        :key="card.label"
+    <!-- ── Actions ─────────────────────────────────────────── -->
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        color="primary"
+        rounded="lg"
+        elevation="2"
+        prepend-icon="mdi-account-plus"
+        @click="openNewCustomer"
       >
-        <v-card flat rounded="lg" class="pa-4" border>
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <p class="text-caption text-medium-emphasis mb-1">
-                {{ card.label }}
-              </p>
-              <p
-                class="text-h5 font-weight-black"
-                :class="`text-${card.color}`"
-              >
-                {{ card.value.toLocaleString() }}
-              </p>
-            </div>
-            <v-avatar :color="card.color" size="44">
-              <v-icon :icon="card.icon" color="white" size="22" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
+        {{ $t('btn.add_customer') }}
+      </v-btn>
+    </div>
     <!-- ── Data Table ─────────────────────────────────────── -->
     <v-card flat border rounded="lg" class="pa-4">
       <AppTable

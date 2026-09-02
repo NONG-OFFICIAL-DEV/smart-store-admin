@@ -290,35 +290,29 @@
 <template>
   <div>
     <v-container fluid class="pa-0">
-      <!-- ── Page Header ─────────────────────────────────────── -->
-      <custom-title
-        icon="mdi-ticket-percent"
-        :title="$t('promotions.title')"
-        :subtitle="$t('promotions.subtitle')"
-      >
-        <template #right>
-          <v-btn
-            v-if="activeTab === 'promotions'"
-            color="primary"
-            rounded="lg"
-            elevation="2"
-            prepend-icon="mdi-plus"
-            @click="openNewPromo"
-          >
-            {{ $t('btn.promotions') }}
-          </v-btn>
-          <v-btn
-            v-else-if="activeTab === 'coupons'"
-            color="primary"
-            rounded="lg"
-            elevation="2"
-            prepend-icon="mdi-plus"
-            @click="openNewCoupon"
-          >
-            {{ $t('btn.create_coupon') }}
-          </v-btn>
-        </template>
-      </custom-title>
+      <!-- ── Actions ─────────────────────────────────────────── -->
+      <div class="d-flex justify-end mb-4">
+        <v-btn
+          v-if="activeTab === 'promotions'"
+          color="primary"
+          rounded="lg"
+          elevation="2"
+          prepend-icon="mdi-plus"
+          @click="openNewPromo"
+        >
+          {{ $t('btn.promotions') }}
+        </v-btn>
+        <v-btn
+          v-else-if="activeTab === 'coupons'"
+          color="primary"
+          rounded="lg"
+          elevation="2"
+          prepend-icon="mdi-plus"
+          @click="openNewCoupon"
+        >
+          {{ $t('btn.create_coupon') }}
+        </v-btn>
+      </div>
 
       <!-- ── Tabs ───────────────────────────────────────────── -->
       <v-tabs v-model="activeTab" color="primary" class="mb-4">

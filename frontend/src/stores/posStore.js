@@ -5,9 +5,23 @@ import { defineStore } from 'pinia'
 // `subtotal` is for on-screen display before submit only, never sent as-is.
 export const usePosStore = defineStore('pos', {
   state: () => ({
-    items: []
+    items: [],
     // each item: { key, product_id, product_unit_id, variant_id, name,
-    //   variant_name, unit_label, unit_price, qty, notes }
+    //   variant_name, unit_label, unit_price, qty, notes, customizations,
+    //   modifier_option_ids } — the last two are food/coffee POS only, set
+    //   by PosProductCustomizeDialog when the item has modifier selections.
+
+    // Food tenants only — dine_in/takeaway/delivery, table only applies to
+    // dine_in. Customer is optional for either business type (walk-in sales
+    // must keep working with none of this set).
+    orderType: 'takeaway',
+    tableId: null,
+    customerId: null,
+    customerName: null,
+
+    // Order-level note (distinct from a per-item note) — optional, tenant-
+    // configurable (Settings > POS > Order Notes).
+    note: ''
   }),
 
   getters: {
@@ -45,8 +59,32 @@ export const usePosStore = defineStore('pos', {
       this.items = this.items.filter(i => i.key !== key)
     },
 
+    setOrderType(orderType) {
+      this.orderType = orderType
+      // Table only makes sense for dine-in — drop it when switching away.
+      if (orderType !== 'dine_in') this.tableId = null
+    },
+
+    setTable(tableId) {
+      this.tableId = tableId
+    },
+
+    setCustomer(customerId, customerName = null) {
+      this.customerId = customerId
+      this.customerName = customerId ? customerName : null
+    },
+
+    setNote(note) {
+      this.note = note
+    },
+
     clear() {
       this.items = []
+      this.orderType = 'takeaway'
+      this.tableId = null
+      this.customerId = null
+      this.customerName = null
+      this.note = ''
     }
   }
 })

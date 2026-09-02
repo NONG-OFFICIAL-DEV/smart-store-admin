@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ModifierOption;
 use App\Models\ProductVariant;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Table;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +28,9 @@ class CoffeePOSorderController extends Controller
             'change_given'           => 'nullable|numeric|min:0',
             'notes'                  => 'nullable|string|max:500',
             'discount_amount'        => 'nullable|numeric|min:0',
+            'order_type'             => 'nullable|in:dine_in,takeaway,delivery',
+            'table_id'               => 'nullable|uuid',
+            'customer_id'            => 'nullable|uuid',
             'items'                  => 'required|array|min:1',
             'items.*.product_id'     => 'required|uuid|exists:products,id',
             'items.*.variant_id'     => 'nullable|uuid|exists:product_variants,id',
@@ -32,11 +38,26 @@ class CoffeePOSorderController extends Controller
             'items.*.price'          => 'nullable|numeric|min:0',
             'items.*.note'           => 'nullable|string|max:200',
             'items.*.customizations' => 'nullable',   // accept any shape — object or array
+            'items.*.modifier_option_ids'   => 'nullable|array',
+            'items.*.modifier_option_ids.*' => 'uuid|exists:modifier_options,id',
         ]);
 
         $branch  = Branch::with('tenant')->findOrFail($request->branch_id);
         $cashier = auth()->user();
         $staff   = $cashier->staff;
+
+        // Resolved through the model layer (not a raw `exists:` rule) so a
+        // cross-tenant id gets a clean 404 instead of silently bypassing
+        // TenantScope — table_id/customer_id are optional, so absence is fine.
+        $orderType = $request->order_type ?? 'takeaway';
+        $table     = $request->filled('table_id') ? Table::find($request->table_id) : null;
+        if ($request->filled('table_id') && ! $table) {
+            abort(response()->json(['success' => false, 'message' => 'Table not found.'], 422));
+        }
+        $customer = $request->filled('customer_id') ? Customer::find($request->customer_id) : null;
+        if ($request->filled('customer_id') && ! $customer) {
+            abort(response()->json(['success' => false, 'message' => 'Customer not found.'], 422));
+        }
 
         $paymentMethodMap = [
             'cash'     => 'cash',
@@ -50,7 +71,10 @@ class CoffeePOSorderController extends Controller
             $branch,
             $cashier,
             $staff,
-            $paymentMethodMap
+            $paymentMethodMap,
+            $orderType,
+            $table,
+            $customer
         ) {
             $subtotal  = 0;
             $itemsData = [];
@@ -63,11 +87,21 @@ class CoffeePOSorderController extends Controller
                     ? ProductVariant::find($item['variant_id'])
                     : null;
 
-                // Base price + variant adjustment — always derived server-side.
-                // Client-submitted `items.*.price` is never trusted for billing
-                // (it would let any POS caller sell an item at an arbitrary price).
+                // ── Resolve selected modifier options — additive price deltas ──────
+                // (e.g. oat milk +$0.50, extra shot +$0.75). Resolved through the
+                // model layer so a cross-tenant id silently contributes nothing
+                // rather than bypassing TenantScope.
+                $modifierOptions = !empty($item['modifier_option_ids'])
+                    ? ModifierOption::whereIn('id', $item['modifier_option_ids'])->get()
+                    : collect();
+
+                // Base price + variant adjustment + modifier deltas — always
+                // derived server-side. Client-submitted `items.*.price` is never
+                // trusted for billing (it would let any POS caller sell an item
+                // at an arbitrary price).
                 $unitPrice = (float) $product->base_price
-                    + (float) ($variant?->price_adjustment ?? 0);
+                    + (float) ($variant?->price_adjustment ?? 0)
+                    + (float) $modifierOptions->sum('price_adjustment');
 
                 // ── Parse customizations — display only, never hits DB ────────────
                 $customizationsSnapshot = $this->parseCustomizations(
@@ -127,7 +161,9 @@ class CoffeePOSorderController extends Controller
             $order = Order::create([
                 'branch_id'             => $branch->id,
                 'cashier_id'            => $staff?->id,
-                'order_type'            => 'takeaway',
+                'order_type'            => $orderType,
+                'table_id'              => $table?->id,
+                'customer_id'           => $customer?->id,
                 'status'                => 'completed',
                 'source'                => 'pos',
                 'subtotal'              => $subtotal,
@@ -139,6 +175,16 @@ class CoffeePOSorderController extends Controller
                 'queue_number'          => $this->generateQueueNumber($branch->id),
                 'completed_at'          => now(),
             ]);
+
+            // Sale is recorded as completed immediately (no running-tab
+            // lifecycle), but the physical table is still in use by the
+            // customer — occupy it now; staff frees it manually from the
+            // Tables page once the customer actually leaves (same pattern
+            // Order::updateStatus() already uses to free a table when an
+            // order transitions to completed/cancelled elsewhere).
+            if ($orderType === 'dine_in' && $table) {
+                Table::updateStatus($table->id, Table::STATUS_OCCUPIED);
+            }
 
             // ── Create order items — no modifiers table for coffee POS ─────
             foreach ($itemsData as $itemData) {
@@ -184,6 +230,9 @@ class CoffeePOSorderController extends Controller
                     'order_number'         => $order->order_number,
                     'queue_number'         => $order->queue_number,
                     'queue_number_display' => '#' . $order->queue_number,
+                    'order_type'           => $order->order_type,
+                    'table_number'         => $table?->table_number,
+                    'customer_name'        => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
                     'subtotal'             => (float) $order->subtotal,
                     'discount'             => (float) $order->discount_amount,
                     'tax'                  => (float) $order->tax_amount,
@@ -198,7 +247,9 @@ class CoffeePOSorderController extends Controller
                         $payment,
                         $branch,
                         $cashier,
-                        $itemsData   // carry customizations from memory
+                        $itemsData,   // carry customizations from memory
+                        $table,
+                        $customer
                     ),
                 ],
             ], 201);
@@ -256,23 +307,27 @@ class CoffeePOSorderController extends Controller
         Payment $payment,
         Branch $branch,
         $cashier,
-        array $itemsData
+        array $itemsData,
+        ?Table $table = null,
+        ?Customer $customer = null
     ): array {
         return [
-            'order_ticket' => $this->buildOrderTicket($order, $cashier, $itemsData),
+            'order_ticket' => $this->buildOrderTicket($order, $cashier, $itemsData, $table),
             'queue_ticket' => $this->buildQueueTicket($order),
-            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier, $itemsData),
+            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier, $itemsData, $table, $customer),
         ];
     }
 
     // ── 1. Order ticket — bar/counter, shows what to make ─────────────────
-    private function buildOrderTicket(Order $order, $cashier, array $itemsData): array
+    private function buildOrderTicket(Order $order, $cashier, array $itemsData, ?Table $table = null): array
     {
         return [
             'type'                 => 'order_ticket',
             'order_number'         => $order->order_number,
             'queue_number'         => $order->queue_number,
             'queue_number_display' => '#' . $order->queue_number,
+            'order_type'           => $order->order_type,
+            'table_number'         => $table?->table_number,
             'cashier'              => $cashier->email,
             'time'                 => now()->format('h:i A'),
             'date'                 => now()->format('d/m/Y'),
@@ -307,13 +362,18 @@ class CoffeePOSorderController extends Controller
         Payment $payment,
         Branch $branch,
         $cashier,
-        array $itemsData
+        array $itemsData,
+        ?Table $table = null,
+        ?Customer $customer = null
     ): array {
         return [
             'type'                 => 'receipt',
             'order_number'         => $order->order_number,
             'queue_number'         => $order->queue_number,
             'queue_number_display' => '#' . $order->queue_number,
+            'order_type'           => $order->order_type,
+            'table_number'         => $table?->table_number,
+            'customer_name'        => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
             'branch_name'          => $branch->name,
             'branch_address'       => $branch->address ?? null,
             'branch_phone'         => $branch->phone   ?? null,

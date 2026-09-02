@@ -1,24 +1,17 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      :title="t('categories.title')"
-      :subtitle="t('categories.subtitle')"
-      icon="mdi-format-list-bulleted-type"
-    >
-      <template #right>
-        <v-btn
-          v-if="isSuperAdmin()"
-          color="primary"
-          prepend-icon="mdi-plus"
-          rounded="lg"
-          elevation="0"
-          class="ms-2"
-          @click="openCreateDialog"
-        >
-          {{ t('btn.add_category') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        v-if="isSuperAdmin()"
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="lg"
+        elevation="0"
+        @click="openCreateDialog"
+      >
+        {{ t('btn.add_category') }}
+      </v-btn>
+    </div>
 
     <!-- Table Card -->
     <v-card rounded="lg" elevation="0" border class="pa-4">

@@ -22,6 +22,7 @@ class Tenant extends BaseModel
         'locale',
         'is_active',
         'business_type_id',
+        'pos_settings',
     ];
 
     protected $casts = [
@@ -29,6 +30,16 @@ class Tenant extends BaseModel
         'trial_used_at'   => 'datetime',
         'is_active'       => 'boolean',
         'bu_type' => 'string',
+        'pos_settings' => 'array',
+    ];
+
+    // Only ever missing for a row created before this migration ran and
+    // never re-saved since — the migration backfills every existing tenant,
+    // so this is a defensive fallback, not the primary source of truth.
+    public const DEFAULT_POS_SETTINGS = [
+        'order_types' => ['dine_in', 'takeaway', 'delivery'],
+        'customer_selection' => true,
+        'order_notes' => true,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

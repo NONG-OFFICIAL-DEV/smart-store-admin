@@ -2,6 +2,7 @@
   import { ref } from 'vue'
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
+  import BranchSwitcher from './BranchSwitcher.vue'
 
   defineProps({
     user: Object,
@@ -43,6 +44,10 @@
     class="border-right"
     width="260"
   >
+    <!-- BRANCH SWITCHER — pinned at the very top, only shown when there's an
+         actual choice to make (owner, multi-branch tenant). -->
+    <BranchSwitcher :rail="rail" />
+
     <!-- MENU -->
     <v-list v-model:opened="openGroups" nav density="compact" class="sidebar-list">
       <div v-for="link in filteredMenu" :key="link.key">

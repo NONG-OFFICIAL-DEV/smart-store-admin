@@ -72,11 +72,17 @@
     "staff_workforce": "បុគ្គលិក",
     "system_administration": "គ្រប់គ្រងប្រព័ន្ធ",
     "setting": "ការកំណត់",
+    "system": "ប្រព័ន្ធ",
+    "security": "សុវត្ថិភាព",
+    "users_roles": "អ្នកប្រើប្រាស់ និងតួនាទី",
     "pos": "POS",
     "quick_sale": "លក់រហ័ស",
     "orders": "ការបញ្ជាទិញ",
     "ops": "ប្រតិបត្តិការ",
     "business": "អាជីវកម្ម"
+  },
+  "branch_switcher": {
+    "select": "ជ្រើសរើសសាខា"
   },
   "btn": {
     "create": "បង្កើត",
@@ -1566,6 +1572,51 @@
       "assignments": "ការចាត់តាំង"
     }
   },
+  "catalog_hub": {
+    "title": "ផលិតផល",
+    "subtitle": "គ្រប់គ្រងផលិតផល ប្រភេទ ជម្រើសបន្ថែម ម៉ឺនុយ និងម៉ឺនុយសាខា",
+    "tabs": {
+      "products": "ផលិតផល",
+      "categories": "ប្រភេទ",
+      "modifiers": "ជម្រើសបន្ថែម",
+      "menus": "ឈុតម៉ឺនុយ",
+      "branch_menus": "ម៉ឺនុយសាខា",
+      "ingredients": "គ្រឿងផ្សំ"
+    }
+  },
+  "inventory_hub": {
+    "title": "ស្តុក",
+    "subtitle": "តាមដានកម្រិតស្តុក បញ្ជាទិញ និងអ្នកផ្គត់ផ្គង់",
+    "tabs": {
+      "stock": "ស្តុក",
+      "purchase_orders": "បញ្ជាទិញ",
+      "suppliers": "អ្នកផ្គត់ផ្គង់"
+    }
+  },
+  "customers_hub": {
+    "title": "អតិថិជន",
+    "subtitle": "គ្រប់គ្រងបញ្ជីអតិថិជន និងកម្មវិធីភក្ដីភាព",
+    "tabs": {
+      "customers": "អតិថិជន",
+      "loyalty": "ភក្ដីភាព និងការផ្សព្វផ្សាយ"
+    }
+  },
+  "settings_hub": {
+    "title": "ការកំណត់",
+    "subtitle": "គ្រប់គ្រងព័ត៌មានក្រុមហ៊ុន និងសាខា",
+    "tabs": {
+      "company": "ព័ត៌មានក្រុមហ៊ុន",
+      "branch": "សាខា",
+      "pos": "POS"
+    },
+    "owner_only": "មានតែម្ចាស់អាជីវកម្មប៉ុណ្ណោះដែលអាចកែប្រែព័ត៌មានក្រុមហ៊ុន។",
+    "saved": "ព័ត៌មានក្រុមហ៊ុនត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ",
+    "save_failed": "បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពព័ត៌មានក្រុមហ៊ុន",
+    "pos_settings_helper": "ជ្រើសរើសជម្រើសកម្មង់ដែលបង្ហាញនៅលើអេក្រង់ POS។ ជម្រើសដែលបិទនឹងលាក់ទាំងស្រុង។",
+    "pos_order_types": "ប្រភេទកម្មង់",
+    "pos_customer_selection": "ការជ្រើសរើសអតិថិជន",
+    "pos_order_notes": "កំណត់ចំណាំកម្មង់"
+  },
   "staff": {
     "title": "ការគ្រប់គ្រងបុគ្គលិក",
     "subtitle": "គ្រប់គ្រងសមាជិកក្រុម និងការចូលប្រើ",
@@ -2291,7 +2342,7 @@
   },
   "pos": {
     "branch_label": "សាខា",
-    "select_branch": "សូមជ្រើសរើសសាខាដើម្បីចាប់ផ្តើមលក់។",
+    "select_branch": "សូមជ្រើសរើសសាខាពីម៉ឺនុយចំហៀងដើម្បីចាប់ផ្តើមលក់។",
     "settings": {
       "title": "ការកំណត់ POS"
     },
@@ -2310,11 +2361,20 @@
       "search_placeholder": "ស្វែងរកផលិតផល ឬស្កេនបាកូដ",
       "all_categories": "ទាំងអស់",
       "no_products": "រកមិនឃើញផលិតផលទេ។",
+      "from_price": "ចាប់ពី",
       "stock": {
         "in_stock": "មានស្តុក",
         "low_stock": "ស្តុកទាប",
         "out_of_stock": "អស់ស្តុក"
       }
+    },
+    "customize": {
+      "size": "ទំហំ",
+      "required": "ចាំបាច់",
+      "quantity": "បរិមាណ",
+      "note_action": "បន្ថែមចំណាំ",
+      "note_placeholder": "ចំណាំសម្រាប់ទំនិញនេះ (មិនចាំបាច់)",
+      "add_to_order": "បន្ថែមទៅកម្មង់"
     },
     "cart": {
       "title": "កម្មង់បច្ចុប្បន្ន",
@@ -2324,7 +2384,19 @@
       "empty_search_hint": "ស្វែងរកផលិតផល",
       "notes_placeholder": "កំណត់ចំណាំ (មិនចាំបាច់)",
       "subtotal": "សរុបរង",
-      "checkout": "ទូទាត់"
+      "checkout": "ទូទាត់",
+      "order_type": {
+        "dine_in": "ញ៉ាំនៅហាង",
+        "takeaway": "យកទៅ",
+        "delivery": "ដឹកជញ្ជូន"
+      },
+      "table_label": "តុ",
+      "customer_label": "អតិថិជន",
+      "customer_placeholder": "អតិថិជនចូលមក",
+      "add_note": "បន្ថែមចំណាំ",
+      "note_added": "មានចំណាំ",
+      "note_placeholder": "ចំណាំសម្រាប់កម្មង់នេះ (មិនចាំបាច់)",
+      "view_order": "មើលកម្មង់"
     },
     "checkout": {
       "title": "ទូទាត់",
@@ -2347,6 +2419,8 @@
       "title": "បង្កាន់ដៃ",
       "order_number": "លេខបញ្ជាទិញ",
       "queue_number": "លេខរង់ចាំ",
+      "table": "តុ",
+      "customer": "អតិថិជន",
       "cashier": "អ្នកគិតលុយ",
       "date": "កាលបរិច្ឆេទ",
       "subtotal": "សរុបរង",
@@ -2764,6 +2838,11 @@
     "selected_count": "បានជ្រើសរើស {n}",
     "search_permissions_placeholder": "ស្វែងរកសិទ្ធិ...",
     "permissions_count": "{n} សិទ្ធិ",
+    "templates": {
+      "label": "ចាប់ផ្តើមរហ័ស៖",
+      "cashier": "អ្នកគិតលុយ",
+      "manager": "អ្នកគ្រប់គ្រង"
+    },
     "no_permissions_found": "រកមិនឃើញសិទ្ធិ",
     "save_permissions": "រក្សាទុកសិទ្ធិ",
     "title": "តួនាទី",

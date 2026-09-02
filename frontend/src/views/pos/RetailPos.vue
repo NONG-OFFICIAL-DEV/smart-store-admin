@@ -1,18 +1,32 @@
 <template>
-  <div>
-    <AppPageHeader :title="t('pos.retail.title')" show-back>
-      <template #right>
-        <v-chip variant="tonal" rounded="lg" prepend-icon="mdi-store-outline">
-          {{ selectedBranchName || t('pos.select_branch') }}
-        </v-chip>
-        <v-btn
-          icon="mdi-cog-outline"
-          variant="tonal"
-          rounded="lg"
-          @click="settingsOpen = true"
-        />
-      </template>
-    </AppPageHeader>
+  <div class="pos-page d-flex flex-column">
+    <!-- Compact header — back + title + branch + settings, nothing else -->
+    <div
+      class="pos-page__header d-flex align-center flex-grow-0"
+      :class="touch ? 'px-2 py-2' : 'px-1 py-1'"
+    >
+      <v-btn
+        icon="mdi-arrow-left"
+        variant="text"
+        :density="touch ? 'default' : 'comfortable'"
+        :size="touch ? 'default' : 'small'"
+        @click="$router.back()"
+      />
+      <span class="font-weight-bold ml-1" :class="touch ? 'text-body-1' : 'text-body-2'">
+        {{ t('pos.retail.title') }}
+      </span>
+      <v-spacer />
+      <v-chip :size="touch ? 'default' : 'small'" variant="tonal" rounded="lg" prepend-icon="mdi-store-outline" class="me-1">
+        {{ selectedBranchName || t('pos.select_branch') }}
+      </v-chip>
+      <v-btn
+        icon="mdi-cog-outline"
+        variant="text"
+        :density="touch ? 'default' : 'comfortable'"
+        :size="touch ? 'default' : 'small'"
+        @click="settingsOpen = true"
+      />
+    </div>
 
     <AppDialog
       v-model="settingsOpen"
@@ -24,16 +38,6 @@
       @close="settingsOpen = false"
     >
       <v-select
-        v-model="branchId"
-        :items="branchStore.branches"
-        item-title="name"
-        item-value="id"
-        :label="t('pos.branch_label')"
-        variant="outlined"
-        rounded="lg"
-        class="mb-2"
-      />
-      <v-select
         v-model="customerType"
         :items="customerTypeOptions"
         item-title="label"
@@ -44,12 +48,27 @@
       />
     </AppDialog>
 
-    <v-alert v-if="!branchId" type="warning" variant="tonal" rounded="lg">
+    <PosOrderOptionsBar
+      class="flex-grow-0 pb-2"
+      :class="touch ? 'px-2' : 'px-1'"
+      :order-type-options="[]"
+      :show-customer="showCustomer"
+      :customers="customerOptions"
+      :customer-id="posStore.customerId"
+      :customer-name="posStore.customerName"
+      :show-notes="showNotes"
+      :note="posStore.note"
+      @search-customer="onSearchCustomer"
+      @update-customer="posStore.setCustomer"
+      @update-note="posStore.setNote"
+    />
+
+    <v-alert v-if="!branchId" type="warning" variant="tonal" rounded="lg" class="flex-grow-0">
       {{ t('pos.select_branch') }}
     </v-alert>
 
-    <v-row v-else dense>
-      <v-col cols="12" md="8">
+    <div v-else class="pos-page__workspace flex-grow-1 d-flex ga-2">
+      <div class="pos-page__products flex-grow-1">
         <PosProductGrid
           ref="productGridRef"
           :products="normalizedProducts"
@@ -61,27 +80,48 @@
           @update:category-id="categoryId = $event"
           @add="onAdd"
         />
-      </v-col>
-      <v-col cols="12" md="4">
+      </div>
+
+      <!-- Desktop/tablet — cart column, always visible. Narrower on tablet
+           portrait so the product grid still has room to breathe. -->
+      <div v-if="!xs" class="pos-page__cart" :style="{ flexBasis: cartWidth + 'px', width: cartWidth + 'px' }">
         <PosCartPanel
+          ref="cartPanelRef"
           :items="posStore.items"
           :subtotal="posStore.subtotal"
+          :loading="submitting"
           @update-qty="posStore.updateQty"
           @remove="posStore.removeItem"
           @clear="posStore.clear"
-          @checkout="checkoutOpen = true"
+          @checkout="submitOrder"
         />
-      </v-col>
-    </v-row>
+      </div>
+    </div>
 
-    <PosCheckoutDialog
-      v-model="checkoutOpen"
-      :subtotal="posStore.subtotal"
-      :loading="submitting"
-      :error-message="submitError"
-      @close="checkoutOpen = false"
-      @submit="submitOrder"
-    />
+    <!-- Mobile — sticky order bar opens the cart as a bottom sheet -->
+    <div
+      v-if="xs && branchId && posStore.items.length"
+      class="pos-page__mobile-bar flex-grow-0 d-flex align-center px-4 py-3"
+      @click="mobileCartOpen = true"
+    >
+      <v-badge :content="posStore.itemCount" color="white" inline class="me-2" />
+      <span class="text-body-1 font-weight-medium">{{ t('pos.cart.view_order') }}</span>
+      <v-spacer />
+      <span class="text-h6 font-weight-black">{{ formatMoney(posStore.subtotal) }}</span>
+    </div>
+
+    <v-bottom-sheet v-if="xs" v-model="mobileCartOpen">
+      <PosCartPanel
+        class="pos-page__mobile-cart"
+        :items="posStore.items"
+        :subtotal="posStore.subtotal"
+        :loading="submitting"
+        @update-qty="posStore.updateQty"
+        @remove="posStore.removeItem"
+        @clear="posStore.clear"
+        @checkout="onMobileCheckout"
+      />
+    </v-bottom-sheet>
 
     <PosReceiptDialog
       v-model="receiptOpen"
@@ -94,6 +134,7 @@
 <script setup>
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useDisplay } from 'vuetify'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { usePosStore } from '@/stores/posStore'
@@ -103,30 +144,48 @@
     getRetailPosCategoriesApi,
     submitRetailOrderApi
   } from '@/api/posService'
-  import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import { getAllCustomersApi } from '@/api/customerService'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import PosOrderOptionsBar from '@/components/pos/PosOrderOptionsBar.vue'
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
-  import PosCheckoutDialog from '@/components/pos/PosCheckoutDialog.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
 
   const { t } = useI18n()
+  const { xs, sm, mdAndDown: touch } = useDisplay()
+  // Tablet portrait (~600-960px) gets a narrower cart column so the
+  // product grid still has room to breathe; landscape tablet/desktop keep
+  // the wider one.
+  const cartWidth = computed(() => (sm.value ? 300 : 360))
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const posStore = usePosStore()
 
-  const branchId = ref(authStore.branch_id)
+  // The active branch is chosen globally via the sidebar branch switcher
+  // (or fixed to the staff's own branch) — see authStore.activeBranchId.
+  const branchId = computed(() => authStore.activeBranchId)
   const customerType = ref('retail')
   const customerTypeOptions = computed(() => [
     { value: 'retail', label: t('pos.retail.customer_types.retail') },
     { value: 'wholesale', label: t('pos.retail.customer_types.wholesale') }
   ])
   const settingsOpen = ref(false)
+  const mobileCartOpen = ref(false)
+  function onMobileCheckout(payload) {
+    mobileCartOpen.value = false
+    submitOrder(payload)
+  }
   const selectedBranchName = computed(
     () => branchStore.branches.find(b => b.id === branchId.value)?.name ?? ''
   )
   const productGridRef = ref(null)
+  const cartPanelRef = ref(null)
+
+  // Mart has no table/dine-in concept — only Customer + Notes are
+  // tenant-configurable here (Settings > POS).
+  const showCustomer = computed(() => authStore.posSettings?.customer_selection ?? true)
+  const showNotes = computed(() => authStore.posSettings?.order_notes ?? true)
 
   const categories = ref([])
   const rawProducts = ref([])
@@ -134,11 +193,15 @@
   const search = ref('')
   const loading = ref(false)
 
-  const checkoutOpen = ref(false)
   const receiptOpen = ref(false)
   const receipt = ref(null)
   const submitting = ref(false)
-  const submitError = ref('')
+
+  const customerOptions = ref([])
+  async function onSearchCustomer(search) {
+    const { data } = await getAllCustomersApi({ search: search || undefined, perPage: 20 })
+    customerOptions.value = data.data
+  }
 
   const normalizedProducts = computed(() =>
     rawProducts.value.map(p => {
@@ -216,15 +279,20 @@
     })
   }
 
+  function formatMoney(value) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
+  }
+
   async function submitOrder({ payment_method, cash_tendered }) {
     submitting.value = true
-    submitError.value = ''
     try {
       const { data } = await submitRetailOrderApi({
         branch_id: branchId.value,
         payment_method,
         cash_tendered,
         customer_type: customerType.value,
+        customer_id: posStore.customerId || undefined,
+        notes: posStore.note || undefined,
         items: posStore.items.map(i => ({
           product_id: i.product_id,
           product_unit_id: i.product_unit_id || undefined,
@@ -232,15 +300,14 @@
         }))
       })
       receipt.value = data.data.receipt
-      checkoutOpen.value = false
       receiptOpen.value = true
       posStore.clear()
       notif(t('pos.checkout.success'), { type: 'success' })
     } catch (err) {
-      submitError.value =
-        err.response?.data?.message ??
-        err.response?.data?.errors?.[0] ??
-        t('pos.checkout.failed')
+      notif(
+        err.response?.data?.message ?? err.response?.data?.errors?.[0] ?? t('pos.checkout.failed'),
+        { type: 'error' }
+      )
     } finally {
       submitting.value = false
     }
@@ -258,7 +325,7 @@
       productGridRef.value?.focus()
     } else if (e.key === 'F10') {
       e.preventDefault()
-      if (posStore.items.length) checkoutOpen.value = true
+      if (posStore.items.length) cartPanelRef.value?.submitCheckout()
     }
   }
 
@@ -274,3 +341,32 @@
     window.removeEventListener('keydown', handlePosShortcuts)
   })
 </script>
+
+<style scoped>
+  .pos-page {
+    height: calc(100vh - 96px);
+    min-height: 0;
+    overflow: hidden;
+  }
+  .pos-page__workspace {
+    min-height: 0;
+  }
+  .pos-page__products {
+    min-width: 0;
+    min-height: 0;
+  }
+  .pos-page__cart {
+    flex-shrink: 0;
+    min-height: 0;
+  }
+  .pos-page__mobile-bar {
+    background: rgb(var(--v-theme-primary));
+    color: rgb(var(--v-theme-on-primary));
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .pos-page__mobile-cart {
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+</style>

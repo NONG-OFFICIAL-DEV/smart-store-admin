@@ -305,6 +305,41 @@ class TenantService extends BaseService
     }
 
     /**
+     * Self-service company-info update (tenant owner or super admin only —
+     * enforced by the controller, not here). Deliberately excludes
+     * business_type_id/is_active/slug/owner identity — those stay on the
+     * admin-only update() above.
+     */
+    public function updateProfile(Tenant $tenant, array $validated): Tenant
+    {
+        $data = [
+            'name' => $validated['name'],
+            'logo_url' => $validated['logo_url'] ?? $tenant->logo_url,
+            'primary_color' => $validated['primary_color'] ?? $tenant->primary_color,
+            'currency' => $validated['currency'] ?? $tenant->currency,
+            'locale' => $validated['locale'] ?? $tenant->locale,
+            'timezone' => $validated['timezone'] ?? $tenant->timezone,
+        ];
+
+        // Merged against a fresh read (not the possibly-stale in-memory
+        // $tenant) — a bare Tenant::create() elsewhere in the same request
+        // never has DB-computed defaults synced onto it, so trusting
+        // $tenant->pos_settings here could silently null out a value that's
+        // actually already set in the database.
+        if (array_key_exists('pos_settings', $validated)) {
+            $data['pos_settings'] = array_merge(
+                Tenant::DEFAULT_POS_SETTINGS,
+                $tenant->fresh()->pos_settings ?? [],
+                $validated['pos_settings']
+            );
+        }
+
+        $tenant->update($data);
+
+        return $tenant->fresh();
+    }
+
+    /**
      * TRIAL -> ACTIVE, called when the first invoice is paid / trial
      * converts. Not currently routed anywhere — was meant to be called by
      * a payment webhook handler that was never built (the empty

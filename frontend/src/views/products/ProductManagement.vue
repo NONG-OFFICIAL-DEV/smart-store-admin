@@ -1,35 +1,25 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-tag-outline"
-      :title="t('products.title')"
-      :subtitle="t('products.subtitle')"
-    >
-      <template #right>
-        <div class="d-flex gap-2 align-center">
-          <v-btn
-            :color="showStats ? 'primary' : 'default'"
-            :variant="showStats ? 'flat' : 'tonal'"
-            rounded="lg"
-            prepend-icon="mdi-chart-bar"
-            @click="showStats = !showStats"
-            class="me-2"
-          >
-            {{ t('btn.stats') }}
-          </v-btn>
-          <v-btn
-            class="ms-2"
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            prepend-icon="mdi-plus"
-            @click="openCreate"
-          >
-            {{ t('btn.add_product') }}
-          </v-btn>
-        </div>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showStats ? 'primary' : 'default'"
+        :variant="showStats ? 'flat' : 'tonal'"
+        rounded="lg"
+        prepend-icon="mdi-chart-bar"
+        @click="showStats = !showStats"
+      >
+        {{ t('btn.stats') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openCreate"
+      >
+        {{ t('btn.add_product') }}
+      </v-btn>
+    </div>
 
     <!-- Stats panel -->
     <v-expand-transition>

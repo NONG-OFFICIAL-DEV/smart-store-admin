@@ -83,6 +83,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/settings',
+        name: 'settings-hub',
+        component: () => import('@/views/settings/SettingsHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      {
         path: '/tenants-billing',
         name: 'tenant-billing',
         component: () => import('@/views/tenants/TenantBilling.vue'),
@@ -124,11 +130,36 @@ const routes = [
         component: () => import('@/views/cashRegister/CashRegisterManagement.vue'),
         meta: { requiresAuth: true, permission: 'payments.manage', transition: 'fade' }
       },
+      // Products/Categories/Modifiers/Menus/Branch-Menus/Ingredients merged
+      // into one tabbed page. Inventory (Stock/Purchase-Orders/Suppliers)
+      // and Customers (Customers/Loyalty) likewise. Old routes below
+      // redirect into the right hub + tab so bookmarks/links keep working.
+      // Deliberately no `meta.permission` here — Vue Router resolves
+      // `redirect` before `beforeEach` guards run, so a stub's own meta
+      // never gets evaluated; gating instead lives on the sidebar (ANY
+      // permission array) and on each tab's own API calls.
+      {
+        path: '/catalog',
+        name: 'catalog-hub',
+        component: () => import('@/views/catalogs/CatalogHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      {
+        path: '/inventory',
+        name: 'inventory-hub',
+        component: () => import('@/views/stocks/InventoryHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
+      {
+        path: '/customers-hub',
+        name: 'customers-hub',
+        component: () => import('@/views/customers/CustomersHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade' }
+      },
       {
         path: '/categories',
         name: 'categories',
-        component: () => import('@/views/catalogs/CategoryView.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'categories' } })
       },
       {
         path: '/dashboard',
@@ -151,14 +182,18 @@ const routes = [
       {
         path: '/branches',
         name: 'branches',
-        component: () => import('@/views/branches/Branch.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'settings-hub', query: { ...to.query, tab: 'branch' } })
       },
       {
         path: '/roles-management',
         name: 'RolesManagement',
         component: () => import('@/views/rolePermissions/Role.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+        meta: {
+          requiresAuth: true,
+          transition: 'fade',
+          superAdminAccessible: true,
+          permission: 'roles.manage'
+        }
       },
       {
         path: '/role-permissions',
@@ -169,18 +204,12 @@ const routes = [
       {
         path: '/branch-menus',
         name: 'BranchMenus',
-        component: () => import('@/views/catalogs/BranchMenu.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'branch-menus' } })
       },
       {
         path: '/products',
         name: 'Products',
-        component: () => import('@/views/products/ProductManagement.vue'),
-        meta: {
-          requiresAuth: true,
-          permission: 'products.manage',
-          transition: 'fade'
-        }
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'products' } })
       },
       {
         path: '/products/create',
@@ -217,26 +246,22 @@ const routes = [
       {
         path: '/product-modifier-groups',
         name: 'modifiergroups',
-        component: () => import('@/views/products/ProductModifierGroup.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'modifiers' } })
       },
       {
         path: '/suppliers',
         name: 'Suppliers',
-        component: () => import('@/views/stocks/SupplierManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'suppliers' } })
       },
       {
         path: '/stocks',
         name: 'Stocks',
-        component: () => import('@/views/stocks/StockManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'stock' } })
       },
       {
         path: '/purchases',
         name: 'Purchases',
-        component: () => import('@/views/stocks/PurchaseManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'purchase-orders' } })
       },
       {
         path: '/stock-reports',
@@ -278,8 +303,7 @@ const routes = [
       {
         path: '/menu-management',
         name: 'MenuManagement',
-        component: () => import('@/views/catalogs/MenuManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'menus' } })
       },
       {
         path: '/notifications',
@@ -324,14 +348,13 @@ const routes = [
       },
       {
         path: '/ingredients',
-        component: () => import('@/views/ingredients/Ingredient.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        name: 'ingredients',
+        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'ingredients' } })
       },
       {
         path: '/mart/purchase-order',
         name: 'MartPurchaseOrders',
-        component: () => import('@/views/mart/MartPurchaseOrder.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'purchase-orders' } })
       },
       {
         path: '/mart/purchase-orders/create',
@@ -348,8 +371,7 @@ const routes = [
       {
         path: '/mart/stock',
         name: 'MartStock',
-        component: () => import('@/views/mart/MartStockManagement.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'stock' } })
       },
       {
         path: '/mart/stock-movements',
@@ -366,8 +388,7 @@ const routes = [
       {
         path: '/loyalty',
         name: 'loyalty',
-        component: () => import('@/views/loyalty/Loyalty.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: to => ({ name: 'customers-hub', query: { ...to.query, tab: 'loyalty' } })
       },
       {
         path: '/plan',
@@ -378,12 +399,7 @@ const routes = [
       {
         path: '/customers',
         name: 'Customers',
-        component: () => import('@/views/customers/CustomerList.vue'),
-        meta: {
-          requiresAuth: true,
-          permission: 'customers.manage',
-          transition: 'fade'
-        }
+        redirect: to => ({ name: 'customers-hub', query: { ...to.query, tab: 'customers' } })
       },
       {
         path: '/access-denied',

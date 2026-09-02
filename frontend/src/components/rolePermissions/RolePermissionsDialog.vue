@@ -22,6 +22,26 @@
         </v-chip>
       </div>
 
+      <!-- Quick templates — a small shop shouldn't have to hand-pick from
+           every permission code; these pre-check a sensible bundle, still
+           freely adjustable below before saving. -->
+      <div class="d-flex align-center gap-2 flex-wrap px-4 pt-3">
+        <span class="text-caption text-medium-emphasis me-1">
+          {{ $t('roles.templates.label') }}
+        </span>
+        <v-chip
+          v-for="tpl in templates"
+          :key="tpl.key"
+          size="small"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-auto-fix"
+          @click="applyTemplate(tpl)"
+        >
+          {{ tpl.label }}
+        </v-chip>
+      </div>
+
       <!-- Search -->
       <div class="pa-4 pb-4">
         <v-text-field
@@ -116,7 +136,10 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
+
+  const { t } = useI18n()
 
   // ── Props & Emits ─────────────────────────────────────────────────────────────
   const props = defineProps({
@@ -202,6 +225,34 @@
         colorList[Object.keys(colorCache).length % colorList.length]
     }
     return colorCache[g]
+  }
+
+  // ── Quick templates ───────────────────────────────────────────────────────────
+  // Sensible starting bundles for the two roles almost every small shop
+  // needs — Owner already has full access automatically, so it's excluded.
+  const templates = computed(() => [
+    {
+      key: 'cashier',
+      label: t('roles.templates.cashier'),
+      codes: ['orders.manage', 'payments.manage', 'cash_drawers.manage', 'customers.manage']
+    },
+    {
+      key: 'manager',
+      label: t('roles.templates.manager'),
+      codes: [
+        'staff.manage', 'shifts.manage', 'menus.manage', 'categories.manage',
+        'products.manage', 'floor_plans.manage', 'reservations.manage', 'orders.manage',
+        'kitchen.manage', 'payments.manage', 'cash_drawers.manage', 'suppliers.manage',
+        'ingredients.manage', 'inventory.manage', 'purchase_orders.manage', 'customers.manage',
+        'promotions.manage', 'reports.view'
+      ]
+    }
+  ])
+
+  const applyTemplate = tpl => {
+    selectedIds.value = props.permissions
+      .filter(p => tpl.codes.includes(p.code))
+      .map(p => p.id)
   }
 
   // ── Toggle helpers ────────────────────────────────────────────────────────────

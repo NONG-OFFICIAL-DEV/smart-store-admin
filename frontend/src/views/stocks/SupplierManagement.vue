@@ -1,40 +1,33 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-truck-outline"
-      :title="$t('suppliers.title')"
-      :subtitle="$t('suppliers.subtitle')"
-    >
-      <template #right>
-        <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ t('btn.filter') }}
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          class="ms-2"
-          prepend-icon="mdi-plus"
-          @click="openAdd"
-        >
-          {{ t('btn.add_supplier') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showFilters ? 'primary' : 'default'"
+        :variant="showFilters ? 'flat' : 'tonal'"
+        rounded="lg"
+        :prepend-icon="
+          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+        "
+        @click="showFilters = !showFilters"
+      >
+        {{ t('btn.filter') }}
+        <v-badge
+          v-if="activeFilterCount > 0"
+          :content="activeFilterCount"
+          color="error"
+          floating
+        />
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openAdd"
+      >
+        {{ t('btn.add_supplier') }}
+      </v-btn>
+    </div>
 
     <!-- Filter panel -->
     <v-expand-transition>

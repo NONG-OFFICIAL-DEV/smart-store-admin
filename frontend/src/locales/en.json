@@ -72,11 +72,17 @@
     "staff_workforce": "Staff",
     "system_administration": "System Admin",
     "setting": "Settings",
+    "system": "System",
+    "security": "Security",
+    "users_roles": "Users & Roles",
     "pos": "POS",
     "quick_sale": "Quick Sale",
     "orders": "Orders",
     "ops": "Operations",
     "business": "Business"
+  },
+  "branch_switcher": {
+    "select": "Select branch"
   },
   "btn": {
     "create": "Create",
@@ -1570,6 +1576,51 @@
       "assignments": "Assignments"
     }
   },
+  "catalog_hub": {
+    "title": "Products",
+    "subtitle": "Manage your products, categories, modifiers, menus, and branch menus",
+    "tabs": {
+      "products": "Products",
+      "categories": "Categories",
+      "modifiers": "Modifiers",
+      "menus": "Menus",
+      "branch_menus": "Branch Menus",
+      "ingredients": "Ingredients"
+    }
+  },
+  "inventory_hub": {
+    "title": "Inventory",
+    "subtitle": "Track stock levels, purchase orders, and suppliers",
+    "tabs": {
+      "stock": "Stock",
+      "purchase_orders": "Purchase Orders",
+      "suppliers": "Suppliers"
+    }
+  },
+  "customers_hub": {
+    "title": "Customers",
+    "subtitle": "Manage your customer list and loyalty program",
+    "tabs": {
+      "customers": "Customers",
+      "loyalty": "Loyalty & Promotions"
+    }
+  },
+  "settings_hub": {
+    "title": "Settings",
+    "subtitle": "Manage your company information and branches",
+    "tabs": {
+      "company": "Company Info",
+      "branch": "Branch",
+      "pos": "POS"
+    },
+    "owner_only": "Only the tenant owner can edit company information.",
+    "saved": "Company info updated successfully",
+    "save_failed": "Failed to update company info",
+    "pos_settings_helper": "Choose which order options actually appear on the POS screen. Disabled options are hidden entirely, not just greyed out.",
+    "pos_order_types": "Order Types",
+    "pos_customer_selection": "Customer Selection",
+    "pos_order_notes": "Order Notes"
+  },
   "staff": {
     "title": "Staff Management",
     "subtitle": "Manage your team members and their access",
@@ -2311,7 +2362,7 @@
   },
   "pos": {
     "branch_label": "Branch",
-    "select_branch": "Select a branch to start selling.",
+    "select_branch": "Select a branch from the sidebar to start selling.",
     "settings": {
       "title": "POS Settings"
     },
@@ -2330,11 +2381,20 @@
       "search_placeholder": "Search products or scan barcode",
       "all_categories": "All",
       "no_products": "No products found.",
+      "from_price": "From",
       "stock": {
         "in_stock": "In stock",
         "low_stock": "Low stock",
         "out_of_stock": "Out of stock"
       }
+    },
+    "customize": {
+      "size": "Size",
+      "required": "Required",
+      "quantity": "Quantity",
+      "note_action": "Add a note",
+      "note_placeholder": "Note for this item (optional)",
+      "add_to_order": "Add to Order"
     },
     "cart": {
       "title": "Current Order",
@@ -2344,7 +2404,19 @@
       "empty_search_hint": "Search products",
       "notes_placeholder": "Note (optional)",
       "subtotal": "Subtotal",
-      "checkout": "Checkout"
+      "checkout": "Checkout",
+      "order_type": {
+        "dine_in": "Dine In",
+        "takeaway": "Takeaway",
+        "delivery": "Delivery"
+      },
+      "table_label": "Table",
+      "customer_label": "Customer",
+      "customer_placeholder": "Walk-in customer",
+      "add_note": "Add note",
+      "note_added": "Note added",
+      "note_placeholder": "Note for this order (optional)",
+      "view_order": "View Order"
     },
     "checkout": {
       "title": "Checkout",
@@ -2367,6 +2439,8 @@
       "title": "Receipt",
       "order_number": "Order #",
       "queue_number": "Queue #",
+      "table": "Table",
+      "customer": "Customer",
       "cashier": "Cashier",
       "date": "Date",
       "subtotal": "Subtotal",
@@ -2784,6 +2858,11 @@
     "selected_count": "{n} selected",
     "search_permissions_placeholder": "Search permissions...",
     "permissions_count": "{n} permissions",
+    "templates": {
+      "label": "Quick start:",
+      "cashier": "Cashier",
+      "manager": "Manager"
+    },
     "no_permissions_found": "No permissions found",
     "save_permissions": "Save Permissions",
     "title": "Roles",

@@ -1,41 +1,34 @@
 <template>
   <div>
     <v-container fluid class="pa-0">
-      <custom-title
-        :title="t('modifiers.page.title')"
-        icon="mdi-layers-outline"
-        :subtitle="t('modifiers.page.subtitle')"
-      >
-        <template #right>
-          <v-btn
-            :color="showFilters ? 'primary' : 'default'"
-            :variant="showFilters ? 'flat' : 'tonal'"
-            rounded="lg"
-            :prepend-icon="
-              showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-            "
-            @click="showFilters = !showFilters"
-          >
-            {{ t('btn.filter') }}
-            <!-- badge shows how many filters are active -->
-            <v-badge
-              v-if="activeFilterCount > 0"
-              :content="activeFilterCount"
-              color="error"
-              floating
-            />
-          </v-btn>
-          <v-btn
-            color="primary"
-            prepend-icon="mdi-plus"
-            rounded="lg"
-            class="ms-2"
-            @click="openCreateGroup"
-          >
-            {{ t('modifiers.page.add_group') }}
-          </v-btn>
-        </template>
-      </custom-title>
+      <div class="d-flex justify-end align-center ga-2 mb-4">
+        <v-btn
+          :color="showFilters ? 'primary' : 'default'"
+          :variant="showFilters ? 'flat' : 'tonal'"
+          rounded="lg"
+          :prepend-icon="
+            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+          "
+          @click="showFilters = !showFilters"
+        >
+          {{ t('btn.filter') }}
+          <!-- badge shows how many filters are active -->
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
+            color="error"
+            floating
+          />
+        </v-btn>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          rounded="lg"
+          @click="openCreateGroup"
+        >
+          {{ t('modifiers.page.add_group') }}
+        </v-btn>
+      </div>
 
       <!-- ── Stats ──────────────────────────────────────────────────────────── -->
       <v-row class="mb-4">

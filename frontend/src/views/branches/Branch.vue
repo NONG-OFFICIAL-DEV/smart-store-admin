@@ -1,56 +1,17 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      :title="t('branches.title')"
-      :subtitle="t('branches.subtitle')"
-      icon="mdi-map-marker-path"
-    >
-      <template #right>
-        <v-btn
-          v-if="can('branches.manage')"
-          color="primary"
-          prepend-icon="mdi-plus"
-          rounded="lg"
-          elevation="0"
-          class="ms-2"
-          @click="openCreate"
-        >
-          {{ t('btn.add_branch') }}
-        </v-btn>
-      </template>
-    </custom-title>
-    <!-- ── Filters — branch-type/status apply immediately; AppTable
-    deep-watches `filters` below and refetches, resetting to page 1. Text
-    search is AppTable's own built-in search box, not this panel. ────────── -->
-    <v-row dense class="mb-2">
-      <v-col cols="12" md="3" sm="3">
-        <custom-select
-          v-model="filterState.branchType"
-          :items="branchTypes"
-          item-title="name"
-          item-value="id"
-          :label="t('branches.form.branch_type')"
-          :multiple="true"
-          :chips="true"
-          :max-visible-chips="1"
-          :disabled="!filterState.tenant"
-          :hint="!filterState.tenant ? t('branches.select_tenant_first') : ''"
-          persistent-hint
-        />
-      </v-col>
-      <v-col cols="12" md="3" sm="3">
-        <v-select
-          v-model="filterState.status"
-          :items="statusOptions"
-          item-title="title"
-          item-value="value"
-          :placeholder="t('branches.all_status')"
-          variant="outlined"
-          rounded="lg"
-          clearable
-        />
-      </v-col>
-    </v-row>
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        v-if="can('branches.manage')"
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="lg"
+        elevation="0"
+        @click="openCreate"
+      >
+        {{ t('btn.add_branch') }}
+      </v-btn>
+    </div>
 
     <!-- Table Card -->
     <v-card rounded="lg" elevation="0" border class="pa-4">
@@ -178,40 +139,30 @@
 <script setup>
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
-  import { useTenantStore } from '@/stores/tenantStore'
   import { usePermission } from '@/composables/usePermission'
   import { useAuthStore } from '@/stores/authStore'
   import { getAllBranchesApi } from '@/api/branchService'
   import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import BranchDialog from '@/components/branches/BranchDialog.vue'
   import BranchDetail from '@/components/branches/BranchDetail.vue'
-  import CustomSelect from '@/components/customs/CustomSelect.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 
   const { can } = usePermission()
   const { confirm, notif } = useAppUtils()
   const branchStore = useBranchStore()
-  const tenantStore = useTenantStore()
   const authStore = useAuthStore()
 
   const tableRef = ref(null)
   const drawer = ref(false)
 
   const selectedBranch = ref(null)
-  // ── Raw filter inputs — tenant/branchType/status apply immediately via the
+  // ── Raw filter input — tenant scoping applies immediately via the
   // `filters` computed below; AppTable deep-watches it and refetches. ──────────
   const filterState = reactive({
-    branchType: [],
-    tenant: null,
-    status: null
+    tenant: null
   })
-  const statusOptions = computed(() => [
-    { title: t('status.active'), value: 'Active' },
-    { title: t('status.inactive'), value: 'Inactive' }
-  ])
   const dialog = reactive({ show: false, branch: null })
-  const branchTypes = computed(() => tenantStore.branchTypes ?? [])
 
   // ── Headers ────────────────────────────────────────────────────────────────
   const headers = computed(() => [
@@ -236,18 +187,9 @@
   ])
 
   // ── Server-driven filters — matches BranchRepository's contract
-  // (search/sortBy/sortDesc/page/perPage + tenant/branch_type/is_active). ──────
+  // (search/sortBy/sortDesc/page/perPage + tenant). ──────────────────────────
   const filters = computed(() => ({
-    tenant: filterState.tenant || undefined,
-    branch_type: filterState.branchType?.length
-      ? filterState.branchType.join(',')
-      : undefined,
-    is_active:
-      filterState.status === 'Active'
-        ? true
-        : filterState.status === 'Inactive'
-          ? false
-          : undefined
+    tenant: filterState.tenant || undefined
   }))
 
   async function fetchBranches(params) {
@@ -311,16 +253,9 @@
       food_truck: 'mdi-truck-outline'
     })[type] || 'mdi-store-outline'
 
-  onMounted(async () => {
+  onMounted(() => {
     // Branches are scoped server-side by the user's own tenant_id.
     filterState.tenant = authStore.tenant_id
-
-    // Populate the branch-type filter dropdown — every branch shares the
-    // tenant's own business type, so this is the same fixed list regardless
-    // of which branch a filter is applied to.
-    if (authStore.business_type_id) {
-      await tenantStore.fetchBranchTypeByBusinessType(authStore.business_type_id)
-    }
   })
 </script>
 

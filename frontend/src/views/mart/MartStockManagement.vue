@@ -1,35 +1,26 @@
 <template>
   <div>
-    <custom-title
-      icon="mdi-package-variant"
-      :title="t('stock_overview.title')"
-      :subtitle="t('stock_overview.subtitle')"
-    >
-      <template #right>
-        <div class="d-flex gap-2">
-          <!-- Show Stats toggle -->
-          <v-btn
-            :color="showStats ? 'primary' : 'default'"
-            :variant="showStats ? 'flat' : 'tonal'"
-            rounded="lg"
-            prepend-icon="mdi-chart-bar"
-            @click="showStats = !showStats"
-          >
-            {{ t('btn.stats') }}
-          </v-btn>
+    <div class="d-flex justify-end align-center ga-2 mb-4">
+      <v-btn
+        :color="showStats ? 'primary' : 'default'"
+        :variant="showStats ? 'flat' : 'tonal'"
+        rounded="lg"
+        prepend-icon="mdi-chart-bar"
+        @click="showStats = !showStats"
+      >
+        {{ t('btn.stats') }}
+      </v-btn>
 
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            prepend-icon="mdi-tune"
-            @click="openAdjust(null)"
-          >
-            {{ t('btn.adjust') }}
-          </v-btn>
-        </div>
-      </template>
-    </custom-title>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-tune"
+        @click="openAdjust(null)"
+      >
+        {{ t('btn.adjust') }}
+      </v-btn>
+    </div>
 
     <!-- ── Stats Panel ─────────────────────────────────────────────────── -->
     <v-expand-transition>

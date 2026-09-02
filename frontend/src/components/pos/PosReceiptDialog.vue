@@ -43,6 +43,14 @@
         <span>{{ $t('pos.receipt.queue_number') }}</span>
         <span class="font-weight-medium">{{ receipt.queue_number_display }}</span>
       </div>
+      <div v-if="receipt.table_number" class="d-flex justify-space-between text-caption mb-1">
+        <span>{{ $t('pos.receipt.table') }}</span>
+        <span class="font-weight-medium">{{ receipt.table_number }}</span>
+      </div>
+      <div v-if="receipt.customer_name" class="d-flex justify-space-between text-caption mb-1">
+        <span>{{ $t('pos.receipt.customer') }}</span>
+        <span class="font-weight-medium">{{ receipt.customer_name }}</span>
+      </div>
       <div class="d-flex justify-space-between text-caption mb-1">
         <span>{{ $t('pos.receipt.cashier') }}</span>
         <span class="font-weight-medium">{{ receipt.cashier }}</span>
