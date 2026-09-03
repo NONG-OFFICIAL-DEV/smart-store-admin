@@ -272,6 +272,13 @@ export const SIDEBAR_MENU = [
         visible: ctx => ctx.isSuperAdmin
       },
       {
+        key: 'system-categories',
+        titleKey: 'menu.system_categories',
+        icon: 'mdi-tag-multiple-outline',
+        path: '/system-categories',
+        visible: ctx => ctx.isSuperAdmin
+      },
+      {
         key: 'activity-log',
         titleKey: 'menu.activity_log',
         icon: 'mdi-history',

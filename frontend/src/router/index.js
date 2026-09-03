@@ -202,6 +202,17 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/system-categories',
+        name: 'SystemCategories',
+        component: () => import('@/views/catalogs/CategoryView.vue'),
+        props: { adminMode: true },
+        // Reuses the tenant Catalog hub's Categories tab component in
+        // "admin mode" — every category managed here is system-wide (see
+        // CategoryService), not tied to any one tenant, same shared
+        // system-wide reference data pattern as the permission catalog above.
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true, adminOnly: true }
+      },
+      {
         path: '/branch-menus',
         name: 'BranchMenus',
         redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'branch-menus' } })

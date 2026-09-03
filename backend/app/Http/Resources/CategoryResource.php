@@ -20,9 +20,14 @@ class CategoryResource extends JsonResource
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
             'is_lid_exchange' => $this->is_lid_exchange,
+            'is_system' => $this->is_system,
             'tenants' => $this->whenLoaded('tenants', fn () => $this->tenants->map(fn ($t) => [
                 'id' => $t->id,
                 'name' => $t->name,
+            ])),
+            'business_types' => $this->whenLoaded('businessTypes', fn () => $this->businessTypes->map(fn ($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
             ])),
         ];
     }

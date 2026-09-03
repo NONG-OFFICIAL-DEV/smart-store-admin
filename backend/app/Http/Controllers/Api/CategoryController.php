@@ -42,25 +42,27 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
         $tenantIds = $validated['tenant_ids'] ?? [];
-        unset($validated['tenant_ids']);
+        $businessTypeIds = $validated['business_type_ids'] ?? [];
+        unset($validated['tenant_ids'], $validated['business_type_ids']);
 
-        $category = $this->categories->create($validated, $tenantIds);
+        $category = $this->categories->create($validated, $tenantIds, $businessTypeIds);
 
         return $this->created(new CategoryResource($category), 'Category created successfully.');
     }
 
     public function show(Category $category): JsonResponse
     {
-        return $this->success(new CategoryResource($category->load('tenants')));
+        return $this->success(new CategoryResource($category->load(['tenants', 'businessTypes'])));
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
         $validated = $request->validated();
         $tenantIds = $validated['tenant_ids'] ?? $category->tenants->pluck('id')->all();
-        unset($validated['tenant_ids']);
+        $businessTypeIds = $validated['business_type_ids'] ?? $category->businessTypes->pluck('id')->all();
+        unset($validated['tenant_ids'], $validated['business_type_ids']);
 
-        $category = $this->categories->update($category, $validated, $tenantIds);
+        $category = $this->categories->update($category, $validated, $tenantIds, $businessTypeIds);
 
         return $this->success(new CategoryResource($category), 'Category updated successfully.');
     }

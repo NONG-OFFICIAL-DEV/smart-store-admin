@@ -16,9 +16,9 @@
     @submit="submit"
   >
         <v-form ref="formRef" @submit.prevent="submit">
+          <!-- Name -->
           <v-row dense>
-            <!-- Name -->
-            <v-col cols="6">
+            <v-col cols="12">
               <label
                 class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
@@ -37,39 +37,6 @@
                 counter
               />
             </v-col>
-
-            <!-- Parent Category -->
-            <v-col cols="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.dialog.parent_category') }}
-                <span class="text-caption text-grey ml-1">({{ $t('form.optional') }})</span>
-              </label>
-              <v-select
-                v-model="form.parent_id"
-                :items="parentOptions"
-                item-title="name"
-                item-value="id"
-                :placeholder="$t('categories.dialog.parent_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                clearable
-                :error-messages="serverErrors.parent_id"
-              >
-                <template #prepend-inner>
-                  <v-icon
-                    icon="mdi-file-tree-outline"
-                    size="18"
-                    class="text-grey"
-                  />
-                </template>
-              </v-select>
-              <p class="text-caption text-grey mt-1 ml-1">
-                {{ $t('categories.dialog.leave_empty_top_level') }}
-              </p>
-            </v-col>
           </v-row>
 
           <!-- Description -->
@@ -79,6 +46,7 @@
                 class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{ $t('categories.form.description') }}
+                <span class="text-caption text-grey ml-1">({{ $t('form.optional') }})</span>
               </label>
               <v-textarea
                 v-model="form.description"
@@ -93,182 +61,74 @@
             </v-col>
           </v-row>
 
-          <!-- Icon & Color -->
-          <v-row dense>
-            <v-col cols="12" md="6">
+          <!-- Business Types — admin mode only: this is what makes a system
+               category visible to every tenant of a matching business type,
+               instead of assigning tenants one by one. -->
+          <v-row v-if="adminMode" dense>
+            <v-col cols="12">
               <label
                 class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
-                {{ $t('categories.form.icon') }}
-                <span class="text-caption text-grey ml-1">({{ $t('categories.dialog.mdi_icon_name') }})</span>
+                {{ $t('categories.dialog.business_types') }}
               </label>
-              <v-text-field
-                v-model="form.icon"
-                :placeholder="$t('categories.dialog.icon_placeholder')"
+              <v-select
+                v-model="form.business_type_ids"
+                :items="businessTypeStore.businessTypes"
+                item-title="name"
+                item-value="id"
+                :placeholder="$t('categories.dialog.business_types_placeholder')"
                 variant="outlined"
                 rounded="lg"
+                multiple
+                chips
+                closable-chips
                 hide-details="auto"
-                :rules="rules.icon"
-                :error-messages="serverErrors.icon"
-                maxlength="50"
-              >
-                <template #prepend-inner>
-                  <v-icon
-                    :icon="iconPreview"
-                    size="18"
-                    :color="form.color || 'grey'"
-                  />
-                </template>
-              </v-text-field>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.form.color') }}
-                <span class="text-caption text-grey ml-1">({{ $t('categories.dialog.hex') }})</span>
-              </label>
-              <v-text-field
-                v-model="form.color"
-                placeholder="#FF5733"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                :rules="rules.color"
-                :error-messages="serverErrors.color"
-                maxlength="7"
-              >
-                <template #prepend-inner>
-                  <div
-                    class="color-swatch"
-                    :style="{ background: colorPreview }"
-                  />
-                </template>
-              </v-text-field>
-            </v-col>
-          </v-row>
-
-          <!-- Image URL & Sort Order -->
-          <v-row dense>
-            <v-col cols="12" md="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.dialog.image_url') }}
-                <span class="text-caption text-grey ml-1">({{ $t('form.optional') }})</span>
-              </label>
-              <v-text-field
-                v-model="form.image_url"
-                placeholder="https://example.com/image.png"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                :rules="rules.image_url"
-                :error-messages="serverErrors.image_url"
-              >
-                <template #prepend-inner>
-                  <v-icon
-                    icon="mdi-image-outline"
-                    size="18"
-                    class="text-grey"
-                  />
-                </template>
-                <template v-if="imagePreviewValid" #append-inner>
-                  <v-avatar size="28" rounded="sm">
-                    <v-img :src="form.image_url" cover />
-                  </v-avatar>
-                </template>
-              </v-text-field>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.form.sort_order') }}
-              </label>
-              <v-text-field
-                v-model.number="form.sort_order"
-                placeholder="0"
-                type="number"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                :rules="rules.sort_order"
-                :error-messages="serverErrors.sort_order"
-                min="-32768"
-                max="32767"
+                :error-messages="serverErrors.business_type_ids"
               />
-              <p class="text-caption text-grey mt-1 ml-1">
-                {{ $t('categories.dialog.sort_order_hint') }}
-              </p>
+              <v-alert
+                type="info"
+                variant="tonal"
+                density="compact"
+                rounded="lg"
+                class="mt-2 text-caption"
+              >
+                {{ $t('categories.dialog.system_hint') }}
+              </v-alert>
             </v-col>
           </v-row>
 
           <!-- Active Status -->
-          <v-row dense>
-            <v-col cols="6">
-              <div
-                class="d-flex align-center justify-space-between pa-4 rounded-lg bg-grey-lighten-5"
-              >
-                <div>
-                  <p
-                    class="text-body-2 font-weight-medium text-grey-darken-2 mb-0"
-                  >
-                    {{ $t('categories.dialog.active_status') }}
-                  </p>
-                  <p class="text-caption text-grey mb-0">
-                    {{ $t('categories.dialog.active_status_hint') }}
-                  </p>
-                </div>
-                <v-switch
-                  v-model="form.is_active"
-                  color="success"
-                  hide-details
-                  inset
-                />
-              </div>
-            </v-col>
+          <div class="d-flex align-center justify-space-between mb-2">
+            <span class="text-body-2">{{ $t('categories.dialog.active_status') }}</span>
+            <v-switch
+              v-model="form.is_active"
+              color="success"
+              hide-details
+              density="compact"
+              inset
+            />
+          </div>
 
-            <!-- ── Lid Exchange ───────────────────────────────────────────────── -->
-            <v-col cols="6">
-              <div
-                class="d-flex align-center justify-space-between pa-4 rounded-lg bg-grey-lighten-5"
-              >
-                <div>
-                  <p
-                    class="text-body-2 font-weight-medium text-grey-darken-2 mb-0"
-                  >
-                    <v-icon
-                      icon="mdi-circle-outline"
-                      size="15"
-                      class="mr-1"
-                      color="warning"
-                    />
-                    {{ $t('categories.dialog.lid_exchange') }}
-                  </p>
-                  <p class="text-caption text-grey mb-0">
-                    {{ $t('categories.dialog.lid_exchange_hint') }}
-                  </p>
-                </div>
-                <v-switch
-                  v-model="form.is_lid_exchange"
-                  color="warning"
-                  hide-details
-                  inset
-                />
-              </div>
-            </v-col>
-          </v-row>
+          <!-- Lid Exchange -->
+          <div class="d-flex align-center justify-space-between">
+            <span class="text-body-2">{{ $t('categories.dialog.lid_exchange') }}</span>
+            <v-switch
+              v-model="form.is_lid_exchange"
+              color="warning"
+              hide-details
+              density="compact"
+              inset
+            />
+          </div>
         </v-form>
   </AppDialog>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, nextTick } from 'vue'
+  import { ref, reactive, computed, watch, nextTick, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useCategoryStore } from '@/stores/categoryStore'
+  import { useBusinessTypeStore } from '@/stores/businessTypeStore'
   import AppDialog from '@/components/common/AppDialog.vue'
 
   const { t } = useI18n()
@@ -276,11 +136,20 @@
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
     category: { type: Object, default: null },
-    categories: { type: Array, default: () => [] } // ✅ for parent dropdown
+    // Only true on the super-admin "system categories" page — everything
+    // created/edited there is a system category shared by business type.
+    adminMode: { type: Boolean, default: false }
   })
 
   const emit = defineEmits(['update:modelValue', 'saved'])
   const categoryStore = useCategoryStore()
+  const businessTypeStore = useBusinessTypeStore()
+
+  onMounted(() => {
+    if (props.adminMode && !businessTypeStore.businessTypes.length) {
+      businessTypeStore.fetchBusinessTypes()
+    }
+  })
 
   // ── State ──────────────────────────────────────────────────────────────────
   const formRef = ref(null)
@@ -295,43 +164,16 @@
 
   const isEdit = computed(() => !!props.category?.id)
 
-  const parentOptions = computed(() =>
-    props.categories.filter(c => c.id !== props.category?.id)
-  )
-
   // ── Form ───────────────────────────────────────────────────────────────────
   const defaultForm = () => ({
     name: '',
     description: '',
-    parent_id: null,
-    image_url: '',
-    icon: '',
-    color: '',
-    sort_order: 0,
     is_active: true,
-    is_lid_exchange: false
+    is_lid_exchange: false,
+    business_type_ids: []
   })
 
   const form = reactive(defaultForm())
-
-  // ── Previews ───────────────────────────────────────────────────────────────
-  const iconPreview = computed(() =>
-    form.icon?.startsWith('mdi-') ? form.icon : 'mdi-shape-outline'
-  )
-
-  const HEX_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/
-
-  const colorPreview = computed(() =>
-    HEX_REGEX.test(form.color) ? form.color : '#e0e0e0'
-  )
-
-  const imagePreviewValid = computed(() => {
-    try {
-      return !!form.image_url && !!new URL(form.image_url)
-    } catch {
-      return false
-    }
-  })
 
   // ── Rules ──────────────────────────────────────────────────────────────────
   const rules = {
@@ -339,37 +181,6 @@
       v => !!v?.trim() || t('categories.validation.name_required'),
       v => v.trim().length >= 2 || t('categories.validation.min_2_chars'),
       v => v.trim().length <= 100 || t('categories.validation.max_100_chars')
-    ],
-    icon: [
-      v => !v || v.length <= 50 || t('categories.validation.max_50_chars'),
-      v =>
-        !v ||
-        /^mdi-[a-z0-9-]+$/.test(v) ||
-        t('categories.validation.invalid_icon')
-    ],
-    color: [
-      v => !v || HEX_REGEX.test(v) || t('categories.validation.invalid_color')
-    ],
-    image_url: [
-      v => {
-        if (!v) return true
-        try {
-          new URL(v)
-          return true
-        } catch {
-          return t('categories.validation.invalid_url')
-        }
-      }
-    ],
-    sort_order: [
-      v => v === '' || v === null || !isNaN(Number(v)) || t('products.rule.isNumber'),
-      v =>
-        v === '' ||
-        v === null ||
-        Number.isInteger(Number(v)) ||
-        t('categories.validation.whole_number'),
-      v => v === '' || v === null || Number(v) >= -32768 || t('categories.validation.min_sort_order'),
-      v => v === '' || v === null || Number(v) <= 32767 || t('categories.validation.max_sort_order')
     ]
   }
 
@@ -400,13 +211,9 @@
         Object.assign(form, {
           name: val.name ?? '',
           description: val.description ?? '',
-          parent_id: val.parent_id ?? null,
-          image_url: val.image_url ?? '',
-          icon: val.icon ?? '',
-          color: val.color ?? '',
-          sort_order: val.sort_order ?? 0,
           is_active: val.is_active ?? true,
           is_lid_exchange: val.is_lid_exchange ?? false,
+          business_type_ids: (val.business_types ?? []).map(b => b.id)
         })
       } else {
         resetForm()
@@ -428,13 +235,10 @@
       const payload = {
         name: form.name.trim(),
         description: form.description || null,
-        parent_id: form.parent_id || null,
-        image_url: form.image_url || null,
-        icon: form.icon || null,
-        color: form.color || null,
-        sort_order: form.sort_order,
         is_active: form.is_active,
-        is_lid_exchange:form.is_lid_exchange
+        is_lid_exchange: form.is_lid_exchange,
+        is_system: props.adminMode,
+        business_type_ids: props.adminMode ? form.business_type_ids : undefined
       }
 
       if (isEdit.value) {
@@ -459,13 +263,3 @@
     }
   }
 </script>
-
-<style scoped>
-  .color-swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    flex-shrink: 0;
-  }
-</style>

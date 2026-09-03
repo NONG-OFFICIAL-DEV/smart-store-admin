@@ -28,8 +28,14 @@ class StoreCategoryRequest extends FormRequest
             'sort_order' => ['nullable', 'integer'],
             'is_active' => ['boolean'],
             'is_lid_exchange' => ['boolean'],
+            // is_system / business_type_ids are only ever honored from a
+            // super-admin caller — CategoryService enforces that, this just
+            // validates shape.
+            'is_system' => ['boolean'],
             'tenant_ids' => ['nullable', 'array'],
             'tenant_ids.*' => ['uuid', 'exists:tenants,id'],
+            'business_type_ids' => ['nullable', 'array'],
+            'business_type_ids.*' => ['uuid', 'exists:business_types,id'],
         ];
     }
 

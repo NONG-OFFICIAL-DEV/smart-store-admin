@@ -3,6 +3,7 @@
 namespace App\Models\Scopes;
 
 use App\Models\Branch;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
@@ -80,8 +81,25 @@ class TenantScope implements Scope
             // ever sees rows that resolved to their own tenant_id.
             $builder->where("{$table}.tenant_id", $tenantId);
         } elseif ($table === 'categories') {
-            // ✅ categories use pivot table instead of tenant_id column
-            $builder->whereHas('tenants', fn($q) => $q->where('tenant_id', $tenantId));
+            // Categories use a pivot table instead of tenant_id column, and
+            // are visible to a tenant when EITHER (a) explicitly shared with
+            // them via category_tenant — their own custom categories — OR
+            // (b) it's a super-admin-authored system category tagged with
+            // their tenant's own business type (category_business_type),
+            // e.g. a Coffee tenant sees "Beverages" but not a Mart-only
+            // "Grocery" system category.
+            $businessTypeId = Tenant::withoutGlobalScopes()->find($tenantId)?->business_type_id;
+
+            $builder->where(function ($q) use ($tenantId, $businessTypeId) {
+                $q->whereHas('tenants', fn($q2) => $q2->where('tenant_id', $tenantId));
+
+                if ($businessTypeId) {
+                    $q->orWhere(function ($q2) use ($businessTypeId) {
+                        $q2->where('is_system', true)
+                            ->whereHas('businessTypes', fn($q3) => $q3->where('business_types.id', $businessTypeId));
+                    });
+                }
+            });
         } elseif (array_key_exists($table, self::INDIRECT_TENANT_RELATIONS)) {
             $relation = self::INDIRECT_TENANT_RELATIONS[$table];
             $builder->whereHas($relation, fn($q) => $q->where('tenant_id', $tenantId));

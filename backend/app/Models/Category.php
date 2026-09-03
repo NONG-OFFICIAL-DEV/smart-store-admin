@@ -25,12 +25,14 @@ class Category extends BaseModel
         'color',
         'sort_order',
         'is_active',
-        'is_lid_exchange'
+        'is_lid_exchange',
+        'is_system'
     ];
 
     protected $casts = [
         'is_active'  => 'boolean',
         'is_lid_exchange' => 'boolean',
+        'is_system'  => 'boolean',
         'sort_order' => 'integer',
     ];
 
@@ -54,5 +56,13 @@ class Category extends BaseModel
     public function tenants()
     {
         return $this->belongsToMany(Tenant::class, 'category_tenant');
+    }
+
+    // System categories (is_system = true) are shared with every tenant of
+    // a matching business type instead of being linked tenant-by-tenant —
+    // see TenantScope's 'categories' branch for how this is applied.
+    public function businessTypes()
+    {
+        return $this->belongsToMany(BusinessType::class, 'category_business_type');
     }
 }

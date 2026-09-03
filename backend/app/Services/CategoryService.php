@@ -26,34 +26,71 @@ class CategoryService extends BaseService
      * Categories have no tenant_id at all (see CLAUDE.md) — sharing is via
      * the category_tenant pivot, kept in sync with $tenantIds on every
      * write, matching the old controller's ->sync() call exactly.
+     *
+     * A non-super-admin can only ever create their OWN custom category —
+     * never system-wide (is_system/business_type_ids are super-admin-only
+     * levers) and never shared with any tenant but themselves, regardless
+     * of what the request body actually contained.
      */
-    public function create(array $data, array $tenantIds): Category
+    public function create(array $data, array $tenantIds, array $businessTypeIds = []): Category
     {
+        $user = auth()->user();
+
+        if (!$user->is_super_admin) {
+            $data['is_system'] = false;
+            $businessTypeIds = [];
+            $tenantIds = array_filter([$this->currentTenantId($user)]);
+        }
+
         $data['sort_order'] = $this->resolveInsertOrder($data);
 
-        return DB::transaction(function () use ($data, $tenantIds) {
+        return DB::transaction(function () use ($data, $tenantIds, $businessTypeIds) {
             $category = $this->repository->create($data);
             $category->tenants()->sync($tenantIds);
+            $category->businessTypes()->sync($businessTypeIds);
 
-            return $category->load('tenants');
+            return $category->load(['tenants', 'businessTypes']);
         });
     }
 
-    public function update(Category $category, array $data, array $tenantIds): Category
+    public function update(Category $category, array $data, array $tenantIds, array $businessTypeIds = []): Category
     {
-        return DB::transaction(function () use ($category, $data, $tenantIds) {
+        $user = auth()->user();
+
+        if ($category->is_system && !$user->is_super_admin) {
+            abort(403, 'Only a super admin can modify a system category.');
+        }
+
+        if (!$user->is_super_admin) {
+            unset($data['is_system']);
+            $businessTypeIds = $category->businessTypes->pluck('id')->all();
+            $tenantIds = array_filter([$this->currentTenantId($user)]);
+        }
+
+        return DB::transaction(function () use ($category, $data, $tenantIds, $businessTypeIds) {
             $this->resolveUpdateOrder($category, $data);
 
             $category = $this->repository->update($category, $data);
             $category->tenants()->sync($tenantIds);
+            $category->businessTypes()->sync($businessTypeIds);
 
-            return $category->load('tenants');
+            return $category->load(['tenants', 'businessTypes']);
         });
     }
 
     public function delete(Category $category): bool
     {
+        if ($category->is_system && !auth()->user()->is_super_admin) {
+            abort(403, 'Only a super admin can delete a system category.');
+        }
+
         return $this->repository->delete($category);
+    }
+
+    private function currentTenantId($user): ?string
+    {
+        return $user->ownedTenant?->id
+            ?? $user->staff()->withoutGlobalScopes()->first()?->tenant_id;
     }
 
     /**
