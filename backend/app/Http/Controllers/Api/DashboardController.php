@@ -84,23 +84,6 @@ class DashboardController extends Controller
         $activeProducts = Product::where('tenant_id', $tenantId)
             ->where('is_available', true)->count();
 
-        // Items sold — same period scope as $orders/$prevOrders above.
-        $itemsSold = (int) OrderItem::whereHas(
-            'order',
-            fn($q) =>
-            $q->whereIn('branch_id', $branchIds)
-                ->whereBetween('created_at', [$from, $to])
-                ->whereNotIn('status', ['cancelled'])
-        )->sum('quantity');
-
-        $prevItemsSold = (int) OrderItem::whereHas(
-            'order',
-            fn($q) =>
-            $q->whereIn('branch_id', $branchIds)
-                ->whereBetween('created_at', [$prevFrom, $prevTo])
-                ->whereNotIn('status', ['cancelled'])
-        )->sum('quantity');
-
         // Payment method breakdown — completed payments in the current period.
         $paymentBreakdown = Payment::whereIn('branch_id', $branchIds)
             ->whereBetween('paid_at', [$from, $to])
@@ -208,15 +191,6 @@ class DashboardController extends Controller
                         'icon'  => 'mdi-package-variant',
                         'color' => 'secondary',
                         'trend' => 0,
-                    ],
-                    [
-                        'label' => 'Items Sold',
-                        'value' => number_format($itemsSold),
-                        'raw'   => $itemsSold,
-                        'isCurrency' => false,
-                        'icon'  => 'mdi-shopping-outline',
-                        'color' => 'info',
-                        'trend' => $trend($itemsSold, $prevItemsSold),
                     ],
                 ],
                 'branches'          => $branches->values(),

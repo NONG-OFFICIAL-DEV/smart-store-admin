@@ -18,15 +18,15 @@ use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 /**
- * `items_sold` and `payment_breakdown` were added to stats() alongside the
- * redesign's Dashboard "Top Products"/"Payment Methods" cards — everything
- * else on this endpoint was already working and is left untouched.
+ * `payment_breakdown` was added to stats() alongside the redesign's Dashboard
+ * "Payment Methods" card — everything else on this endpoint was already
+ * working and is left untouched.
  */
 class DashboardStatsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_stats_reports_items_sold_and_payment_breakdown(): void
+    public function test_stats_reports_payment_breakdown(): void
     {
         $owner = User::create([
             'email' => 'owner@example.test', 'first_name' => 'Own', 'last_name' => 'Er',
@@ -73,9 +73,7 @@ class DashboardStatsTest extends TestCase
         );
         $body = json_decode($response->getContent(), true);
 
-        $itemsSoldKpi = collect($body['data']['kpis'])->firstWhere('label', 'Items Sold');
-        $this->assertNotNull($itemsSoldKpi);
-        $this->assertSame(3, $itemsSoldKpi['raw']);
+        $this->assertNull(collect($body['data']['kpis'])->firstWhere('label', 'Items Sold'));
 
         $this->assertEquals(
             [['method' => 'cash', 'amount' => 30.0, 'count' => 1]],
