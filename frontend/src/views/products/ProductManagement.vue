@@ -85,19 +85,16 @@
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-3 py-2">
             <v-avatar
-              size="44"
+              size="35"
               rounded="lg"
               color="grey-lighten-2"
               class="me-2"
             >
               <v-img v-if="item.image_url" :src="item.image_url" cover />
-              <v-icon v-else icon="mdi-food" size="22" color="grey" />
+              <v-icon v-else icon="mdi-food" size="20" color="grey" />
             </v-avatar>
             <div>
               <div class="font-weight-medium">{{ item.name }}</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ item.sku || '—' }}
-              </div>
             </div>
           </div>
         </template>
