@@ -34,16 +34,6 @@
             </span>
           </div>
         </template>
-
-        <!-- Description Column -->
-        <template #item.description="{ item }">
-          <span
-            class="text-body-2 text-grey text-truncate d-inline-block"
-            style="max-width: 260px"
-          >
-            {{ item.description || '—' }}
-          </span>
-        </template>
         <!-- Status Column -->
         <template #item.is_active="{ item }">
           <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="small" />
@@ -139,7 +129,6 @@ const tableRef = ref(null)
 // ── Headers ────────────────────────────────────────────────────────────────
 const headers = computed(() => [
   { title: t('categories.table.name'), key: 'name', sortable: true },
-  { title: t('categories.table.description'), key: 'description', sortable: false },
   { title: t('categories.table.status'), key: 'is_active', sortable: true, width: '110px' },
   { title: t('categories.table.type'), key: 'type', sortable: false, width: '110px' },
   ...(props.adminMode

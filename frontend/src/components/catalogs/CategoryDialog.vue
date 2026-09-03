@@ -1,7 +1,7 @@
 <template>
   <AppDialog
     v-model="model"
-    :max-width="670"
+    :max-width="500"
     :title="isEdit ? $t('categories.dialog.titleEdit') : $t('btn.add_category')"
     :subtitle="
       isEdit
@@ -11,116 +11,113 @@
     :icon="isEdit ? 'mdi-shape-outline' : 'mdi-shape-plus-outline'"
     :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('categories.dialog.create_category')"
+    :submit-text="
+      isEdit ? $t('btn.save_changes') : $t('categories.dialog.create_category')
+    "
     @close="resetForm"
     @submit="submit"
   >
-        <v-form ref="formRef" @submit.prevent="submit">
-          <!-- Name -->
-          <v-row dense>
-            <v-col cols="12">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.form.name') }}
-                <span class="text-error">*</span>
-              </label>
-              <v-text-field
-                v-model="form.name"
-                :placeholder="$t('categories.dialog.name_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                :rules="rules.name"
-                :error-messages="serverErrors.name"
-                maxlength="100"
-                counter
-              />
-            </v-col>
-          </v-row>
+    <v-form ref="formRef" @submit.prevent="submit">
+      <!-- Name -->
+      <v-row dense>
+        <v-col cols="12">
+          <v-text-field
+            v-model="form.name"
+            :placeholder="$t('categories.dialog.name_placeholder')"
+            variant="outlined"
+            rounded="lg"
+            hide-details="auto"
+            :rules="rules.name"
+            :error-messages="serverErrors.name"
+            maxlength="100"
+            counter
+          >
+            <template #label>
+              {{ $t('categories.form.name') }} <span class="text-error">*</span>
+            </template>
+          </v-text-field>
+        </v-col>
+      </v-row>
 
-          <!-- Description -->
-          <v-row dense>
-            <v-col cols="12">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.form.description') }}
-                <span class="text-caption text-grey ml-1">({{ $t('form.optional') }})</span>
-              </label>
-              <v-textarea
-                v-model="form.description"
-                :placeholder="$t('categories.dialog.description_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details="auto"
-                rows="3"
-                no-resize
-                :error-messages="serverErrors.description"
-              />
-            </v-col>
-          </v-row>
+      <!-- Description -->
+      <v-row dense>
+        <v-col cols="12">
+          <label
+            class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+          >
+            {{ $t('categories.form.description') }}
+            <span class="text-caption text-grey ml-1">
+              ({{ $t('form.optional') }})
+            </span>
+          </label>
+          <v-textarea
+            v-model="form.description"
+            :placeholder="$t('categories.dialog.description_placeholder')"
+            variant="outlined"
+            rounded="lg"
+            rows="3"
+            no-resize
+            :error-messages="serverErrors.description"
+          />
+        </v-col>
+      </v-row>
 
-          <!-- Business Types — admin mode only: this is what makes a system
+      <!-- Business Types — admin mode only: this is what makes a system
                category visible to every tenant of a matching business type,
                instead of assigning tenants one by one. -->
-          <v-row v-if="adminMode" dense>
-            <v-col cols="12">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-              >
-                {{ $t('categories.dialog.business_types') }}
-              </label>
-              <v-select
-                v-model="form.business_type_ids"
-                :items="businessTypeStore.businessTypes"
-                item-title="name"
-                item-value="id"
-                :placeholder="$t('categories.dialog.business_types_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                multiple
-                chips
-                closable-chips
-                hide-details="auto"
-                :error-messages="serverErrors.business_type_ids"
-              />
-              <v-alert
-                type="info"
-                variant="tonal"
-                density="compact"
-                rounded="lg"
-                class="mt-2 text-caption"
-              >
-                {{ $t('categories.dialog.system_hint') }}
-              </v-alert>
-            </v-col>
-          </v-row>
+      <v-row v-if="adminMode" dense>
+        <v-col cols="12">
+          <label
+            class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+          >
+            {{ $t('categories.dialog.business_types') }}
+          </label>
+          <v-select
+            v-model="form.business_type_ids"
+            :items="businessTypeStore.businessTypes"
+            item-title="name"
+            item-value="id"
+            :placeholder="$t('categories.dialog.business_types_placeholder')"
+            variant="outlined"
+            rounded="lg"
+            multiple
+            chips
+            closable-chips
+            hide-details="auto"
+            :error-messages="serverErrors.business_type_ids"
+          />
+          <v-alert
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mt-2 text-caption"
+          >
+            {{ $t('categories.dialog.system_hint') }}
+          </v-alert>
+        </v-col>
+      </v-row>
 
-          <!-- Active Status -->
-          <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-body-2">{{ $t('categories.dialog.active_status') }}</span>
-            <v-switch
-              v-model="form.is_active"
-              color="success"
-              hide-details
-              density="compact"
-              inset
-            />
-          </div>
+      <!-- Active Status -->
 
-          <!-- Lid Exchange -->
-          <div class="d-flex align-center justify-space-between">
-            <span class="text-body-2">{{ $t('categories.dialog.lid_exchange') }}</span>
-            <v-switch
-              v-model="form.is_lid_exchange"
-              color="warning"
-              hide-details
-              density="compact"
-              inset
-            />
-          </div>
-        </v-form>
+      <v-switch
+        v-model="form.is_active"
+        color="success"
+        hide-details
+        density="compact"
+        inset
+        :label="$t('categories.dialog.active_status')"
+      />
+
+      <v-switch
+        v-model="form.is_lid_exchange"
+        color="warning"
+        hide-details
+        density="compact"
+        inset
+        :label="$t('categories.dialog.lid_exchange')"
+      />
+    </v-form>
   </AppDialog>
 </template>
 
