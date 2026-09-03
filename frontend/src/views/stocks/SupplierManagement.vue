@@ -1,96 +1,25 @@
 <template>
   <v-container fluid class="pa-0">
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showFilters ? 'primary' : 'default'"
-        :variant="showFilters ? 'flat' : 'tonal'"
-        rounded="lg"
-        :prepend-icon="
-          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-        "
-        @click="showFilters = !showFilters"
-      >
-        {{ t('btn.filter') }}
-        <v-badge
-          v-if="activeFilterCount > 0"
-          :content="activeFilterCount"
-          color="error"
-          floating
-        />
-      </v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openAdd"
-      >
-        {{ t('btn.add_supplier') }}
-      </v-btn>
-    </div>
-
-    <!-- Filter panel -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-        <v-card-text>
-          <v-row dense align="center">
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="draft.keyword"
-                label="Search name, contact, phone, email"
-                prepend-inner-icon="mdi-magnify"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-select
-                v-model="draft.is_active"
-                :items="statusOptions"
-                label="Status"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
+    <AppToolbar :title="t('suppliers.title')" :subtitle="t('suppliers.subtitle')">
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openAdd"
+        >
+          {{ t('btn.add_supplier') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
     <!-- Table -->
-    <v-card rounded="lg" elevation="0" border>
+    <v-card rounded="lg" elevation="0" border class="pa-4">
       <AppTable
         ref="tableRef"
         :headers="headers"
         :fetch-fn="fetchTableData"
-        :filters="appliedFilters"
-        :show-search="false"
         item-label="suppliers"
       >
         <!-- Status chip -->
@@ -137,10 +66,11 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed } from 'vue'
+  import { ref, computed } from 'vue'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { AppStatusChip, AppTable } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import SupplierDialog from '@/components/SupplierDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
@@ -165,43 +95,7 @@
     }
   ])
 
-  // ── Filter ─────────────────────────────────────────────────────────────────────
-  const showFilters = ref(false)
-  const draft = reactive({ keyword: '', is_active: null })
-  const applied = reactive({ keyword: '', is_active: null })
-
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (draft.keyword.trim() !== '') count++
-    if (draft.is_active !== null) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
-  const statusOptions = [
-    { title: 'Active', value: true },
-    { title: 'Inactive', value: false }
-  ]
-
-  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
-  // this and refetches (resetting to page 1) whenever it changes. ───────────────
-  const appliedFilters = computed(() => ({
-    search: applied.keyword || undefined,
-    is_active: applied.is_active
-  }))
-
-  // ── Apply/reset just update `applied` — no manual refetch needed. ────────────
-  const onFilterChange = () => {
-    Object.assign(applied, { ...draft })
-  }
-
-  const resetFilters = () => {
-    Object.assign(draft, { keyword: '', is_active: null })
-    Object.assign(applied, { keyword: '', is_active: null })
-  }
-
-  // ── Fetch ──────────────────────────────────────────────────────────────────────
+  // ── Fetch — `search` comes from AppTable's own built-in search box. ─────────────
   async function fetchTableData(params) {
     await store.fetchSuppliers(params)
     return { items: store.suppliers.data ?? [], total: store.suppliers.total ?? 0 }

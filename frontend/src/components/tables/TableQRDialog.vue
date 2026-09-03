@@ -3,10 +3,6 @@
     v-model="model"
     :max-width="480"
     :title="$t('tables.qr.title', { number: table?.table_number })"
-    :subtitle="$t('tables.qr.subtitle')"
-    icon="mdi-qrcode"
-    color="primary"
-    @close="close"
   >
         <!-- Loading -->
         <div v-if="qrLoading" class="d-flex justify-center py-10">
@@ -138,12 +134,12 @@
           </v-row>
         </div>
 
-    <template #actions>
+    <template #actions="{ loading }">
       <v-btn
         variant="tonal"
         rounded="lg"
         prepend-icon="mdi-refresh"
-        :loading="qrLoading"
+        :loading="qrLoading || loading"
         @click="regenerate"
       >
         {{ $t('btn.refresh') }}
@@ -168,7 +164,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useTableStore } from '@/stores/tableStore'
   import { storeToRefs } from 'pinia'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },

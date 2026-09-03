@@ -3,12 +3,6 @@
     v-model="internalValue"
     :max-width="800"
     :title="$t('sale.dialog_title')"
-    icon="mdi-cart-outline"
-    color="primary"
-    :submit-text="$t('btn.save')"
-    :disable-submit="!valid"
-    @close="close"
-    @submit="save"
   >
     <v-form ref="formRef" v-model="valid">
       <AppDatePicker
@@ -56,13 +50,28 @@
         </v-col>
       </v-row>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        :disabled="!valid"
+        @click="save"
+      >
+        {{ $t('btn.save') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
 import { reactive, computed, ref, watch } from "vue"
-import AppDialog from "@/components/common/AppDialog.vue"
-import { AppDatePicker } from '@nong-official-dev/core'
+import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
 // props & emits for v-model
 const props = defineProps({

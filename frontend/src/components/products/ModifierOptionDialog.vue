@@ -2,14 +2,8 @@
   <AppDialog
     v-model="model"
     :max-width="460"
-    :icon="isEdit ? 'mdi-tune-variant' : 'mdi-playlist-plus'"
-    :color="isEdit ? 'primary' : 'success'"
     :title="isEdit ? $t('modifiers.option.edit_title') : $t('modifiers.option.add_title')"
-    :subtitle="isEdit ? $t('modifiers.option.edit_subtitle') : $t('modifiers.option.add_subtitle')"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('modifiers.option.add_title')"
-    @close="close"
-    @submit="submit"
   >
     <v-form ref="formRef" @submit.prevent="submit">
           <div class="d-flex flex-column gap-4">
@@ -96,13 +90,27 @@
 
           </div>
         </v-form>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('modifiers.option.add_title') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDialog } from '@nong-official-dev/core'
 
 const { t } = useI18n()
 
@@ -190,6 +198,14 @@ const close = () => {
   model.value = false
   resetForm()
 }
+
+// ── Reset form when dialog closes via the built-in × / backdrop ────────────────
+watch(
+  () => props.modelValue,
+  open => {
+    if (!open) resetForm()
+  }
+)
 
 // ── Watcher ───────────────────────────────────────────────────────────────────
 watch(

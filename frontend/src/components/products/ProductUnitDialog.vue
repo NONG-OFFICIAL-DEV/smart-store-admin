@@ -2,16 +2,8 @@
   <AppDialog
     v-model="model"
     :max-width="520"
-    icon="mdi-package-variant"
-    color="primary"
     :title="isEdit ? t('unit.title_edit') : t('unit.title_add')"
-    :subtitle="t('unit.subtitle_add')"
     :loading="loading"
-    submit-icon="mdi-content-save"
-    :submit-text="isEdit ? t('unit.save') : t('unit.add')"
-    body-class="pa-5"
-    @close="close"
-    @submit="save"
   >
     <v-form ref="formRef">
           <v-row dense>
@@ -209,6 +201,21 @@
             </v-col>
           </v-row>
         </v-form>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-content-save"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? t('unit.save') : t('unit.add') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -217,7 +224,7 @@
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useI18n } from 'vue-i18n'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   const { currencySymbol ,format } = useCurrency()
 
   const { t } = useI18n()
@@ -352,11 +359,16 @@
     { immediate: true }
   )
 
-  // Fetch names when dialog opens
+  // Fetch names when dialog opens; reset form when it closes
   watch(
     () => props.modelValue,
     open => {
-      if (open) fetchUnitNames()
+      if (open) {
+        fetchUnitNames()
+      } else {
+        formRef.value?.reset()
+        Object.assign(form, defaultForm())
+      }
     }
   )
 
@@ -386,8 +398,6 @@
 
   const close = () => {
     model.value = false
-    formRef.value?.reset()
-    Object.assign(form, defaultForm())
   }
 </script>
 

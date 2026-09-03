@@ -197,13 +197,8 @@
     <AppDialog
       v-model="registerDialog"
       :title="t('cash_register.panel_title')"
-      :subtitle="branchName"
-      icon="mdi-cash-register"
-      :color="registerOpen ? 'success' : 'primary'"
       :max-width="380"
       :loading="registerBusy"
-      hide-actions
-      @close="registerDialog = false"
     >
       <div v-if="registerOpen && !closing">
         <div class="d-flex justify-space-between text-body-2 mb-2">
@@ -288,17 +283,19 @@
     <AppDialog
       v-model="shortcutsDialog"
       :title="t('shortcuts.title')"
-      icon="mdi-keyboard-outline"
       :max-width="360"
       :persistent="false"
-      hide-submit
-      :cancel-text="t('btn.close')"
-      @close="shortcutsDialog = false"
     >
       <div v-for="row in shortcutRows" :key="row.keys" class="d-flex justify-space-between align-center mb-3">
         <span class="text-body-2">{{ row.label }}</span>
         <kbd class="shortcut-key">{{ row.keys }}</kbd>
       </div>
+
+      <template #actions>
+        <v-btn variant="tonal" rounded="lg" @click="shortcutsDialog = false">
+          {{ t('btn.close') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </div>
 </template>
@@ -310,7 +307,6 @@
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import PreferencesDialog from '../common/PreferencesDialog.vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
   import { useAvatar } from '@/composables/useAvatar'
   import { usePermission } from '@/composables/usePermission'
   import { useDate } from '@/composables/useDate'
@@ -324,7 +320,7 @@
   } from '@/api/notificationService'
   import logoWhite from '/logo_white.png'
   import logoDark from '/logo_dark.png'
-  import { useAppUtils, AppNotificationBell } from '@nong-official-dev/core'
+  import { useAppUtils, AppNotificationBell, AppDialog } from '@nong-official-dev/core'
 
   // Echo/Reverb (see onMounted below) is the primary freshness mechanism —
   // this is just a fallback in case a push event is missed (dropped socket,

@@ -44,13 +44,7 @@
     <AppDialog
       v-model="setupOpen"
       :title="$t('two_factor.setup_title')"
-      icon="mdi-shield-lock-outline"
-      :hide-submit="step !== 'confirm'"
-      :submit-text="$t('two_factor.confirm_button')"
       :loading="confirming"
-      :disable-submit="code.length !== 6"
-      @submit="handleConfirm"
-      @close="resetSetup"
     >
       <div v-if="step === 'qr'" class="text-center">
         <p class="text-body-2 text-medium-emphasis mb-4">
@@ -92,25 +86,49 @@
         </v-btn>
       </div>
 
-      <template v-if="step === 'qr'" #actions>
-        <v-spacer />
-        <v-btn variant="tonal" rounded="lg" @click="setupOpen = false">
-          {{ $t('btn.cancel') }}
-        </v-btn>
-        <v-btn color="primary" variant="flat" rounded="lg" @click="step = 'confirm'">
-          {{ $t('btn.next') }}
-        </v-btn>
+      <template #actions="{ loading }">
+        <template v-if="step === 'qr'">
+          <v-spacer />
+          <v-btn variant="tonal" rounded="lg" @click="setupOpen = false">
+            {{ $t('btn.cancel') }}
+          </v-btn>
+          <v-btn color="primary" variant="flat" rounded="lg" @click="step = 'confirm'">
+            {{ $t('btn.next') }}
+          </v-btn>
+        </template>
+        <template v-else-if="step === 'confirm'">
+          <v-spacer />
+          <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="setupOpen = false">
+            {{ $t('btn.cancel') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            :loading="loading"
+            :disabled="code.length !== 6"
+            @click="handleConfirm"
+          >
+            {{ $t('two_factor.confirm_button') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-spacer />
+          <v-btn variant="tonal" rounded="lg" @click="setupOpen = false">
+            {{ $t('btn.cancel') }}
+          </v-btn>
+        </template>
       </template>
     </AppDialog>
   </v-card>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import { setupTwoFactorApi, confirmTwoFactorApi, disableTwoFactorApi } from '@/api/twoFactorService'
 
   const { t } = useI18n()
@@ -169,6 +187,10 @@
     confirmError.value = ''
     recoveryCodes.value = []
   }
+
+  watch(setupOpen, val => {
+    if (!val) resetSetup()
+  })
 
   async function handleDisable() {
     disabling.value = true

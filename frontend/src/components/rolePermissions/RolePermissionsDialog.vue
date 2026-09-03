@@ -3,58 +3,47 @@
     v-model="model"
     :max-width="680"
     :persistent="false"
-    :scrollable="false"
     :title="$t('roles.assign_permissions')"
-    :subtitle="role?.name"
-    icon="mdi-key-variant"
-    color="warning"
     :loading="loading"
-    :submit-text="$t('roles.save_permissions')"
-    submit-icon="mdi-content-save"
-    :body-class="'pa-4'"
-    :body-style="{ maxHeight: '460px', overflowY: 'auto' }"
-    @submit="handleSave"
   >
-    <template #header-extra>
-      <div class="d-flex align-center px-4 pt-3">
-        <v-chip color="primary" variant="tonal" size="small">
-          {{ $t('roles.selected_count', { n: selectedIds.length }) }}
-        </v-chip>
-      </div>
+    <div class="d-flex align-center px-4 pt-3">
+      <v-chip color="primary" variant="tonal" size="small">
+        {{ $t('roles.selected_count', { n: selectedIds.length }) }}
+      </v-chip>
+    </div>
 
-      <!-- Quick templates — a small shop shouldn't have to hand-pick from
-           every permission code; these pre-check a sensible bundle, still
-           freely adjustable below before saving. -->
-      <div class="d-flex align-center gap-2 flex-wrap px-4 pt-3">
-        <span class="text-caption text-medium-emphasis me-1">
-          {{ $t('roles.templates.label') }}
-        </span>
-        <v-chip
-          v-for="tpl in templates"
-          :key="tpl.key"
-          size="small"
-          variant="tonal"
-          color="primary"
-          prepend-icon="mdi-auto-fix"
-          @click="applyTemplate(tpl)"
-        >
-          {{ tpl.label }}
-        </v-chip>
-      </div>
+    <!-- Quick templates — a small shop shouldn't have to hand-pick from
+         every permission code; these pre-check a sensible bundle, still
+         freely adjustable below before saving. -->
+    <div class="d-flex align-center gap-2 flex-wrap px-4 pt-3">
+      <span class="text-caption text-medium-emphasis me-1">
+        {{ $t('roles.templates.label') }}
+      </span>
+      <v-chip
+        v-for="tpl in templates"
+        :key="tpl.key"
+        size="small"
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-auto-fix"
+        @click="applyTemplate(tpl)"
+      >
+        {{ tpl.label }}
+      </v-chip>
+    </div>
 
-      <!-- Search -->
-      <div class="pa-4 pb-4">
-        <v-text-field
-          v-model="permSearch"
-          :placeholder="$t('roles.search_permissions_placeholder')"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          hide-details
-          clearable
-          rounded="lg"
-        />
-      </div>
-    </template>
+    <!-- Search -->
+    <div class="pa-4 pb-4">
+      <v-text-field
+        v-model="permSearch"
+        :placeholder="$t('roles.search_permissions_placeholder')"
+        prepend-inner-icon="mdi-magnify"
+        variant="outlined"
+        hide-details
+        clearable
+        rounded="lg"
+      />
+    </div>
 
     <!-- Grouped permissions -->
     <div
@@ -131,13 +120,29 @@
       <v-icon icon="mdi-key-off" size="40" color="grey-lighten-2" />
       <p class="text-body-2 mt-2">{{ $t('roles.no_permissions_found') }}</p>
     </div>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="warning"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-content-save"
+        :loading="loading"
+        @click="handleSave"
+      >
+        {{ $t('roles.save_permissions') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 

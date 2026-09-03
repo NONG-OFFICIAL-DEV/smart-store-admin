@@ -3,11 +3,6 @@
     v-model="show"
     :max-width="900"
     :title="editing ? $t('staff.dialog.titleEdit') : $t('staff.dialog.titleCreate')"
-    icon="mdi-account-outline"
-    :color="editing ? 'primary' : 'success'"
-    :submit-text="editing ? $t('btn.update') : $t('btn.create')"
-    @close="close"
-    @submit="submit"
   >
     <v-form ref="formRef" lazy-validation>
       <!-- Personal Info -->
@@ -67,14 +62,28 @@
         </v-col>
       </v-row>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="editing ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ editing ? $t('btn.update') : $t('btn.create') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, watch, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 

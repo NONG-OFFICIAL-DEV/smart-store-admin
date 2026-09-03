@@ -3,12 +3,6 @@
     v-model="internalModel"
     :max-width="540"
     :title="`${actionTypeLabel} ${$t('form.stock')}`"
-    icon="mdi-tune"
-    color="primary"
-    :disable-submit="!canSubmit"
-    :submit-text="$t('btn.confirm')"
-    @close="close"
-    @submit="submit"
   >
     <!-- Current Stock -->
     <v-text-field
@@ -56,13 +50,29 @@
         {{ resultStock }}
       </strong>
     </v-alert>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        :disabled="!canSubmit"
+        @click="submit"
+      >
+        {{ $t('btn.confirm') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, watch, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 

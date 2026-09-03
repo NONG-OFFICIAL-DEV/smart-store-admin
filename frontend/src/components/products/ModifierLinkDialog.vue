@@ -2,20 +2,8 @@
   <AppDialog
     v-model="model"
     :max-width="560"
-    icon="mdi-link-variant-plus"
-    color="secondary"
     :title="$t('modifiers.link.title')"
-    :subtitle="$t('modifiers.link.subtitle')"
     :loading="loading"
-    :submit-text="
-      newSelections.length > 0
-        ? $t('modifiers.link.link_groups_count', { n: newSelections.length })
-        : $t('modifiers.link.link_groups')
-    "
-    :disable-submit="newSelections.length === 0"
-    body-class="px-6 py-4"
-    @close="close"
-    @submit="submit"
   >
         <!-- Search -->
         <v-text-field
@@ -152,6 +140,25 @@
             {{ $t('modifiers.link.groups_selected', newSelections.length, { n: newSelections.length }) }}
           </p>
         </div>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="secondary"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        :disabled="newSelections.length === 0"
+        @click="submit"
+      >
+        {{
+          newSelections.length > 0
+            ? $t('modifiers.link.link_groups_count', { n: newSelections.length })
+            : $t('modifiers.link.link_groups')
+        }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -159,7 +166,7 @@
   import { ref, computed, watch } from 'vue'
   import { storeToRefs } from 'pinia'
   import { useModifierGroupStore } from '@/stores/modifierGroupStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -224,6 +231,9 @@
         if (!modifierGroups.value?.length) {
           await groupStore.fetchModifierGroups()
         }
+      } else {
+        selected.value = []
+        search.value = ''
       }
     }
   )
@@ -232,8 +242,6 @@
   const close = () => {
     if (props.loading) return
     model.value = false
-    selected.value = []
-    search.value = ''
   }
 
   const submit = async () => {

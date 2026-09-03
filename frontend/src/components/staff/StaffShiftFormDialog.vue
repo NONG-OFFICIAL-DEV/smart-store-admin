@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="620"
     :title="isEdit ? $t('shift_assignments.titleEdit') : $t('shift_assignments.titleCreate')"
-    :subtitle="isEdit ? $t('shift_assignments.subtitleEdit') : $t('shift_assignments.subtitleCreate')"
-    :icon="isEdit ? 'mdi-pencil' : 'mdi-account-plus'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save') : $t('btn.assign')"
-    :submit-icon="isEdit ? 'mdi-content-save' : 'mdi-account-plus'"
-    @close="close"
-    @submit="submit"
   >
         <v-form ref="formRef">
           <v-row dense>
@@ -43,7 +36,7 @@
               </v-select>
             </v-col>
 
-            <!-- Staff member -->
+            <!-- Assign to (staff member) -->
             <v-col cols="6">
               <v-select
                 v-model="form.staff_id"
@@ -81,11 +74,21 @@
               </v-select>
             </v-col>
 
-            <!-- Branch -->
-            <v-col cols="12">
+            <!-- Branch — only one tenant branch exists, nothing to pick. -->
+            <v-col v-if="hasSingleBranch" cols="12">
+              <v-text-field
+                :model-value="branches[0]?.name"
+                :label="$t('shift_assignments.fields.branch.label')"
+                variant="outlined"
+                rounded="lg"
+                readonly
+                prepend-inner-icon="mdi-store-outline"
+              />
+            </v-col>
+            <v-col v-else cols="12">
               <v-select
                 v-model="form.branch_id"
-                :items="branches.data"
+                :items="branches"
                 item-value="id"
                 item-title="name"
                 :label="$t('shift_assignments.fields.branch.label')"
@@ -203,6 +206,22 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-account-plus'"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ isEdit ? $t('btn.save') : $t('btn.assign') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 <script setup>
@@ -212,8 +231,7 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
   const { formatWeekdayDate: formatDate } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
@@ -240,6 +258,9 @@
     set: v => emit('update:modelValue', v)
   })
   const isEdit = computed(() => !!props.item?.id)
+  // A single-branch tenant has nothing to pick — auto-assign it instead of
+  // showing a one-item dropdown (same pattern as BranchMenuFormDialog).
+  const hasSingleBranch = computed(() => branches.value.length === 1)
 
   // Selected shift preview
   const selectedShift = computed(
@@ -271,6 +292,20 @@
   watch(
     () => form.actual_start,
     () => actualEndRef.value?.validate()
+  )
+
+  // Re-applied on every open (not just once) — props.item stays null across
+  // consecutive "create" opens, so a watcher on it alone won't refire.
+  watch(
+    () => props.modelValue,
+    open => {
+      if (open && !isEdit.value && hasSingleBranch.value) {
+        form.branch_id = branches.value[0].id
+      } else if (!open) {
+        formRef.value?.reset()
+        Object.assign(form, defaultForm())
+      }
+    }
   )
 
   // ── Rules ─────────────────────────────────────────────────────────────────────
@@ -305,6 +340,6 @@
       fallback: '#808080'
     })
   onMounted(async () => {
-    await branchStore.fetchBranches()
+    await branchStore.fetchBranches({ perPage: 100 })
   })
 </script>

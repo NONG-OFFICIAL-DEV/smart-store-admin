@@ -3,16 +3,7 @@
     v-model="model"
     :max-width="580"
     :title="isEdit ? $t('suppliers.dialog.titleEdit') : $t('btn.add_supplier')"
-    :subtitle="isEdit ? $t('suppliers.dialog.subtitleEdit') : $t('suppliers.dialog.subtitleCreate')"
-    :icon="isEdit ? 'mdi-truck-edit-outline' : 'mdi-truck-plus-outline'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('btn.add_supplier')"
-    :submit-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
-    body-class="pa-0"
-    body-style="max-height: 65vh"
-    @close="close"
-    @submit="save"
   >
     <v-form ref="formRef">
       <!-- Basic Info -->
@@ -124,13 +115,29 @@
             </v-row>
           </div>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('btn.add_supplier') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   const { t } = useI18n()
   const props = defineProps({
     modelValue: Boolean,
@@ -210,9 +217,14 @@
 
   const close = () => {
     model.value = false
-    formRef.value?.reset()
-    Object.assign(form, defaultForm())
   }
+
+  watch(model, val => {
+    if (!val) {
+      formRef.value?.reset()
+      Object.assign(form, defaultForm())
+    }
+  })
 </script>
 
 <style scoped>

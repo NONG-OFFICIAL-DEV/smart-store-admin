@@ -3,11 +3,6 @@
     v-model="dialogVisible"
     :max-width="900"
     :title="$t('stock_movements.dialog_title')"
-    icon="mdi-swap-vertical-bold"
-    color="primary"
-    :hide-submit="true"
-    :cancel-text="$t('btn.close')"
-    @close="close"
   >
     <!-- Empty State -->
     <v-alert
@@ -61,6 +56,12 @@
         </v-alert>
       </template>
     </v-data-table>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.close') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -70,7 +71,7 @@
   import { useStockMovementStore } from '@/stores/stockMovementStore'
   import { useDate } from '@/composables/useDate'
   import { useCurrency } from '@/composables/useCurrency.js'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { formatCurrency } = useCurrency()

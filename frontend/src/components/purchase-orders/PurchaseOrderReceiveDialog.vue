@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="600"
     :title="$t('po.receive_items')"
-    :subtitle="purchaseOrder?.po_number"
-    icon="mdi-package-down"
-    color="success"
     :loading="loading"
-    :submit-text="$t('po.confirm_receive')"
-    submit-icon="mdi-check"
-    @close="close"
-    @submit="save"
   >
     <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="mb-4">
       {{ $t('po.receive_instructions') }}
@@ -39,13 +32,28 @@
         :disabled="item.remaining === 0"
       />
     </div>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="success"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-check"
+        :loading="loading"
+        @click="save"
+      >
+        {{ $t('po.confirm_receive') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDialog } from '@nong-official-dev/core'
 
 const { t } = useI18n()
 
@@ -81,5 +89,7 @@ const save = () => {
   emit('save', payload)
 }
 
-const close = () => { model.value = false }
+const close = () => {
+  model.value = false
+}
 </script>

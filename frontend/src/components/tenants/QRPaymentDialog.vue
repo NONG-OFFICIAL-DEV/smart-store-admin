@@ -3,14 +3,8 @@
     v-model="model"
     :max-width="400"
     :title="method === 'aba' ? $t('tenants.qr_payment.aba_title') : $t('tenants.qr_payment.bakong_title')"
-    :subtitle="invoiceRef ? $t('tenants.qr_payment.invoice_label', { ref: invoiceRef }) : planName"
-    icon="mdi-qrcode"
-    :color="method === 'aba' ? 'blue-darken-3' : 'red-darken-3'"
     :loading="loading"
-    body-class="pa-0"
-    @close="$emit('close')"
   >
-    <template #header-extra>
       <div class="qr-band" :class="`qr-band--${method}`">
         <div class="qr-band__logo-wrap">
           <img
@@ -32,7 +26,6 @@
           <span v-if="method === 'bakong' && bakongFailed" class="qr-band__logo-fallback">Bakong</span>
         </div>
       </div>
-    </template>
 
       <!-- ── Amount row ──────────────────────────────────────────────────── -->
       <div class="qr-amount-row" :class="`qr-amount-row--${method}`">
@@ -147,7 +140,7 @@
         </div>
       </div>
 
-    <template #actions>
+    <template #actions="{ loading }">
       <v-btn variant="text" size="small" prepend-icon="mdi-refresh" :loading="loading" @click="$emit('refresh')">
         {{ $t('btn.refresh') }}
       </v-btn>
@@ -162,7 +155,7 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDialog } from '@nong-official-dev/core'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -201,8 +194,12 @@ function startCountdown() {
 }
 
 watch(() => props.modelValue, val => {
-  if (val) startCountdown()
-  else clearInterval(timer)
+  if (val) {
+    startCountdown()
+  } else {
+    clearInterval(timer)
+    emit('close')
+  }
 })
 
 watch(() => props.imageUrl, val => {

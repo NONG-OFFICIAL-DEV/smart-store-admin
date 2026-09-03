@@ -2,14 +2,8 @@
   <AppDialog
     :model-value="modelValue"
     :title="store.branch?.name ?? $t('branches.detail.title')"
-    :subtitle="branchTypeLabel"
-    :icon="typeIcon(store.branch?.branch_type?.name)"
-    :color="typeColor(store.branch?.branch_type?.name)"
     :max-width="440"
-    hide-submit
-    :cancel-text="$t('btn.close')"
     @update:model-value="$emit('update:modelValue', $event)"
-    @close="$emit('update:modelValue', false)"
   >
     <v-skeleton-loader v-if="loading" type="article" />
 
@@ -92,13 +86,19 @@
         </v-col>
       </v-row>
     </template>
+
+    <template #actions>
+      <v-btn variant="tonal" rounded="lg" @click="$emit('update:modelValue', false)">
+        {{ $t('btn.close') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { computed, ref, watch } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -109,8 +109,6 @@
 
   const store = useBranchStore()
   const loading = ref(false)
-
-  const branchTypeLabel = computed(() => store.branch?.branch_type?.name)
 
   const fullAddress = computed(() =>
     [store.branch?.address_line1, store.branch?.city, store.branch?.country]
@@ -137,20 +135,4 @@
     },
     { immediate: true }
   )
-
-  const typeIcon = type =>
-    ({
-      restaurant: 'mdi-silverware-fork-knife',
-      cafe: 'mdi-coffee',
-      kiosk: 'mdi-store-outline',
-      food_truck: 'mdi-truck-outline'
-    })[type] ?? 'mdi-store'
-
-  const typeColor = type =>
-    ({
-      restaurant: 'primary',
-      cafe: 'brown',
-      kiosk: 'orange',
-      food_truck: 'teal'
-    })[type] ?? 'grey'
 </script>

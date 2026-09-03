@@ -2,19 +2,14 @@
   <AppDialog
     :model-value="modelValue"
     :title="$t('business_type.manage_title')"
-    :subtitle="$t('business_type.subtitle')"
-    icon="mdi-briefcase-outline"
     :max-width="560"
-    hide-submit
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <template #header-extra>
-      <div class="d-flex justify-end px-5 pb-3">
-        <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-plus" @click="openCreate">
-          {{ $t('business_type.add') }}
-        </v-btn>
-      </div>
-    </template>
+    <div class="d-flex justify-end px-5 pb-3">
+      <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-plus" @click="openCreate">
+        {{ $t('business_type.add') }}
+      </v-btn>
+    </div>
 
     <v-list density="compact">
       <v-list-item v-for="item in store.businessTypes" :key="item.id">
@@ -53,14 +48,7 @@
       v-model="formDialog"
       :max-width="480"
       :title="isEdit ? $t('business_type.edit_title') : $t('business_type.create_title')"
-      :subtitle="isEdit ? $t('business_type.edit_subtitle') : $t('business_type.create_subtitle')"
-      :icon="isEdit ? 'mdi-shape-outline' : 'mdi-shape-plus-outline'"
-      :color="isEdit ? 'primary' : 'success'"
       :loading="formLoading"
-      :submit-text="isEdit ? $t('btn.update') : $t('btn.create')"
-      :submit-icon="isEdit ? 'mdi-check' : 'mdi-plus'"
-      @close="closeForm"
-      @submit="submitForm"
     >
       <v-form ref="formRef" @submit.prevent>
         <v-row dense>
@@ -128,16 +116,37 @@
           </v-col>
         </v-row>
       </v-form>
+
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="closeForm">
+          {{ $t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          :color="isEdit ? 'primary' : 'success'"
+          variant="flat"
+          rounded="lg"
+          :prepend-icon="isEdit ? 'mdi-check' : 'mdi-plus'"
+          :loading="loading"
+          @click="submitForm"
+        >
+          {{ isEdit ? $t('btn.update') : $t('btn.create') }}
+        </v-btn>
+      </template>
     </AppDialog>
+
+    <template #actions>
+      <v-btn variant="tonal" rounded="lg" @click="emit('update:modelValue', false)">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
   import { useBusinessTypeStore } from '@/stores/businessTypeStore'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { AppDialog, useAppUtils } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false }
@@ -200,9 +209,14 @@
 
   const closeForm = () => {
     formDialog.value = false
-    Object.assign(form, defaultForm())
-    formRef.value?.reset()
   }
+
+  watch(formDialog, val => {
+    if (!val) {
+      Object.assign(form, defaultForm())
+      formRef.value?.reset()
+    }
+  })
 
   const submitForm = async () => {
     formLoading.value = true

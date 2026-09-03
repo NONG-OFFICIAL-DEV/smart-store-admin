@@ -3,35 +3,25 @@
     v-model="model"
     :max-width="620"
     :title="isEdit ? $t('reservations.dialog.edit') : $t('reservations.dialog.new')"
-    :subtitle="
-      isEdit
-        ? $t('reservations.dialog.edit_subtitle')
-        : $t('reservations.dialog.new_subtitle')
-    "
-    icon="mdi-calendar-clock"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    @close="close"
   >
-    <template #header-extra>
-      <div class="px-6 pb-4">
-        <div class="d-flex align-center justify-space-between mb-2">
-          <span class="text-caption font-weight-medium text-medium-emphasis d-flex align-center ga-1">
-            <v-icon :icon="steps[currentStep - 1].icon" size="14" />
-            {{ steps[currentStep - 1].label }}
-          </span>
-          <span class="text-caption text-medium-emphasis">
-            {{ currentStep }} / {{ steps.length }}
-          </span>
-        </div>
-        <v-progress-linear
-          :model-value="(currentStep / steps.length) * 100"
-          :color="isEdit ? 'primary' : 'success'"
-          height="4"
-          rounded
-        />
+    <div class="pb-4">
+      <div class="d-flex align-center justify-space-between mb-2">
+        <span class="text-caption font-weight-medium text-medium-emphasis d-flex align-center ga-1">
+          <v-icon :icon="steps[currentStep - 1].icon" size="14" />
+          {{ steps[currentStep - 1].label }}
+        </span>
+        <span class="text-caption text-medium-emphasis">
+          {{ currentStep }} / {{ steps.length }}
+        </span>
       </div>
-    </template>
+      <v-progress-linear
+        :model-value="(currentStep / steps.length) * 100"
+        :color="isEdit ? 'primary' : 'success'"
+        height="4"
+        rounded
+      />
+    </div>
 
     <v-window v-model="currentStep" :touch="false">
       <!-- ════ Step 1 — Guest & Branch ════ -->
@@ -276,7 +266,7 @@
       </v-window-item>
     </v-window>
 
-    <template #actions>
+    <template #actions="{ loading }">
       <v-btn
         v-if="currentStep > 1"
         variant="tonal"
@@ -322,8 +312,7 @@
   import { useI18n } from 'vue-i18n'
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDialog, AppDatePicker } from '@nong-official-dev/core'
 
   const { formatTime, formatShortDateTime } = useDate()
 
@@ -509,6 +498,19 @@
     currentStep.value = 1
     emit('update:modelValue', false)
   }
+
+  // Reset the wizard when the dialog closes via the built-in × / backdrop
+  // (paths that don't go through close() above).
+  watch(
+    () => props.modelValue,
+    open => {
+      if (!open) {
+        stepRefs.forEach(r => r.value?.reset())
+        Object.assign(form, defaultForm())
+        currentStep.value = 1
+      }
+    }
+  )
 
   onMounted(() => branchStore.fetchBranches?.())
 </script>

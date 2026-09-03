@@ -4,13 +4,7 @@
     v-model="model"
     :max-width="620"
     :title="isEdit ? $t('staff.dialog.edit') : $t('staff.dialog.add')"
-    :subtitle="isEdit ? $t('staff.dialog.edit_subtitle') : $t('staff.dialog.add_subtitle')"
-    :icon="isEdit ? 'mdi-account-edit-outline' : 'mdi-account-plus-outline'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :body-class="'pa-0'"
-    :body-style="{ maxHeight: '72vh' }"
-    @close="close"
   >
         <v-form ref="formRef">
           <!-- ── EDIT MODE ──────────────────────────────────────────── -->
@@ -483,7 +477,7 @@
           </template>
         </v-form>
 
-    <template #actions>
+    <template #actions="{ loading }">
       <template v-if="isEdit">
         <v-spacer />
         <v-btn
@@ -572,9 +566,8 @@
   import { useAvatar } from '@/composables/useAvatar'
   import { usePasswordPolicy } from '@/composables/usePasswordPolicy'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import AppDialog from '@/components/common/AppDialog.vue'
   import TemporaryPasswordDialog from '@/components/common/TemporaryPasswordDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: Boolean,
@@ -614,6 +607,20 @@
   })
 
   const isEdit = computed(() => !!props.item?.id)
+
+  // Preserve the old wrapper's @close side effect (reset validation/form,
+  // return to step 1) for the X-button/Esc/backdrop dismiss path, which no
+  // longer emits a separate close event in the new AppDialog — only
+  // update:modelValue.
+  watch(model, val => {
+    if (!val) {
+      formStep1.value?.resetValidation()
+      formStep2.value?.resetValidation()
+      formStep3.value?.resetValidation()
+      Object.assign(form, defaultForm())
+      step.value = 1
+    }
+  })
 
   const stepItems = [
     { title: t('staff.step.account'), value: 1 },

@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="720"
     :title="isEdit ? $t('po.edit') : $t('po.new')"
-    :subtitle="isEdit ? purchaseOrder?.po_number : $t('po.number_auto_generated')"
-    icon="mdi-clipboard-plus-outline"
-    color="primary"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('btn.create_po')"
-    submit-icon="mdi-content-save"
-    @close="close"
-    @submit="save"
   >
         <v-form ref="formRef">
           <v-row dense>
@@ -122,6 +115,21 @@
             </div>
           </div>
         </v-form>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-content-save"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('btn.create_po') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -132,8 +140,7 @@ import { useBranchStore }   from '@/stores/branchStore'
 import { useSupplierStore }  from '@/stores/supplierStore'
 import { useIngredientStore } from '@/stores/ingredientStore'
 import { useDate } from '@/composables/useDate'
-import AppDialog from '@/components/common/AppDialog.vue'
-import { AppDatePicker } from '@nong-official-dev/core'
+import { AppDialog, AppDatePicker } from '@nong-official-dev/core'
 
 const props = defineProps({
   modelValue:    { type: Boolean, default: false },
@@ -213,7 +220,13 @@ const save = async () => {
 
 const close = () => {
   model.value = false
-  formRef.value?.reset()
-  Object.assign(form, defaultForm())
 }
+
+// Reset form when dialog closes via Cancel, submit, or the built-in ×
+watch(() => props.modelValue, open => {
+  if (!open) {
+    formRef.value?.reset()
+    Object.assign(form, defaultForm())
+  }
+})
 </script>

@@ -31,11 +31,7 @@
     <AppDialog
       v-model="settingsOpen"
       :title="t('pos.settings.title')"
-      icon="mdi-cog-outline"
       :max-width="380"
-      hide-submit
-      :cancel-text="t('btn.close')"
-      @close="settingsOpen = false"
     >
       <v-select
         v-model="customerType"
@@ -46,6 +42,11 @@
         variant="outlined"
         rounded="lg"
       />
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="settingsOpen = false">
+          {{ t('btn.close') }}
+        </v-btn>
+      </template>
     </AppDialog>
 
     <PosOrderOptionsBar
@@ -145,7 +146,7 @@
     submitRetailOrderApi
   } from '@/api/posService'
   import { getAllCustomersApi } from '@/api/customerService'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import PosOrderOptionsBar from '@/components/pos/PosOrderOptionsBar.vue'
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'

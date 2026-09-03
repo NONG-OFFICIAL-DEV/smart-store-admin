@@ -3,14 +3,8 @@
     v-model="model"
     :max-width="450"
     :persistent="false"
-    :scrollable="false"
     :title="editMode ? $t('categories.dialog.edit') : $t('categories.dialog.add')"
-    :icon="editMode ? 'mdi-shape-outline' : 'mdi-shape-plus-outline'"
-    :color="editMode ? 'primary' : 'success'"
     :loading="categoryStore.loading"
-    :submit-text="editMode ? $t('btn.update') : $t('btn.create')"
-    @close="close"
-    @submit="save"
   >
     <v-form ref="formRef" @submit.prevent="save">
       <v-label class="mb-2 font-weight-medium">{{ $t('categories.form.name') }}</v-label>
@@ -35,13 +29,28 @@
         </template>
       </v-list-item>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="editMode ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="save"
+      >
+        {{ editMode ? $t('btn.update') : $t('btn.create') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useCategoryMenuStore } from '@/stores/categoryMenu'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: Boolean,
@@ -75,13 +84,14 @@
         } else {
           form.value = { ...defaultForm }
         }
+      } else {
+        formRef.value?.resetValidation()
       }
     }
   )
 
   function close() {
     emit('update:modelValue', false)
-    formRef.value?.resetValidation()
   }
 
   async function save() {

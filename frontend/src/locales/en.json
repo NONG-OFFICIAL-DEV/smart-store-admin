@@ -33,6 +33,7 @@
     "activity_log": "Activity Log",
     "branches": "Branches",
     "staff": "Staff",
+    "employee": "Employee",
     "staff_list": "Staff List",
     "shift": "Shift",
     "shift_assign": "Shift Assignment",
@@ -1283,7 +1284,7 @@
   },
   "purchase_order": {
     "title": "Purchase Orders",
-    "subtitle": "Manage mart stock replenishment orders",
+    "subtitle": "Manage stock replenishment orders",
     "summary": {
       "total": "Total POs",
       "in_progress": "In Progress",
@@ -1496,9 +1497,7 @@
   "workforce": {
     "title": "Workforce",
     "tabs": {
-      "staff": "Staff",
-      "shifts": "Shifts",
-      "assignments": "Assignments"
+      "shifts": "Shifts"
     }
   },
   "inventory_hub": {
@@ -1537,6 +1536,7 @@
   "staff": {
     "title": "Staff Management",
     "subtitle": "Manage your team members and their access",
+    "create_employee": "Create Employee",
     "table": {
       "name": "Name",
       "code": "Code",
@@ -1639,7 +1639,6 @@
   },
   "shifts": {
     "title": "Shifts",
-    "subtitle": "Manage work shifts and schedules",
     "table": {
       "name": "Shift Name",
       "start": "Start Time",
@@ -1740,7 +1739,6 @@
   },
   "shift_assignments": {
     "title": "Shift Assignments",
-    "subtitle": "Assign staff members to shifts",
     "status": {
       "completed": "Completed",
       "clocked_in": "Clocked In",
@@ -1765,7 +1763,7 @@
         "hint": "Which shift?"
       },
       "staff": {
-        "label": "Staff Member",
+        "label": "Assign To",
         "hint": "Who works this shift?"
       },
       "branch": {

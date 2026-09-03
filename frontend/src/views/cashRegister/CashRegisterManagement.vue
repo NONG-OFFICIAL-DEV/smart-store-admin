@@ -110,15 +110,8 @@
     <AppDialog
       v-model="openDialog"
       :title="t('cash_register.open_register')"
-      icon="mdi-lock-open-variant-outline"
-      color="success"
       :max-width="380"
       :loading="submitting"
-      :submit-text="t('cash_register.open_register')"
-      :disable-submit="!openForm.branch_id || !openForm.staff_id"
-      :error-message="openError"
-      @close="openDialog = false"
-      @submit="submitOpen"
     >
       <v-select
         v-model="openForm.branch_id"
@@ -149,21 +142,33 @@
         variant="outlined"
         rounded="lg"
       />
+
+      <template #actions="{ loading }">
+        <span v-if="openError" class="text-caption text-error mr-auto">
+          <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />{{ openError }}
+        </span>
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="openDialog = false">
+          {{ t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          color="success"
+          variant="flat"
+          rounded="lg"
+          :loading="loading"
+          :disabled="!openForm.branch_id || !openForm.staff_id"
+          @click="submitOpen"
+        >
+          {{ t('cash_register.open_register') }}
+        </v-btn>
+      </template>
     </AppDialog>
 
     <!-- Close Register -->
     <AppDialog
       v-model="closeDialog"
       :title="t('cash_register.close_register')"
-      icon="mdi-lock-outline"
-      color="error"
       :max-width="380"
       :loading="submitting"
-      :submit-text="t('cash_register.confirm_close')"
-      :disable-submit="closeForm.actual_cash === null || closeForm.actual_cash === ''"
-      :error-message="closeError"
-      @close="closeDialog = false"
-      @submit="submitClose"
     >
       <v-text-field
         v-model.number="closeForm.actual_cash"
@@ -181,6 +186,25 @@
         rounded="lg"
         rows="2"
       />
+
+      <template #actions="{ loading }">
+        <span v-if="closeError" class="text-caption text-error mr-auto">
+          <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />{{ closeError }}
+        </span>
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="closeDialog = false">
+          {{ t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          color="error"
+          variant="flat"
+          rounded="lg"
+          :loading="loading"
+          :disabled="closeForm.actual_cash === null || closeForm.actual_cash === ''"
+          @click="submitClose"
+        >
+          {{ t('cash_register.confirm_close') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </v-container>
 </template>
@@ -188,7 +212,7 @@
 <script setup>
   import { ref, reactive, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, useAppUtils, AppDialog } from '@nong-official-dev/core'
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
   import {
@@ -197,7 +221,6 @@
     closeCashDrawerApi
   } from '@/api/cashDrawerService'
   import { getAllStaffApi, getStaffByIdApi } from '@/api/staffService'
-  import AppDialog from '@/components/common/AppDialog.vue'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()

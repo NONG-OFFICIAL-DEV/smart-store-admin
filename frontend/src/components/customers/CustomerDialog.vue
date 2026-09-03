@@ -2,8 +2,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDate } from '@/composables/useDate'
-import AppDialog from '@/components/common/AppDialog.vue'
-import { AppDatePicker } from '@nong-official-dev/core'
+import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
 const { t } = useI18n()
 const { formatLocalDate } = useDate()
@@ -87,15 +86,8 @@ const submit = async () => {
     :max-width="580"
     :persistent="false"
     :title="editing ? $t('customers.dialog.title_edit') : $t('customers.dialog.title_new')"
-    :subtitle="editing ? $t('customers.dialog.subtitle_edit') : $t('customers.dialog.subtitle_new')"
-    :icon="editing ? 'mdi-account-edit-outline' : 'mdi-account-plus-outline'"
-    :color="editing ? 'primary' : 'success'"
     :loading="saving"
-    :submit-text="editing ? $t('btn.save_changes') : $t('btn.add_customer')"
-    :submit-icon="editing ? 'mdi-content-save-outline' : 'mdi-plus'"
     @update:model-value="emit('update:modelValue', $event)"
-    @close="close"
-    @submit="submit"
   >
     <v-form ref="formRef">
         <p class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-3" style="letter-spacing:.08em">
@@ -151,5 +143,21 @@ const submit = async () => {
           </v-col>
         </v-row>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="editing ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="editing ? 'mdi-content-save-outline' : 'mdi-plus'"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ editing ? $t('btn.save_changes') : $t('btn.add_customer') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>

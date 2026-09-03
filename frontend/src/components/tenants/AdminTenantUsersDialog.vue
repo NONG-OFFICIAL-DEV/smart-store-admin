@@ -2,7 +2,6 @@
   <AppDialog
     :model-value="modelValue"
     :title="t('admin_tenant_users.dialog_title', { name: tenant?.name })"
-    icon="mdi-account-multiple-outline"
     max-width="800"
     @update:model-value="emit('update:modelValue', $event)"
   >
@@ -62,8 +61,8 @@
       </tbody>
     </v-table>
 
-    <template #actions>
-      <v-btn variant="text" @click="emit('update:modelValue', false)">{{ t('btn.close') }}</v-btn>
+    <template #actions="{ loading }">
+      <v-btn variant="text" :disabled="loading" @click="emit('update:modelValue', false)">{{ t('btn.close') }}</v-btn>
     </template>
   </AppDialog>
 
@@ -73,8 +72,7 @@
 <script setup>
   import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useAppUtils } from '@nong-official-dev/core'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { useAppUtils, AppDialog } from '@nong-official-dev/core'
   import TemporaryPasswordDialog from '@/components/common/TemporaryPasswordDialog.vue'
   import {
     getAdminTenantUsersApi,

@@ -1,8 +1,7 @@
 <script setup>
   import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -51,15 +50,9 @@
     :model-value="modelValue"
     :max-width="600"
     :persistent="false"
-    :scrollable="false"
     :title="editing ? t('coupons.dialog.edit_title') : t('coupons.dialog.new_title')"
-    icon="mdi-ticket-percent-outline"
-    :color="editing ? 'primary' : 'success'"
     :loading="saving"
-    :submit-text="editing ? t('coupons.dialog.save_changes') : t('coupons.dialog.create_coupon')"
     @update:model-value="emit('update:modelValue', $event)"
-    @close="close"
-    @submit="submit"
   >
         <v-row dense>
           <v-col cols="6">
@@ -112,5 +105,20 @@
             />
           </v-col>
         </v-row>
+
+        <template #actions="{ loading }">
+          <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+            {{ t('btn.cancel') }}
+          </v-btn>
+          <v-btn
+            :color="editing ? 'primary' : 'success'"
+            variant="flat"
+            rounded="lg"
+            :loading="loading"
+            @click="submit"
+          >
+            {{ editing ? t('coupons.dialog.save_changes') : t('coupons.dialog.create_coupon') }}
+          </v-btn>
+        </template>
   </AppDialog>
 </template>

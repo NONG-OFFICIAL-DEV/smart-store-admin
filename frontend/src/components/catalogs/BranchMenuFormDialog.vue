@@ -3,18 +3,7 @@
     :model-value="modelValue"
     :max-width="560"
     :title="isEdit ? $t('menus.assign.titleEdit') : $t('menus.assign.titleCreate')"
-    :subtitle="
-      isEdit
-        ? $t('menus.assign.subtitleEdit')
-        : $t('menus.assign.subtitleCreate')
-    "
-    :icon="isEdit ? 'mdi-book-edit-outline' : 'mdi-link-variant'"
-    :color="isEdit ? 'primary' : 'success'"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('menus.assign.assign_menu')"
-    :submit-icon="isEdit ? 'mdi-content-save' : 'mdi-link-variant'"
     @update:model-value="$emit('update:modelValue', $event)"
-    @close="close"
-    @submit="handleSubmit"
   >
     <!-- ── Form ────────────────────────────────────────────────────────────── -->
     <v-form ref="formRef" @submit.prevent="handleSubmit">
@@ -175,13 +164,29 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-link-variant'"
+        :loading="loading"
+        @click="handleSubmit"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('menus.assign.assign_menu') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -286,6 +291,9 @@
     open => {
       if (open && !isEdit.value && hasSingleBranch.value) {
         form.value.branch_id = props.branches[0].id
+      } else if (!open) {
+        formRef.value?.reset()
+        form.value = defaultForm()
       }
     }
   )

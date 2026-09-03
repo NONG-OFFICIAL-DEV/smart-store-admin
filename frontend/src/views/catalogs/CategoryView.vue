@@ -18,11 +18,11 @@
         />
         <div class="d-flex align-center ga-2">
           <span class="text-body-2">{{ t('categories.dialog.active_status') }}</span>
-          <v-switch v-model="newCategory.is_active" color="success" hide-details density="compact" inset />
+          <v-switch v-model="newCategory.is_active" color="success" hide-details density="compact" />
         </div>
         <div class="d-flex align-center ga-2">
           <span class="text-body-2">{{ t('categories.dialog.lid_exchange') }}</span>
-          <v-switch v-model="newCategory.is_lid_exchange" color="warning" hide-details density="compact" inset />
+          <v-switch v-model="newCategory.is_lid_exchange" color="warning" hide-details density="compact" />
         </div>
         <v-select
           v-if="adminMode"
@@ -72,11 +72,11 @@
               />
               <div class="d-flex align-center ga-2">
                 <span class="text-body-2">{{ t('categories.dialog.active_status') }}</span>
-                <v-switch v-model="editForm.is_active" color="success" hide-details density="compact" inset />
+                <v-switch v-model="editForm.is_active" color="success" hide-details density="compact" />
               </div>
               <div class="d-flex align-center ga-2">
                 <span class="text-body-2">{{ t('categories.dialog.lid_exchange') }}</span>
-                <v-switch v-model="editForm.is_lid_exchange" color="warning" hide-details density="compact" inset />
+                <v-switch v-model="editForm.is_lid_exchange" color="warning" hide-details density="compact" />
               </div>
               <v-select
                 v-if="adminMode"

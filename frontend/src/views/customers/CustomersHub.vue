@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
   import { useAuthStore } from '@/stores/authStore'
@@ -41,5 +41,17 @@
   const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
   const activeTab = ref(
     visibleTabs.value.find(tb => tb.key === requestedTab)?.key ?? visibleTabs.value[0]?.key
+  )
+
+  // Sidebar submenu items link here with a different `?tab=` while already
+  // on this route — Vue Router reuses this component instance for a
+  // query-only navigation, so the initial ref alone won't pick it up.
+  watch(
+    () => route.query.tab,
+    tab => {
+      if (typeof tab === 'string' && visibleTabs.value.some(tb => tb.key === tab)) {
+        activeTab.value = tab
+      }
+    }
   )
 </script>

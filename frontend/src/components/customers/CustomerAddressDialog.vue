@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDialog } from '@nong-official-dev/core'
 
 const { t } = useI18n()
 
@@ -70,14 +70,8 @@ const submit = async () => {
     :max-width="520"
     :persistent="false"
     :title="editing ? $t('customers.address_dialog.title_edit') : $t('customers.address_dialog.title_new')"
-    :subtitle="editing ? $t('customers.address_dialog.subtitle_edit') : $t('customers.address_dialog.subtitle_new')"
-    :icon="editing ? 'mdi-map-marker-outline' : 'mdi-map-marker-plus-outline'"
-    :color="editing ? 'primary' : 'success'"
     :loading="saving"
-    :submit-text="editing ? $t('btn.save_changes') : $t('customers.address_dialog.add')"
     @update:model-value="emit('update:modelValue', $event)"
-    @close="close"
-    @submit="submit"
   >
     <v-form ref="formRef" validate-on="submit">
           <v-row dense>
@@ -159,5 +153,20 @@ const submit = async () => {
 
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="editing ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ editing ? $t('btn.save_changes') : $t('customers.address_dialog.add') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>

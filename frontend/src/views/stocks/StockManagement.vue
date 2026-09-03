@@ -1,33 +1,35 @@
 <template>
   <v-container fluid class="pa-0">
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showFilters ? 'primary' : 'default'"
-        :variant="showFilters ? 'flat' : 'tonal'"
-        rounded="lg"
-        :prepend-icon="
-          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-        "
-        @click="showFilters = !showFilters"
-      >
-        {{ $t('btn.filter') }}
-        <v-badge
-          v-if="activeFilterCount > 0"
-          :content="activeFilterCount"
-          color="error"
-          floating
-        />
-      </v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openAdd"
-      >
-        {{ $t('stock.adjust.add_stock') }}
-      </v-btn>
-    </div>
+    <AppToolbar :title="t('stock.management.title')" :subtitle="t('stock.management.subtitle')">
+      <template #actions>
+        <v-btn
+          :color="showFilters ? 'primary' : 'default'"
+          :variant="showFilters ? 'flat' : 'tonal'"
+          rounded="lg"
+          :prepend-icon="
+            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+          "
+          @click="showFilters = !showFilters"
+        >
+          {{ $t('btn.filter') }}
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
+            color="error"
+            floating
+          />
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openAdd"
+        >
+          {{ $t('stock.adjust.add_stock') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
     <!-- ── Low Stock Alert ────────────────────────────────────────────── -->
     <v-alert
@@ -287,6 +289,7 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { AppTable } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import InventoryStockDialog from '@/components/inventory/InventoryStockDialog.vue'
   import { useDate } from '@/composables/useDate'
 

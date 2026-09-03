@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="480"
     :title="isEdit ? t('products.variant.editTitle') : t('products.variant.addTitle')"
-    :subtitle="t('products.variant.subtitle')"
-    icon="mdi-shape-plus"
-    color="primary"
     :loading="loading"
-    :submit-text="isEdit ? t('btn.save') : t('btn.create')"
-    submit-icon="mdi-content-save"
-    @close="close"
-    @submit="save"
   >
         <v-form ref="formRef">
           <v-row dense>
@@ -106,6 +99,21 @@
             </v-col>
           </v-row>
         </v-form>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-content-save"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? t('btn.save') : t('btn.create') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -113,7 +121,7 @@
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   const { format } = useCurrency()
 
   const { t } = useI18n({ useScope: 'global' })
@@ -175,11 +183,20 @@
     maxLen: n => v => !v || v.length <= n || t('products.rule.maxLen', { n })
   }
 
+  // ── Reset form when dialog closes (Cancel, submit, or the built-in × ) ──────
+  watch(
+    () => props.modelValue,
+    open => {
+      if (!open) {
+        Object.assign(form, defaultForm())
+        formRef.value?.reset()
+      }
+    }
+  )
+
   // ── Close ──────────────────────────────────────────────────────────────────
   const close = () => {
     model.value = false
-    Object.assign(form, defaultForm())
-    formRef.value?.reset()
   }
 
   // ── Save ───────────────────────────────────────────────────────────────────

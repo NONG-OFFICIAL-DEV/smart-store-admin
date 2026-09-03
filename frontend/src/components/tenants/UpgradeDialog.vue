@@ -4,34 +4,29 @@
     :max-width="900"
     :persistent="confirming"
     :title="t('subscription.upgrade_dialog.choose_plan')"
-    icon="mdi-crown-outline"
-    color="warning"
     :loading="confirming"
-    body-class="pa-0"
   >
-    <template #header-extra>
-      <div class="px-6 pb-4">
-        <div class="text-caption text-medium-emphasis mb-4 ms-10">
-          {{ t('subscription.upgrade_dialog.currently_on') }}
-          <v-chip
-            size="x-small"
-            :color="currentPlanMeta?.color ?? 'grey'"
-            variant="tonal"
-            class="mx-1 font-weight-medium"
-          >
-            <v-icon start size="11">{{ currentPlanMeta?.icon ?? 'mdi-circle' }}</v-icon>
-            {{ currentPlan?.name ?? t('subscription.upgrade_dialog.no_plan') }}
-          </v-chip>
-          <span v-if="props.activeBillingCycle">· {{ props.activeBillingCycle.label }}</span>
-        </div>
+        <div class="px-6 pb-4">
+          <div class="text-caption text-medium-emphasis mb-4 ms-10">
+            {{ t('subscription.upgrade_dialog.currently_on') }}
+            <v-chip
+              size="x-small"
+              :color="currentPlanMeta?.color ?? 'grey'"
+              variant="tonal"
+              class="mx-1 font-weight-medium"
+            >
+              <v-icon start size="11">{{ currentPlanMeta?.icon ?? 'mdi-circle' }}</v-icon>
+              {{ currentPlan?.name ?? t('subscription.upgrade_dialog.no_plan') }}
+            </v-chip>
+            <span v-if="props.activeBillingCycle">· {{ props.activeBillingCycle.label }}</span>
+          </div>
 
-        <!-- Tabs -->
-        <v-tabs v-model="activeTab" density="compact" color="primary">
-          <v-tab value="plans">{{ t('subscription.plan.title') }}</v-tab>
-          <v-tab value="billing">{{ t('subscription.upgrade_dialog.tab_billing') }}</v-tab>
-        </v-tabs>
-      </div>
-    </template>
+          <!-- Tabs -->
+          <v-tabs v-model="activeTab" density="compact" color="primary">
+            <v-tab value="plans">{{ t('subscription.plan.title') }}</v-tab>
+            <v-tab value="billing">{{ t('subscription.upgrade_dialog.tab_billing') }}</v-tab>
+          </v-tabs>
+        </div>
 
         <v-tabs-window v-model="activeTab">
 
@@ -300,8 +295,8 @@
 
         </v-tabs-window>
 
-    <template #actions>
-      <v-btn variant="text" rounded="lg" size="small" :disabled="confirming" @click="model = false">
+    <template #actions="{ loading }">
+      <v-btn variant="text" rounded="lg" size="small" :disabled="loading" @click="model = false">
         {{ t('btn.cancel') }}
       </v-btn>
       <v-spacer />
@@ -322,7 +317,7 @@
         variant="flat"
         rounded="lg"
         class="px-6 font-weight-bold"
-        :loading="confirming"
+        :loading="loading"
         :disabled="!selected || isCurrentPlan(selected)"
         prepend-icon="mdi-crown-outline"
         @click="confirm"
@@ -339,8 +334,7 @@ import { useI18n } from 'vue-i18n'
 import { usePlanStore }   from '@/stores/planStore'
 import { useAuthStore }   from '@/stores/authStore'
 import { useAppUtils }    from '@/composables/useAppUtils'
-import { formatCurrency, formatDateText } from '@nong-official-dev/core'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { formatCurrency, formatDateText, AppDialog } from '@nong-official-dev/core'
 
 const { locale, t } = useI18n()
 

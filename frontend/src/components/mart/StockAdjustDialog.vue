@@ -2,15 +2,8 @@
   <AppDialog
     v-model="model"
     :max-width="620"
-    :scrollable="false"
     :title="t('stock.adjust.title')"
-    :subtitle="t('stock.adjust.subtitle')"
-    :icon="currentType?.icon ?? 'mdi-tune'"
-    :color="currentType?.color ?? 'primary'"
     :loading="loading"
-    :submit-text="t('stock.adjust.apply')"
-    @close="close"
-    @submit="save"
   >
         <v-form ref="formRef">
           <!-- Type selector -->
@@ -171,6 +164,21 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="currentType?.color ?? 'primary'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="save"
+      >
+        {{ t('stock.adjust.apply') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -178,7 +186,7 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useMartProductStore } from '@/stores/martProductStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const martProductStore = useMartProductStore()
@@ -307,6 +315,8 @@
           )
           if (base) form.product_unit_id = base.id
         }
+      } else {
+        formRef.value?.reset()
       }
     }
   )

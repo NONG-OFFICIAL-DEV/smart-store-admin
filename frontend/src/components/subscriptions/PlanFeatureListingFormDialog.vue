@@ -3,11 +3,7 @@
     v-model="model"
     :max-width="480"
     :title="editingListing ? $t('subscription.plan_feature_listings.edit_title') : $t('subscription.plan_feature_listings.new_title')"
-    :icon="editingListing ? 'mdi-pencil-outline' : 'mdi-plus'"
-    :color="editingListing ? 'primary' : 'success'"
     :loading="saving"
-    :submit-text="editingListing ? $t('btn.save_changes') : $t('btn.save')"
-    @submit="submit"
   >
     <v-form ref="formRef" @submit.prevent="submit" v-model="isValid">
       <v-row dense>
@@ -67,13 +63,26 @@
         </v-col>
       </v-row>
     </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">{{ $t('btn.cancel') }}</v-btn>
+      <v-btn
+        :color="editingListing ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ editingListing ? $t('btn.save_changes') : $t('btn.save') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 

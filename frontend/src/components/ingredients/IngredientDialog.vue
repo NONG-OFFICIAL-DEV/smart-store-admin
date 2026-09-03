@@ -3,15 +3,7 @@
     v-model="model"
     :max-width="620"
     :title="isEdit ? $t('ingredients.dialog.edit_title') : $t('ingredients.dialog.new_title')"
-    :subtitle="isEdit ? ingredient?.name : $t('ingredients.dialog.fill_details')"
-    :icon="isEdit ? 'mdi-flask-outline' : 'mdi-flask-plus-outline'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    body-class="pa-0"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('ingredients.dialog.create_btn')"
-    :submit-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
-    @close="close"
-    @submit="save"
   >
         <v-form ref="formRef">
           <!-- ── Basic Info ──────────────────────────────────────────────── -->
@@ -172,6 +164,22 @@
             </v-row>
           </div>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('ingredients.dialog.create_btn') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -179,7 +187,7 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useSupplierStore } from '@/stores/supplierStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -198,6 +206,16 @@
     set: v => emit('update:modelValue', v)
   })
   const isEdit = computed(() => !!props.ingredient?.id)
+
+  // Preserve the old wrapper's @close side effect (reset form) for the
+  // X-button/Esc/backdrop dismiss path, which no longer emits a separate
+  // close event in the new AppDialog — only update:modelValue.
+  watch(model, val => {
+    if (!val) {
+      formRef.value?.reset()
+      Object.assign(form, defaultForm())
+    }
+  })
 
   // ── Options ───────────────────────────────────────────────────────────────────
   const unitOptions = [

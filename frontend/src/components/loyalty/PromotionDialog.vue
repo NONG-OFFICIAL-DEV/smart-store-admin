@@ -1,8 +1,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { AppDatePicker } from '@nong-official-dev/core'
+  import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -225,56 +224,44 @@
     :model-value="modelValue"
     :max-width="640"
     :title="editing ? t('promotions.dialog.edit_title') : t('promotions.dialog.new_title')"
-    :subtitle="
-      t('promotions.dialog.step_progress', {
-        current: step,
-        total: steps.length,
-        subtitle: steps[step - 1].subtitle
-      })
-    "
-    icon="mdi-sale-outline"
-    :color="editing ? 'primary' : 'success'"
     :loading="saving"
     @update:model-value="emit('update:modelValue', $event)"
-    @close="close"
   >
-    <template #header-extra>
-      <!-- ── STEP INDICATOR ─────────────────────────────────────────────── -->
-      <div class="px-5 pb-3">
-        <div class="d-flex align-center step-track">
-          <template v-for="(s, idx) in steps" :key="s.value">
-            <div class="d-flex flex-column align-center step-node">
-              <v-avatar
-                size="36"
-                :color="step >= s.value ? 'primary' : 'grey-lighten-2'"
-                :variant="step >= s.value ? 'flat' : 'tonal'"
-              >
-                <v-icon
-                  :icon="step > s.value ? 'mdi-check' : s.icon"
-                  :color="step >= s.value ? 'white' : 'grey-darken-1'"
-                  size="18"
-                />
-              </v-avatar>
-              <span
-                class="text-caption mt-1 text-center"
-                :class="
-                  step >= s.value
-                    ? 'text-primary font-weight-medium'
-                    : 'text-medium-emphasis'
-                "
-              >
-                {{ s.title }}
-              </span>
-            </div>
-            <div
-              v-if="idx < steps.length - 1"
-              class="step-line"
-              :class="step > s.value ? 'step-line--active' : ''"
-            />
-          </template>
-        </div>
+    <!-- ── STEP INDICATOR ─────────────────────────────────────────────── -->
+    <div class="pb-3">
+      <div class="d-flex align-center step-track">
+        <template v-for="(s, idx) in steps" :key="s.value">
+          <div class="d-flex flex-column align-center step-node">
+            <v-avatar
+              size="36"
+              :color="step >= s.value ? 'primary' : 'grey-lighten-2'"
+              :variant="step >= s.value ? 'flat' : 'tonal'"
+            >
+              <v-icon
+                :icon="step > s.value ? 'mdi-check' : s.icon"
+                :color="step >= s.value ? 'white' : 'grey-darken-1'"
+                size="18"
+              />
+            </v-avatar>
+            <span
+              class="text-caption mt-1 text-center"
+              :class="
+                step >= s.value
+                  ? 'text-primary font-weight-medium'
+                  : 'text-medium-emphasis'
+              "
+            >
+              {{ s.title }}
+            </span>
+          </div>
+          <div
+            v-if="idx < steps.length - 1"
+            class="step-line"
+            :class="step > s.value ? 'step-line--active' : ''"
+          />
+        </template>
       </div>
-    </template>
+    </div>
 
     <v-window v-model="step" class="py-2">
       <!-- STEP 1: BASICS -->
@@ -551,17 +538,17 @@
       </v-window-item>
     </v-window>
 
-    <template #actions>
+    <template #actions="{ loading }">
       <v-btn
         v-if="step > 1"
         variant="text"
-        :disabled="saving"
+        :disabled="loading"
         prepend-icon="mdi-arrow-left"
         @click="goBack"
       >
         {{ $t('btn.back') }}
       </v-btn>
-      <v-btn v-else variant="text" :disabled="saving" @click="close">
+      <v-btn v-else variant="text" :disabled="loading" @click="close">
         {{ $t('btn.cancel') }}
       </v-btn>
 
@@ -571,7 +558,7 @@
         color="primary"
         variant="flat"
         rounded="lg"
-        :loading="saving"
+        :loading="loading"
         :disabled="!canGoNext"
         :append-icon="isLastStep ? undefined : 'mdi-arrow-right'"
         @click="handlePrimaryAction"

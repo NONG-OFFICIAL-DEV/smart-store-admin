@@ -1,23 +1,17 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      v-if="!hideHeader"
-      icon="mdi-calendar-account-outline"
-      :title="$t('shift_assignments.title')"
-      :subtitle="$t('shift_assignments.subtitle')"
-    >
-      <template #right>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-account-plus"
-          rounded="lg"
-          class="ms-4"
-          @click="openCreate"
-        >
-          {{ $t('btn.assign') }}
-        </v-btn>
-      </template>
-    </custom-title>
+    <!-- No title here — this only ever renders inside AssignmentManagerDialog,
+         whose AppDialog already shows one. -->
+    <div class="d-flex justify-end mb-4">
+      <v-btn
+        color="primary"
+        prepend-icon="mdi-account-plus"
+        rounded="lg"
+        @click="openCreate"
+      >
+        {{ $t('btn.assign') }}
+      </v-btn>
+    </div>
 
     <!-- ── Filters ──────────────── -->
     <v-row dense align="center" class="mb-2">
@@ -177,8 +171,11 @@
   } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
 
-  defineProps({
-    hideHeader: { type: Boolean, default: false }
+  // Preset from ShiftManagement's "assign staff" row action, handed off via
+  // StaffManagement.vue (see its onAssignStaff) — falls back to the old
+  // ?shift_id= query param so a direct/bookmarked link still works.
+  const props = defineProps({
+    presetShiftId: { type: String, default: null }
   })
 
   const route = useRoute()
@@ -194,11 +191,13 @@
   const saving = ref(false)
   const selectedItem = ref(null)
 
-  // Pre-fill shift_id if navigating from ShiftsView
+  // Pre-fill shift_id if handed off from ShiftManagement's "assign staff"
+  // row action, or (older, still-bookmarkable path) navigated to directly
+  // with a ?shift_id= query param.
   const filterState = ref({
     date_from: null,
     date_to: null,
-    shift_id: route.query.shift_id || null,
+    shift_id: props.presetShiftId || route.query.shift_id || null,
     staff_id: route.query.staff_id || null
   })
 
@@ -348,8 +347,6 @@
       staffStore.fetchStaff({ perPage: 100 })
     ])
   })
-
-  defineExpose({ openCreate })
 </script>
 
 <style scoped>

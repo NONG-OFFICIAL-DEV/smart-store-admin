@@ -29,22 +29,6 @@
         {{ $t('ingredients.add') }}
       </v-btn>
     </div>
-
-    <!-- ── Stats ──────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <v-col v-for="s in statCards" :key="s.label" cols="6" sm="3">
-        <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ s.label }}</span>
-            <v-icon :icon="s.icon" :color="s.color" size="18" />
-          </div>
-          <div class="text-h6 font-weight-bold" :class="`text-${s.color}`">
-            {{ s.value }}
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
     <!-- ── Filters ────────────────────────────────────────────────────────── -->
     <v-expand-transition>
       <v-card v-if="showFilters" rounded="lg" border elevation="0" class="mb-4">
@@ -246,16 +230,18 @@
       v-model="deleteDialog"
       :max-width="400"
       :persistent="false"
-      :scrollable="false"
       :title="$t('ingredients.delete_title')"
-      :subtitle="deleteTarget?.name"
-      icon="mdi-delete-outline"
-      color="error"
       :loading="deleting"
-      :submit-text="$t('btn.delete')"
-      @submit="doDelete"
     >
       {{ $t('ingredients.delete_body') }}
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="deleteDialog = false">
+          {{ $t('btn.cancel') }}
+        </v-btn>
+        <v-btn color="error" variant="flat" rounded="lg" :loading="loading" @click="doDelete">
+          {{ $t('btn.delete') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </div>
 </template>
@@ -265,9 +251,8 @@
   import { useI18n } from 'vue-i18n'
   import { useIngredientStore } from '@/stores/ingredientStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppStatusChip, AppTable } from '@nong-official-dev/core'
+  import { AppStatusChip, AppTable, AppDialog } from '@nong-official-dev/core'
   import IngredientDialog from '@/components/ingredients/IngredientDialog.vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
 
   const ingredientStore = useIngredientStore()
   const { notif } = useAppUtils()

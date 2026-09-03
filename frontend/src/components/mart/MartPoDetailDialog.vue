@@ -4,28 +4,22 @@
     :max-width="640"
     :persistent="false"
     :title="po?.po_number || ''"
-    icon="mdi-clipboard-text-outline"
-    color="primary"
-    body-class="pa-5"
-    :hide-actions="true"
   >
-    <template #header-extra>
-      <div v-if="po" class="d-flex align-center gap-2 px-5 pb-4" style="margin-top: -8px">
-        <v-chip
-          size="small"
-          rounded="lg"
-          variant="tonal"
-          :color="statusColor(po.status)"
-        >
-          {{ $t(`po.status.${po.status}`) }}
-        </v-chip>
-        <span class="text-caption text-medium-emphasis">
-          {{ fmtDate(po.created_at) }}
-        </span>
-      </div>
-    </template>
-
     <template v-if="po">
+        <div class="d-flex align-center gap-2 mb-4">
+          <v-chip
+            size="small"
+            rounded="lg"
+            variant="tonal"
+            :color="statusColor(po.status)"
+          >
+            {{ $t(`po.status.${po.status}`) }}
+          </v-chip>
+          <span class="text-caption text-medium-emphasis">
+            {{ fmtDate(po.created_at) }}
+          </span>
+        </div>
+
         <!-- Meta -->
         <v-row dense class="mb-4">
           <v-col cols="6">
@@ -101,7 +95,7 @@
 
 <script setup>
   import { computed } from 'vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
 
   const { formatShortDate: fmtDate } = useDate()

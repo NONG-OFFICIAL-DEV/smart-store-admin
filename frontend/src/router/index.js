@@ -143,9 +143,25 @@ const routes = [
       },
       {
         path: '/inventory',
-        name: 'inventory-hub',
-        component: () => import('@/views/stocks/InventoryHub.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: '/inventory/stock'
+      },
+      {
+        path: '/inventory/stock',
+        name: 'inventory-stock',
+        component: () => import('@/views/stocks/InventoryStockPage.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'inventory.manage' }
+      },
+      {
+        path: '/inventory/purchase-orders',
+        name: 'inventory-purchase-orders',
+        component: () => import('@/views/stocks/InventoryPurchaseOrdersPage.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'purchase_orders.manage' }
+      },
+      {
+        path: '/inventory/suppliers',
+        name: 'inventory-suppliers',
+        component: () => import('@/views/stocks/SupplierManagement.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'suppliers.manage' }
       },
       {
         path: '/customers-hub',
@@ -260,17 +276,17 @@ const routes = [
       {
         path: '/suppliers',
         name: 'Suppliers',
-        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'suppliers' } })
+        redirect: '/inventory/suppliers'
       },
       {
         path: '/stocks',
         name: 'Stocks',
-        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'stock' } })
+        redirect: '/inventory/stock'
       },
       {
         path: '/purchases',
         name: 'Purchases',
-        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'purchase-orders' } })
+        redirect: '/inventory/purchase-orders'
       },
       {
         path: '/stock-reports',
@@ -320,30 +336,36 @@ const routes = [
         component: () => import('@/views/Notification.vue'),
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
+      // Staff/Shifts/ShiftAssignments used to be one tabbed Workforce hub
+      // page (WorkforceHub.vue) — Shift/Assignment management moved into
+      // "manage" dialogs launched from the Employee page toolbar instead
+      // (see StaffManagement.vue), so their old routes below just redirect
+      // straight to /employees now, same as the earlier Products/Categories
+      // restructuring.
+      {
+        path: '/employees',
+        name: 'employees',
+        component: () => import('@/views/staff/StaffManagement.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'staff.manage' }
+      },
       {
         path: '/workforce',
-        name: 'workforce',
-        component: () => import('@/views/staff/WorkforceHub.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: '/employees'
       },
-      // Staff/Shifts/ShiftAssignments were merged into one tabbed Workforce
-      // page — these keep the old names/paths resolvable (bookmarks, and
-      // ShiftManagement.vue's own `:to="{ name: 'ShiftAssignments', ... }"`
-      // row action) by redirecting into the hub with the right tab selected.
       {
         path: '/staff-management',
         name: 'Staff',
-        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'staff' } })
+        redirect: '/employees'
       },
       {
         path: '/shift-assignments',
         name: 'ShiftAssignments',
-        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'assignments' } })
+        redirect: '/employees'
       },
       {
         path: '/shift-management',
         name: 'Shifts',
-        redirect: to => ({ name: 'workforce', query: { ...to.query, tab: 'shifts' } })
+        redirect: '/employees'
       },
       {
         path: '/dining-table',
@@ -364,7 +386,7 @@ const routes = [
       {
         path: '/mart/purchase-order',
         name: 'MartPurchaseOrders',
-        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'purchase-orders' } })
+        redirect: '/inventory/purchase-orders'
       },
       {
         path: '/mart/purchase-orders/create',
@@ -381,7 +403,7 @@ const routes = [
       {
         path: '/mart/stock',
         name: 'MartStock',
-        redirect: to => ({ name: 'inventory-hub', query: { ...to.query, tab: 'stock' } })
+        redirect: '/inventory/stock'
       },
       {
         path: '/mart/stock-movements',

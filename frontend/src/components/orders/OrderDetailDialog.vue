@@ -3,27 +3,20 @@
     v-model="model"
     :max-width="640"
     :persistent="false"
-    icon="mdi-receipt-text-outline"
-    color="primary"
     :title="order?.order_number ?? '...'"
-    :subtitle="formatDate(order?.created_at)"
-    body-class="pa-0"
-    @close="close"
   >
-    <template #header-extra>
-      <div v-if="order" class="px-5 pb-3 d-flex justify-end">
-        <v-chip
-          size="small"
-          rounded="lg"
-          :color="statusColor(order.status)"
-          variant="tonal"
-        >
-          {{ order.status }}
-        </v-chip>
-      </div>
-    </template>
-
     <template v-if="order">
+          <div class="d-flex justify-end mb-2">
+            <v-chip
+              size="small"
+              rounded="lg"
+              :color="statusColor(order.status)"
+              variant="tonal"
+            >
+              {{ order.status }}
+            </v-chip>
+          </div>
+
           <!-- ── Info Row ──────────────────────────────────────────────────── -->
           <div class="pa-5 pb-4">
             <v-row dense>
@@ -153,8 +146,8 @@
           </div>
         </template>
 
-    <template #actions>
-      <v-btn variant="tonal" rounded="lg" @click="close">
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
         {{ t('btn.close') }}
       </v-btn>
       <v-spacer />
@@ -175,13 +168,11 @@
   import { useOrderStore } from '@/stores/orderStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { useDate } from '@/composables/useDate'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const store = useOrderStore()
   const { format } = useCurrency()
-  const { formatShortDateTime: formatDate } = useDate()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },

@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="520"
     :title="isEdit ? $t('tables.dialog.edit_title') : $t('tables.dialog.add_title')"
-    :subtitle="$t('tables.dialog.subtitle')"
-    :icon="isEdit ? 'mdi-pencil' : 'mdi-plus'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('tables.dialog.add_title')"
-    @close="close"
-    @submit="submit"
   >
     <v-form ref="formRef">
       <v-row dense>
@@ -179,6 +172,22 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('tables.dialog.add_title') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -186,7 +195,7 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import { useBranchStore } from '@/stores/branchStore'
 
   const { t } = useI18n()
@@ -268,10 +277,15 @@
   }
 
   const close = () => {
-    formRef.value?.reset()
-    Object.assign(form, defaultForm())
-    emit('update:modelValue', false)
+    model.value = false
   }
+
+  watch(model, val => {
+    if (!val) {
+      formRef.value?.reset()
+      Object.assign(form, defaultForm())
+    }
+  })
 
   onMounted(() => branchStore.fetchBranches?.())
 </script>

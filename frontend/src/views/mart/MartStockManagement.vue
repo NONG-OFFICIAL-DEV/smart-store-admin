@@ -1,26 +1,28 @@
 <template>
   <div>
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showStats ? 'primary' : 'default'"
-        :variant="showStats ? 'flat' : 'tonal'"
-        rounded="lg"
-        prepend-icon="mdi-chart-bar"
-        @click="showStats = !showStats"
-      >
-        {{ t('btn.stats') }}
-      </v-btn>
+    <AppToolbar :title="t('stock.management.title')" :subtitle="t('stock.management.subtitle')">
+      <template #actions>
+        <v-btn
+          :color="showStats ? 'primary' : 'default'"
+          :variant="showStats ? 'flat' : 'tonal'"
+          rounded="lg"
+          prepend-icon="mdi-chart-bar"
+          @click="showStats = !showStats"
+        >
+          {{ t('btn.stats') }}
+        </v-btn>
 
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-tune"
-        @click="openAdjust(null)"
-      >
-        {{ t('btn.adjust') }}
-      </v-btn>
-    </div>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-tune"
+          @click="openAdjust(null)"
+        >
+          {{ t('btn.adjust') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
     <!-- ── Stats Panel ─────────────────────────────────────────────────── -->
     <v-expand-transition>
@@ -210,6 +212,7 @@
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { AppTable, AppStatusChip } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import { useI18n } from 'vue-i18n'

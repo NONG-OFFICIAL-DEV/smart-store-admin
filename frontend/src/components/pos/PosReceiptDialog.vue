@@ -2,17 +2,11 @@
   <AppDialog
     :model-value="modelValue"
     :title="$t('pos.receipt.title')"
-    :subtitle="receipt?.order_number"
-    icon="mdi-receipt-text-outline"
-    color="success"
     :max-width="420"
     :persistent="false"
-    hide-submit
-    :cancel-text="$t('btn.close')"
     @update:model-value="$emit('update:modelValue', $event)"
-    @close="$emit('close')"
   >
-    <template #actions>
+    <template #actions="{ loading }">
       <v-spacer />
       <v-btn variant="tonal" rounded="lg" prepend-icon="mdi-printer-outline" @click="print">
         {{ $t('pos.receipt.print') }}
@@ -120,14 +114,25 @@
 </template>
 
 <script setup>
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { watch } from 'vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
-  defineProps({
+  const props = defineProps({
     modelValue: { type: Boolean, default: false },
     receipt: { type: Object, default: null }
   })
 
-  defineEmits(['update:modelValue', 'close'])
+  const emit = defineEmits(['update:modelValue', 'close'])
+
+  // The old wrapper's dismiss path (X button / Esc / backdrop) used to also
+  // emit 'close'. The new AppDialog only emits update:modelValue, so
+  // replicate that side effect here.
+  watch(
+    () => props.modelValue,
+    val => {
+      if (!val) emit('close')
+    }
+  )
 
   function print() {
     window.print()

@@ -149,26 +149,68 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Inventory — stock, purchase orders (food+mart variants), suppliers ──
-  //    merged into one tabbed page. See views/stocks/InventoryHub.vue.
+  // ── Inventory — stock, purchase orders (food+mart variants), suppliers
+  //    are each their own page now (see views/stocks/InventoryStockPage.vue,
+  //    InventoryPurchaseOrdersPage.vue, SupplierManagement.vue) — no more
+  //    shared tabbed hub.
   {
-    key: 'inventory',
+    key: 'inventory-group',
     titleKey: 'inventory_hub.title',
     icon: 'mdi-warehouse',
-    path: '/inventory',
-    permission: ['inventory.manage', 'purchase_orders.manage', 'suppliers.manage'],
-    visible: ctx => !ctx.isSuperAdmin
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
+      {
+        key: 'inventory-stock',
+        titleKey: 'inventory_hub.tabs.stock',
+        icon: 'mdi-clipboard-list-outline',
+        path: '/inventory/stock',
+        permission: 'inventory.manage'
+      },
+      {
+        key: 'inventory-purchase-orders',
+        titleKey: 'inventory_hub.tabs.purchase_orders',
+        icon: 'mdi-truck-outline',
+        path: '/inventory/purchase-orders',
+        permission: 'purchase_orders.manage'
+      },
+      {
+        key: 'inventory-suppliers',
+        titleKey: 'inventory_hub.tabs.suppliers',
+        icon: 'mdi-truck-delivery-outline',
+        path: '/inventory/suppliers',
+        permission: 'suppliers.manage'
+      }
+    ]
   },
 
-  // ── Customers — customer list + loyalty/promotions merged into one ──────
-  //    tabbed page. See views/customers/CustomersHub.vue.
+  // ── Customers — customer list + loyalty/promotions live as tabs on one
+  //    hub page (see views/customers/CustomersHub.vue). Each submenu entry
+  //    deep-links straight to its tab via `?tab=` (see isLeafActive in
+  //    useSidebarMenu.js for the query-aware active-highlight override this
+  //    needs, since Vue Router's own :to active-class matching ignores
+  //    query strings).
   {
-    key: 'customers',
+    key: 'customers-group',
     titleKey: 'customers_hub.title',
     icon: 'mdi-account-group-outline',
-    path: '/customers-hub',
-    permission: ['customers.manage', 'promotions.manage'],
-    visible: ctx => !ctx.isSuperAdmin
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
+      {
+        key: 'customers-list',
+        titleKey: 'customers_hub.tabs.customers',
+        icon: 'mdi-account-multiple-outline',
+        path: '/customers-hub?tab=customers',
+        permission: 'customers.manage'
+      },
+      {
+        key: 'customers-loyalty',
+        titleKey: 'customers_hub.tabs.loyalty',
+        icon: 'mdi-star-outline',
+        path: '/customers-hub?tab=loyalty',
+        permission: 'promotions.manage',
+        visible: ctx => ctx.hasPlan('pro')
+      }
+    ]
   },
 
   // ── Business — reports and workforce management ──────────────────────────
@@ -222,15 +264,25 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-cash-register',
         path: '/cash-register',
         permission: 'payments.manage'
-      },
+      }
+    ]
+  },
+
+  // ── Workforce — Employee management covers staff plus shifts/assignments
+  //    via "manage" dialogs on that page (see StaffManagement.vue), same
+  //    pattern as the Products group's category/menu/modifier dialogs.
+  {
+    key: 'workforce-group',
+    titleKey: 'workforce.title',
+    icon: 'mdi-account-multiple-outline',
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
       {
-        key: 'workforce',
-        titleKey: 'workforce.title',
-        icon: 'mdi-account-multiple-outline',
-        path: '/workforce',
-        // Any = visible if the user can reach at least one of the 3 tabs
-        // merged into this page (Staff / Shifts / Assignments).
-        permission: ['staff.manage', 'shifts.manage']
+        key: 'employee',
+        titleKey: 'menu.employee',
+        icon: 'mdi-account-group-outline',
+        path: '/employees',
+        permission: 'staff.manage'
       }
     ]
   },

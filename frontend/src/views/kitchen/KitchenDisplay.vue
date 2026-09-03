@@ -135,14 +135,8 @@
     <AppDialog
       v-model="newTicketDialog"
       :title="t('kitchen.new_ticket')"
-      icon="mdi-plus"
       :max-width="400"
       :loading="creating"
-      :submit-text="t('kitchen.create_ticket')"
-      :disable-submit="!lookedUpOrder"
-      :error-message="lookupError"
-      @close="newTicketDialog = false"
-      @submit="submitNewTicket"
     >
       <v-text-field
         v-model="orderLookupInput"
@@ -183,6 +177,24 @@
         variant="outlined"
         rounded="lg"
       />
+      <template #actions="{ loading }">
+        <span v-if="lookupError" class="text-caption text-error mr-auto">
+          <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />{{ lookupError }}
+        </span>
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="newTicketDialog = false">
+          {{ t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          :loading="loading"
+          :disabled="!lookedUpOrder"
+          @click="submitNewTicket"
+        >
+          {{ t('kitchen.create_ticket') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </v-container>
 </template>
@@ -201,7 +213,7 @@
     completeKitchenDisplayTicketApi,
     cancelKitchenDisplayTicketApi
   } from '@/api/kitchenDisplayTicketService'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()

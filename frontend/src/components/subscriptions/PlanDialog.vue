@@ -7,63 +7,49 @@
         ? $t('subscription.plan_dialog.edit_title')
         : $t('subscription.plan_dialog.new_title')
     "
-    :subtitle="
-      editingPlan
-        ? $t('subscription.plan_dialog.edit_subtitle')
-        : $t('subscription.plan_dialog.new_subtitle')
-    "
-    :icon="editingPlan ? 'mdi-pencil-outline' : 'mdi-plus'"
-    :color="editingPlan ? 'primary' : 'success'"
     :loading="saving"
-    :submit-text="
-      editingPlan ? $t('btn.save_changes') : $t('subscription.plan_dialog.create_plan')
-    "
-    body-class="pa-0"
-    @submit="submit"
   >
-    <template #header-extra>
-      <v-tabs
-        v-model="tab"
-        color="primary"
-        density="comfortable"
-        class="px-3"
-      >
-        <v-tab value="basic">
-          {{ $t('subscription.plan_dialog.tabs.basic_info') }}
-          <v-icon
-            v-if="tabErrors.basic"
-            size="14"
-            color="error"
-            class="ms-1"
-          >
-            mdi-alert-circle
-          </v-icon>
-        </v-tab>
-        <v-tab value="cycles">
-          {{ $t('subscription.plan_dialog.tabs.billing_cycles') }}
-          <v-chip
-            v-if="form.billing_cycles?.length && !tabErrors.cycles"
-            size="x-small"
-            class="ms-1"
-            color="primary"
-            variant="tonal"
-          >
-            {{ form.billing_cycles.length }}
-          </v-chip>
-          <v-icon
-            v-if="tabErrors.cycles"
-            size="14"
-            color="error"
-            class="ms-1"
-          >
-            mdi-alert-circle
-          </v-icon>
-        </v-tab>
-        <v-tab value="features">
-          {{ $t('subscription.plan_dialog.tabs.features') }}
-        </v-tab>
-      </v-tabs>
-    </template>
+    <v-tabs
+      v-model="tab"
+      color="primary"
+      density="comfortable"
+      class="px-3"
+    >
+      <v-tab value="basic">
+        {{ $t('subscription.plan_dialog.tabs.basic_info') }}
+        <v-icon
+          v-if="tabErrors.basic"
+          size="14"
+          color="error"
+          class="ms-1"
+        >
+          mdi-alert-circle
+        </v-icon>
+      </v-tab>
+      <v-tab value="cycles">
+        {{ $t('subscription.plan_dialog.tabs.billing_cycles') }}
+        <v-chip
+          v-if="form.billing_cycles?.length && !tabErrors.cycles"
+          size="x-small"
+          class="ms-1"
+          color="primary"
+          variant="tonal"
+        >
+          {{ form.billing_cycles.length }}
+        </v-chip>
+        <v-icon
+          v-if="tabErrors.cycles"
+          size="14"
+          color="error"
+          class="ms-1"
+        >
+          mdi-alert-circle
+        </v-icon>
+      </v-tab>
+      <v-tab value="features">
+        {{ $t('subscription.plan_dialog.tabs.features') }}
+      </v-tab>
+    </v-tabs>
 
     <v-form ref="formRef" @submit.prevent="submit" v-model="isValid">
       <v-window v-model="tab" class="pa-5">
@@ -336,13 +322,26 @@
             </v-window-item>
           </v-window>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">{{ $t('btn.cancel') }}</v-btn>
+      <v-btn
+        :color="editingPlan ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ editingPlan ? $t('btn.save_changes') : $t('subscription.plan_dialog.create_plan') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import { usePlanFeatureListingStore } from '@/stores/planFeatureListingStore'
 
   const { t } = useI18n()

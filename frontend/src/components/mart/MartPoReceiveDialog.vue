@@ -3,15 +3,7 @@
     v-model="model"
     :max-width="600"
     :title="$t('po.receive')"
-    :subtitle="po?.po_number"
-    icon="mdi-package-down"
-    color="success"
     :loading="loading"
-    :disable-submit="!hasAnyQty"
-    :submit-text="$t('po.receive')"
-    submit-icon="mdi-package-down"
-    body-class="pa-5"
-    @submit="submit"
   >
         <!-- Notes -->
         <v-text-field
@@ -88,12 +80,29 @@
             </div>
           </div>
         </div>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        color="success"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-package-down"
+        :loading="loading"
+        :disabled="!hasAnyQty"
+        @click="submit"
+      >
+        {{ $t('po.receive') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },

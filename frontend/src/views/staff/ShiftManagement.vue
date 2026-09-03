@@ -1,47 +1,19 @@
 <template>
   <div>
     <v-container fluid class="pa-0">
-      <custom-title
-        v-if="!hideHeader"
-        icon="mdi-calendar-clock"
-        :title="$t('shifts.title')"
-        :subtitle="$t('shifts.subtitle')"
-      >
-        <template #right>
-          <v-btn
-            color="primary"
-            prepend-icon="mdi-plus"
-            rounded="lg"
-            elevation="0"
-            class="text-none px-6 ms-4"
-            @click="openCreate"
-          >
-            {{ $t('btn.create') }}
-          </v-btn>
-        </template>
-      </custom-title>
-      <v-row dense align="center" class="mb-4">
-        <v-col cols="12" sm="auto">
-          <v-btn-toggle
-            v-model="filter"
-            color="primary"
-            variant="tonal"
-            rounded="lg"
-            mandatory
-            divided
-          >
-            <v-btn value="all" class="text-none px-4">
-              {{ $t('status.all') }}
-            </v-btn>
-            <v-btn value="active" class="text-none px-4">
-              {{ $t('status.active') }}
-            </v-btn>
-            <v-btn value="inactive" class="text-none px-4">
-              {{ $t('status.inactive') }}
-            </v-btn>
-          </v-btn-toggle>
-        </v-col>
-      </v-row>
+      <!-- No title here — this only ever renders inside ShiftManagerDialog,
+           whose AppDialog already shows one. -->
+      <div class="d-flex justify-end mb-4">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          rounded="lg"
+          elevation="0"
+          @click="openCreate"
+        >
+          {{ $t('btn.create') }}
+        </v-btn>
+      </div>
       <!-- ── Table ────────────────────────────────────────────────────────── -->
       <v-card rounded="lg" border elevation="0" class="pa-4">
         <AppTable
@@ -109,7 +81,7 @@
                 size="small"
                 variant="text"
                 color="success"
-                :to="{ name: 'ShiftAssignments', query: { shift_id: item.id } }"
+                @click="$emit('assign-staff', item.id)"
               />
               <v-btn
                 icon="mdi-pencil-outline"
@@ -148,9 +120,7 @@
   import ShiftFormDialog from '@/components/staff/ShiftFormDialog.vue'
   import { useI18n } from 'vue-i18n'
 
-  defineProps({
-    hideHeader: { type: Boolean, default: false }
-  })
+  defineEmits(['assign-staff'])
 
   const { t } = useI18n()
   const shiftStore = useShiftStore()
@@ -251,8 +221,6 @@
       full_day: '#10b981',
       split: '#ef4444'
     })[type] || '#6b7280'
-
-  defineExpose({ openCreate })
 </script>
 
 <style scoped>

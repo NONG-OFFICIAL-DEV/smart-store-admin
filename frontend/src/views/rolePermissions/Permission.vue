@@ -99,17 +99,7 @@
       v-model="dialog"
       :max-width="480"
       :title="isEdit ? $t('permissions.edit_title') : $t('permissions.new')"
-      :subtitle="
-        isEdit
-          ? $t('permissions.edit_subtitle')
-          : $t('permissions.new_subtitle')
-      "
-      icon="mdi-key-outline"
-      :color="isEdit ? 'primary' : 'success'"
       :loading="saving"
-      :submit-text="isEdit ? $t('btn.save_changes') : $t('permissions.create')"
-      @close="closeDialog"
-      @submit="handleSubmit"
     >
       <v-form ref="formRef">
         <v-row dense>
@@ -186,17 +176,30 @@
           </v-col>
         </v-row>
       </v-form>
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="closeDialog">
+          {{ $t('btn.cancel') }}
+        </v-btn>
+        <v-btn
+          :color="isEdit ? 'primary' : 'success'"
+          variant="flat"
+          rounded="lg"
+          :loading="loading"
+          @click="handleSubmit"
+        >
+          {{ isEdit ? $t('btn.save_changes') : $t('permissions.create') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { usePermissionStore } from '@/stores/permissionStore'
   import { getAllPermissionsApi } from '@/api/permissionService'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { useAppUtils, AppTable, AppDialog } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
   const store = usePermissionStore()
@@ -321,6 +324,17 @@
     form.value = defaultForm()
     dialog.value = false
   }
+
+  // The new AppDialog's built-in close (×/Esc/backdrop) only ever emits
+  // update:modelValue(false) — it has no separate `close` event. Mirror
+  // closeDialog's side effects (form reset) here so those dismiss paths
+  // still reset the form, not just the explicit Cancel button.
+  watch(dialog, val => {
+    if (!val) {
+      formRef.value?.reset()
+      form.value = defaultForm()
+    }
+  })
 
   const handleSubmit = async () => {
     const { valid } = await formRef.value.validate()

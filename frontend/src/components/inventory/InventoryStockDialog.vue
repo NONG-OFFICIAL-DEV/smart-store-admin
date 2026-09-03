@@ -3,16 +3,7 @@
     v-model="model"
     :max-width="560"
     :title="isEdit ? $t('ingredients.stock.edit_title') : $t('ingredients.stock.add_title')"
-    :subtitle="isEdit ? $t('ingredients.stock.edit_subtitle') : $t('ingredients.stock.add_subtitle')"
-    :icon="isEdit ? 'mdi-package-variant' : 'mdi-package-variant-plus'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    body-class="pa-0"
-    body-style="max-height: 65vh"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('ingredients.stock.add_title')"
-    :submit-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
-    @close="close"
-    @submit="save"
   >
         <v-form ref="formRef">
           <!-- Location -->
@@ -164,6 +155,20 @@
             </v-row>
           </div>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">{{ $t('btn.cancel') }}</v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
+        :loading="loading"
+        @click="save"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('ingredients.stock.add_title') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -172,7 +177,7 @@
   import { useI18n } from 'vue-i18n'
   import { useBranchStore } from '@/stores/branchStore'
   import { useIngredientStore } from '@/stores/ingredientStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -251,11 +256,12 @@
     })
   }
 
-  const close = () => {
-    model.value = false
-    formRef.value?.reset()
-    Object.assign(form, defaultForm())
-  }
+  watch(model, val => {
+    if (!val) {
+      formRef.value?.reset()
+      Object.assign(form, defaultForm())
+    }
+  })
 
   onMounted(() => {
     branchStore.fetchBranches()

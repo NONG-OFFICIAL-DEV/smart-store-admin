@@ -124,12 +124,8 @@
     <AppDialog
       v-model="detailDialog"
       :title="detailOrder?.order_number"
-      icon="mdi-receipt-text-outline"
       :max-width="440"
-      hide-submit
-      :cancel-text="t('btn.close')"
       :loading="detailLoading"
-      @close="detailDialog = false"
     >
       <template v-if="detailOrder">
         <div class="d-flex justify-space-between text-body-2 mb-2">
@@ -151,6 +147,11 @@
           <span>{{ formatMoney(detailOrder.total_amount) }}</span>
         </div>
       </template>
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="detailDialog = false">
+          {{ t('btn.close') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </v-container>
 </template>
@@ -158,11 +159,10 @@
 <script setup>
   import { ref, reactive } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppTable, AppStatusChip } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, AppDialog } from '@nong-official-dev/core'
   import { useOrderStore } from '@/stores/orderStore'
   import { getAllOrdersReportApi } from '@/api/orderService'
   import { useDate } from '@/composables/useDate'
-  import AppDialog from '@/components/common/AppDialog.vue'
 
   const { t } = useI18n()
   const orderStore = useOrderStore()

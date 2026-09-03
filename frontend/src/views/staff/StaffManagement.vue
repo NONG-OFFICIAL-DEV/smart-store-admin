@@ -6,17 +6,17 @@
   import { useRoleStore } from '@/stores/roleStore'
   import { getAllStaffApi } from '@/api/staffService'
   import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
+  import { usePermission } from '@/composables/usePermission'
   import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
+  import ShiftManagerDialog from '@/components/staff/ShiftManagerDialog.vue'
+  import AssignmentManagerDialog from '@/components/staff/AssignmentManagerDialog.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useI18n } from 'vue-i18n'
   import { useAvatar, AVATAR_HEX_PALETTE } from '@/composables/useAvatar'
-  // Hides this page's own header when it's embedded as a tab inside
-  // WorkforceHub.vue, which renders one consolidated header instead.
-  defineProps({
-    hideHeader: { type: Boolean, default: false }
-  })
 
   const { t } = useI18n()
   const { getInitials, getAvatarColor } = useAvatar()
+  const { can } = usePermission()
   const staffStore = useStaffStore()
   const branchStore = useBranchStore()
   const roleStore = useRoleStore()
@@ -31,6 +31,21 @@
   const dialog = ref(false)
   const saving = ref(false)
   const selectedItem = ref(null)
+
+  // ── "Manage" dialogs — Shifts/Assignments are managed from here via a
+  // modal, not their own sidebar page (see sidebarMenu.js's Workforce group).
+  const shiftManagerOpen = ref(false)
+  const assignManagerOpen = ref(false)
+  const presetShiftId = ref(null)
+
+  // Handoff from ShiftManagement's "assign staff" row action — close the
+  // Shift dialog and open Assignment with that shift preset, instead of the
+  // old tab-to-tab route navigation.
+  function onAssignStaff(shiftId) {
+    shiftManagerOpen.value = false
+    presetShiftId.value = shiftId
+    assignManagerOpen.value = true
+  }
 
   // ── Branch/role options ──────────────────────────────────────────────────────
   const branchOptions = computed(
@@ -125,31 +140,34 @@
     branchStore.fetchBranches({ perPage: 100 })
     roleStore.fetchRoles({ perPage: 100 })
   })
-
-  defineExpose({ openCreate })
 </script>
 
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      v-if="!hideHeader"
-      icon="mdi-account-group"
-      :title="$t('staff.title')"
-      :subtitle="$t('staff.subtitle')"
-    >
-      <template #right>
+    <AppToolbar :title="t('staff.title')" :subtitle="t('staff.subtitle')">
+      <template #actions>
+        <template v-if="can('shifts.manage')">
+          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-calendar-clock" @click="shiftManagerOpen = true">
+            {{ t('workforce.tabs.shifts') }}
+          </v-btn>
+          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-calendar-account-outline" @click="assignManagerOpen = true">
+            {{ t('btn.assign') }}
+          </v-btn>
+        </template>
         <v-btn
           color="primary"
-          prepend-icon="mdi-plus"
+          variant="flat"
           rounded="lg"
-          elevation="0"
-          class="text-none px-6 ms-4"
+          prepend-icon="mdi-plus"
           @click="openCreate"
         >
-          {{ $t('btn.create') }}
+          {{ t('staff.create_employee') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
+
+    <ShiftManagerDialog v-model="shiftManagerOpen" @assign-staff="onAssignStaff" />
+    <AssignmentManagerDialog v-model="assignManagerOpen" :preset-shift-id="presetShiftId" />
 
     <!-- ── Filters ────────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-2">

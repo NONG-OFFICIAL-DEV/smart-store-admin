@@ -1,17 +1,18 @@
 <template>
   <div>
-    <!-- Actions -->
-    <div class="d-flex justify-end mb-4">
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openCreate"
-      >
-        {{ t('btn.create_po') }}
-      </v-btn>
-    </div>
+    <AppToolbar :title="t('purchase_order.title')" :subtitle="t('purchase_order.subtitle')">
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          {{ t('btn.create_po') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
     <!-- Stats row -->
     <v-row dense class="mb-4">
@@ -177,16 +178,18 @@
       v-model="cancelDialog"
       :max-width="400"
       :persistent="false"
-      :scrollable="false"
       :title="t('po.confirm_cancel.title')"
-      :subtitle="cancelTarget?.po_number"
-      icon="mdi-close-circle-outline"
-      color="warning"
       :loading="cancelling"
-      :cancel-text="t('btn.back')"
-      :submit-text="t('po.confirm_cancel.confirm')"
-      @submit="doCancel"
-    />
+    >
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="cancelDialog = false">
+          {{ t('btn.back') }}
+        </v-btn>
+        <v-btn color="warning" variant="flat" rounded="lg" :loading="loading" @click="doCancel">
+          {{ t('po.confirm_cancel.confirm') }}
+        </v-btn>
+      </template>
+    </AppDialog>
   </div>
 </template>
 
@@ -194,10 +197,10 @@
   import { ref, computed } from 'vue'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable } from '@nong-official-dev/core'
+  import { AppTable, AppDialog } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import MartPoReceiveDialog from '@/components/mart/MartPoReceiveDialog.vue'
   import MartPoDetailDialog from '@/components/mart/MartPoDetailDialog.vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
   import { useRouter } from 'vue-router'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useI18n } from 'vue-i18n'

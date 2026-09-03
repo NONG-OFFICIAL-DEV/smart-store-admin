@@ -1,33 +1,35 @@
 <template>
   <div>
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showFilters ? 'primary' : 'default'"
-        :variant="showFilters ? 'flat' : 'tonal'"
-        rounded="lg"
-        :prepend-icon="
-          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-        "
-        @click="showFilters = !showFilters"
-      >
-        {{ $t('btn.filter') }}
-        <v-badge
-          v-if="activeFilterCount > 0"
-          :content="activeFilterCount"
-          color="error"
-          floating
-        />
-      </v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openCreate"
-      >
-        {{ $t('btn.create_po') }}
-      </v-btn>
-    </div>
+    <AppToolbar :title="t('purchase_order.title')" :subtitle="t('purchase_order.subtitle')">
+      <template #actions>
+        <v-btn
+          :color="showFilters ? 'primary' : 'default'"
+          :variant="showFilters ? 'flat' : 'tonal'"
+          rounded="lg"
+          :prepend-icon="
+            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
+          "
+          @click="showFilters = !showFilters"
+        >
+          {{ $t('btn.filter') }}
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
+            color="error"
+            floating
+          />
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          {{ $t('btn.create_po') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
     <!-- ── Stats ──────────────────────────────────────────────────────────── -->
     <v-row dense class="mb-4">
@@ -256,15 +258,17 @@
       v-model="cancelDialog"
       :max-width="400"
       :title="$t('po.confirm_cancel.title')"
-      :subtitle="cancelTarget?.po_number"
-      icon="mdi-cancel"
-      color="error"
       :loading="cancelling"
-      :cancel-text="$t('po.confirm_cancel.keep')"
-      :submit-text="$t('po.confirm_cancel.confirm')"
-      @submit="doCancel"
     >
       {{ $t('po.confirm_cancel.message') }}
+      <template #actions="{ loading }">
+        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="cancelDialog = false">
+          {{ $t('po.confirm_cancel.keep') }}
+        </v-btn>
+        <v-btn color="error" variant="flat" rounded="lg" :loading="loading" @click="doCancel">
+          {{ $t('po.confirm_cancel.confirm') }}
+        </v-btn>
+      </template>
     </AppDialog>
   </div>
 </template>
@@ -274,13 +278,13 @@
   import { usePurchaseOrderStore } from '@/stores/purchaseOrderStore'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable } from '@nong-official-dev/core'
+  import { AppTable, AppDialog } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import PurchaseOrderDialog from '@/components/purchase-orders/PurchaseOrderDialog.vue'
   import PurchaseOrderDetailDialog from '@/components/purchase-orders/PurchaseOrderDetailDialog.vue'
   import PurchaseOrderReceiveDialog from '@/components/purchase-orders/PurchaseOrderReceiveDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
   import { useDate } from '@/composables/useDate'
   const { format } = useCurrency()
   const { t } = useI18n()

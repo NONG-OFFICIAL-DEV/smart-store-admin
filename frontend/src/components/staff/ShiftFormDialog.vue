@@ -3,14 +3,7 @@
     v-model="model"
     :max-width="520"
     :title="isEdit ? $t('shifts.form.titleEdit') : $t('shifts.form.titleCreate')"
-    :subtitle="isEdit ? $t('shifts.form.subtitleEdit') : $t('shifts.form.subtitleCreate')"
-    :icon="isEdit ? 'mdi-pencil' : 'mdi-plus'"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save') : $t('btn.create')"
-    :submit-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
-    @close="close"
-    @submit="submit"
   >
         <v-form ref="formRef">
           <v-row dense>
@@ -140,13 +133,29 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ isEdit ? $t('btn.save') : $t('btn.create') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   const { t } = useI18n()
 
   const props = defineProps({
@@ -173,6 +182,16 @@
     set: v => emit('update:modelValue', v)
   })
   const isEdit = computed(() => !!props.item?.id)
+
+  // Preserve the old wrapper's @close side effect (reset form) for the
+  // X-button/Esc/backdrop dismiss path, which no longer emits a separate
+  // close event in the new AppDialog — only update:modelValue.
+  watch(model, val => {
+    if (!val) {
+      formRef.value?.reset()
+      Object.assign(form, defaultForm())
+    }
+  })
 
   const defaultForm = () => ({
     name: '',

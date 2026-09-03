@@ -4,12 +4,6 @@
     :max-width="440"
     :persistent="false"
     :title="t('preferences.title')"
-    :subtitle="t('preferences.subtitle')"
-    icon="mdi-tune-variant"
-    color="primary"
-    :hide-submit="true"
-    :cancel-text="t('btn.done')"
-    body-class="pa-0"
   >
         <!-- Language -->
         <div class="px-5 py-4">
@@ -96,6 +90,10 @@
             </v-btn>
           </v-btn-toggle>
         </div>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">{{ t('btn.done') }}</v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -105,7 +103,7 @@
   import { useTheme, useLocale } from 'vuetify'
   import { usePreferencesStore } from '@/stores/preferencesStore'
   import { normalizeDensity } from '@/plugins/vuetify'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const { current: vuetifyLocale } = useLocale()
   const model = defineModel()

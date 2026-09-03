@@ -196,16 +196,19 @@
     v-model="deleteDialog"
     :max-width="400"
     :title="$t('staff.list.confirm_deactivate.title')"
-    icon="mdi-account-off-outline"
-    color="error"
     :loading="saving"
-    :submit-text="$t('btn.deactivate')"
-    body-class="pa-6 text-center"
-    @submit="handleDelete"
   >
     <p class="text-body-2 text-medium-emphasis">
       <strong>{{ deleteTarget?.full_name }}</strong> {{ $t('staff.list.confirm_deactivate.message') }}
     </p>
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="deleteDialog = false">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn color="error" variant="flat" rounded="lg" :loading="loading" @click="handleDelete">
+        {{ $t('btn.deactivate') }}
+      </v-btn>
+    </template>
   </AppDialog>
 
   <!-- ── Snackbar ────────────────────────────────────────────────────────────── -->
@@ -221,7 +224,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useStaffStore } from '@/stores/staffStore'
 import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
-import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDialog } from '@nong-official-dev/core'
 import { useAvatar } from '@/composables/useAvatar'
 
 const { t } = useI18n()

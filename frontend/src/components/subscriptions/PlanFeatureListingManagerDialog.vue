@@ -2,8 +2,6 @@
   <AppDialog
     :model-value="modelValue"
     :title="$t('subscription.plan_feature_listings.manage_catalog')"
-    :subtitle="$t('subscription.plan_feature_listings.manage_catalog_hint')"
-    icon="mdi-format-list-bulleted"
     max-width="560"
     @update:model-value="emit('update:modelValue', $event)"
   >
@@ -55,7 +53,7 @@
       @submit="handleSubmit"
     />
 
-    <template #actions>
+    <template #actions="{ loading }">
       <v-spacer />
       <v-btn variant="tonal" rounded="lg" @click="emit('update:modelValue', false)">
         {{ $t('btn.close') }}
@@ -67,8 +65,7 @@
 <script setup>
   import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useAppUtils } from '@nong-official-dev/core'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { useAppUtils, AppDialog } from '@nong-official-dev/core'
   import PlanFeatureListingFormDialog from '@/components/subscriptions/PlanFeatureListingFormDialog.vue'
   import { usePlanFeatureListingStore } from '@/stores/planFeatureListingStore'
 

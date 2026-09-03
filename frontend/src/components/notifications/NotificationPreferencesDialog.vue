@@ -2,11 +2,7 @@
   <AppDialog
     :model-value="modelValue"
     :title="$t('notification.preferences_title')"
-    icon="mdi-tune-variant"
-    :hide-submit="true"
-    :cancel-text="$t('btn.close')"
     @update:model-value="v => emit('update:modelValue', v)"
-    @close="emit('close')"
   >
     <div class="d-flex align-center justify-space-between py-2">
       <div>
@@ -80,14 +76,19 @@
         {{ $t('notification.connect_telegram') }}
       </v-btn>
     </div>
+
+    <template #actions>
+      <v-btn variant="tonal" rounded="lg" @click="emit('update:modelValue', false)">
+        {{ $t('btn.close') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useAppUtils } from '@nong-official-dev/core'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { useAppUtils, AppDialog } from '@nong-official-dev/core'
   import {
     getNotificationPreferencesApi,
     updateNotificationPreferencesApi,
@@ -114,6 +115,7 @@
     () => props.modelValue,
     open => {
       if (open) loadPreferences()
+      else emit('close')
     }
   )
 

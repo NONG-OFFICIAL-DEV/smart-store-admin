@@ -126,10 +126,6 @@
       v-model="statusDialog"
       :max-width="360"
       :title="$t('tables.status_dialog_title', { number: statusTarget?.table_number })"
-      icon="mdi-swap-horizontal"
-      color="primary"
-      body-class="pa-4"
-      :hide-actions="true"
     >
       <div v-if="activeOrderLoading" class="d-flex justify-center py-4">
         <v-progress-circular indeterminate color="primary" size="24" />
@@ -186,8 +182,7 @@
   import { useFloorPlanStore } from '@/stores/floorPlanStore'
   import TableFormDialog from '@/components/tables/TableFormDialog.vue'
   import TableQRDialog from '@/components/tables/TableQRDialog.vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppDialog } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
 

@@ -3,17 +3,18 @@
     v-model="internalModel"
     :max-width="800"
     :title="$t('dashboard.low_stock_dialog.title')"
-    icon="mdi-alert-outline"
-    color="warning"
-    :hide-submit="true"
-    :cancel-text="$t('btn.close')"
-    @close="close"
   >
     <v-data-table
       :items="lowStockItems"
       :headers="tableHeaders"
       class="pa-2"
     />
+
+    <template #actions>
+      <v-btn variant="tonal" rounded="lg" @click="close">
+        {{ $t('btn.close') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
@@ -21,7 +22,7 @@
   import { ref, watch, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useDashboardStore } from '@/stores/dashboardStore'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   const dashboardStore = useDashboardStore()
   const { t } = useI18n()

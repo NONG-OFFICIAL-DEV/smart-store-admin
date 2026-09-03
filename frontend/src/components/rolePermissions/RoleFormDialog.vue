@@ -3,16 +3,8 @@
     :model-value="modelValue"
     :max-width="480"
     :title="isEdit ? $t('roles.dialog.edit') : $t('roles.dialog.new')"
-    :subtitle="
-      isEdit ? $t('roles.dialog.edit_subtitle') : $t('roles.dialog.new_subtitle')
-    "
-    icon="mdi-shield-account"
-    :color="isEdit ? 'primary' : 'success'"
     :loading="loading"
-    :submit-text="isEdit ? $t('btn.save_changes') : $t('roles.create')"
     @update:model-value="$emit('update:modelValue', $event)"
-    @close="close"
-    @submit="handleSubmit"
   >
         <v-form ref="formRef">
           <v-row dense>
@@ -44,13 +36,28 @@
             </v-col>
           </v-row>
         </v-form>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
+        {{ $t('btn.cancel') }}
+      </v-btn>
+      <v-btn
+        :color="isEdit ? 'primary' : 'success'"
+        variant="flat"
+        rounded="lg"
+        :loading="loading"
+        @click="handleSubmit"
+      >
+        {{ isEdit ? $t('btn.save_changes') : $t('roles.create') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
 
   // ── Props & Emits ─────────────────────────────────────────────────────────────
   const props = defineProps({
@@ -78,6 +85,21 @@
   const defaultForm = () => ({ id: null, name: '', description: '' })
   const form = ref(defaultForm())
   const isEdit = computed(() => !!props.editItem)
+
+  // Preserve the old wrapper's @close side effect (reset form + clear
+  // server errors) for the X-button/Esc/backdrop dismiss path, which no
+  // longer emits a separate close event in the new AppDialog — only
+  // update:modelValue.
+  watch(
+    () => props.modelValue,
+    val => {
+      if (!val) {
+        formRef.value?.reset()
+        form.value = defaultForm()
+        Object.keys(serverErrors).forEach(k => delete serverErrors[k])
+      }
+    }
+  )
 
   // ── Rules ─────────────────────────────────────────────────────────────────────
   const rules = {

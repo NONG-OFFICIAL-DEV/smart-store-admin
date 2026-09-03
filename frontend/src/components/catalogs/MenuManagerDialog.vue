@@ -3,11 +3,7 @@
     :model-value="modelValue"
     :title="$t('menu.menus')"
     :max-width="1100"
-    hide-submit
-    :cancel-text="$t('btn.close')"
-    body-class="pa-0"
     @update:model-value="$emit('update:modelValue', $event)"
-    @close="$emit('update:modelValue', false)"
   >
     <v-tabs v-model="tab" color="primary" class="px-4">
       <v-tab value="menus">{{ $t('menu.menus') }}</v-tab>
@@ -22,12 +18,18 @@
         <BranchMenu />
       </v-window-item>
     </v-window>
+
+    <template #actions="{ loading }">
+      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="$emit('update:modelValue', false)">
+        {{ $t('btn.close') }}
+      </v-btn>
+    </template>
   </AppDialog>
 </template>
 
 <script setup>
   import { ref } from 'vue'
-  import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDialog } from '@nong-official-dev/core'
   import MenuManagement from '@/views/catalogs/MenuManagement.vue'
   import BranchMenu from '@/views/catalogs/BranchMenu.vue'
 
