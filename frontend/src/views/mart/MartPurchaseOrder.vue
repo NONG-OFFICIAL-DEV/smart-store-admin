@@ -54,7 +54,6 @@
               rounded="lg"
               hide-details
               clearable
-              @update:model-value="load"
             />
           </v-col>
         </v-row>
@@ -63,26 +62,13 @@
 
     <!-- Table -->
     <v-card rounded="lg" border elevation="0">
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="poStore.orders"
-        :items-length="poStore.pagination?.total ?? 0"
-        :loading="poStore.loading"
-        :items-per-page="filters.per_page"
-        item-value="id"
-        @update:page="
-          p => {
-            filters.page = p
-            load()
-          }
-        "
-        @update:items-per-page="
-          p => {
-            filters.per_page = p
-            filters.page = 1
-            load()
-          }
-        "
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="purchase orders"
       >
         <!-- PO Number -->
         <template #item.po_number="{ item }">
@@ -172,7 +158,7 @@
             />
           </div>
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- Receive Dialog -->
@@ -205,9 +191,10 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed } from 'vue'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppTable } from '@nong-official-dev/core'
   import MartPoReceiveDialog from '@/components/mart/MartPoReceiveDialog.vue'
   import MartPoDetailDialog from '@/components/mart/MartPoDetailDialog.vue'
   import AppDialog from '@/components/common/AppDialog.vue'
@@ -232,13 +219,16 @@
   const receiving = ref(false)
   const cancelling = ref(false)
 
+  const tableRef = ref(null)
+
   const filters = ref({
     branch_id: null,
     search: '',
-    status: null,
-    per_page: 10,
-    page: 1
+    status: null
   })
+  // Only synced from filters.search after the debounce below — status
+  // applies instantly since it's a discrete choice, not continuous typing.
+  const appliedSearch = ref('')
 
   const statusOptions = computed(() => [
     { value: 'draft', label: t('po.status.draft') },
@@ -307,12 +297,26 @@
   const canCancel = o => !['received', 'cancelled'].includes(o.status)
 
 
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  const appliedFilters = computed(() => ({
+    search: appliedSearch.value || undefined,
+    status: filters.value.status || undefined,
+    branch_id: filters.value.branch_id || undefined
+  }))
+
+  async function fetchTableData(params) {
+    await poStore.fetchOrders(params)
+    return { items: poStore.orders ?? [], total: poStore.pagination?.total ?? 0 }
+  }
+
   let searchTimer = null
   const onSearch = () => {
     clearTimeout(searchTimer)
-    searchTimer = setTimeout(load, 400)
+    searchTimer = setTimeout(() => {
+      appliedSearch.value = filters.value.search
+    }, 400)
   }
-  const load = () => poStore.fetchOrders(filters.value)
 
   const openReceive = po => {
     selectedPo.value = po
@@ -329,7 +333,7 @@
       const res = await poStore.receiveOrder(selectedPo.value.id, payload)
       notif(res.message ?? t('po.messages.received'), { type: 'success' })
       receiveDialog.value = false
-      load()
+      tableRef.value?.refresh()
     } catch (e) {
       notif(e.response?.data?.message ?? t('po.messages.receive_failed'), { type: 'error' })
     } finally {
@@ -347,7 +351,7 @@
       await poStore.cancelOrder(cancelTarget.value.id)
       notif(t('po.messages.cancelled'), { type: 'success' })
       cancelDialog.value = false
-      load()
+      tableRef.value?.refresh()
     } catch (e) {
       notif(e.response?.data?.message ?? t('po.messages.cancel_failed'), { type: 'error' })
     } finally {
@@ -364,6 +368,7 @@
         agree: async () => {
           await poStore.deleteOrder(po.id)
           notif(t('purchase_order.deleted'), { type: 'success' })
+          tableRef.value?.refresh()
         },
         cancel: () => {}
       })
@@ -371,8 +376,6 @@
       notif(e.response?.data?.message ?? t('branch_menu.operation_failed'), { type: 'error' })
     }
   }
-
-  onMounted(load)
 </script>
 
 <style scoped>

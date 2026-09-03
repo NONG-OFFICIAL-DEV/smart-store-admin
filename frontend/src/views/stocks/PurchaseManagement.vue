@@ -73,7 +73,6 @@
                 rounded="lg"
                 hide-details
                 clearable
-                @update:model-value="load"
               />
             </v-col>
             <v-col cols="6" sm="2">
@@ -87,7 +86,6 @@
                 rounded="lg"
                 hide-details
                 clearable
-                @update:model-value="load"
               />
             </v-col>
           </v-row>
@@ -117,27 +115,13 @@
     </v-expand-transition>
     <!-- ── Table ──────────────────────────────────────────────────────────── -->
     <v-card rounded="lg" border elevation="0">
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="poStore.purchaseOrders"
-        :items-length="poStore.pagination?.total ?? 0"
-        :loading="poStore.loading"
-        :items-per-page="filters.per_page"
-        :page="filters.page"
-        item-value="id"
-        @update:page="
-          p => {
-            filters.page = p
-            load()
-          }
-        "
-        @update:items-per-page="
-          p => {
-            filters.per_page = p
-            filters.page = 1
-            load()
-          }
-        "
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="purchase orders"
       >
         <!-- PO Number -->
         <template #item.po_number="{ item }">
@@ -241,7 +225,7 @@
             />
           </div>
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- ── Create/Edit Dialog ─────────────────────────────────────────────── -->
@@ -290,6 +274,7 @@
   import { usePurchaseOrderStore } from '@/stores/purchaseOrderStore'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppTable } from '@nong-official-dev/core'
   import PurchaseOrderDialog from '@/components/purchase-orders/PurchaseOrderDialog.vue'
   import PurchaseOrderDetailDialog from '@/components/purchase-orders/PurchaseOrderDetailDialog.vue'
   import PurchaseOrderReceiveDialog from '@/components/purchase-orders/PurchaseOrderReceiveDialog.vue'
@@ -316,14 +301,17 @@
   const receiving = ref(false)
   const cancelling = ref(false)
   const showFilters = ref(false)
+  const tableRef = ref(null)
 
   const filters = ref({
     search: '',
     status: null,
-    supplier_id: null,
-    per_page: 15,
-    page: 1
+    supplier_id: null
   })
+  // Only synced from filters.search after the debounce (or immediately via
+  // Enter/Search) — status/supplier_id apply instantly since they're discrete
+  // choices, not continuous typing.
+  const appliedSearch = ref('')
 
   // ── Stats ─────────────────────────────────────────────────────────────────────
   const statCards = computed(() => {
@@ -422,27 +410,41 @@
   })
   const hasActiveFilters = computed(() => activeFilterCount.value > 0)
 
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  const appliedFilters = computed(() => ({
+    search: appliedSearch.value || undefined,
+    status: filters.value.status || undefined,
+    supplier_id: filters.value.supplier_id || undefined
+  }))
+
+  async function fetchTableData(params) {
+    await poStore.fetchPurchaseOrders(params)
+    return { items: poStore.purchaseOrders ?? [], total: poStore.pagination?.total ?? 0 }
+  }
+
   // ── Actions ───────────────────────────────────────────────────────────────────
   let searchTimer = null
   const onSearch = () => {
     clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => load(), 400)
+    searchTimer = setTimeout(() => {
+      appliedSearch.value = filters.value.search
+    }, 400)
   }
 
-  const load = () => poStore.fetchPurchaseOrders(filters.value)
-
-  // ── Reset to page 1 and reload when filters change ────────────────────────────
+  // ── Apply/reset — status/supplier_id already apply live via :filters;
+  // this just fast-forwards the debounced search. ───────────────────────────────
   const onFilterChange = () => {
-    filters.value.page = 1
-    load()
+    clearTimeout(searchTimer)
+    appliedSearch.value = filters.value.search
   }
 
   const resetFilters = () => {
+    clearTimeout(searchTimer)
     filters.value.search = ''
     filters.value.status = null
     filters.value.supplier_id = null
-    filters.value.page = 1
-    load()
+    appliedSearch.value = ''
   }
 
   const openCreate = () => {
@@ -478,6 +480,7 @@
         notif(t('po.messages.created'), { type: 'success' })
       }
       dialog.value = false
+      tableRef.value?.refresh()
     } catch {
       notif(t('po.messages.save_failed'), { type: 'error' })
     } finally {
@@ -491,6 +494,7 @@
       await poStore.receivePurchaseOrder(receivingPO.value.id, payload)
       notif(t('po.messages.received'), { type: 'success' })
       receiveDialog.value = false
+      tableRef.value?.refresh()
     } catch {
       notif(t('po.messages.receive_failed'), { type: 'error' })
     } finally {
@@ -502,6 +506,7 @@
     try {
       await poStore.submitPurchaseOrder(po.id)
       notif(t('po.messages.submitted'), { type: 'success' })
+      tableRef.value?.refresh()
     } catch {
       notif(t('po.messages.submit_failed'), { type: 'error' })
     }
@@ -511,6 +516,7 @@
     try {
       await poStore.confirmPurchaseOrder(po.id)
       notif(t('po.messages.confirmed'), { type: 'success' })
+      tableRef.value?.refresh()
     } catch {
       notif(t('po.messages.confirm_failed'), { type: 'error' })
     }
@@ -526,6 +532,7 @@
       await poStore.cancelPurchaseOrder(cancelTarget.value.id)
       notif(t('po.messages.cancelled'), { type: 'success' })
       cancelDialog.value = false
+      tableRef.value?.refresh()
     } catch {
       notif(t('po.messages.cancel_failed'), { type: 'error' })
     } finally {
@@ -534,7 +541,6 @@
   }
 
   onMounted(() => {
-    load()
     supplierStore.fetchSuppliers?.()
   })
 </script>

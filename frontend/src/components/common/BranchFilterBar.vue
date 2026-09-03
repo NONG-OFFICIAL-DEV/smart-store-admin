@@ -83,28 +83,20 @@
 
           <!-- Custom date pickers -->
           <div v-if="period === 'custom'" class="d-flex flex-wrap gap-2 mt-2">
-            <v-date-input
-              :model-value="dateFromValue"
-              :label="t('common.from')"
-              prepend-icon=""
-              prepend-inner-icon="mdi-calendar"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              :style="{ width: $vuetify.display.xs ? '100%' : '160px' }"
-              @update:model-value="val => onDateChange('from', val)"
-            />
-            <v-date-input
-              :model-value="dateToValue"
-              :label="t('common.to')"
-              prepend-icon=""
-              prepend-inner-icon="mdi-calendar"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              :style="{ width: $vuetify.display.xs ? '100%' : '160px' }"
-              @update:model-value="val => onDateChange('to', val)"
-            />
+            <div :style="{ width: $vuetify.display.xs ? '100%' : '160px' }">
+              <AppDatePicker
+                :model-value="dateFrom"
+                :label="t('common.from')"
+                @update:model-value="val => onDateChange('from', val)"
+              />
+            </div>
+            <div :style="{ width: $vuetify.display.xs ? '100%' : '160px' }">
+              <AppDatePicker
+                :model-value="dateTo"
+                :label="t('common.to')"
+                @update:model-value="val => onDateChange('to', val)"
+              />
+            </div>
           </div>
         </v-col>
       </v-row>
@@ -113,8 +105,9 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch } from 'vue'
+  import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { AppDatePicker } from '@nong-official-dev/core'
   const { t } = useI18n()
 
   const props = defineProps({
@@ -158,18 +151,10 @@
   }
 
   // Dates
-  const dateFromValue = computed(() =>
-    props.dateFrom ? new Date(props.dateFrom) : null
-  )
-  const dateToValue = computed(() =>
-    props.dateTo ? new Date(props.dateTo) : null
-  )
-
   const onDateChange = (which, val) => {
     if (!val) return
-    const formattedDate = val.toISOString().split('T')[0]
-    const from = which === 'from' ? formattedDate : props.dateFrom
-    const to = which === 'to' ? formattedDate : props.dateTo
+    const from = which === 'from' ? val : props.dateFrom
+    const to = which === 'to' ? val : props.dateTo
     emit('date-change', { from, to })
   }
 </script>

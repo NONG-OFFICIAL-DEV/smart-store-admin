@@ -2,6 +2,7 @@
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -168,8 +169,8 @@
 
   const isLastStep = computed(() => step.value === steps.length)
 
-  // v-date-input emits a Date object once touched, but start_at/end_at may
-  // be pre-populated with a plain "YYYY-MM-DD" (or ISO datetime) string when
+  // start_at/end_at are "YYYY-MM-DD" strings from AppDatePicker, but may
+  // also be a plain string or ISO datetime string pre-populated when
   // editing — normalize both through this before comparing, never compare
   // the raw value directly (a Date vs string comparison coerces via
   // Date#toString(), which doesn't sort chronologically at all).
@@ -181,19 +182,6 @@
     const m = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `${y}-${m}-${day}`
-  }
-
-  const rules = {
-    startBeforeEnd: v => {
-      const start = dateOnlyStr(v)
-      const end = dateOnlyStr(form.value.end_at)
-      return !start || !end || start <= end || t('promotions.form.start_before_end')
-    },
-    endAfterStart: v => {
-      const start = dateOnlyStr(form.value.start_at)
-      const end = dateOnlyStr(v)
-      return !start || !end || end >= start || t('promotions.form.start_before_end')
-    }
   }
 
   // Gates the final Save button — canGoNext returned `true` unconditionally
@@ -459,30 +447,18 @@
       <v-window-item :value="3">
         <v-row dense>
           <v-col cols="12" sm="6">
-            <v-date-input
+            <AppDatePicker
               v-model="form.start_at"
               :label="t('promotions.form.start_date')"
-              variant="outlined"
-              rounded="lg"
-              input-format="DD-MM-YYYY"
-              prepend-inner-icon="mdi-calendar-start-outline"
-              append-inner-icon=""
-              :rules="[v => !!v || t('promotions.form.required'), rules.startBeforeEnd]"
+              display-format="dd-MM-yyyy"
             />
           </v-col>
 
           <v-col cols="12" sm="6">
-            <v-date-input
+            <AppDatePicker
               v-model="form.end_at"
               :label="t('promotions.form.end_date')"
-              variant="outlined"
-              rounded="lg"
-              input-format="DD-MM-YYYY"
-              prepend-inner-icon="mdi-calendar-end-outline"
-              append-inner-icon=""
-              :hint="t('promotions.form.end_date_hint')"
-              persistent-hint
-              :rules="[rules.endAfterStart]"
+              display-format="dd-MM-yyyy"
             />
           </v-col>
 

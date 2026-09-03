@@ -22,18 +22,10 @@
     <!-- ── Filters ──────────────── -->
     <v-row dense align="center" class="mb-2">
       <v-col cols="12" sm="6" md="3">
-        <v-date-input
-          v-model="filterDateFrom"
-          label="From Date"
-          rounded="lg"
-        />
+        <AppDatePicker v-model="filterState.date_from" label="From Date" />
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-date-input
-          v-model="filterDateTo"
-          label="To Date"
-          rounded="lg"
-        />
+        <AppDatePicker v-model="filterState.date_to" label="To Date" />
       </v-col>
       <v-col cols="12" sm="6" md="3">
         <v-select
@@ -173,14 +165,13 @@
   import { useStaffStore } from '@/stores/staffStore'
   import { shiftAssignmentService } from '@/api/shiftAssignmentService'
   import StaffShiftFormDialog from '@/components/staff/StaffShiftFormDialog.vue'
-  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppStatusChip, AppDatePicker } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
   const {
-    formatLocalDate,
     formatWeekdayDate: formatDate,
     formatTime
   } = useDate()
@@ -209,26 +200,6 @@
     date_to: null,
     shift_id: route.query.shift_id || null,
     staff_id: route.query.staff_id || null
-  })
-
-  // filterState.date_from/to stay "YYYY-MM-DD" strings (StaffShiftRepository
-  // compares them against shift_date) — these proxies are what the date
-  // pickers bind to.
-  const filterDateFrom = computed({
-    get: () =>
-      filterState.value.date_from
-        ? new Date(filterState.value.date_from)
-        : null,
-    set: v => {
-      filterState.value.date_from = v instanceof Date ? formatLocalDate(v) : v
-    }
-  })
-  const filterDateTo = computed({
-    get: () =>
-      filterState.value.date_to ? new Date(filterState.value.date_to) : null,
-    set: v => {
-      filterState.value.date_to = v instanceof Date ? formatLocalDate(v) : v
-    }
   })
 
   // ── Table headers — StaffShiftRepository::applySort() always forces

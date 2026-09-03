@@ -98,22 +98,18 @@
 
           <!-- Date from -->
           <v-col cols="6" sm="2">
-            <v-date-input
-              v-model="filterFrom"
+            <AppDatePicker
+              v-model="filters.from"
               :label="$t('stock_movements.filter.from')"
-              rounded="lg"
-              hide-details
               @update:model-value="load"
             />
           </v-col>
 
           <!-- Date to -->
           <v-col cols="6" sm="2">
-            <v-date-input
-              v-model="filterTo"
+            <AppDatePicker
+              v-model="filters.to"
               :label="$t('stock_movements.filter.to')"
-              rounded="lg"
-              hide-details
               @update:model-value="load"
             />
           </v-col>
@@ -136,26 +132,13 @@
 
     <!-- Table -->
     <v-card rounded="lg" border elevation="0">
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="movements"
-        :items-length="pagination?.total ?? 0"
-        :loading="loading"
-        :items-per-page="filters.per_page"
-        item-value="id"
-        @update:page="
-          p => {
-            filters.page = p
-            load()
-          }
-        "
-        @update:items-per-page="
-          p => {
-            filters.per_page = p
-            filters.page = 1
-            load()
-          }
-        "
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="movements"
       >
         <!-- Date -->
         <template #item.created_at="{ item }">
@@ -255,24 +238,7 @@
           </span>
         </template>
 
-        <!-- Empty -->
-        <template #no-data>
-          <div class="text-center py-12">
-            <v-icon
-              icon="mdi-history"
-              size="48"
-              color="grey-lighten-2"
-              class="mb-3"
-            />
-            <div class="text-body-2 font-weight-medium text-grey">
-              {{ $t('stock_movements.empty') }}
-            </div>
-            <p class="text-caption text-grey mt-1">
-              {{ $t('table.no_data_sub') }}
-            </p>
-          </div>
-        </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- Adjust dialog -->
@@ -294,6 +260,7 @@
   import { getMovementsApi, adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import { AppDatePicker, AppTable } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
 
   const { t } = useI18n()
@@ -303,14 +270,13 @@
   const authStore = useAuthStore()
   const { notif } = useAppUtils()
   const {
-    formatLocalDate,
     formatShortDate: fmtDate,
     formatTime: fmtTime
   } = useDate()
 
+  const tableRef = ref(null)
   const movements = ref([])
   const pagination = ref(null)
-  const loading = ref(false)
   const adjustDialog = ref(false)
   const adjusting = ref(false)
 
@@ -318,20 +284,7 @@
     product_id: route.query.product_id ?? null,
     movement_type: null,
     from: null,
-    to: null,
-    per_page: 10,
-    page: 1
-  })
-
-  // filters.from/to stay "YYYY-MM-DD" strings (sent as API query params) —
-  // these proxies are what the date pickers actually bind to.
-  const filterFrom = computed({
-    get: () => (filters.value.from ? new Date(filters.value.from) : null),
-    set: v => { filters.value.from = v instanceof Date ? formatLocalDate(v) : v }
-  })
-  const filterTo = computed({
-    get: () => (filters.value.to ? new Date(filters.value.to) : null),
-    set: v => { filters.value.to = v instanceof Date ? formatLocalDate(v) : v }
+    to: null
   })
 
   // ── Type config ───────────────────────────────────────────────────────────
@@ -457,25 +410,27 @@
     filters.value.movement_type = null
     filters.value.from = null
     filters.value.to = null
-    filters.value.page = 1
-    load()
   }
 
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  const appliedFilters = computed(() => ({
+    product_id: filters.value.product_id || undefined,
+    movement_type: filters.value.movement_type || undefined,
+    from: filters.value.from || undefined,
+    to: filters.value.to || undefined
+  }))
+
   // ── Data fetch ────────────────────────────────────────────────────────────
-  const load = async () => {
-    loading.value = true
+  async function fetchTableData(params) {
     try {
-      const res = await getMovementsApi({
-        branch_id: authStore.branch_id,
-        ...filters.value
-      })
+      const res = await getMovementsApi({ branch_id: authStore.branch_id, ...params })
       movements.value = res.data.data.data ?? res.data.data
       pagination.value = res.data.data
     } catch {
       notif(t('stock_movements.load_failed'), { type: 'error' })
-    } finally {
-      loading.value = false
     }
+    return { items: movements.value, total: pagination.value?.total ?? 0 }
   }
 
   // ── Adjust stock ──────────────────────────────────────────────────────────
@@ -486,7 +441,7 @@
       notif(t('messages.adjusted_success'), { type: 'success' })
       adjustDialog.value = false
       martProductStore.fetchMartProducts(true)
-      load()
+      tableRef.value?.refresh()
     } catch (e) {
       notif(e.response?.data?.message ?? t('status.failed'), { type: 'error' })
     } finally {
@@ -495,7 +450,6 @@
   }
 
   onMounted(() => {
-    load()
     martProductStore.fetchMartProducts()
   })
 </script>

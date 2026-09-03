@@ -37,7 +37,7 @@
           />
         </v-col>
         <v-col cols="12" md="6">
-          <v-date-input v-model="dob" :label="$t('staff.form.dob')" />
+          <AppDatePicker v-model="dob" :label="$t('staff.form.dob')" />
         </v-col>
         <v-col cols="12" md="6">
           <v-text-field :label="$t('staff.form.job_title')" v-model="jobTitle" />
@@ -50,7 +50,7 @@
           <v-text-field :label="$t('staff.form.department')" v-model="department" />
         </v-col>
         <v-col cols="12" md="6">
-          <v-date-input v-model="joiningDate" :label="$t('staff.form.joining_date')" />
+          <AppDatePicker v-model="joiningDate" :label="$t('staff.form.joining_date')" />
         </v-col>
         <v-col cols="12" md="6">
           <v-text-field
@@ -74,6 +74,7 @@
   import { ref, watch, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 

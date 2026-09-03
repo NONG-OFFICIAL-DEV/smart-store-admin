@@ -88,10 +88,9 @@
                     ></v-select>
                   </v-col>
                   <v-col cols="12" sm="6">
-                    <v-date-input
+                    <AppDatePicker
                       v-model="form.hire_date"
                       :label="$t('staff.field.hire_date')"
-                      rounded="lg"
                     />
                   </v-col>
                   <v-col cols="12" sm="6">
@@ -334,10 +333,9 @@
                         />
                       </v-col>
                       <v-col cols="12" sm="6">
-                        <v-date-input
+                        <AppDatePicker
                           v-model="form.hire_date"
                           :label="$t('staff.field.hire_date')"
-                          rounded="lg"
                         />
                       </v-col>
                       <v-col cols="12" sm="6">
@@ -576,6 +574,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import AppDialog from '@/components/common/AppDialog.vue'
   import TemporaryPasswordDialog from '@/components/common/TemporaryPasswordDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const props = defineProps({
     modelValue: Boolean,

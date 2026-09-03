@@ -11,11 +11,10 @@
     @submit="save"
   >
     <v-form ref="formRef" v-model="valid">
-      <v-date-input
+      <AppDatePicker
         v-model="sale.sale_date"
         :label="$t('sale.sale_date')"
-        input-format="DD-MM-YYYY"
-        :rules="[v => !!v || $t('form.required')]"
+        display-format="dd-MM-yyyy"
       />
 
       <div
@@ -63,6 +62,7 @@
 <script setup>
 import { reactive, computed, ref, watch } from "vue"
 import AppDialog from "@/components/common/AppDialog.vue"
+import { AppDatePicker } from '@nong-official-dev/core'
 
 // props & emits for v-model
 const props = defineProps({
@@ -104,7 +104,7 @@ const totalAmount = computed(() =>
 async function save() {
   const ok = await formRef.value.validate()
   if (!ok) return
-  emit("save", { ...sale, sale_date: sale.sale_date?.split("T")[0] })
+  emit("save", { ...sale })
   close()
 }
 

@@ -52,7 +52,7 @@
           <v-row dense align="center">
             <v-col cols="12" sm="4">
               <v-text-field
-                v-model="filters.search"
+                v-model="draft.search"
                 :placeholder="$t('ingredients.search_placeholder')"
                 variant="outlined"
                 rounded="lg"
@@ -64,7 +64,7 @@
             </v-col>
             <v-col cols="6" sm="2">
               <v-select
-                v-model="filters.category"
+                v-model="draft.category"
                 :items="categoryOptions"
                 :placeholder="$t('form.category')"
                 variant="outlined"
@@ -75,7 +75,7 @@
             </v-col>
             <v-col cols="6" sm="2">
               <v-select
-                v-model="filters.is_active"
+                v-model="draft.is_active"
                 :items="activeOptions"
                 item-title="label"
                 item-value="value"
@@ -88,7 +88,7 @@
             </v-col>
             <v-col cols="6" sm="2">
               <v-select
-                v-model="filters.low_stock"
+                v-model="draft.low_stock"
                 :items="[{ label: $t('ingredients.low_stock_only'), value: true }]"
                 item-title="label"
                 item-value="value"
@@ -127,27 +127,13 @@
 
     <!-- ── Table ──────────────────────────────────────────────────────────── -->
     <v-card rounded="lg" border elevation="0">
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="ingredientStore.ingredients"
-        :items-length="ingredientStore.pagination?.total ?? 0"
-        :loading="ingredientStore.loading"
-        :items-per-page="filters.perPage"
-        :page="filters.page"
-        item-value="id"
-        @update:page="
-          p => {
-            filters.page = p
-            load()
-          }
-        "
-        @update:items-per-page="
-          p => {
-            filters.perPage = p
-            filters.page = 1
-            load()
-          }
-        "
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="ingredients"
       >
         <!-- Name -->
         <template #item.name="{ item }">
@@ -244,7 +230,7 @@
             />
           </div>
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- ── Create/Edit Dialog ─────────────────────────────────────────────── -->
@@ -275,11 +261,11 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, reactive, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useIngredientStore } from '@/stores/ingredientStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppStatusChip } from '@nong-official-dev/core'
+  import { AppStatusChip, AppTable } from '@nong-official-dev/core'
   import IngredientDialog from '@/components/ingredients/IngredientDialog.vue'
   import AppDialog from '@/components/common/AppDialog.vue'
 
@@ -287,6 +273,7 @@
   const { notif } = useAppUtils()
   const { t } = useI18n()
 
+  const tableRef = ref(null)
   const dialog = ref(false)
   const deleteDialog = ref(false)
   const selected = ref(null)
@@ -294,24 +281,26 @@
   const saving = ref(false)
   const deleting = ref(false)
 
-  const filters = ref({
+  const defaultFilters = () => ({
     search: '',
     category: null,
     is_active: null,
-    low_stock: null,
-    perPage: 15,
-    page: 1
+    low_stock: null
   })
+  // draft = bound to the inputs directly; applied = only updated on
+  // Search/Enter/Reset, and is what's actually passed to AppTable (so typing
+  // doesn't fire a request on every keystroke).
+  const draft = reactive(defaultFilters())
+  const applied = reactive(defaultFilters())
   const showFilters = ref(false)
 
   // ── Active filter badge ───────────────────────────────────────────────────────
   const activeFilterCount = computed(() => {
     let count = 0
-    if (filters.value.search?.trim()) count++
-    if (filters.value.category) count++
-    if (filters.value.is_active !== null && filters.value.is_active !== undefined)
-      count++
-    if (filters.value.low_stock) count++
+    if (draft.search?.trim()) count++
+    if (draft.category) count++
+    if (draft.is_active !== null && draft.is_active !== undefined) count++
+    if (draft.low_stock) count++
     return count
   })
   const hasActiveFilters = computed(() => activeFilterCount.value > 0)
@@ -384,24 +373,28 @@
       minimumFractionDigits: 4
     }).format(v ?? 0)
 
-  const load = () => ingredientStore.fetchIngredients(filters.value)
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  const appliedFilters = computed(() => ({
+    search: applied.search || undefined,
+    category: applied.category || undefined,
+    is_active: applied.is_active,
+    low_stock: applied.low_stock || undefined
+  }))
 
-  // ── Reset to page 1 and reload when filters change ───────────────────────────
+  async function fetchTableData(params) {
+    await ingredientStore.fetchIngredients(params)
+    return { items: ingredientStore.ingredients ?? [], total: ingredientStore.pagination?.total ?? 0 }
+  }
+
+  // ── Apply/reset just update `applied` — no manual refetch needed. ────────────
   const onFilterChange = () => {
-    filters.value.page = 1
-    load()
+    Object.assign(applied, draft)
   }
 
   const resetFilters = () => {
-    filters.value = {
-      search: '',
-      category: null,
-      is_active: null,
-      low_stock: null,
-      perPage: 15,
-      page: 1
-    }
-    load()
+    Object.assign(draft, defaultFilters())
+    Object.assign(applied, defaultFilters())
   }
 
   // ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -425,6 +418,7 @@
         notif(t('ingredients.created_success'), { type: 'success' })
       }
       dialog.value = false
+      tableRef.value?.refresh()
     } catch {
       notif(t('ingredients.save_failed'), { type: 'error' })
     } finally {
@@ -442,12 +436,11 @@
       await ingredientStore.deleteIngredient(deleteTarget.value.id)
       notif(t('ingredients.deleted_success'), { type: 'success' })
       deleteDialog.value = false
+      tableRef.value?.refresh()
     } catch {
       notif(t('ingredients.delete_failed'), { type: 'error' })
     } finally {
       deleting.value = false
     }
   }
-
-  onMounted(() => load())
 </script>

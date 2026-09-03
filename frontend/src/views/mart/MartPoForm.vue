@@ -87,13 +87,10 @@
             </v-col>
             <!-- Expected delivery -->
             <v-col cols="3">
-              <v-date-input
+              <AppDatePicker
                 v-model="form.expected_delivery"
                 :label="t('po.field.date')"
-                prepend-icon=""
-                variant="outlined"
-                persistent-placeholder
-              ></v-date-input>
+              />
             </v-col>
             <!-- Status (edit only) -->
             <v-col v-if="isEdit" cols="3">
@@ -421,6 +418,7 @@
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
 

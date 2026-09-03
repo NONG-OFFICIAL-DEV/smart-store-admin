@@ -153,13 +153,9 @@
             </v-col>
 
             <v-col cols="12" sm="5">
-              <v-date-input
+              <AppDatePicker
                 v-model="form.reserved_date"
                 :label="$t('reservations.field.reserved_date')"
-                variant="outlined"
-                rounded="lg"
-                :rules="[r.required, r.notPastDate]"
-                :min="minSelectableDate"
               />
             </v-col>
 
@@ -327,6 +323,7 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const { formatTime, formatShortDateTime } = useDate()
 
@@ -396,20 +393,16 @@
     `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
   const todayStr = localDateStr(new Date())
-  // v-date-input emits a Date object once the user picks something, but the
-  // form is pre-populated with a plain "YYYY-MM-DD" string when editing —
-  // every read of form.reserved_date must go through this, never compare
-  // the raw value directly (a Date compared to a string coerces via
+  // AppDatePicker emits a plain "YYYY-MM-DD" string, but the form is also
+  // pre-populated with one when editing — every read of form.reserved_date
+  // must go through this, never compare the raw value directly (a Date
+  // compared to a string, if one ever creeps in, coerces via
   // Date#toString(), which doesn't sort chronologically at all).
   const dateOnlyStr = v => {
     if (!v) return null
     const d = v instanceof Date ? v : new Date(v)
     return Number.isNaN(d.getTime()) ? null : localDateStr(d)
   }
-  // Real Date object for the picker's own min-boundary — a "YYYY-MM-DD"
-  // string would be parsed as UTC midnight, not local midnight, which can
-  // be off by a day near midnight in timezones ahead of UTC.
-  const minSelectableDate = new Date()
 
   // Splits a reserved_at value from the API (ISO datetime) into the two
   // local inputs this form actually edits.
@@ -482,11 +475,9 @@
   const r = {
     required: v => !!v || v === 0 || t('validation.required'),
     positive: v => !v || Number(v) > 0 || t('validation.positive'),
-    // Normalize through dateOnlyStr first — v is a Date object once
-    // v-date-input has been touched, a plain string before that.
-    notPastDate: v => !v || dateOnlyStr(v) >= todayStr || t('reservations.rule.past_date'),
-    // Only meaningful when the date is today — an earlier/later date is
-    // already caught by notPastDate above, so this never double-reports.
+    // Only meaningful when the date is today — a past date itself isn't
+    // blocked (AppDatePicker has no rules/min support), so this only
+    // catches picking an earlier time slot on today's date.
     notPastTime: v => {
       const dateStr = dateOnlyStr(form.reserved_date)
       if (!v || !dateStr || dateStr !== todayStr) return true

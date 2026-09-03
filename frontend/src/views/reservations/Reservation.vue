@@ -41,12 +41,7 @@
           </div>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-date-input
-            v-model="filterDate"
-            :label="$t('form.date')"
-            rounded="lg"
-            clearable
-          />
+          <AppDatePicker v-model="filters.date" :label="$t('form.date')" />
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-select
@@ -231,7 +226,7 @@
   import { useReservationStore } from '@/stores/reservationStore'
   import { useTableStore } from '@/stores/tableStore'
   import ReservationFormDialog from '@/components/reservations/ReservationFormDialog.vue'
-  import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, AppDatePicker, useAppUtils } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { confirm, notif } = useAppUtils()
@@ -278,15 +273,6 @@
     { title: t('form.status'), key: 'status', sortable: true },
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ]
-
-  // filters.date stays a "YYYY-MM-DD" string (used for startsWith comparisons
-  // below) — this proxy is what the date picker actually binds to.
-  const filterDate = computed({
-    get: () => (filters.value.date ? new Date(filters.value.date) : null),
-    set: v => {
-      filters.value.date = v instanceof Date ? formatLocalDate(v) : v
-    }
-  })
 
   // "Today" / "All" quick toggle — reads/writes the same filters.date, so
   // picking a specific day via the date input below just leaves neither

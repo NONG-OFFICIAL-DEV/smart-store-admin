@@ -100,16 +100,9 @@
 
             <!-- Shift Date -->
             <v-col cols="12">
-              <v-date-input
+              <AppDatePicker
                 v-model="form.shift_date"
                 :label="$t('shift_assignments.fields.shiftDate.label')"
-                variant="outlined"
-                rounded="lg"
-                :rules="[r.required]"
-                prepend-inner-icon="mdi-calendar"
-                append-inner-icon=""
-                :hint="$t('shift_assignments.fields.shiftDate.hint')"
-                persistent-hint
               />
             </v-col>
 
@@ -220,6 +213,7 @@
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const { formatWeekdayDate: formatDate } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()

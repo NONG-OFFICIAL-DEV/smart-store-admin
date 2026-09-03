@@ -85,13 +85,13 @@
 
     <!-- Table -->
     <v-card rounded="lg" elevation="0" border>
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="store.suppliers.data ?? []"
-        :items-length="store.suppliers.total ?? 0"
-        :loading="store.loading"
-        v-model:items-per-page="opts.itemsPerPage"
-        @update:options="loadItems"
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="suppliers"
       >
         <!-- Status chip -->
         <template #item.is_active="{ item }">
@@ -123,7 +123,7 @@
             @click="handleDelete(item.id)"
           />
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- Dialog -->
@@ -137,10 +137,10 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
+  import { ref, reactive, computed } from 'vue'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppStatusChip } from '@nong-official-dev/core'
+  import { AppStatusChip, AppTable } from '@nong-official-dev/core'
   import SupplierDialog from '@/components/SupplierDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
@@ -148,7 +148,7 @@
   const { confirm, notif } = useAppUtils()
 
   // ── Table ──────────────────────────────────────────────────────────────────────
-  const opts = reactive({ page: 1, itemsPerPage: 15 })
+  const tableRef = ref(null)
 
   const headers = computed(() => [
     { title: t('suppliers.table.name'), key: 'name' },
@@ -184,33 +184,27 @@
     { title: 'Inactive', value: false }
   ]
 
-  // ── Reset to page 1 and reload when filters change ───────────────────────────
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  const appliedFilters = computed(() => ({
+    search: applied.keyword || undefined,
+    is_active: applied.is_active
+  }))
+
+  // ── Apply/reset just update `applied` — no manual refetch needed. ────────────
   const onFilterChange = () => {
     Object.assign(applied, { ...draft })
-    opts.page = 1
-    fetchData()
   }
 
   const resetFilters = () => {
     Object.assign(draft, { keyword: '', is_active: null })
     Object.assign(applied, { keyword: '', is_active: null })
-    opts.page = 1
-    fetchData()
   }
 
   // ── Fetch ──────────────────────────────────────────────────────────────────────
-  const fetchData = () =>
-    store.fetchSuppliers({
-      page: opts.page,
-      perPage: opts.itemsPerPage,
-      search: applied.keyword || undefined,
-      is_active: applied.is_active
-    })
-
-  const loadItems = ({ page, itemsPerPage }) => {
-    opts.page = page
-    opts.itemsPerPage = itemsPerPage
-    fetchData()
+  async function fetchTableData(params) {
+    await store.fetchSuppliers(params)
+    return { items: store.suppliers.data ?? [], total: store.suppliers.total ?? 0 }
   }
 
   // ── Dialog ─────────────────────────────────────────────────────────────────────
@@ -238,7 +232,7 @@
         notif('Supplier added', { type: 'success' })
       }
       dialog.value = false
-      fetchData()
+      tableRef.value?.refresh()
     } catch {
       notif('Something went wrong', { type: 'error' })
     } finally {
@@ -254,12 +248,10 @@
       agree: async () => {
         await store.removeSupplier(id)
         notif('Supplier deleted', { type: 'success' })
-        fetchData()
+        tableRef.value?.refresh()
       }
     })
   }
-
-  onMounted(fetchData)
 </script>
 
 <style scoped>

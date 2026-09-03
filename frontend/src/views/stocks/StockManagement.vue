@@ -164,13 +164,13 @@
 
     <!-- ── Table ──────────────────────────────────────────────────────── -->
     <v-card rounded="xl" elevation="0" border>
-      <v-data-table-server
+      <AppTable
+        ref="tableRef"
         :headers="headers"
-        :items="store.stocks.data ?? []"
-        :items-length="store.stocks.total ?? 0"
-        :loading="store.loading"
-        v-model:items-per-page="opts.itemsPerPage"
-        @update:options="loadItems"
+        :fetch-fn="fetchTableData"
+        :filters="appliedFilters"
+        :show-search="false"
+        item-label="stock"
       >
         <!-- Ingredient -->
         <template #item.ingredient="{ item }">
@@ -267,7 +267,7 @@
             @click="handleDelete(item.id)"
           />
         </template>
-      </v-data-table-server>
+      </AppTable>
     </v-card>
 
     <!-- ── Dialog ─────────────────────────────────────────────────────── -->
@@ -286,6 +286,7 @@
   import { useInventoryStockStore } from '@/stores/inventoryStockStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { AppTable } from '@nong-official-dev/core'
   import InventoryStockDialog from '@/components/inventory/InventoryStockDialog.vue'
   import { useDate } from '@/composables/useDate'
 
@@ -296,7 +297,7 @@
   const { formatShortDate: formatDate } = useDate()
 
   // ── Table ──────────────────────────────────────────────────────────────────────
-  const opts = reactive({ page: 1, itemsPerPage: 15 })
+  const tableRef = ref(null)
 
   const headers = [
     { title: t('stock.management.table.ingredient'), key: 'ingredient', sortable: false },
@@ -351,11 +352,21 @@
     { title: t('inventory.out_of_stock'), value: 'out_of_stock' }
   ]
 
-  // ── Reset to page 1 and reload when filters change ───────────────────────────
+  // ── Filters passed straight through to fetchTableData — AppTable deep-watches
+  // this and refetches (resetting to page 1) whenever it changes. `keyword`,
+  // `category` and `stock_status` are pre-existing dead filters — the backend's
+  // InventoryStockRepository only ever reads `branch_id`; carried over unchanged,
+  // not fixed here. ──────────────────────────────────────────────────────────
+  const appliedFilters = computed(() => ({
+    keyword: applied.keyword || undefined,
+    branch_id: applied.branch_id || undefined,
+    category: applied.category || undefined,
+    stock_status: applied.stock_status || undefined
+  }))
+
+  // ── Apply/reset just update `applied` — no manual refetch needed. ────────────
   const onFilterChange = () => {
     Object.assign(applied, { ...draft })
-    opts.page = 1
-    fetchData()
   }
 
   const resetFilters = () => {
@@ -371,25 +382,12 @@
       category: null,
       stock_status: null
     })
-    opts.page = 1
-    fetchData()
   }
 
   // ── Fetch ──────────────────────────────────────────────────────────────────────
-  const fetchData = () =>
-    store.fetchStocks({
-      page: opts.page,
-      per_page: opts.itemsPerPage,
-      keyword: applied.keyword || undefined,
-      branch_id: applied.branch_id || undefined,
-      category: applied.category || undefined,
-      stock_status: applied.stock_status || undefined
-    })
-
-  const loadItems = ({ page, itemsPerPage }) => {
-    opts.page = page
-    opts.itemsPerPage = itemsPerPage
-    fetchData()
+  async function fetchTableData(params) {
+    await store.fetchStocks(params)
+    return { items: store.stocks.data ?? [], total: store.stocks.total ?? 0 }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -446,7 +444,7 @@
         notif(t('stock.management.messages.added'), { type: 'success' })
       }
       dialog.value = false
-      fetchData()
+      tableRef.value?.refresh()
     } catch {
       notif(t('messages.error_occurred'), { type: 'error' })
     } finally {
@@ -462,14 +460,13 @@
       agree: async () => {
         await store.removeStock(id)
         notif(t('messages.deleted_success'), { type: 'success' })
-        fetchData()
+        tableRef.value?.refresh()
       }
     })
   }
 
   onMounted(() => {
     branchStore.fetchBranches()
-    fetchData()
   })
 </script>
 

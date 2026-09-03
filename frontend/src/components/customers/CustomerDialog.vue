@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDate } from '@/composables/useDate'
 import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDatePicker } from '@nong-official-dev/core'
 
 const { t } = useI18n()
 const { formatLocalDate } = useDate()
@@ -114,7 +115,7 @@ const submit = async () => {
             <v-text-field v-model="form.phone" :label="$t('form.phone')" variant="outlined" rounded="lg" :rules="[rules.phone]" maxlength="30" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-date-input v-model="form.date_of_birth" :label="$t('customers.field.date_of_birth')" rounded="lg" />
+            <AppDatePicker v-model="form.date_of_birth" :label="$t('customers.field.date_of_birth')" />
           </v-col>
           <v-col cols="12" sm="6">
             <v-select v-model="form.gender" :items="genderOptions" item-title="title" item-value="value"

@@ -2,6 +2,7 @@
   import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import AppDialog from '@/components/common/AppDialog.vue'
+  import { AppDatePicker } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -95,13 +96,9 @@
           </v-col>
 
           <v-col cols="12" sm="6">
-            <v-date-input
+            <AppDatePicker
               v-model="form.expires_at"
               :label="t('coupons.dialog.expires_at')"
-              variant="outlined"
-              rounded="lg"
-              prepend-inner-icon="mdi-calendar"
-              append-inner-icon=""
             />
           </v-col>
 

@@ -41,9 +41,9 @@
 
             <!-- Expected Delivery -->
             <v-col cols="12" sm="6">
-              <v-date-input
+              <AppDatePicker
                 v-model="form.expected_delivery"
-                :label="$t('form.expected_delivery')" rounded="lg"
+                :label="$t('form.expected_delivery')"
               />
             </v-col>
 
@@ -133,6 +133,7 @@ import { useSupplierStore }  from '@/stores/supplierStore'
 import { useIngredientStore } from '@/stores/ingredientStore'
 import { useDate } from '@/composables/useDate'
 import AppDialog from '@/components/common/AppDialog.vue'
+import { AppDatePicker } from '@nong-official-dev/core'
 
 const props = defineProps({
   modelValue:    { type: Boolean, default: false },

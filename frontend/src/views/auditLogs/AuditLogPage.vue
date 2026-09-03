@@ -21,21 +21,17 @@
     <v-card class="mb-4 pa-4" elevation="0" v-show="showExportForm">
       <v-row class="align-center">
         <v-col cols="12" md="4">
-          <v-date-input
+          <AppDatePicker
             v-model="exportDates.startDate"
             :label="$t('audit_log.start_date')"
-            :error="!!exportErrors.start"
             :error-messages="exportErrors.start"
-            clearable
           />
         </v-col>
         <v-col cols="12" md="4">
-          <v-date-input
+          <AppDatePicker
             v-model="exportDates.endDate"
             :label="$t('audit_log.end_date')"
-            :error="!!exportErrors.end"
             :error-messages="exportErrors.end"
-            clearable
           />
         </v-col>
         <v-col cols="12" md="4" class="d-flex align-center gap-2 mb-4">

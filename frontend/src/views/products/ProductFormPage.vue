@@ -598,15 +598,9 @@
                       />
                     </v-col>
                     <v-col cols="12" sm="6">
-                      <v-date-input
+                      <AppDatePicker
                         v-model="form.expiry_date"
                         :label="t('products.field.expiryDate')"
-                        variant="outlined"
-                        rounded="lg"
-                        hide-details
-                        prepend-inner-icon="mdi-calendar-end-outline"
-                        append-inner-icon=""
-                        clearable
                       />
                     </v-col>
 
@@ -954,7 +948,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { storeToRefs } from 'pinia'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { useAppUtils, AppDatePicker } from '@nong-official-dev/core'
   import { useAuthStore } from '@/stores/authStore'
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
