@@ -87,6 +87,7 @@
   "btn": {
     "create": "Create",
     "edit": "Edit",
+    "view_details": "View Details",
     "update": "Update",
     "delete": "Delete",
     "save": "Save",
@@ -120,7 +121,6 @@
     "save_changes": "Save Changes",
     "create_po": "Create PO",
     "add_product": "Add Product",
-    "add_branch": "Add Branch",
     "add_staff": "Add Staff",
     "add_supplier": "Add Supplier",
     "add_customer": "Add Customer",
@@ -819,11 +819,7 @@
       "phone": "Phone Number",
       "tax_rate": "Tax Rate (%)",
       "name_placeholder": "e.g. Phnom Penh Central",
-      "branch_type": "Branch type",
-      "address_line1": "Address line 1",
-      "address_line2": "Address line 2",
-      "city": "City",
-      "country": "Country"
+      "branch_type": "Branch type"
     },
     "detail": {
       "title": "Branch Detail",
@@ -832,50 +828,18 @@
       "active": "ACTIVE",
       "inactive": "INACTIVE",
       "service_charge": "Service Charge",
-      "slug": "Slug",
       "orders_today": "Orders Today",
       "revenue_today": "Revenue Today",
-      "avg_order": "Avg Order",
-      "total_tables": "Total Tables",
-      "occupied": "Occupied",
-      "reserved": "Reserved",
-      "table_number": "Table {n}",
-      "capacity": "Capacity: {n}",
-      "more_tables": "+{n} more tables",
-      "staff_count": "Staff ({n})",
-      "no_role": "No role",
-      "no_staff_assigned": "No staff assigned"
+      "no_contact_info": "No contact info on file"
     },
     "dialog": {
       "titleEdit": "Edit Branch",
       "titleCreate": "Create Branch",
-      "subtitleEdit": "Update branch details",
-      "subtitleCreate": "Add a new branch to your network",
-      "step": {
-        "business_type": "Business Type",
-        "location": "Location",
-        "review": "Review"
-      },
-      "section": {
-        "business_type_info": "Business type information",
-        "branch_details": "Branch details",
-        "status_settings": "Status settings"
-      },
-      "business_type_hint": "Business type is automatically assigned from your tenant.",
       "phone_placeholder": "+855 ...",
       "email_placeholder": "branch{'@'}example.com",
       "address_line1_placeholder": "Street address",
-      "address_line2_placeholder": "Suite, floor, unit...",
       "is_open_label": "Branch is open",
-      "is_open_hint": "Visible and accepting customers",
       "is_active_label": "Branch is active",
-      "is_active_hint": "Enabled and operational",
-      "review_before_update": "Review before updating",
-      "review_before_create": "Review before creating",
-      "full_address_label": "Full address",
-      "open": "Open",
-      "closed": "Closed",
-      "step_of": "Step {current} of {total}",
       "submitEdit": "Update Branch",
       "submitCreate": "Create Branch"
     },

@@ -87,6 +87,7 @@
   "btn": {
     "create": "បង្កើត",
     "edit": "កែប្រែ",
+    "view_details": "មើលព័ត៌មានលម្អិត",
     "update": "ធ្វើបច្ចុប្បន្នភាព",
     "delete": "លុប",
     "save": "រក្សាទុក",
@@ -120,7 +121,6 @@
     "save_changes": "រក្សាការផ្លាស់ប្តូរ",
     "create_po": "បង្កើតបញ្ជាទិញ",
     "add_product": "បន្ថែមផលិតផល",
-    "add_branch": "បន្ថែមសាខា",
     "add_staff": "បន្ថែមបុគ្គលិក",
     "add_supplier": "បន្ថែមអ្នកផ្គត់ផ្គង់",
     "add_customer": "បន្ថែមអតិថិជន",
@@ -814,11 +814,7 @@
       "phone": "លេខទូរស័ព្ទ",
       "tax_rate": "អត្រាពន្ធ (%)",
       "name_placeholder": "ឧ. ភ្នំពេញកណ្តាល",
-      "branch_type": "ប្រភេទសាខា",
-      "address_line1": "អាសយដ្ឋានបន្ទាត់ទី 1",
-      "address_line2": "អាសយដ្ឋានបន្ទាត់ទី 2",
-      "city": "ទីក្រុង",
-      "country": "ប្រទេស"
+      "branch_type": "ប្រភេទសាខា"
     },
     "detail": {
       "title": "ព័ត៌មានលម្អិតសាខា",
@@ -827,50 +823,18 @@
       "active": "សកម្ម",
       "inactive": "អសកម្ម",
       "service_charge": "ថ្លៃសេវា",
-      "slug": "អត្តសញ្ញាណតំណ",
       "orders_today": "ការបញ្ជាទិញថ្ងៃនេះ",
       "revenue_today": "ចំណូលថ្ងៃនេះ",
-      "avg_order": "ការបញ្ជាទិញជាមធ្យម",
-      "total_tables": "តុសរុប",
-      "occupied": "កំពុងប្រើប្រាស់",
-      "reserved": "បានកក់",
-      "table_number": "តុលេខ {n}",
-      "capacity": "សមត្ថភាព៖ {n}",
-      "more_tables": "តុបន្ថែមទៀត {n}",
-      "staff_count": "បុគ្គលិក ({n})",
-      "no_role": "គ្មានតួនាទី",
-      "no_staff_assigned": "មិនទាន់កំណត់បុគ្គលិកទេ"
+      "no_contact_info": "មិនទាន់មានព័ត៌មានទំនាក់ទំនងទេ"
     },
     "dialog": {
       "titleEdit": "កែសម្រួលសាខា",
       "titleCreate": "បង្កើតសាខា",
-      "subtitleEdit": "ធ្វើបច្ចុប្បន្នភាពព័ត៌មានលម្អិតសាខា",
-      "subtitleCreate": "បន្ថែមសាខាថ្មីទៅបណ្តាញរបស់អ្នក",
-      "step": {
-        "business_type": "ប្រភេទអាជីវកម្ម",
-        "location": "ទីតាំង",
-        "review": "ពិនិត្យឡើងវិញ"
-      },
-      "section": {
-        "business_type_info": "ព័ត៌មានប្រភេទអាជីវកម្ម",
-        "branch_details": "ព័ត៌មានលម្អិតសាខា",
-        "status_settings": "ការកំណត់ស្ថានភាព"
-      },
-      "business_type_hint": "ប្រភេទអាជីវកម្មត្រូវបានកំណត់ដោយស្វ័យប្រវត្តិពីអ្នកជួលរបស់អ្នក។",
       "phone_placeholder": "+855 ...",
       "email_placeholder": "branch{'@'}example.com",
       "address_line1_placeholder": "អាសយដ្ឋានផ្លូវ",
-      "address_line2_placeholder": "បន្ទប់, ជាន់, ឯកតា...",
       "is_open_label": "សាខាកំពុងបើក",
-      "is_open_hint": "មើលឃើញ និងទទួលអតិថិជន",
       "is_active_label": "សាខាកំពុងសកម្ម",
-      "is_active_hint": "បានបើកដំណើរការ",
-      "review_before_update": "ពិនិត្យឡើងវិញមុននឹងធ្វើបច្ចុប្បន្នភាព",
-      "review_before_create": "ពិនិត្យឡើងវិញមុននឹងបង្កើត",
-      "full_address_label": "អាសយដ្ឋានពេញលេញ",
-      "open": "បើក",
-      "closed": "បិទ",
-      "step_of": "ជំហាន {current} នៃ {total}",
       "submitEdit": "ធ្វើបច្ចុប្បន្នភាពសាខា",
       "submitCreate": "បង្កើតសាខា"
     },

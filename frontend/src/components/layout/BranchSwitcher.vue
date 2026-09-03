@@ -113,11 +113,16 @@
     loading.value = true
     try {
       await branchStore.fetchBranches()
-      // First time an owner ever lands here (nothing persisted yet) —
-      // default to their first branch instead of leaving POS/etc. with
-      // nothing picked.
-      if (!authStore.activeBranchId && branchStore.branches.length) {
-        authStore.setActiveBranch(branchStore.branches[0].id)
+      const fetched = branchStore.branches
+      const activeStillValid = fetched.some(b => b.id === authStore.activeBranchId)
+      // Covers both: nothing persisted yet (first time an owner lands
+      // here), and a stale/foreign id left over in localStorage (e.g. the
+      // branch was deleted, or another tenant's id on a shared device).
+      // With a single branch there's no ambiguity and no switcher UI to
+      // fix it manually (showSwitcher requires length > 1), so this is
+      // the only place a mismatch ever gets corrected.
+      if (!activeStillValid && fetched.length) {
+        authStore.setActiveBranch(fetched[0].id)
       }
     } finally {
       loading.value = false

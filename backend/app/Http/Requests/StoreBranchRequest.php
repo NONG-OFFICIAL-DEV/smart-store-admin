@@ -20,9 +20,9 @@ class StoreBranchRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:150'],
-            'address_line1' => ['required', 'string', 'max:255'],
+            'address_line1' => ['nullable', 'string', 'max:255'],
             'address_line2' => ['nullable', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
             'postal_code' => ['nullable', 'string', 'max:20'],
