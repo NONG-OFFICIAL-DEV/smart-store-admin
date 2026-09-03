@@ -165,9 +165,19 @@ const routes = [
       },
       {
         path: '/customers-hub',
-        name: 'customers-hub',
-        component: () => import('@/views/customers/CustomersHub.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: '/customers'
+      },
+      {
+        path: '/customers',
+        name: 'customers',
+        component: () => import('@/views/customers/CustomerList.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'customers.manage' }
+      },
+      {
+        path: '/customers/loyalty',
+        name: 'customers-loyalty',
+        component: () => import('@/views/loyalty/Loyalty.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'promotions.manage' }
       },
       {
         path: '/categories',
@@ -420,18 +430,13 @@ const routes = [
       {
         path: '/loyalty',
         name: 'loyalty',
-        redirect: to => ({ name: 'customers-hub', query: { ...to.query, tab: 'loyalty' } })
+        redirect: '/customers/loyalty'
       },
       {
         path: '/plan',
         name: 'plans',
         component: () => import('@/views/subscriptions/Plan.vue'),
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
-        path: '/customers',
-        name: 'Customers',
-        redirect: to => ({ name: 'customers-hub', query: { ...to.query, tab: 'customers' } })
       },
       {
         path: '/access-denied',

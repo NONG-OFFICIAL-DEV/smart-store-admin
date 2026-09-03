@@ -74,14 +74,9 @@ export function useSidebarMenu(rawMenu) {
   )
 
   // ── Active-route highlighting ──────────────────────────────────────────
-  // Group-level "is this group active" only needs the path, not the query
-  // (e.g. Inventory/Customers children differ only by `?tab=`) — strip it
-  // before comparing so `route.path.startsWith(...)` still matches.
   function isGroupActive(group) {
     if (!group.children) return false
-    return group.children.some(
-      c => c.path && route.path.startsWith(c.path.split('?')[0])
-    )
+    return group.children.some(c => c.path && route.path.startsWith(c.path))
   }
 
   // ── Expand/collapse state — persisted, defaults to the active group ────
@@ -108,17 +103,5 @@ export function useSidebarMenu(rawMenu) {
     { deep: true }
   )
 
-  // Vue Router's own `:to` active-class matching is query-blind (it only
-  // compares matched route records), so sibling tabs that share one route
-  // but differ by `?tab=` (Inventory/Customers) would otherwise all light
-  // up together. Used to force-override via VListItem's `active` prop —
-  // only needed for paths that actually carry a query string.
-  function isLeafActive(node) {
-    const [base, qs] = node.path.split('?')
-    if (route.path !== base) return false
-    const target = new URLSearchParams(qs)
-    return [...target.entries()].every(([k, v]) => (route.query[k] ?? '') === v)
-  }
-
-  return { filteredMenu, openGroups, isGroupActive, isLeafActive }
+  return { filteredMenu, openGroups, isGroupActive }
 }

@@ -183,12 +183,9 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Customers — customer list + loyalty/promotions live as tabs on one
-  //    hub page (see views/customers/CustomersHub.vue). Each submenu entry
-  //    deep-links straight to its tab via `?tab=` (see isLeafActive in
-  //    useSidebarMenu.js for the query-aware active-highlight override this
-  //    needs, since Vue Router's own :to active-class matching ignores
-  //    query strings).
+  // ── Customers — customer list and loyalty/promotions are each their own
+  //    page now (see views/customers/CustomerList.vue, views/loyalty/Loyalty.vue)
+  //    — no more shared tabbed hub.
   {
     key: 'customers-group',
     titleKey: 'customers_hub.title',
@@ -199,14 +196,14 @@ export const SIDEBAR_MENU = [
         key: 'customers-list',
         titleKey: 'customers_hub.tabs.customers',
         icon: 'mdi-account-multiple-outline',
-        path: '/customers-hub?tab=customers',
+        path: '/customers',
         permission: 'customers.manage'
       },
       {
         key: 'customers-loyalty',
         titleKey: 'customers_hub.tabs.loyalty',
         icon: 'mdi-star-outline',
-        path: '/customers-hub?tab=loyalty',
+        path: '/customers/loyalty',
         permission: 'promotions.manage',
         visible: ctx => ctx.hasPlan('pro')
       }

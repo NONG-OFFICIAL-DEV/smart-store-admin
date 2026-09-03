@@ -16,7 +16,7 @@
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.branch_id"
-                  :items="branchStore.branches?.data ?? []"
+                  :items="branchStore.branches ?? []"
                   item-value="id"
                   item-title="name"
                   :label="$t('po.field.branch')"

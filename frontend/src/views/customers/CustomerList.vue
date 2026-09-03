@@ -7,6 +7,7 @@
   import CustomerAddressDialog from '@/components/customers/CustomerAddressDialog.vue'
   import CustomerDetailPanel from '@/components/customers/CustomerDetailPanel.vue'
   import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
 
@@ -165,18 +166,19 @@
 
 <template>
   <v-container fluid class="pa-0">
-    <!-- ── Actions ─────────────────────────────────────────── -->
-    <div class="d-flex justify-end mb-4">
-      <v-btn
-        color="primary"
-        rounded="lg"
-        elevation="2"
-        prepend-icon="mdi-account-plus"
-        @click="openNewCustomer"
-      >
-        {{ $t('btn.add_customer') }}
-      </v-btn>
-    </div>
+    <AppToolbar :title="t('customers_hub.title')" :subtitle="t('customers_hub.subtitle')">
+      <template #actions>
+        <v-btn
+          color="primary"
+          rounded="lg"
+          elevation="2"
+          prepend-icon="mdi-account-plus"
+          @click="openNewCustomer"
+        >
+          {{ $t('btn.add_customer') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
     <!-- ── Data Table ─────────────────────────────────────── -->
     <v-card flat border rounded="lg" class="pa-4">
       <AppTable

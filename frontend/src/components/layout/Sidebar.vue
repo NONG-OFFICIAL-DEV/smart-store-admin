@@ -9,7 +9,7 @@
     rail: Boolean
   })
 
-  const { filteredMenu, openGroups, isGroupActive, isLeafActive } = useSidebarMenu(SIDEBAR_MENU)
+  const { filteredMenu, openGroups, isGroupActive } = useSidebarMenu(SIDEBAR_MENU)
 
   // ── Flyout state (rail mode) ──────────────────────────────────────────────────
   const flyout = ref({ visible: false, group: null, anchorY: 0 })
@@ -117,7 +117,6 @@
               :to="!sublink.newTab ? sublink.path : undefined"
               :href="sublink.newTab ? sublink.path : undefined"
               :target="sublink.newTab ? '_blank' : undefined"
-              :active="sublink.path?.includes('?') ? isLeafActive(sublink) : undefined"
               :prepend-icon="sublink.icon"
               :title="sublink.title"
               density="compact"
@@ -163,7 +162,6 @@
             v-for="sub in flyout.group.children"
             :key="sub.key"
             :to="sub.path"
-            :active="sub.path?.includes('?') ? isLeafActive(sub) : undefined"
             :prepend-icon="sub.icon"
             :title="sub.title"
             rounded="lg"

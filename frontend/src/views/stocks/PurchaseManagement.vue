@@ -3,23 +3,6 @@
     <AppToolbar :title="t('purchase_order.title')" :subtitle="t('purchase_order.subtitle')">
       <template #actions>
         <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ $t('btn.filter') }}
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
           color="primary"
           variant="flat"
           rounded="lg"
@@ -31,98 +14,46 @@
       </template>
     </AppToolbar>
 
-    <!-- ── Stats ──────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <v-col v-for="s in statCards" :key="s.label" cols="6" sm="3">
-        <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ s.label }}</span>
-            <v-icon :icon="s.icon" :color="s.color" size="18" />
-          </div>
-          <div class="text-h6 font-weight-bold" :class="`text-${s.color}`">
-            {{ s.value }}
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ── Filters ────────────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-        <v-card-text>
-          <v-row dense align="center">
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="filters.search"
-                :placeholder="$t('placeholder.search_po')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                @update:model-value="onSearch"
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="6" sm="2">
-              <v-select
-                v-model="filters.status"
-                :items="statusOptions"
-                item-title="label"
-                item-value="value"
-                :placeholder="$t('form.status')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col cols="6" sm="2">
-              <v-select
-                v-model="filters.supplier_id"
-                :items="supplierStore.suppliers.data"
-                item-title="name"
-                item-value="id"
-                :placeholder="$t('form.supplier')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ $t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ $t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
+    <!-- ── Filters — always visible, no toggle needed for just two selects ──── -->
+    <v-card rounded="lg" border elevation="0" class="mb-4">
+      <v-card-text class="pa-4">
+        <v-row dense align="center">
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="filters.status"
+              :items="statusOptions"
+              item-title="label"
+              item-value="value"
+              :placeholder="$t('form.status')"
+              variant="outlined"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="filters.supplier_id"
+              :items="supplierStore.suppliers.data"
+              item-title="name"
+              item-value="id"
+              :placeholder="$t('form.supplier')"
+              variant="outlined"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
     <!-- ── Table ──────────────────────────────────────────────────────────── -->
-    <v-card rounded="lg" border elevation="0">
+    <v-card rounded="lg" border elevation="0" class="pa-4">
       <AppTable
         ref="tableRef"
         :headers="headers"
         :fetch-fn="fetchTableData"
         :filters="appliedFilters"
-        :show-search="false"
         item-label="purchase orders"
       >
         <!-- PO Number -->
@@ -304,49 +235,11 @@
   const saving = ref(false)
   const receiving = ref(false)
   const cancelling = ref(false)
-  const showFilters = ref(false)
   const tableRef = ref(null)
 
   const filters = ref({
-    search: '',
     status: null,
     supplier_id: null
-  })
-  // Only synced from filters.search after the debounce (or immediately via
-  // Enter/Search) — status/supplier_id apply instantly since they're discrete
-  // choices, not continuous typing.
-  const appliedSearch = ref('')
-
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  const statCards = computed(() => {
-    const orders = poStore.purchaseOrders
-    return [
-      {
-        label: t('purchase_order.summary.total'),
-        value: poStore.pagination?.total ?? 0,
-        color: 'primary',
-        icon: 'mdi-clipboard-list-outline'
-      },
-      {
-        label: t('purchase_order.summary.draft'),
-        value: orders.filter(o => o.status === 'draft').length,
-        color: 'grey',
-        icon: 'mdi-file-outline'
-      },
-      {
-        label: t('status.pending'),
-        value: orders.filter(o => ['submitted', 'confirmed'].includes(o.status))
-          .length,
-        color: 'warning',
-        icon: 'mdi-clock-outline'
-      },
-      {
-        label: t('purchase_order.summary.received'),
-        value: orders.filter(o => o.status === 'received').length,
-        color: 'success',
-        icon: 'mdi-check-circle-outline'
-      }
-    ]
   })
 
   // ── Table headers ─────────────────────────────────────────────────────────────
@@ -404,20 +297,12 @@
 
   const fmt = v => format(v)
 
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (filters.value.search?.trim()) count++
-    if (filters.value.status) count++
-    if (filters.value.supplier_id) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
   // ── Filters passed straight through to fetchTableData — AppTable deep-watches
-  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  // this and refetches (resetting to page 1) whenever it changes. `search` is
+  // deliberately absent here — it comes from AppTable's own built-in search
+  // box, which spreads `filters` after its own `search` key so an explicit
+  // (even undefined) `search` here would clobber it. ───────────────────────────
   const appliedFilters = computed(() => ({
-    search: appliedSearch.value || undefined,
     status: filters.value.status || undefined,
     supplier_id: filters.value.supplier_id || undefined
   }))
@@ -428,29 +313,6 @@
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────────
-  let searchTimer = null
-  const onSearch = () => {
-    clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => {
-      appliedSearch.value = filters.value.search
-    }, 400)
-  }
-
-  // ── Apply/reset — status/supplier_id already apply live via :filters;
-  // this just fast-forwards the debounced search. ───────────────────────────────
-  const onFilterChange = () => {
-    clearTimeout(searchTimer)
-    appliedSearch.value = filters.value.search
-  }
-
-  const resetFilters = () => {
-    clearTimeout(searchTimer)
-    filters.value.search = ''
-    filters.value.status = null
-    filters.value.supplier_id = null
-    appliedSearch.value = ''
-  }
-
   const openCreate = () => {
     selectedPO.value = null
     dialog.value = true

@@ -14,37 +14,11 @@
       </template>
     </AppToolbar>
 
-    <!-- Stats row -->
-    <v-row dense class="mb-4">
-      <v-col v-for="s in stats" :key="s.label" cols="6" sm="3">
-        <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis mb-1">
-            {{ s.label }}
-          </div>
-          <div class="text-h6 font-weight-black" :class="`text-${s.color}`">
-            {{ s.value }}
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Filters -->
+    <!-- Filters — always visible, just the one select -->
     <v-card rounded="lg" border elevation="0" class="mb-4">
       <v-card-text class="pa-4">
         <v-row dense align="center">
-          <v-col cols="12" sm="4">
-            <v-text-field
-              v-model="filters.search"
-              :placeholder="t('purchase_order.search_placeholder')"
-              variant="outlined"
-              rounded="lg"
-              hide-details
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              @update:model-value="onSearch"
-            />
-          </v-col>
-          <v-col cols="6" sm="2">
+          <v-col cols="6" sm="3">
             <v-select
               v-model="filters.status"
               :items="statusOptions"
@@ -68,7 +42,6 @@
         :headers="headers"
         :fetch-fn="fetchTableData"
         :filters="appliedFilters"
-        :show-search="false"
         item-label="purchase orders"
       >
         <!-- PO Number -->
@@ -226,12 +199,8 @@
 
   const filters = ref({
     branch_id: null,
-    search: '',
     status: null
   })
-  // Only synced from filters.search after the debounce below — status
-  // applies instantly since it's a discrete choice, not continuous typing.
-  const appliedSearch = ref('')
 
   const statusOptions = computed(() => [
     { value: 'draft', label: t('po.status.draft') },
@@ -257,35 +226,6 @@
   const openEdit = po =>
     router.push({ name: 'MartPurchaseOrderEdit', params: { id: po.id } })
 
-  // Then remove: dialog ref, MartPoDialog import, handleSave, saving
-  const stats = computed(() => {
-    const orders = poStore.orders
-    return [
-      {
-        label: t('purchase_order.summary.total'),
-        value: poStore.pagination?.total ?? 0,
-        color: 'primary'
-      },
-      {
-        label: t('purchase_order.summary.draft'),
-        value: orders.filter(o => o.status === 'draft').length,
-        color: 'grey'
-      },
-      {
-        label: t('purchase_order.summary.in_progress'),
-        value: orders.filter(o =>
-          ['submitted', 'confirmed', 'partially_received'].includes(o.status)
-        ).length,
-        color: 'warning'
-      },
-      {
-        label: t('purchase_order.summary.received'),
-        value: orders.filter(o => o.status === 'received').length,
-        color: 'success'
-      }
-    ]
-  })
-
   const statusColor = s =>
     ({
       draft: 'grey',
@@ -301,9 +241,11 @@
 
 
   // ── Filters passed straight through to fetchTableData — AppTable deep-watches
-  // this and refetches (resetting to page 1) whenever it changes. ───────────────
+  // this and refetches (resetting to page 1) whenever it changes. `search` is
+  // deliberately absent here — it comes from AppTable's own built-in search
+  // box, which spreads `filters` after its own `search` key so an explicit
+  // (even undefined) `search` here would clobber it. ───────────────────────────
   const appliedFilters = computed(() => ({
-    search: appliedSearch.value || undefined,
     status: filters.value.status || undefined,
     branch_id: filters.value.branch_id || undefined
   }))
@@ -311,14 +253,6 @@
   async function fetchTableData(params) {
     await poStore.fetchOrders(params)
     return { items: poStore.orders ?? [], total: poStore.pagination?.total ?? 0 }
-  }
-
-  let searchTimer = null
-  const onSearch = () => {
-    clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => {
-      appliedSearch.value = filters.value.search
-    }, 400)
   }
 
   const openReceive = po => {

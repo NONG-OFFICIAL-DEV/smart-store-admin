@@ -3,23 +3,6 @@
     <AppToolbar :title="t('stock.management.title')" :subtitle="t('stock.management.subtitle')">
       <template #actions>
         <v-btn
-          :color="showFilters ? 'primary' : 'default'"
-          :variant="showFilters ? 'flat' : 'tonal'"
-          rounded="lg"
-          :prepend-icon="
-            showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-          "
-          @click="showFilters = !showFilters"
-        >
-          {{ $t('btn.filter') }}
-          <v-badge
-            v-if="activeFilterCount > 0"
-            :content="activeFilterCount"
-            color="error"
-            floating
-          />
-        </v-btn>
-        <v-btn
           color="primary"
           variant="flat"
           rounded="lg"
@@ -43,135 +26,56 @@
       prepend-icon="mdi-alert-outline"
     />
 
-    <!-- ── Stats ──────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <v-col cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
-          <div class="text-h5 font-weight-black text-primary">
-            {{ store.stocks.total ?? 0 }}
-          </div>
-          <div class="text-caption text-grey mt-1">{{ $t('stock.management.stats.total_items') }}</div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
-          <div class="text-h5 font-weight-black text-warning">
-            {{ store.lowStockItems.length }}
-          </div>
-          <div class="text-caption text-grey mt-1">{{ $t('inventory.low_stock') }}</div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
-          <div class="text-h5 font-weight-black text-success">
-            {{
-              store.stocks.data?.filter(s => parseFloat(s.quantity_on_hand) > 0)
-                .length ?? 0
-            }}
-          </div>
-          <div class="text-caption text-grey mt-1">{{ $t('inventory.in_stock') }}</div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card rounded="xl" elevation="0" border class="pa-4 text-center">
-          <div class="text-h5 font-weight-black text-error">
-            {{
-              store.stocks.data?.filter(
-                s => parseFloat(s.quantity_on_hand) <= 0
-              ).length ?? 0
-            }}
-          </div>
-          <div class="text-caption text-grey mt-1">{{ $t('inventory.out_of_stock') }}</div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ── Filter ─────────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-        <v-card-text>
-          <v-row dense align="center">
-            <v-col cols="12" sm="3">
-              <v-text-field
-                v-model="draft.keyword"
-                :label="$t('stock.management.search_ingredient')"
-                prepend-inner-icon="mdi-magnify"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-select
-                v-model="draft.branch_id"
-                :items="branchStore.branches?.data ?? []"
-                item-value="id"
-                item-title="name"
-                :label="$t('form.branch')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-select
-                v-model="draft.category"
-                :items="categoryOptions"
-                :label="$t('form.category')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-            <v-col cols="12" sm="3">
-              <v-select
-                v-model="draft.stock_status"
-                :items="stockStatusOptions"
-                :label="$t('products.filter.stock')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ $t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ $t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
+    <!-- ── Filters — always visible ──────────────────────────────────── -->
+    <v-card rounded="lg" border elevation="0" class="mb-4">
+      <v-card-text class="pa-4">
+        <v-row dense align="center">
+          <v-col cols="12" sm="4" v-if="branchStore.branches?.length > 1">
+            <v-select
+              v-model="filters.branch_id"
+              :items="branchStore.branches ?? []"
+              item-value="id"
+              item-title="name"
+              :label="$t('form.branch')"
+              variant="outlined"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-select
+              v-model="filters.category"
+              :items="categoryOptions"
+              :label="$t('form.category')"
+              variant="outlined"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-select
+              v-model="filters.stock_status"
+              :items="stockStatusOptions"
+              :label="$t('products.filter.stock')"
+              variant="outlined"
+              rounded="lg"
+              hide-details
+              clearable
+            />
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
 
     <!-- ── Table ──────────────────────────────────────────────────────── -->
-    <v-card rounded="xl" elevation="0" border>
+    <v-card rounded="lg" elevation="0" border class="pa-4">
       <AppTable
         ref="tableRef"
         :headers="headers"
         :fetch-fn="fetchTableData"
         :filters="appliedFilters"
-        :show-search="false"
         item-label="stock"
       >
         <!-- Ingredient -->
@@ -314,30 +218,11 @@
   ]
 
   // ── Filter ─────────────────────────────────────────────────────────────────────
-  const showFilters = ref(false)
-  const draft = reactive({
-    keyword: '',
+  const filters = reactive({
     branch_id: null,
     category: null,
     stock_status: null
   })
-  const applied = reactive({
-    keyword: '',
-    branch_id: null,
-    category: null,
-    stock_status: null
-  })
-
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (draft.keyword.trim() !== '') count++
-    if (draft.branch_id) count++
-    if (draft.category) count++
-    if (draft.stock_status) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
 
   const categoryOptions = [
     'dairy',
@@ -356,36 +241,18 @@
   ]
 
   // ── Filters passed straight through to fetchTableData — AppTable deep-watches
-  // this and refetches (resetting to page 1) whenever it changes. `keyword`,
-  // `category` and `stock_status` are pre-existing dead filters — the backend's
-  // InventoryStockRepository only ever reads `branch_id`; carried over unchanged,
-  // not fixed here. ──────────────────────────────────────────────────────────
+  // this and refetches (resetting to page 1) whenever it changes. `search`
+  // (AppTable's own built-in search box) and `category`/`stock_status` are
+  // pre-existing dead filters — the backend's InventoryStockRepository only
+  // ever reads `branch_id`; carried over unchanged, not fixed here. `search`
+  // itself is deliberately absent from this object — an explicit (even
+  // undefined) `search` key here would clobber AppTable's built-in one, since
+  // it spreads `filters` after its own `search` key. ───────────────────────
   const appliedFilters = computed(() => ({
-    keyword: applied.keyword || undefined,
-    branch_id: applied.branch_id || undefined,
-    category: applied.category || undefined,
-    stock_status: applied.stock_status || undefined
+    branch_id: filters.branch_id || undefined,
+    category: filters.category || undefined,
+    stock_status: filters.stock_status || undefined
   }))
-
-  // ── Apply/reset just update `applied` — no manual refetch needed. ────────────
-  const onFilterChange = () => {
-    Object.assign(applied, { ...draft })
-  }
-
-  const resetFilters = () => {
-    Object.assign(draft, {
-      keyword: '',
-      branch_id: null,
-      category: null,
-      stock_status: null
-    })
-    Object.assign(applied, {
-      keyword: '',
-      branch_id: null,
-      category: null,
-      stock_status: null
-    })
-  }
 
   // ── Fetch ──────────────────────────────────────────────────────────────────────
   async function fetchTableData(params) {
