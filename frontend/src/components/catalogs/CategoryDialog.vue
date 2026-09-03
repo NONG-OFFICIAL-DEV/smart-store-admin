@@ -29,8 +29,6 @@
             hide-details="auto"
             :rules="rules.name"
             :error-messages="serverErrors.name"
-            maxlength="100"
-            counter
           >
             <template #label>
               {{ $t('categories.form.name') }} <span class="text-error">*</span>
