@@ -130,19 +130,16 @@ const routes = [
         component: () => import('@/views/cashRegister/CashRegisterManagement.vue'),
         meta: { requiresAuth: true, permission: 'payments.manage', transition: 'fade' }
       },
-      // Products/Categories/Modifiers/Menus/Branch-Menus/Ingredients merged
-      // into one tabbed page. Inventory (Stock/Purchase-Orders/Suppliers)
-      // and Customers (Customers/Loyalty) likewise. Old routes below
-      // redirect into the right hub + tab so bookmarks/links keep working.
-      // Deliberately no `meta.permission` here — Vue Router resolves
-      // `redirect` before `beforeEach` guards run, so a stub's own meta
-      // never gets evaluated; gating instead lives on the sidebar (ANY
-      // permission array) and on each tab's own API calls.
+      // Products/Categories/Modifiers/Menus/Branch-Menus used to be one
+      // tabbed hub page (CatalogHub.vue) — Category/Menu/Modifier/Branch-Menu
+      // management moved into "manage" dialogs launched from the Products
+      // page toolbar instead (see ProductManagement.vue), so their old
+      // routes below just redirect straight to /products now. Inventory
+      // (Stock/Purchase-Orders/Suppliers) and Customers (Customers/Loyalty)
+      // still use the tabbed-hub pattern, unaffected by this.
       {
         path: '/catalog',
-        name: 'catalog-hub',
-        component: () => import('@/views/catalogs/CatalogHub.vue'),
-        meta: { requiresAuth: true, transition: 'fade' }
+        redirect: '/products'
       },
       {
         path: '/inventory',
@@ -159,7 +156,7 @@ const routes = [
       {
         path: '/categories',
         name: 'categories',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'categories' } })
+        redirect: '/products'
       },
       {
         path: '/dashboard',
@@ -215,12 +212,13 @@ const routes = [
       {
         path: '/branch-menus',
         name: 'BranchMenus',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'branch-menus' } })
+        redirect: '/products'
       },
       {
         path: '/products',
         name: 'Products',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'products' } })
+        component: () => import('@/views/products/ProductManagement.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'products.manage' }
       },
       {
         path: '/products/create',
@@ -257,7 +255,7 @@ const routes = [
       {
         path: '/product-modifier-groups',
         name: 'modifiergroups',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'modifiers' } })
+        redirect: '/products'
       },
       {
         path: '/suppliers',
@@ -314,7 +312,7 @@ const routes = [
       {
         path: '/menu-management',
         name: 'MenuManagement',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'menus' } })
+        redirect: '/products'
       },
       {
         path: '/notifications',
@@ -360,7 +358,8 @@ const routes = [
       {
         path: '/ingredients',
         name: 'ingredients',
-        redirect: to => ({ name: 'catalog-hub', query: { ...to.query, tab: 'ingredients' } })
+        component: () => import('@/views/ingredients/Ingredient.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'ingredients.manage' }
       },
       {
         path: '/mart/purchase-order',

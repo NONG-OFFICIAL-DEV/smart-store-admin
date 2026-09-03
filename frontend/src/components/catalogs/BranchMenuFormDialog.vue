@@ -19,8 +19,17 @@
     <!-- ── Form ────────────────────────────────────────────────────────────── -->
     <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-row dense>
-            <!-- Branch -->
-            <v-col cols="12">
+            <!-- Branch — only one tenant branch exists, nothing to pick. -->
+            <v-col v-if="hasSingleBranch" cols="12">
+              <v-text-field
+                :model-value="branches[0]?.name"
+                :label="$t('form.branch')"
+                variant="outlined"
+                readonly
+                prepend-inner-icon="mdi-store"
+              />
+            </v-col>
+            <v-col v-else cols="12">
               <v-select
                 v-model="form.branch_id"
                 :items="branches"
@@ -36,25 +45,7 @@
                 multiple
                 chips
                 closable-chips
-              >
-                <!-- <template #item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <template #append>
-                      <v-avatar
-                        color="primary"
-                        size="32"
-                        rounded="md"
-                        class="mr-2"
-                      >
-                        <v-icon icon="mdi-store" size="16" />
-                      </v-avatar>
-                    </template>
-                    <template #subtitle>
-                      {{ item.raw?.city || '' }}
-                    </template>
-                  </v-list-item>
-                </template> -->
-              </v-select>
+              />
             </v-col>
 
             <!-- Menu -->
@@ -236,6 +227,10 @@
 
   // ── Computed ──────────────────────────────────────────────────────────────────
   const isEdit = computed(() => !!props.editItem)
+  // A single-branch tenant has nothing to pick — auto-assign it instead of
+  // showing a one-item dropdown (see the branch switcher / branch settings
+  // for the same pattern elsewhere in this app).
+  const hasSingleBranch = computed(() => props.branches.length === 1)
 
   const selectedDaysLabel = computed(() => {
     if (!form.value.days_of_week.length) return t('menus.assign.every_day')
@@ -282,6 +277,17 @@
       }
     },
     { immediate: true }
+  )
+
+  // Re-applied on every open (not just once) — editItem often stays null
+  // across consecutive "create" opens, so that watcher alone won't refire.
+  watch(
+    () => props.modelValue,
+    open => {
+      if (open && !isEdit.value && hasSingleBranch.value) {
+        form.value.branch_id = props.branches[0].id
+      }
+    }
   )
 
   // When user changes From → re-validate Until field automatically

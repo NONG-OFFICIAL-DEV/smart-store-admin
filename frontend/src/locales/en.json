@@ -11,6 +11,7 @@
     "pos": "Point of Sale",
     "products_management": "Products",
     "products": "Products",
+    "product": "Product",
     "product_units": "Product Units",
     "categories": "Categories",
     "suppliers": "Suppliers",
@@ -52,7 +53,7 @@
     "operation": "Operations",
     "dining": "Dining",
     "reservations": "Reservations",
-    "ingredients": "Integrations",
+    "ingredients": "Ingredients",
     "modifiers": "Modifiers",
     "branch_menus": "Branch Menus",
     "system_admin": "System Admin",
@@ -107,7 +108,6 @@
     "confirm": "Confirm",
     "refresh": "Refresh",
     "add": "Add",
-    "add_category": "Add Category",
     "remove": "Remove",
     "submit": "Submit",
     "reset": "Reset",
@@ -857,52 +857,31 @@
   "categories": {
     "title": "Categories",
     "subtitle": "Manage your product groupings and display order",
-    "table": {
-      "name": "Category Name",
-      "products": "Products",
-      "sort_order": "Sort Order",
-      "status": "Status",
-      "type": "Type",
-      "actions": "Actions",
-      "description": "Description"
-    },
     "system_badge": "System",
     "custom_badge": "Custom",
     "view_only_hint": "System category — managed by the platform, view only",
     "empty": "No categories found",
-    "empty_sub": "Add your first category to organize products",
     "form": {
       "name": "Category Name",
-      "description": "Description",
       "sort_order": "Sort Order",
-      "name_placeholder": "e.g. Italian Coffee",
       "visibility": "Visibility Status",
       "visibility_hint": "Show this category on the menu"
     },
     "dialog": {
       "edit": "Edit Category",
       "add": "Add New Category",
-      "titleEdit": "Edit Category",
-      "add_subtitle": "Create a new product category",
-      "edit_subtitle": "Update this category's details",
       "name_placeholder": "e.g. Beverages",
-      "description_placeholder": "Brief description of this category...",
       "active_status": "Active Status",
       "lid_exchange": "Lid Exchange",
-      "create_category": "Create Category",
       "business_types": "Business Types",
-      "business_types_placeholder": "Select which business types get this category",
-      "system_hint": "This is a system category — it will be shared automatically with every tenant whose business type is selected above, and only a super admin can edit or delete it."
+      "business_types_placeholder": "Select which business types get this category"
     },
-    "validation": {
-      "name_required": "Name is required",
-      "min_2_chars": "At least 2 characters",
-      "max_100_chars": "Max 100 characters"
-    },
-    "loading": "Loading categories...",
-    "no_data": "No categories found",
     "delete_title": "Delete Category",
-    "delete_message": "Are you sure you want to delete \"{name}\"?"
+    "delete_message": "Are you sure you want to delete \"{name}\"?",
+    "messages": {
+      "saved": "Category saved",
+      "deleted": "Category deleted"
+    }
   },
   "products": {
     "title": "Products",
@@ -1033,12 +1012,6 @@
     "alert": {
       "retail": "Unit tiers, barcodes & pricing are managed from the product detail page.",
       "food": "Variants, modifiers & pricing are managed from the product detail page."
-    },
-    "stats": {
-      "total": "Total Products",
-      "available": "Available",
-      "featured": "Featured",
-      "unavailable": "Unavailable"
     },
     "variant": {
       "title": "Variants",
@@ -1526,18 +1499,6 @@
       "staff": "Staff",
       "shifts": "Shifts",
       "assignments": "Assignments"
-    }
-  },
-  "catalog_hub": {
-    "title": "Products",
-    "subtitle": "Manage your products, categories, modifiers, menus, and branch menus",
-    "tabs": {
-      "products": "Products",
-      "categories": "Categories",
-      "modifiers": "Modifiers",
-      "menus": "Menus",
-      "branch_menus": "Branch Menus",
-      "ingredients": "Ingredients"
     }
   },
   "inventory_hub": {
@@ -3293,23 +3254,10 @@
     "product": "Product"
   },
   "menus": {
-    "dialog": {
-      "titleEdit": "Edit Menu",
-      "titleCreate": "Create New Menu",
-      "subtitleEdit": "Update menu details and settings",
-      "subtitleCreate": "Define a new menu for your store",
-      "description_placeholder": "Brief description of this menu...",
-      "show_first_hint": "Show this menu first",
-      "visible_to_customers_hint": "Visible to customers",
-      "create_menu": "Create Menu"
-    },
     "form": {
-      "name": "Menu Name",
       "name_placeholder": "e.g. Breakfast Menu, Drinks, Lunch Special"
     },
     "validation": {
-      "name_required": "Menu name is required",
-      "min_2_chars": "At least 2 characters",
       "time_before": "Must be before \"Available Until\" time",
       "time_after": "Must be after \"Available From\" time"
     },
@@ -3340,33 +3288,20 @@
       "assign_menu": "Assign Menu"
     },
     "list": {
-      "title": "Menu Management",
-      "subtitle": "Manage your menus",
-      "search_placeholder": "Search menus...",
-      "stats": {
-        "total": "Total Menus"
-      },
       "default_badge": "Default",
       "not_assigned": "Not assigned",
-      "headers": {
-        "branches": "Branches",
-        "created": "Created"
-      },
+      "branches_count": "{n} branches",
       "tooltip": {
-        "edit": "Edit menu",
-        "assign": "Assign to branch",
-        "delete": "Delete menu"
+        "assign": "Assign to branch"
       },
       "empty": "No menus found",
-      "create_first": "Create First Menu",
       "confirm_delete": {
         "title": "Confirm Delete",
         "message": "Are you sure you want to delete \"{name}\"?"
       },
       "messages": {
         "assignment_updated": "Assignment updated successfully",
-        "menu_assigned": "Menu assigned to branch successfully",
-        "branches_assigned": "Branches assigned successfully"
+        "menu_assigned": "Menu assigned to branch successfully"
       }
     }
   },

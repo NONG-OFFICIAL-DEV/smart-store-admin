@@ -1,48 +1,33 @@
 <template>
   <v-container fluid class="pa-0">
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showStats ? 'primary' : 'default'"
-        :variant="showStats ? 'flat' : 'tonal'"
-        rounded="lg"
-        prepend-icon="mdi-chart-bar"
-        @click="showStats = !showStats"
-      >
-        {{ t('btn.stats') }}
-      </v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="openCreate"
-      >
-        {{ t('btn.add_product') }}
-      </v-btn>
-    </div>
+    <AppToolbar :title="t('products.title')" :subtitle="t('products.subtitle')">
+      <template #actions>
+        <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-shape-outline" @click="categoryManagerOpen = true">
+          {{ t('menu.categories') }}
+        </v-btn>
+        <template v-if="authStore.isFood">
+          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-book-open-variant-outline" @click="menuManagerOpen = true">
+            {{ t('menu.menus') }}
+          </v-btn>
+          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-tune-variant" @click="modifierManagerOpen = true">
+            {{ t('menu.modifiers') }}
+          </v-btn>
+        </template>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          {{ t('btn.add_product') }}
+        </v-btn>
+      </template>
+    </AppToolbar>
 
-    <!-- Stats panel -->
-    <v-expand-transition>
-      <v-row v-if="showStats" dense class="mb-4">
-        <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-          <v-card rounded="xl" elevation="0" border>
-            <v-card-text class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <p class="text-caption text-medium-emphasis">
-                    {{ stat.label }}
-                  </p>
-                  <p class="text-h6 font-weight-bold mt-1">{{ stat.value }}</p>
-                </div>
-                <v-avatar :color="stat.color" size="40" rounded="lg">
-                  <v-icon :icon="stat.icon" size="20" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-expand-transition>
+    <CategoryManagerDialog v-model="categoryManagerOpen" />
+    <MenuManagerDialog v-model="menuManagerOpen" />
+    <ModifierManagerDialog v-model="modifierManagerOpen" />
 
     <!-- ── Filters ────────────────────────────────────────────────────────── -->
     <v-row dense align="center" class="mb-2">
@@ -181,14 +166,19 @@
   </v-container>
 </template>
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import CustomSelect from '@/components/customs/CustomSelect.vue'
   import { storeToRefs } from 'pinia'
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
+  import { useAuthStore } from '@/stores/authStore'
   import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
+  import CategoryManagerDialog from '@/components/catalogs/CategoryManagerDialog.vue'
+  import MenuManagerDialog from '@/components/catalogs/MenuManagerDialog.vue'
+  import ModifierManagerDialog from '@/components/catalogs/ModifierManagerDialog.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const router = useRouter()
   const { t } = useI18n()
@@ -197,11 +187,16 @@
   // ── Stores ────────────────────────────────────────────────────────────────────
   const productStore = useProductStore()
   const categoryStore = useCategoryStore()
-  const { products, pagination } = storeToRefs(productStore)
+  const authStore = useAuthStore()
   const { categories } = storeToRefs(categoryStore)
 
   const tableRef = ref(null)
-  const showStats = ref(false)
+
+  // ── "Manage X" dialogs — Category/Menu/Modifier are managed from here via
+  // a modal, not their own sidebar page (see sidebarMenu.js's Products group).
+  const categoryManagerOpen = ref(false)
+  const menuManagerOpen = ref(false)
+  const modifierManagerOpen = ref(false)
 
   // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
   // search is AppTable's own built-in field). ───────────────────────────────────
@@ -220,6 +215,13 @@
   // ── Bootstrap ─────────────────────────────────────────────────────────────────
   onMounted(async () => {
     await categoryStore.fetchCategories({ perPage: 1000 })
+  })
+
+  // Category filter/table both read from categoryStore — refresh it once the
+  // manager dialog closes so anything added/edited/deleted there shows up
+  // immediately, without a full page reload.
+  watch(categoryManagerOpen, open => {
+    if (!open) categoryStore.fetchCategories({ perPage: 1000 })
   })
 
   // ── Static options ────────────────────────────────────────────────────────────
@@ -251,34 +253,6 @@
       key: 'actions',
       sortable: false,
       align: 'start'
-    }
-  ])
-
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  const stats = computed(() => [
-    {
-      label: t('products.stats.total'),
-      value: pagination.value.total || 0,
-      icon: 'mdi-package-variant',
-      color: 'primary'
-    },
-    {
-      label: t('products.stats.available'),
-      value: products.value.filter(p => p.is_available).length,
-      icon: 'mdi-check-circle',
-      color: 'success'
-    },
-    {
-      label: t('products.stats.featured'),
-      value: products.value.filter(p => p.is_featured).length,
-      icon: 'mdi-star',
-      color: 'warning'
-    },
-    {
-      label: t('products.stats.unavailable'),
-      value: products.value.filter(p => !p.is_available).length,
-      icon: 'mdi-close-circle',
-      color: 'error'
     }
   ])
 

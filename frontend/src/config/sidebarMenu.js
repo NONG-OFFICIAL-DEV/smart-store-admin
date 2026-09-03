@@ -120,16 +120,33 @@ export const SIDEBAR_MENU = [
     ]
   },
 
-  // ── Products — full sales catalog (products, categories, modifiers,
-  //    menus, branch menus, ingredients) as one tabbed page. See
-  //    views/catalogs/CatalogHub.vue.
+  // ── Products — Product management covers products themselves plus
+  //    categories/menus/modifiers via "manage" dialogs on that page (see
+  //    ProductManagement.vue) rather than their own tabs/routes. Ingredients
+  //    stays a separate page since it's recipe/inventory-linkage data, not
+  //    a sales-catalog concept.
   {
-    key: 'catalog',
-    titleKey: 'catalog_hub.title',
+    key: 'products-group',
+    titleKey: 'menu.products',
     icon: 'mdi-tag-multiple-outline',
-    path: '/catalog',
-    permission: ['categories.manage', 'products.manage', 'menus.manage', 'ingredients.manage'],
-    visible: ctx => !ctx.isSuperAdmin
+    visible: ctx => !ctx.isSuperAdmin,
+    children: [
+      {
+        key: 'products',
+        titleKey: 'menu.product',
+        icon: 'mdi-package-variant-closed',
+        path: '/products',
+        permission: 'products.manage'
+      },
+      {
+        key: 'ingredients',
+        titleKey: 'menu.ingredients',
+        icon: 'mdi-food-drumstick-outline',
+        path: '/ingredients',
+        permission: 'ingredients.manage',
+        visible: ctx => ctx.isFood
+      }
+    ]
   },
 
   // ── Inventory — stock, purchase orders (food+mart variants), suppliers ──

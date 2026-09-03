@@ -1,282 +1,118 @@
 <template>
   <v-container fluid class="pa-0">
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showFilters ? 'primary' : 'default'"
-        :variant="showFilters ? 'flat' : 'tonal'"
-        rounded="lg"
-        :prepend-icon="
-          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-        "
-        @click="showFilters = !showFilters"
-      >
-        {{ $t('btn.filter') }}
-        <!-- badge shows how many filters are active -->
-        <v-badge
-          v-if="activeFilterCount > 0"
-          :content="activeFilterCount"
-          color="error"
-          floating
+    <!-- Add — inline, no dialog: a name field, two switches, and a plus
+         button that creates the menu immediately. -->
+    <v-card v-if="canManage" rounded="lg" elevation="0" border class="pa-3 mb-4">
+      <div class="d-flex align-center flex-wrap ga-3">
+        <v-text-field
+          v-model="newMenu.name"
+          :placeholder="t('menus.form.name_placeholder')"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          maxlength="80"
+          class="flex-grow-1"
+          style="min-width: 200px"
+          @keyup.enter="submitNew"
         />
-      </v-btn>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        rounded="lg"
-        elevation="0"
-        @click="openAddDialog"
-      >
-        {{ $t('menus.dialog.create_menu') }}
-      </v-btn>
-    </div>
-
-    <!-- ── Stats ──────────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-5">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-        <v-card
-          rounded="xl"
-          border
-          elevation="0"
-          class="pa-4 d-flex align-center gap-3"
-        >
-          <v-avatar :color="stat.color" variant="tonal" rounded="lg" size="44">
-            <v-icon :icon="stat.icon" size="20" />
-          </v-avatar>
-          <div>
-            <div class="text-h6 font-weight-bold">{{ stat.value }}</div>
-            <div class="text-caption text-grey">{{ stat.label }}</div>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ── Filters ─────────────────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-        <v-card-text>
-          <v-row dense align="center">
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="search"
-                prepend-inner-icon="mdi-magnify"
-                :placeholder="$t('menus.list.search_placeholder')"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-                clearable
-                @update:model-value="onSearchChange"
-                @keyup.enter="onFilterChange"
-              />
-            </v-col>
-            <v-col cols="12" sm="auto">
-              <v-btn-toggle
-                v-model="activeFilter"
-                color="primary"
-                variant="tonal"
-                rounded="lg"
-                density="compact"
-              >
-                <v-btn :value="null" size="small" class="text-none px-3">{{ $t('common.all') }}</v-btn>
-                <v-btn :value="true" size="small" class="text-none px-3">
-                  {{ $t('status.active') }}
-                </v-btn>
-                <v-btn :value="false" size="small" class="text-none px-3">
-                  {{ $t('status.inactive') }}
-                </v-btn>
-              </v-btn-toggle>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ $t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ $t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
-
-    <!-- ── Table ───────────────────────────────────────────────────────────────── -->
-    <v-card rounded="lg" elevation="0" border>
-      <v-data-table-server
-        :headers="headers"
-        :items="filteredMenus"
-        :items-length="menuStore.pagination.total || 0"
-        v-model:page="options.page"
-        v-model:items-per-page="options.itemsPerPage"
-        hover
-      >
-        <!-- Name + Description -->
-        <template #item.name="{ item }">
-          <div class="d-flex align-center gap-3 py-2">
-            <v-avatar color="primary" variant="tonal" rounded="lg" size="38">
-              <v-icon icon="mdi-book-open-page-variant-outline" size="18" />
-            </v-avatar>
-            <div>
-              <div
-                class="text-body-2 font-weight-bold d-flex align-center gap-2"
-              >
-                {{ item.name }}
-                <v-chip
-                  v-if="item.is_default"
-                  size="x-small"
-                  color="primary"
-                  variant="flat"
-                  prepend-icon="mdi-star"
-                >
-                  {{ $t('menus.list.default_badge') }}
-                </v-chip>
-              </div>
-              <div
-                class="text-caption text-grey text-truncate"
-                style="max-width: 260px"
-              >
-                {{ item.description || '—' }}
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- Branches assigned -->
-        <template #item.branches="{ item }">
-          <div v-if="item.branches?.length" class="d-flex flex-wrap gap-1">
-            <v-chip
-              v-for="b in item.branches.slice(0, 2)"
-              :key="b.id"
-              size="x-small"
-              variant="tonal"
-              color="primary"
-              prepend-icon="mdi-store-outline"
-            >
-              {{ b.name }}
-            </v-chip>
-            <v-chip
-              v-if="item.branches.length > 2"
-              size="x-small"
-              variant="tonal"
-              color="grey"
-            >
-              {{ $t('roles.more_count', { n: item.branches.length - 2 }) }}
-            </v-chip>
-          </div>
-          <span v-else class="text-caption text-grey">{{ $t('menus.list.not_assigned') }}</span>
-        </template>
-
-        <!-- Default -->
-        <template #item.is_default="{ item }">
-          <v-chip
-            size="small"
-            :color="item.is_default ? 'primary' : 'grey'"
-            :variant="item.is_default ? 'flat' : 'tonal'"
-            :prepend-icon="item.is_default ? 'mdi-star' : 'mdi-star-outline'"
-          >
-            {{ item.is_default ? $t('menus.list.default_badge') : $t('common.no') }}
-          </v-chip>
-        </template>
-
-        <!-- Active -->
-        <template #item.is_active="{ item }">
-          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="small" />
-        </template>
-
-        <!-- Created at -->
-        <template #item.created_at="{ item }">
-          <span class="text-caption text-grey">
-            {{ formatDate(item.created_at) }}
-          </span>
-        </template>
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-1 justify-end">
-            <v-tooltip :text="$t('menus.list.tooltip.edit')">
-              <template #activator="{ props: tt }">
-                <v-btn
-                  v-bind="tt"
-                  icon="mdi-pencil-outline"
-                  size="small"
-                  variant="text"
-                  @click="editMenu(item)"
-                />
-              </template>
-            </v-tooltip>
-
-            <v-tooltip :text="$t('menus.list.tooltip.assign')">
-              <template #activator="{ props: tt }">
-                <v-btn
-                  v-bind="tt"
-                  icon="mdi-store-plus-outline"
-                  size="small"
-                  variant="text"
-                  color="primary"
-                  @click="openAssignBranch(item)"
-                />
-              </template>
-            </v-tooltip>
-
-            <v-tooltip :text="$t('menus.list.tooltip.delete')">
-              <template #activator="{ props: tt }">
-                <v-btn
-                  v-bind="tt"
-                  icon="mdi-delete-outline"
-                  size="small"
-                  color="error"
-                  variant="text"
-                  @click="confirmDelete(item)"
-                />
-              </template>
-            </v-tooltip>
-          </div>
-        </template>
-
-        <!-- Empty -->
-        <template #no-data>
-          <div class="text-center py-12">
-            <v-icon
-              icon="mdi-food-off"
-              size="56"
-              color="grey-lighten-1"
-              class="mb-3"
-            />
-            <p class="text-h6 text-medium-emphasis mb-1">{{ $t('menus.list.empty') }}</p>
-            <v-btn
-              color="primary"
-              variant="tonal"
-              prepend-icon="mdi-plus"
-              class="mt-2"
-              @click="openAddDialog"
-            >
-              {{ $t('menus.list.create_first') }}
-            </v-btn>
-          </div>
-        </template>
-      </v-data-table-server>
+        <div class="d-flex align-center ga-2">
+          <span class="text-body-2">{{ t('status.active') }}</span>
+          <v-switch v-model="newMenu.is_active" color="success" hide-details density="compact" inset />
+        </div>
+        <div class="d-flex align-center ga-2">
+          <span class="text-body-2">{{ t('menus.list.default_badge') }}</span>
+          <v-switch v-model="newMenu.is_default" color="primary" hide-details density="compact" inset />
+        </div>
+        <v-btn
+          icon="mdi-plus"
+          color="primary"
+          variant="flat"
+          :loading="saving"
+          :disabled="!newMenu.name.trim()"
+          @click="submitNew"
+        />
+      </div>
     </v-card>
 
-    <!-- ── Menu Form Dialog ────────────────────────────────────────────────────── -->
-    <MenuFormDialog
-      v-model="dialog"
-      :edit-mode="isEdit"
-      :item="selectedItem"
-      :categories="categoryStore.items"
-      @save="handleSave"
-    />
-    <!-- assigment dialog -->
+    <!-- List -->
+    <v-card rounded="lg" elevation="0" border>
+      <v-list v-if="menuStore.menus.length" lines="two">
+        <template v-for="(item, idx) in menuStore.menus" :key="item.id">
+          <!-- Editing this row — same shape as the add row above. -->
+          <v-list-item v-if="editingId === item.id">
+            <div class="d-flex align-center flex-wrap ga-3 py-1">
+              <v-text-field
+                v-model="editForm.name"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                hide-details
+                maxlength="80"
+                class="flex-grow-1"
+                style="min-width: 180px"
+                @keyup.enter="submitEdit(item)"
+              />
+              <div class="d-flex align-center ga-2">
+                <span class="text-body-2">{{ t('status.active') }}</span>
+                <v-switch v-model="editForm.is_active" color="success" hide-details density="compact" inset />
+              </div>
+              <div class="d-flex align-center ga-2">
+                <span class="text-body-2">{{ t('menus.list.default_badge') }}</span>
+                <v-switch v-model="editForm.is_default" color="primary" hide-details density="compact" inset />
+              </div>
+              <v-btn icon="mdi-check" color="success" variant="text" :loading="saving" @click="submitEdit(item)" />
+              <v-btn icon="mdi-close" variant="text" @click="cancelEdit" />
+            </div>
+          </v-list-item>
+
+          <!-- Display -->
+          <v-list-item v-else>
+            <template #prepend>
+              <v-avatar color="primary" variant="tonal" size="32" rounded="md">
+                <v-icon icon="mdi-book-open-page-variant-outline" size="16" />
+              </v-avatar>
+            </template>
+
+            <v-list-item-title class="font-weight-medium">{{ item.name }}</v-list-item-title>
+            <v-list-item-subtitle>
+              <div class="d-flex align-center flex-wrap ga-1 mt-1">
+                <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
+                <v-chip v-if="item.is_default" size="x-small" color="primary" variant="flat" prepend-icon="mdi-star">
+                  {{ t('menus.list.default_badge') }}
+                </v-chip>
+                <v-chip v-if="item.branches?.length" size="x-small" variant="tonal" prepend-icon="mdi-store-outline">
+                  {{ t('menus.list.branches_count', { n: item.branches.length }) }}
+                </v-chip>
+                <span v-else class="text-caption text-medium-emphasis">{{ t('menus.list.not_assigned') }}</span>
+              </div>
+            </v-list-item-subtitle>
+
+            <template #append>
+              <div class="d-flex align-center ga-1">
+                <v-tooltip :text="t('menus.list.tooltip.assign')">
+                  <template #activator="{ props: tp }">
+                    <v-btn v-bind="tp" icon="mdi-store-plus-outline" size="small" variant="text" color="primary" @click="openAssignBranch" />
+                  </template>
+                </v-tooltip>
+                <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="startEdit(item)" />
+                <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(item)" />
+              </div>
+            </template>
+          </v-list-item>
+          <v-divider v-if="idx < menuStore.menus.length - 1" />
+        </template>
+      </v-list>
+
+      <div v-else class="text-center py-10">
+        <v-icon icon="mdi-book-open-variant" size="40" color="grey-lighten-1" />
+        <p class="text-medium-emphasis mt-2 mb-0">{{ t('menus.list.empty') }}</p>
+      </div>
+    </v-card>
+
+    <!-- Assign to branch(es) — a real scheduling assignment (branch, time
+         window, days), not something that fits the inline name+switch
+         shape above, so it stays a dialog. -->
     <BranchMenuFormDialog
       v-model="assignDialog.show"
       :edit-item="editItem"
@@ -288,177 +124,100 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, onMounted } from 'vue'
+  import { ref, reactive, computed, onMounted } from 'vue'
   import { useMenuStore } from '@/stores/menuStore'
   import { useBranchMenuStore } from '@/stores/branchMenuStore'
-  import { useCategoryStore } from '@/stores/categoryStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
+  import { usePermission } from '@/composables/usePermission'
   import { useI18n } from 'vue-i18n'
-  import MenuFormDialog from '@/components/catalogs/MenuFormDialog.vue'
   import BranchMenuFormDialog from '@/components/catalogs/BranchMenuFormDialog.vue'
-  import { useDate } from '@/composables/useDate'
 
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
-  const { formatShortDate: formatDate } = useDate()
+  const { can } = usePermission()
 
   const menuStore = useMenuStore()
-  const categoryStore = useCategoryStore()
   const branchStore = useBranchStore()
   const branchMenuStore = useBranchMenuStore()
 
-  // ── Dialog state ──────────────────────────────────────────────────────────────
-  const dialog = ref(false)
-  const isEdit = ref(false)
-  const selectedItem = ref(null)
+  const canManage = computed(() => can('menus.manage'))
   const saving = ref(false)
 
-  const assignDialog = reactive({
-    show: false,
-    menu: null,
-    branch_ids: [],
-    available_from: null,
-    available_until: null
+  async function load() {
+    await menuStore.fetchMenus({ perPage: 200 })
+  }
+
+  onMounted(() => {
+    load()
+    branchStore.fetchBranches()
   })
 
-  // ── Pagination + filters ──────────────────────────────────────────────────────
-  const loading = ref(false)
-  const search = ref('')
-  const activeFilter = ref(null)
-  const showFilters = ref(false)
-
-  const options = ref({ page: 1, itemsPerPage: 10 })
-  const editItem = ref(null)
-
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (search.value?.trim()) count++
-    if (activeFilter.value !== null && activeFilter.value !== undefined) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  const stats = computed(() => {
-    const all = menuStore.menus ?? []
-    return [
-      {
-        label: t('menus.list.stats.total'),
-        icon: 'mdi-book-open-page-variant-outline',
-        color: 'primary',
-        value: menuStore.pagination?.total ?? all.length
-      },
-      {
-        label: t('status.active'),
-        icon: 'mdi-check-circle-outline',
-        color: 'success',
-        value: all.filter(m => m.is_active).length
-      },
-      {
-        label: t('status.inactive'),
-        icon: 'mdi-minus-circle-outline',
-        color: 'error',
-        value: all.filter(m => !m.is_active).length
-      },
-      {
-        label: t('menus.list.default_badge'),
-        icon: 'mdi-star',
-        color: 'warning',
-        value: all.filter(m => m.is_default).length
-      }
-    ]
-  })
-
-  // ── Headers ───────────────────────────────────────────────────────────────────
-  const headers = computed(() => [
-    { title: t('form.name'), key: 'name', sortable: true },
-    { title: t('menus.list.headers.branches'), key: 'branches', sortable: false },
-    { title: t('menus.list.default_badge'), key: 'is_default', sortable: false },
-    { title: t('form.status'), key: 'is_active', sortable: false },
-    { title: t('menus.list.headers.created'), key: 'created_at', sortable: true },
-    { title: '', key: 'actions', sortable: false, align: 'end' }
-  ])
-
-  // ── Filtered menus (client-side active filter) ────────────────────────────────
-  const filteredMenus = computed(() => {
-    let list = menuStore.menus ?? []
-    if (activeFilter.value !== null && activeFilter.value !== undefined) {
-      list = list.filter(m => m.is_active === activeFilter.value)
-    }
-    return list
-  })
-
-  // ── Load from server ──────────────────────────────────────────────────────────
-  const loadItems = async () => {
-    loading.value = true
-    await menuStore.fetchMenus({
-      page: options.value.page,
-      perPage: options.value.itemsPerPage,
-      search: search.value || undefined
-    })
-    loading.value = false
+  function errorMessage(err) {
+    return err?.response?.data?.message ?? err?.response?.data?.errors?.[0] ?? t('common.error')
   }
 
-  // Debounced search
-  let searchTimer = null
-  const onSearchChange = () => {
-    clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => {
-      options.value.page = 1
-      loadItems()
-    }, 400)
-  }
+  // ── Add ────────────────────────────────────────────────────────────────────
+  const defaultNew = () => ({ name: '', is_active: true, is_default: false })
+  const newMenu = reactive(defaultNew())
 
-  watch(options, loadItems, { deep: true })
-
-  // ── Reset to page 1 and reload when filters change ───────────────────────────
-  const onFilterChange = () => {
-    clearTimeout(searchTimer)
-    options.value.page = 1
-    loadItems()
-  }
-
-  const resetFilters = () => {
-    search.value = ''
-    activeFilter.value = null
-    options.value.page = 1
-    loadItems()
-  }
-
-  // ── CRUD Actions ──────────────────────────────────────────────────────────────
-  const openAddDialog = () => {
-    isEdit.value = false
-    selectedItem.value = null
-    dialog.value = true
-  }
-
-  const editMenu = menu => {
-    isEdit.value = true
-    selectedItem.value = { ...menu }
-    dialog.value = true
-  }
-
-  const handleSave = async data => {
+  async function submitNew() {
+    if (!newMenu.name.trim()) return
     saving.value = true
     try {
-      if (isEdit.value) {
-        await menuStore.updateMenu(data.id, data)
-      } else {
-        await menuStore.createMenu(data)
-      }
-      notif(t('messages.saved_success'), { type: 'success', color: 'primary' })
-      dialog.value = false
-      await loadItems()
-    } catch {
-      notif(t('messages.error_occurred'), { type: 'error' })
+      await menuStore.createMenu({
+        name: newMenu.name.trim(),
+        is_active: newMenu.is_active,
+        is_default: newMenu.is_default
+      })
+      Object.assign(newMenu, defaultNew())
+      notif(t('messages.saved_success'), { type: 'success' })
+      await load()
+    } catch (err) {
+      notif(errorMessage(err), { type: 'error' })
     } finally {
       saving.value = false
     }
   }
 
-  const confirmDelete = menu => {
+  // ── Edit ───────────────────────────────────────────────────────────────────
+  const editingId = ref(null)
+  const editForm = reactive(defaultNew())
+
+  function startEdit(item) {
+    editingId.value = item.id
+    Object.assign(editForm, {
+      name: item.name ?? '',
+      is_active: item.is_active ?? true,
+      is_default: item.is_default ?? false
+    })
+  }
+
+  function cancelEdit() {
+    editingId.value = null
+  }
+
+  async function submitEdit(item) {
+    if (!editForm.name.trim()) return
+    saving.value = true
+    try {
+      await menuStore.updateMenu(item.id, {
+        name: editForm.name.trim(),
+        is_active: editForm.is_active,
+        is_default: editForm.is_default
+      })
+      editingId.value = null
+      notif(t('messages.saved_success'), { type: 'success' })
+      await load()
+    } catch (err) {
+      notif(errorMessage(err), { type: 'error' })
+    } finally {
+      saving.value = false
+    }
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+  function confirmDelete(menu) {
     confirm({
       title: t('menus.list.confirm_delete.title'),
       message: t('menus.list.confirm_delete.message', { name: menu.name }),
@@ -466,64 +225,39 @@
       agree: async () => {
         await menuStore.deleteMenu(menu.id)
         notif(t('messages.deleted_success'), { type: 'success' })
-        await loadItems()
+        await load()
       }
     })
   }
 
-  // ── Assign branch ─────────────────────────────────────────────────────────────
-  const openAssignBranch = menu => {
+  // ── Assign branch ─────────────────────────────────────────────────────────
+  // A blank create dialog — the user picks both branch and menu (matches
+  // the prior behavior; the dialog has no way to pre-fill "this menu" from
+  // the row it was opened from).
+  const assignDialog = reactive({ show: false })
+  const editItem = ref(null)
+
+  function openAssignBranch() {
     editItem.value = null
-    assignDialog.menu = menu
-    assignDialog.branch_ids = menu.branches?.map(b => b.id) ?? []
-    assignDialog.available_from = null
-    assignDialog.available_until = null
     assignDialog.show = true
   }
 
-  const confirmAssign = async payload => {
+  async function confirmAssign(payload) {
     saving.value = true
     try {
       if (payload.id) {
-        // Existing assignment → update
-        res = await branchMenuStore.update(payload.id, payload)
-        notif(t('menus.list.messages.assignment_updated'), {
-          type: 'success'
-        })
+        await branchMenuStore.update(payload.id, payload)
+        notif(t('menus.list.messages.assignment_updated'), { type: 'success' })
       } else {
-        // New assignment → create
-        res = await branchMenuStore.create(payload)
-        notif(t('menus.list.messages.menu_assigned'), {
-          type: 'success'
-        })
+        await branchMenuStore.create(payload)
+        notif(t('menus.list.messages.menu_assigned'), { type: 'success' })
       }
-      notif(t('menus.list.messages.branches_assigned'), { type: 'success' })
       assignDialog.show = false
-      await loadItems()
-    } catch {
-      notif(t('messages.error_occurred'), { type: 'error' })
+      await load()
+    } catch (err) {
+      notif(errorMessage(err), { type: 'error' })
     } finally {
       saving.value = false
     }
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────────
-
-  // ── Init ──────────────────────────────────────────────────────────────────────
-  onMounted(async () => {
-    await Promise.all([
-      loadItems(),
-      categoryStore.fetchCategories(),
-      branchStore.fetchBranches()
-    ])
-  })
 </script>
-
-<style scoped>
-  .gap-1 {
-    gap: 4px;
-  }
-  .gap-3 {
-    gap: 12px;
-  }
-</style>
