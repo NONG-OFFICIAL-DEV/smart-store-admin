@@ -10,7 +10,7 @@
       rounded="lg"
       hide-details
       clearable
-      class="flex-grow-0 mb-2"
+      class="flex-grow-0 flex-shrink-0 mb-2"
       @update:model-value="$emit('update:search', $event ?? '')"
     >
       <template #append-inner>
@@ -24,7 +24,7 @@
       :model-value="categoryId"
       mandatory="force"
       selected-class="text-primary"
-      class="flex-grow-0 mb-2"
+      class="flex-grow-0 flex-shrink-0 mb-2"
       @update:model-value="$emit('update:categoryId', $event)"
     >
       <v-chip :value="null" filter variant="tonal" rounded="lg" :size="touch ? 'default' : 'small'">
