@@ -3,16 +3,6 @@
     <AppToolbar :title="t('stock.management.title')" :subtitle="t('stock.management.subtitle')">
       <template #actions>
         <v-btn
-          :color="showStats ? 'primary' : 'default'"
-          :variant="showStats ? 'flat' : 'tonal'"
-          rounded="lg"
-          prepend-icon="mdi-chart-bar"
-          @click="showStats = !showStats"
-        >
-          {{ t('btn.stats') }}
-        </v-btn>
-
-        <v-btn
           color="primary"
           variant="flat"
           rounded="lg"
@@ -24,29 +14,17 @@
       </template>
     </AppToolbar>
 
-    <!-- ── Stats Panel ─────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-row v-if="showStats" dense class="mb-5">
-        <v-col v-for="s in summaryCards" :key="s.label" cols="6" sm="3">
-          <v-card rounded="xl" border elevation="0" class="pa-4">
-            <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-caption text-medium-emphasis">
-                {{ s.label }}
-              </span>
-              <v-avatar size="28" :color="s.color" variant="tonal" rounded="lg">
-                <v-icon :icon="s.icon" size="14" />
-              </v-avatar>
-            </div>
-            <div class="text-h5 font-weight-black" :class="`text-${s.color}`">
-              {{ s.value }}
-            </div>
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ s.sub }}
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-expand-transition>
+    <!-- ── Low Stock Alert ────────────────────────────────────────────── -->
+    <v-alert
+      v-if="lowStockCount"
+      type="warning"
+      variant="tonal"
+      rounded="xl"
+      density="compact"
+      class="mb-4"
+      :text="$t('stock.management.low_stock_alert', { n: lowStockCount })"
+      prepend-icon="mdi-alert-outline"
+    />
 
     <!-- ── Filters ───────────────────────────────────────────────────────── -->
     <v-row dense align="center" class="mb-2">
@@ -226,7 +204,6 @@
 
   // ── UI State ──────────────────────────────────────────────────────────────
   const tableRef = ref(null)
-  const showStats = ref(false)
   const adjustDialog = ref(false)
   const adjustTarget = ref(null)
   const adjusting = ref(false)
@@ -264,46 +241,16 @@
     return Array.isArray(b) ? b : (b?.data ?? [])
   })
 
-  // ── Summary cards ─────────────────────────────────────────────────────────
-  const summaryCards = computed(() => {
-    const all = martProductStore.products
-    return [
-      {
-        label: t('stock_overview.summary.total'),
-        icon: 'mdi-package-variant',
-        color: 'primary',
-        value: all.length,
-        sub: 'mart items'
-      },
-      {
-        label: t('stock_overview.summary.in_stock'),
-        icon: 'mdi-check-circle',
-        color: 'success',
-        value: all.filter(p => p.stock_quantity > (p.reorder_level ?? 0))
-          .length,
-        sub: 'healthy level'
-      },
-      {
-        label: t('stock_overview.summary.low_stock'),
-        icon: 'mdi-alert',
-        color: 'warning',
-        value: all.filter(
-          p =>
-            p.reorder_level != null &&
-            p.stock_quantity > 0 &&
-            p.stock_quantity <= p.reorder_level
-        ).length,
-        sub: 'needs reorder'
-      },
-      {
-        label: t('stock_overview.summary.out_of_stock'),
-        icon: 'mdi-alert-circle',
-        color: 'error',
-        value: all.filter(p => p.stock_quantity <= 0).length,
-        sub: 'zero stock'
-      }
-    ]
-  })
+  // ── Low stock count — drives the alert banner above the filters ─────────────
+  const lowStockCount = computed(
+    () =>
+      martProductStore.products.filter(
+        p =>
+          p.reorder_level != null &&
+          p.stock_quantity > 0 &&
+          p.stock_quantity <= p.reorder_level
+      ).length
+  )
 
   // ── Table headers ─────────────────────────────────────────────────────────
   const headers = computed(() => [
