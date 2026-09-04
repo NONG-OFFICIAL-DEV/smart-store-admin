@@ -80,10 +80,9 @@ export const SIDEBAR_MENU = [
         key: 'quick-sale',
         titleKey: 'menu.quick_sale',
         icon: 'mdi-lightning-bolt-outline',
-        // Deep-link straight into the right POS for this tenant's business
-        // type — skips the Operation.vue launcher for the common case.
-        // Falls back to the launcher only when neither category matches.
-        path: ctx => (ctx.isMart ? '/pos/retail' : ctx.isFood ? '/pos/food' : '/operation'),
+        // Deep-link straight into the right POS for this tenant's business —
+        // every business type is either 'mart' or 'food' (see BU_CATEGORIES).
+        path: ctx => (ctx.isMart ? '/pos/retail' : '/pos/food'),
         permission: 'orders.manage'
       },
       {

@@ -5,7 +5,6 @@
 // Steps:
 //   1. Add a row to the business_types DB table
 //   2. Add the entry here — icon, color, and category
-//   Done. authStore, useBusinessTypes, Operation.vue, sidebar all update automatically.
 
 export const BUSINESS_TYPES = {
   // ── Food & Beverage ────────────────────────────────────────────────────────
@@ -28,7 +27,6 @@ export const BUSINESS_TYPES = {
 
 // ── Derived helpers (auto-built, never edit manually) ─────────────────────────
 
-// Set of all codes per category — used by authStore getters and Operation.vue
 // { food: Set(['RESTAURANT', 'COFFEE_SHOP', ...]), mart: Set([...]) }
 export const BU_CATEGORIES = Object.entries(BUSINESS_TYPES).reduce(
   (acc, [code, def]) => {

@@ -95,12 +95,6 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade' }
       },
       {
-        path: '/operation',
-        name: 'operation',
-        component: () => import('@/views/operation/Operation.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
         path: '/pos/retail',
         name: 'pos-retail',
         component: () => import('@/views/pos/RetailPos.vue'),
