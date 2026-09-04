@@ -4,6 +4,7 @@ namespace Tests\Feature\Reports;
 
 use App\Http\Controllers\Api\MartPosController;
 use App\Http\Controllers\Api\MartProductPerformanceController;
+use App\Http\Controllers\Api\MartPurchaseReportController;
 use App\Models\Branch;
 use App\Models\Role;
 use App\Models\Staff;
@@ -142,6 +143,37 @@ class ResolvesBranchContextTest extends TestCase
 
         $this->expectException(ValidationException::class);
         $controller->index(Request::create('/mart/reports/product-performance', 'GET', [
+            'date_from' => '2026-01-01',
+            'date_to' => '2026-12-31',
+        ]));
+    }
+
+    public function test_owner_with_a_single_branch_resolves_it_automatically_for_purchase_report(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('SingleBranchPurchases');
+        Branch::create(['tenant_id' => $tenant->id, 'name' => 'B', 'address_line1' => 'x', 'city' => 'y']);
+        Auth::login($owner);
+
+        $controller = $this->app->make(MartPurchaseReportController::class);
+        $response = $controller->index(Request::create('/mart/reports/purchases', 'GET', [
+            'date_from' => '2026-01-01',
+            'date_to' => '2026-12-31',
+        ]));
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_owner_with_multiple_branches_and_no_branch_id_is_rejected_for_purchase_report(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('MultiBranchPurchases');
+        Branch::create(['tenant_id' => $tenant->id, 'name' => 'A', 'address_line1' => 'x', 'city' => 'y']);
+        Branch::create(['tenant_id' => $tenant->id, 'name' => 'B', 'address_line1' => 'x', 'city' => 'y']);
+        Auth::login($owner);
+
+        $controller = $this->app->make(MartPurchaseReportController::class);
+
+        $this->expectException(ValidationException::class);
+        $controller->index(Request::create('/mart/reports/purchases', 'GET', [
             'date_from' => '2026-01-01',
             'date_to' => '2026-12-31',
         ]));

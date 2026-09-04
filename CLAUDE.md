@@ -79,7 +79,7 @@ Scaffolding: `app/Repositories/Contracts/RepositoryInterface.php`, `app/Reposito
 - `DigitalMenuController` — public, unauthenticated, read-only QR-menu aggregation across Branch/Table/Product/Category/Menu. No model of its own.
 - `DashboardController`, `AdminDashboardController` — reporting aggregations.
 - `OrderExportController` — single-purpose XLSX export.
-- `MartProductPerformanceController`, `MartPurchaseReportController` — single-`index()` reporting endpoints. Known gap: `MartProductPerformanceController::index()` does `auth()->user()->staff->branch_id` unguarded when no `branch_id` query param is given — fatals for a tenant **owner** (no `Staff` record) calling it without an explicit branch. Not fixed; flag if this report is actually used by owners.
+- `MartProductPerformanceController`, `MartPurchaseReportController` — single-`index()` reporting endpoints. `MartProductPerformanceController` resolves tenant/branch via the shared `App\Traits\ResolvesBranchContext` trait (auto-resolves a single-branch owner's branch, cleanly rejects a multi-branch owner with no explicit `branch_id` instead of fataling) — see `tests/Feature/Reports/ResolvesBranchContextTest.php`. **`MartPurchaseReportController` does not use it and has its own live gap**: `$tenantId` is commented out entirely (no tenant scoping beyond whatever `MartPurchaseOrder`'s own global scope provides), and `branch_id` is used as-is from the request with no fallback — an owner calling it without an explicit `branch_id` gets a silently all-empty report (`branch_id = null` matches no real branch) rather than a crash or a clear error. Not fixed.
 
 **`Api\V1` namespace**: `AuditLogController`, `UserController`, `ShiftAssignmentController` live under `App\Http\Controllers\Api\V1` (physical path `app/Http/Controllers/Api/V1/`), matching the `/v1/...` URL prefix. Every other controller is still flat under `App\Http\Controllers\Api`. Check the actual `use` import in `routes/api.php` before assuming a controller's namespace — the two coexist and there's no rule for which one a given file is in beyond "has it been moved yet."
 
@@ -94,12 +94,10 @@ Scaffolding: `app/Repositories/Contracts/RepositoryInterface.php`, `app/Reposito
 ### Known gaps / follow-ups (real, not yet actioned)
 
 - **Rotate the Telegram bot token** that was previously hardcoded in `NotificationService.php` and is already committed to git history — removing the line doesn't remove it from history. User action only (via @BotFather).
-- `Layout.vue`'s notification-bell badge (`authStore.unread_notifications_count`) always shows zero — `AuthController::me()` never sets that field. Small, deliberate fix if the badge needs to work; not part of any resource migration.
 - `PurchaseOrderDialog.vue`'s edit form lets a user edit PO line items, but the backend has only ever processed `items` on create, never on update — edits to items are silently discarded server-side. Left alone deliberately (changing ordered-vs-received-quantity semantics on an in-flight PO is a real business decision).
 - `CouponController::validate`/`CouponController::apply` are routed (`POST coupons/validate`, `POST orders/{order}/apply-coupon`) but don't exist on the controller — guaranteed 500 if ever called. Frontend never calls either. Revisit when `Order` is migrated (checkout-transaction logic, not coupon CRUD).
 - Reporting gaps: `DailySalesSummaryController` has no `topCustomers`/`revenue`/`staffReport`, and `GET reports/inventory` has no controller method — none of these have any implementation anywhere in the codebase to base a build on (no spec, no waiting consumer). Treat as a real feature request if wanted, not a migration task.
-- `CustomerDialog.vue`'s gender/source dropdowns still offer `other`/`social`, which aren't valid values for the underlying Postgres enums (`customers.gender`/`customers.source`) — picking them now gets a clean 422 (backend validates), but the dropdown options themselves are still wrong.
-- `ProductFormPage.vue`'s per-unit "Retail Price" field has no client-side required rule, even though the backend now requires it (`product_units.retail_price` is `NOT NULL`) — a blank submission gets a proper 422 rather than a raw SQL error, but a `:rules` prop would give better UX.
+- `customers` no longer has `gender`/`date_of_birth`/`preferred_language` (dropped — they were captured but never used anywhere beyond display). `CustomerDialog.vue`'s `source` dropdown no longer offers the invalid `social` value either.
 
 ### Frontend
 

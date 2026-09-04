@@ -24,12 +24,9 @@ class UpdateCustomerRequest extends FormRequest
             'last_name' => ['nullable', 'string', 'max:80'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($this->route('customer'))],
             'phone' => ['nullable', 'string', 'max:30'],
-            'date_of_birth' => ['nullable', 'date'],
-            'gender' => ['nullable', 'in:male,female,non_binary,prefer_not_to_say'],
             'avatar_url' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'marketing_opt_in' => ['nullable', 'boolean'],
-            'preferred_language' => ['nullable', 'string', 'max:10'],
             'source' => ['nullable', 'in:walk_in,online,referral,import'],
             'is_active' => ['nullable', 'boolean'],
         ];

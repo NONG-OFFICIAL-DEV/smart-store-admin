@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MartPurchaseOrder;
 use App\Models\MartPurchaseOrderItem;
+use App\Traits\ResolvesBranchContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MartPurchaseReportController extends Controller
 {
+    use ResolvesBranchContext;
+
     /**
      * GET /api/v1/mart/reports/purchases
      */
@@ -21,8 +24,7 @@ class MartPurchaseReportController extends Controller
             'branch_id' => 'nullable|uuid|exists:branches,id',
         ]);
 
-        // $tenantId = auth()->user()->staff->tenant_id;
-        $branchId = $request->branch_id;
+        $branchId = $this->resolveBranchId($request);
         $from     = $request->date_from . ' 00:00:00';
         $to       = $request->date_to   . ' 23:59:59';
 
@@ -71,7 +73,6 @@ class MartPurchaseReportController extends Controller
             '=',
             'mart_purchase_orders.id'
         )
-            // ->where('mart_purchase_orders.tenant_id', $tenantId)
             ->where('mart_purchase_orders.branch_id', $branchId)
             ->whereBetween('mart_purchase_orders.created_at', [$from, $to])
             ->selectRaw('

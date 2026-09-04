@@ -8,10 +8,8 @@
   import CustomerDetailPanel from '@/components/customers/CustomerDetailPanel.vue'
   import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
   import AppToolbar from '@/components/common/AppToolbar.vue'
-  import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
 
-  const { formatShortDate: formatDate } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
   const customerStore = useCustomerStore()
   const customerAddressStore = useCustomerAddressStore()
@@ -159,9 +157,7 @@
   const initials = c => getInitials(c, '')
   const avatarColor = c => getAvatarColor(c, { fallback: 'brown-darken-2' })
   const sourceChipColor = s =>
-    ({ walk_in: 'teal', online: 'blue', referral: 'purple', social: 'pink' })[
-      s
-    ] ?? 'grey'
+    ({ walk_in: 'teal', online: 'blue', referral: 'purple' })[s] ?? 'grey'
 </script>
 
 <template>
@@ -199,12 +195,6 @@
             <div>
               <p class="text-body-2 font-weight-bold text-brown-darken-4 mb-0">
                 {{ item.first_name }} {{ item.last_name }}
-              </p>
-              <p
-                v-if="item.date_of_birth"
-                class="text-caption text-medium-emphasis mb-0"
-              >
-                {{ formatDate(item.date_of_birth) }}
               </p>
             </div>
           </div>

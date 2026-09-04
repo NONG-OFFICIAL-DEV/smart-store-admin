@@ -1,11 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useDate } from '@/composables/useDate'
-import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
+import { AppDialog } from '@nong-official-dev/core'
 
 const { t } = useI18n()
-const { formatLocalDate } = useDate()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -27,11 +25,8 @@ const defaultForm = () => ({
   last_name:           '',
   email:               '',
   phone:               '',
-  date_of_birth:       null,
-  gender:              null,
   notes:               '',
   marketing_opt_in:    false,
-  preferred_language:  'en',
   source:              'walk_in',
   is_active:           true,
 })
@@ -44,23 +39,14 @@ watch(() => props.modelValue, open => {
   formRef.value?.resetValidation()
 }, { immediate: true })
 
-const genderOptions = [
-  { value: 'male',   title: t('customers.gender.male') },
-  { value: 'female', title: t('customers.gender.female') },
-  { value: 'other',  title: t('customers.gender.other') },
-]
-
+// 'social' was previously offered here but isn't a valid value for the
+// customers.source enum (walk_in/online/referral/import) — picking it
+// always failed with a 422. 'import' is set programmatically by bulk
+// imports, not something a staff member picks manually, so it's left out.
 const sourceOptions = [
   { value: 'walk_in',  title: t('customers.source.walk_in') },
   { value: 'online',   title: t('order.type.online') },
   { value: 'referral', title: t('customers.source.referral') },
-  { value: 'social',   title: t('customers.source.social') },
-]
-
-const languageOptions = [
-  { value: 'en', title: t('lang.en') },
-  { value: 'km', title: t('lang.km') },
-  { value: 'zh', title: t('lang.zh') },
 ]
 
 const close  = () => emit('update:modelValue', false)
@@ -70,12 +56,7 @@ const submit = async () => {
 
   saving.value = true
   try {
-    await emit('save', {
-      ...form.value,
-      date_of_birth: form.value.date_of_birth instanceof Date
-        ? formatLocalDate(form.value.date_of_birth)
-        : form.value.date_of_birth
-    })
+    await emit('save', { ...form.value })
   } finally { saving.value = false }
 }
 </script>
@@ -106,13 +87,6 @@ const submit = async () => {
           <v-col cols="12" sm="6">
             <v-text-field v-model="form.phone" :label="$t('form.phone')" variant="outlined" rounded="lg" :rules="[rules.phone]" maxlength="30" />
           </v-col>
-          <v-col cols="12" sm="6">
-            <AppDatePicker v-model="form.date_of_birth" :label="$t('customers.field.date_of_birth')" />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-select v-model="form.gender" :items="genderOptions" item-title="title" item-value="value"
-              :label="$t('customers.field.gender')" variant="outlined" rounded="lg" clearable />
-          </v-col>
         </v-row>
 
         <v-divider class="my-4 opacity-30" />
@@ -123,10 +97,6 @@ const submit = async () => {
           <v-col cols="12" sm="6">
             <v-select v-model="form.source" :items="sourceOptions" item-title="title" item-value="value"
               :label="$t('customers.field.source')" variant="outlined" rounded="lg" clearable />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-select v-model="form.preferred_language" :items="languageOptions" item-title="title" item-value="value"
-              :label="$t('customers.field.preferred_language')" variant="outlined" rounded="lg" />
           </v-col>
           <v-col cols="12">
             <v-textarea v-model="form.notes" :label="$t('form.notes')" variant="outlined" rounded="lg" rows="2" auto-grow />

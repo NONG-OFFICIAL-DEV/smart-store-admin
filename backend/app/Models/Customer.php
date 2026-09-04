@@ -10,12 +10,10 @@ class Customer extends BaseModel
 {
     protected $fillable = [
         'tenant_id', 'first_name', 'last_name', 'email', 'phone',
-        'date_of_birth', 'gender', 'avatar_url', 'notes',
-        'marketing_opt_in', 'preferred_language', 'source', 'is_active',
+        'avatar_url', 'notes', 'marketing_opt_in', 'source', 'is_active',
     ];
 
     protected $casts = [
-        'date_of_birth'    => 'date',
         'marketing_opt_in' => 'boolean',
         'is_active'        => 'boolean',
         'total_spent'      => 'decimal:2',
