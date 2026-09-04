@@ -143,6 +143,14 @@
     justify-content: center;
   }
 
+  /* Vuetify's own VAlert.css sets `flex: 1 1` unconditionally — harmless
+     inside a block container, but this panel is itself a flex column, so
+     any v-alert dropped straight into a page's slot content would otherwise
+     stretch to fill the leftover space between its siblings. */
+  .auth-form-panel__content > :deep(.v-alert) {
+    flex: none;
+  }
+
   /* Dark theme's default surface (~#212121)
      reads from this same --v-theme-surface variable. */
   :global(.v-theme--dark) .login-container {
