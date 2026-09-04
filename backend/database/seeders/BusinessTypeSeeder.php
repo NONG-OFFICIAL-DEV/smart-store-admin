@@ -14,6 +14,7 @@ class BusinessTypeSeeder extends Seeder
                 'code'       => 'RESTAURANT',
                 'name'       => 'Restaurant',
                 'icon'       => '🍽️',
+                'category'   => 'food',
                 'is_active'  => true,
                 'sort_order' => 1,
             ],
@@ -21,6 +22,7 @@ class BusinessTypeSeeder extends Seeder
                 'code'       => 'COFFEE_SHOP',
                 'name'       => 'Coffee Shop',
                 'icon'       => '☕',
+                'category'   => 'food',
                 'is_active'  => true,
                 'sort_order' => 2,
             ],
@@ -28,6 +30,7 @@ class BusinessTypeSeeder extends Seeder
                 'code'       => 'MART',
                 'name'       => 'Mart',
                 'icon'       => '🏪',
+                'category'   => 'mart',
                 'is_active'  => true,
                 'sort_order' => 3,
             ],
@@ -39,6 +42,7 @@ class BusinessTypeSeeder extends Seeder
                 [
                     'name'       => $type['name'],
                     'icon'       => $type['icon'],
+                    'category'   => $type['category'],
                     'is_active'  => $type['is_active'],
                     'sort_order' => $type['sort_order'],
                 ]

@@ -5,7 +5,7 @@ namespace App\Models;
 // app/Models/BusinessType.php
 class BusinessType extends BaseModel
 {
-    protected $fillable = ['code', 'name', 'icon', 'is_active', 'sort_order'];
+    protected $fillable = ['code', 'name', 'icon', 'category', 'is_active', 'sort_order'];
 
     protected $casts = ['is_active' => 'boolean'];
 

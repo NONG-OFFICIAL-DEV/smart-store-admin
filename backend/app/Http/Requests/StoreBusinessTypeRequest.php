@@ -22,6 +22,7 @@ class StoreBusinessTypeRequest extends FormRequest
             'code' => ['required', 'string', 'max:50', 'unique:business_types,code'],
             'name' => ['required', 'string', 'max:100'],
             'icon' => ['nullable', 'string', 'max:100'],
+            'category' => ['required', 'string', 'in:food,mart'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
         ];

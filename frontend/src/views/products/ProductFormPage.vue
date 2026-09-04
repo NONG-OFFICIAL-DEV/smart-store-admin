@@ -1077,8 +1077,11 @@
       .replace(/\b\w/g, c => c.toUpperCase()) ?? '—'
   )
 
+  // Dynamic (backend business_types.category), not the static icon/color
+  // registry — this is the current tenant only (create/edit form), so
+  // authStore.bu_category is always the right source.
   const productNature = computed(
-    () => resolvedBuConfig.value?.category ?? 'food'
+    () => authStore.bu_category ?? 'food'
   )
   const isFoodProduct = computed(() => productNature.value === 'food')
   const isMartProduct = computed(() => productNature.value === 'mart')

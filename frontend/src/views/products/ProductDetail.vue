@@ -660,7 +660,15 @@
       '—'
   )
 
-  const productNature = computed(() => buConfig.value?.category ?? 'food')
+  // Dynamic (backend business_types.category), not the static icon/color
+  // registry — a product's own tenant may differ from the viewer's (super
+  // admin browsing another tenant's product), so prefer that when present.
+  const productNature = computed(
+    () =>
+      product.value?.tenant?.business_type?.category ??
+      authStore.bu_category ??
+      'food'
+  )
   const isFoodProduct = computed(() => productNature.value === 'food')
   const isMartProduct = computed(() => productNature.value === 'mart')
 

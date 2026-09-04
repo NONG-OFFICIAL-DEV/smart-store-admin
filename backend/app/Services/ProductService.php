@@ -36,7 +36,7 @@ class ProductService extends BaseService
                 ->with(['options' => fn($q) => $q->orderBy('sort_order')->orderBy('name')]),
             'units' => fn($q) => $q->orderBy('is_base_unit', 'desc')->orderBy('qty_per_base'),
             'tenant' => fn($q) => $q->select('id', 'name', 'logo_url', 'currency', 'business_type_id')
-                ->with('businessType:id,name,code,icon'),
+                ->with('businessType:id,name,code,icon,category'),
             'branchOverrides' => fn($q) => $q->with('branch:id,name'),
         ]);
     }

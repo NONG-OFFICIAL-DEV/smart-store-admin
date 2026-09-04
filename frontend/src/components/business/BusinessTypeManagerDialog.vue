@@ -24,6 +24,15 @@
         <v-list-item-subtitle>{{ item.code }}</v-list-item-subtitle>
         <template #append>
           <v-chip
+            v-if="item.category"
+            :color="item.category === 'food' ? 'deep-orange' : 'blue'"
+            variant="tonal"
+            size="x-small"
+            class="me-2"
+          >
+            {{ item.category === 'food' ? $t('business_type.category_food') : $t('business_type.category_mart') }}
+          </v-chip>
+          <v-chip
             :color="item.is_active ? 'success' : 'default'"
             :variant="item.is_active ? 'tonal' : 'outlined'"
             size="x-small"
@@ -102,6 +111,21 @@
             />
           </v-col>
 
+          <!-- Category -->
+          <v-col cols="12">
+            <v-select
+              v-model="form.category"
+              :items="categoryOptions"
+              :label="$t('business_type.category_label')"
+              variant="outlined"
+              rounded="lg"
+              :rules="[rules.required]"
+              prepend-inner-icon="mdi-shape-outline"
+              :hint="$t('business_type.category_hint')"
+              persistent-hint
+            />
+          </v-col>
+
           <!-- Status -->
           <v-col cols="12">
             <v-card rounded="lg" variant="outlined" class="pa-4">
@@ -177,6 +201,7 @@
     name: '',
     code: '',
     icon: 'mdi-silverware',
+    category: 'food',
     is_active: true
   })
   const form = reactive(defaultForm())
@@ -185,6 +210,15 @@
     'mdi-silverware', 'mdi-coffee', 'mdi-store', 'mdi-cart', 'mdi-pizza',
     'mdi-noodles', 'mdi-fish', 'mdi-shopping', 'mdi-bag-personal', 'mdi-cake', 'mdi-cup'
   ]
+
+  // Drives authStore.isFood/isMart app-wide (see authStore.js) — deliberately
+  // just these two, matching every existing food-vs-mart branch in the app
+  // today. Not free-text: a typo'd category would silently fail every one
+  // of those checks with no error surfaced anywhere.
+  const categoryOptions = computed(() => [
+    { title: t('business_type.category_food'), value: 'food' },
+    { title: t('business_type.category_mart'), value: 'mart' }
+  ])
 
   const rules = {
     required: v => !!v || t('validation.required'),

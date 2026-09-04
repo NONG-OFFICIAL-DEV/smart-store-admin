@@ -22,6 +22,7 @@ class UpdateBusinessTypeRequest extends FormRequest
             'code' => ['sometimes', 'required', 'string', 'max:50', 'unique:business_types,code,'.$this->route('business_type')?->id],
             'name' => ['sometimes', 'required', 'string', 'max:100'],
             'icon' => ['nullable', 'string', 'max:100'],
+            'category' => ['sometimes', 'required', 'string', 'in:food,mart'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
         ];

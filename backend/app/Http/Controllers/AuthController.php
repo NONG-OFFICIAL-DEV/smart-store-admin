@@ -167,6 +167,7 @@ class AuthController extends Controller
 
         // ── Resolve bu_type via relation (bu_type column was dropped) ─────
         $bu_type = null;
+        $bu_category = null;
 
         if (!$user->is_super_admin) {
             $ownedTenant = Tenant::with('businessType')
@@ -175,14 +176,16 @@ class AuthController extends Controller
 
             if ($ownedTenant) {
                 $bu_type = $ownedTenant->businessType?->code;
+                $bu_category = $ownedTenant->businessType?->category;
             } else {
-                $bu_type = $user->staff()
+                $staffBusinessType = $user->staff()
                     ->withoutGlobalScopes()
                     ->with('tenant.businessType')
                     ->first()
                     ?->tenant
-                    ?->businessType
-                    ?->code;
+                    ?->businessType;
+                $bu_type = $staffBusinessType?->code;
+                $bu_category = $staffBusinessType?->category;
             }
         }
 
@@ -216,6 +219,7 @@ class AuthController extends Controller
             'is_super_admin'       => $user->is_super_admin,
             'is_owner'             => Tenant::where('owner_user_id', $user->id)->exists(),
             'bu_type'              => $bu_type,
+            'bu_category'          => $bu_category,
             'must_change_password' => $user->must_change_password,
         ]);
     }
@@ -239,6 +243,7 @@ class AuthController extends Controller
             'bu_name'           => null,
             'business_type_id'  => null,
             'bu_type'           => null,
+            'bu_category'       => null,
             'logo_url'          => null,
             'currency'          => null,
             'locale'            => null,
@@ -303,6 +308,7 @@ class AuthController extends Controller
                 'bu_name'          => $ownedTenant->name,
                 'business_type_id' => $ownedTenant->business_type_id,
                 'bu_type'          => $ownedTenant->businessType?->code,
+                'bu_category'      => $ownedTenant->businessType?->category,
                 'logo_url'         => $ownedTenant->logo_url,
                 'currency'         => $ownedTenant->currency,
                 'locale'           => $ownedTenant->locale,
@@ -343,6 +349,7 @@ class AuthController extends Controller
             'bu_name'          => $staff->tenant?->name,
             'business_type_id' => $staff->tenant?->business_type_id,
             'bu_type'          => $staff->tenant?->businessType?->code,
+            'bu_category'      => $staff->tenant?->businessType?->category,
             'logo_url'         => $staff->tenant?->logo_url,
             'branch_name'      => $staff->branch?->name,
             'branch_id'        => $staff->branch_id,

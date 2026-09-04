@@ -81,7 +81,7 @@ export const SIDEBAR_MENU = [
         titleKey: 'menu.quick_sale',
         icon: 'mdi-lightning-bolt-outline',
         // Deep-link straight into the right POS for this tenant's business —
-        // every business type is either 'mart' or 'food' (see BU_CATEGORIES).
+        // category is backend-driven (business_types.category via ctx.isMart).
         path: ctx => (ctx.isMart ? '/pos/retail' : '/pos/food'),
         permission: 'orders.manage'
       },

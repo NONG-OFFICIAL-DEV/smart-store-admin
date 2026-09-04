@@ -2,11 +2,8 @@
 import { defineStore } from 'pinia'
 import authService from '../api/auth'
 import { PLANS } from '@/constants/plan'
-import { BU_CATEGORIES } from '@/constants/businessTypes'
 import { connectEcho, disconnectEcho } from '@/utils/echo'
 import { impersonateTenantApi } from '@/api/tenantService'
-
-export { BU_CATEGORIES }   // re-export so existing imports still work
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -24,6 +21,7 @@ export const useAuthStore = defineStore('auth', {
     tenant_id: null,
     bu_name:   null,
     bu_type:   null,
+    bu_category: null,
     business_type_id: null,
     logo_url:  null,
     plan:      null,
@@ -103,13 +101,15 @@ export const useAuthStore = defineStore('auth', {
     // still happens server-side via the feature:CODE route middleware.
     hasFeature: state => code => state.features.includes(code),
 
-    // Category helpers — driven entirely by BU_CATEGORIES from businessTypes.js
-    isFood: state => BU_CATEGORIES.food?.has(state.bu_type) ?? false,
-    isMart: state => BU_CATEGORIES.mart?.has(state.bu_type) ?? false,
+    // Category helpers — driven by the tenant's actual business_types.category
+    // column (see /me's bu_category), not a hardcoded frontend list — a new
+    // business type just needs its category set once in Manage Business Types,
+    // no frontend code change required.
+    isFood: state => state.bu_category === 'food',
+    isMart: state => state.bu_category === 'mart',
 
-    // Generic: authStore.isCategory('health') → true/false
-    isCategory: state => category =>
-      BU_CATEGORIES[category]?.has(state.bu_type) ?? false,
+    // Generic: authStore.isCategory('food') → true/false
+    isCategory: state => category => state.bu_category === category,
 
     // Days left in the trial, or null if not on a trial / no end date.
     // Super admin has no tenant subscription of their own.
@@ -235,6 +235,7 @@ export const useAuthStore = defineStore('auth', {
       this.tenant_id = d.tenant_id ?? null
       this.bu_name   = d.bu_name   ?? null
       this.bu_type   = d.bu_type   ?? null
+      this.bu_category = d.bu_category ?? null
       this.business_type_id = d.business_type_id ?? null
       this.logo_url  = d.logo_url  ?? null
       this.plan      = d.plan      ?? null
