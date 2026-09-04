@@ -2259,6 +2259,7 @@
     },
     "retail": {
       "title": "លក់រហ័ស - លក់រាយ",
+      "subtitle": "លក់ទំនិញបានលឿន និងងាយស្រួល",
       "customer_type": "ប្រភេទអតិថិជន",
       "customer_types": {
         "retail": "លក់រាយ",

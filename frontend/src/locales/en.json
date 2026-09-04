@@ -2279,6 +2279,7 @@
     },
     "retail": {
       "title": "Retail Quick Sale",
+      "subtitle":"Sell products quickly and easily",
       "customer_type": "Customer type",
       "customer_types": {
         "retail": "Retail",

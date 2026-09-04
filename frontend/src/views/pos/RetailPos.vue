@@ -1,32 +1,26 @@
 <template>
   <div class="pos-page d-flex flex-column">
     <!-- Compact header — back + title + branch + settings, nothing else -->
-    <div
-      class="pos-page__header d-flex align-center flex-grow-0"
-      :class="touch ? 'px-2 py-2' : 'px-1 py-1'"
-    >
-      <v-btn
-        icon="mdi-arrow-left"
-        variant="text"
-        :density="touch ? 'default' : 'comfortable'"
-        :size="touch ? 'default' : 'small'"
-        @click="$router.back()"
-      />
-      <span class="font-weight-bold ml-1" :class="touch ? 'text-body-1' : 'text-body-2'">
-        {{ t('pos.retail.title') }}
-      </span>
-      <v-spacer />
-      <v-chip :size="touch ? 'default' : 'small'" variant="tonal" rounded="lg" prepend-icon="mdi-store-outline" class="me-1">
-        {{ selectedBranchName || t('pos.select_branch') }}
-      </v-chip>
-      <v-btn
-        icon="mdi-cog-outline"
-        variant="text"
-        :density="touch ? 'default' : 'comfortable'"
-        :size="touch ? 'default' : 'small'"
-        @click="settingsOpen = true"
-      />
-    </div>
+     <AppToolbar :title="t('pos.retail.title')" :subtitle="t('pos.retail.subtitle')">
+      <template #actions>
+        <v-chip
+          :size="touch ? 'default' : 'small'"
+          variant="tonal"
+          rounded="lg"
+          prepend-icon="mdi-store-outline"
+          class="me-1"
+        >
+          {{ selectedBranchName || t('pos.select_branch') }}
+        </v-chip>
+        <v-btn
+          icon="mdi-cog-outline"
+          variant="text"
+          :density="touch ? 'default' : 'comfortable'"
+          :size="touch ? 'default' : 'small'"
+          @click="settingsOpen = true"
+        />
+      </template>
+    </AppToolbar>
 
     <AppDialog
       v-model="settingsOpen"
@@ -146,7 +140,7 @@
     submitRetailOrderApi
   } from '@/api/posService'
   import { getAllCustomersApi } from '@/api/customerService'
-  import { AppDialog } from '@nong-official-dev/core'
+  import { AppDialog, AppToolbar } from '@nong-official-dev/core'
   import PosOrderOptionsBar from '@/components/pos/PosOrderOptionsBar.vue'
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
