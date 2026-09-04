@@ -247,7 +247,7 @@
     try {
       const { data } = await getAllKitchenDisplayTicketsApi({
         branch_id: branchId.value,
-        perPage: 100
+        perPage: -1
       })
       tickets.value = data.data.filter(tk => tk.status !== 'cancelled')
       await hydrateOrderCache()

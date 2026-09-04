@@ -54,8 +54,8 @@
 
     <!-- List -->
     <!-- <v-card rounded="lg" elevation="0" border> -->
-      <v-list v-if="items.length" lines="two" desnsity="compact">
-        <template v-for="(item, idx) in items" :key="item.id">
+      <v-list v-if="items.length" lines="two" desnsity="compact" class="category-list">
+        <template v-for="item in items" :key="item.id">
           <!-- Editing this row — same shape as the add row above. -->
           <v-list-item v-if="editingId === item.id">
             <div class="d-flex align-center flex-wrap ga-3 py-1">
@@ -131,7 +131,6 @@
               </div>
             </template>
           </v-list-item>
-          <v-divider v-if="idx < items.length - 1" />
         </template>
       </v-list>
 
@@ -170,7 +169,7 @@
   const saving = ref(false)
 
   async function load() {
-    await categoryStore.fetchCategories({ perPage: 200 })
+    await categoryStore.fetchCategories({ perPage: -1 })
   }
 
   onMounted(() => {
@@ -261,3 +260,13 @@
     })
   }
 </script>
+
+<style scoped>
+  /* Divider between rows but not after the last one — done via CSS rather
+     than a v-if inside the keyed v-for (varying a keyed fragment's child
+     count based on the array's length, not the item's own key, desyncs
+     Vue's patchKeyedChildren reconciliation on unmount). */
+  .category-list .v-list-item + .v-list-item {
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+</style>

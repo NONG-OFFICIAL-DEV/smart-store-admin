@@ -38,7 +38,7 @@
             <v-col cols="12" md="4">
               <v-select
                 v-model="filters.branch_id"
-                :items="branchStore.branches.data"
+                :items="branchStore.branches"
                 item-title="name"
                 item-value="id"
                 :label="t('branch_menu.filter_by_branch')"
@@ -247,7 +247,7 @@
     <BranchMenuFormDialog
       v-model="dialog"
       :edit-item="editItem"
-      :branches="branchStore.branches.data"
+      :branches="branchStore.branches"
       :menus="menuStore.menus"
       @saved="onSaved"
     />
@@ -311,8 +311,8 @@
   // ── Load data ─────────────────────────────────────────────────────────────────
   const loadData = () => {
     store.fetchAll()
-    branchStore.fetchBranches()
-    menuStore.fetchMenus()
+    branchStore.fetchBranches({ perPage: -1 })
+    menuStore.fetchMenus({ perPage: -1 })
   }
 
   // ── Reset to page 1 and reload when filters change ───────────────────────────

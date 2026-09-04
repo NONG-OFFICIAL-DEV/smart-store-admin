@@ -309,7 +309,7 @@
   async function loadStaffForBranch(branchId) {
     openForm.staff_id = null
     if (!branchId) return
-    const { data } = await getAllStaffApi({ branch_id: branchId, perPage: 100 })
+    const { data } = await getAllStaffApi({ branch_id: branchId, perPage: -1 })
     staffOptions.value = data.data
   }
 

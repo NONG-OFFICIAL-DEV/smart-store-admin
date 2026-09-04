@@ -314,7 +314,7 @@
   }
 
   onMounted(()=>{
-    supplierStore.fetchSuppliers()
+    supplierStore.fetchSuppliers({ perPage: -1 })
   })
 </script>
 

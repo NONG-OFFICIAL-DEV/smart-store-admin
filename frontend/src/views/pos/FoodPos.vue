@@ -220,7 +220,7 @@
     const { data } = await getAllTablesApi({
       branch_id: branchId.value,
       status: 'available',
-      perPage: 100
+      perPage: -1
     })
     tableOptions.value = data.data
   }
@@ -282,7 +282,7 @@
   )
 
   async function loadCategories() {
-    const { data } = await getAllCategoriesApi({ perPage: 100 })
+    const { data } = await getAllCategoriesApi({ perPage: -1 })
     categories.value = data.data
   }
 

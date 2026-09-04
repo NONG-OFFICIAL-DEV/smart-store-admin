@@ -37,8 +37,8 @@
 
     <!-- List -->
     <v-card rounded="lg" elevation="0" border>
-      <v-list v-if="menuStore.menus.length" lines="two">
-        <template v-for="(item, idx) in menuStore.menus" :key="item.id">
+      <v-list v-if="menuStore.menus.length" lines="two" class="menu-list">
+        <template v-for="item in menuStore.menus" :key="item.id">
           <!-- Editing this row — same shape as the add row above. -->
           <v-list-item v-if="editingId === item.id">
             <div class="d-flex align-center flex-wrap ga-3 py-1">
@@ -100,7 +100,6 @@
               </div>
             </template>
           </v-list-item>
-          <v-divider v-if="idx < menuStore.menus.length - 1" />
         </template>
       </v-list>
 
@@ -116,7 +115,7 @@
     <BranchMenuFormDialog
       v-model="assignDialog.show"
       :edit-item="editItem"
-      :branches="branchStore.branches.data"
+      :branches="branchStore.branches"
       :menus="menuStore.menus"
       @saved="confirmAssign"
     />
@@ -145,12 +144,12 @@
   const saving = ref(false)
 
   async function load() {
-    await menuStore.fetchMenus({ perPage: 200 })
+    await menuStore.fetchMenus({ perPage: -1 })
   }
 
   onMounted(() => {
     load()
-    branchStore.fetchBranches()
+    branchStore.fetchBranches({ perPage: -1 })
   })
 
   function errorMessage(err) {
@@ -261,3 +260,13 @@
     }
   }
 </script>
+
+<style scoped>
+  /* Divider between rows but not after the last one — done via CSS rather
+     than a v-if inside the keyed v-for (varying a keyed fragment's child
+     count based on the array's length, not the item's own key, desyncs
+     Vue's patchKeyedChildren reconciliation on unmount). */
+  .menu-list .v-list-item + .v-list-item {
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+</style>

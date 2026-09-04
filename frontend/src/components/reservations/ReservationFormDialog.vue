@@ -31,7 +31,7 @@
             <v-col cols="12">
               <v-select
                 v-model="form.branch_id"
-                :items="branches.data"
+                :items="branches"
                 item-value="id"
                 item-title="name"
                 :label="$t('form.branch')"
@@ -429,7 +429,7 @@
     () => props.tables.find(t => t.id === form.table_id) || null
   )
   const selectedBranch = computed(
-    () => branches.value.data?.find(b => b.id === form.branch_id) || null
+    () => branches.value.find(b => b.id === form.branch_id) || null
   )
 
   // Combined reserved_at — the only place the two inputs are joined back
@@ -512,7 +512,7 @@
     }
   )
 
-  onMounted(() => branchStore.fetchBranches?.())
+  onMounted(() => branchStore.fetchBranches?.({ perPage: -1 }))
 </script>
 
 <style scoped>

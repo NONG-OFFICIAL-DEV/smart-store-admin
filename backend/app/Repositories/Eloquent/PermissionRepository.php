@@ -4,7 +4,6 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Permission;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 class PermissionRepository extends BaseRepository implements PermissionRepositoryInterface
@@ -30,25 +29,5 @@ class PermissionRepository extends BaseRepository implements PermissionRepositor
         // the only sort that's actually meaningful as a default.
         $direction = filter_var($sortDesc, FILTER_VALIDATE_BOOLEAN) ? 'desc' : 'asc';
         $query->orderBy($sortBy ?: 'code', $direction);
-    }
-
-    /**
-     * The catalog is small and admin-managed; the page assumes the full set
-     * is available client-side (grouping, stats, client-side filtering), so
-     * perPage = -1 returns everything instead of being capped like a normal
-     * paginated resource. Preserves the original controller's behavior.
-     */
-    public function paginateServer(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        if ((int) ($filters['perPage'] ?? null) === -1) {
-            $query = $this->query();
-            $this->applySearch($query, $filters['search'] ?? null);
-            $this->applyFilters($query, $filters);
-            $this->applySort($query, $filters['sortBy'] ?? null, $filters['sortDesc'] ?? false);
-
-            return $query->paginate(max($query->count(), 1));
-        }
-
-        return parent::paginateServer($filters, $perPage);
     }
 }

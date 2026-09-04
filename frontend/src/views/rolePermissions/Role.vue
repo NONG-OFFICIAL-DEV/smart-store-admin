@@ -249,5 +249,5 @@
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
-  permStore.fetchPermissions({ perPage: 100 })
+  permStore.fetchPermissions({ perPage: -1 })
 </script>

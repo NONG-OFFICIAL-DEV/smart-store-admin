@@ -214,14 +214,14 @@
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────────
   onMounted(async () => {
-    await categoryStore.fetchCategories({ perPage: 1000 })
+    await categoryStore.fetchCategories({ perPage: -1 })
   })
 
   // Category filter/table both read from categoryStore — refresh it once the
   // manager dialog closes so anything added/edited/deleted there shows up
   // immediately, without a full page reload.
   watch(categoryManagerOpen, open => {
-    if (!open) categoryStore.fetchCategories({ perPage: 1000 })
+    if (!open) categoryStore.fetchCategories({ perPage: -1 })
   })
 
   // ── Static options ────────────────────────────────────────────────────────────

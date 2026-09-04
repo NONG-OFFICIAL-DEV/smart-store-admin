@@ -562,9 +562,9 @@
   // ── Load data ─────────────────────────────────────────────────────────────
   onMounted(async () => {
     await Promise.all([
-      supplierStore.fetchSuppliers?.(),
-      branchStore.fetchBranches?.(),
-      productStore.fetchProducts?.({ per_page: 100 })
+      supplierStore.fetchSuppliers?.({ perPage: -1 }),
+      branchStore.fetchBranches?.({ perPage: -1 }),
+      productStore.fetchProducts?.({ perPage: -1 })
     ])
 
     // Pre-fill branch

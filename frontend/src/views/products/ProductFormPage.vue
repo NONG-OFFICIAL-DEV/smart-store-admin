@@ -1368,7 +1368,7 @@
   // ── Mount ──────────────────────────────────────────────────────────────────────
   onMounted(async () => {
     await Promise.all([
-      categoryStore.fetchCategories({ perPage: 1000 }),
+      categoryStore.fetchCategories({ perPage: -1 }),
       fetchUnitNames()
     ])
 

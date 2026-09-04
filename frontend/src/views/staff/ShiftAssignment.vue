@@ -343,8 +343,8 @@
   // own fetchAssignments call, not through the store.
   onMounted(async () => {
     await Promise.all([
-      shiftStore.fetchShifts({ perPage: 100 }),
-      staffStore.fetchStaff({ perPage: 100 })
+      shiftStore.fetchShifts({ perPage: -1 }),
+      staffStore.fetchStaff({ perPage: -1 })
     ])
   })
 </script>

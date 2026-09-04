@@ -340,6 +340,6 @@
       fallback: '#808080'
     })
   onMounted(async () => {
-    await branchStore.fetchBranches({ perPage: 100 })
+    await branchStore.fetchBranches({ perPage: -1 })
   })
 </script>

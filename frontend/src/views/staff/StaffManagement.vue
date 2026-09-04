@@ -137,8 +137,8 @@
     getAvatarColor(n, { palette: AVATAR_HEX_PALETTE, fallback: '#808080' })
 
   onMounted(() => {
-    branchStore.fetchBranches({ perPage: 100 })
-    roleStore.fetchRoles({ perPage: 100 })
+    branchStore.fetchBranches({ perPage: -1 })
+    roleStore.fetchRoles({ perPage: -1 })
   })
 </script>
 

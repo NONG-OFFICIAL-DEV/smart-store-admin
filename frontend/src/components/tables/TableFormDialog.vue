@@ -11,7 +11,7 @@
             <v-col cols="12">
               <v-select
                 v-model="form.branch_id"
-                :items="branches.data"
+                :items="branches"
                 item-value="id"
                 item-title="name"
                 :label="$t('form.branch')"
@@ -287,7 +287,7 @@
     }
   })
 
-  onMounted(() => branchStore.fetchBranches?.())
+  onMounted(() => branchStore.fetchBranches?.({ perPage: -1 }))
 </script>
 
 <style scoped>

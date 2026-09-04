@@ -80,6 +80,16 @@ abstract class BaseRepository implements RepositoryInterface
         $this->applyFilters($query, $filters);
         $this->applySort($query, $filters['sortBy'] ?? null, $filters['sortDesc'] ?? false);
 
+        // perPage: -1 — "give me every matching row," for dropdown/select
+        // consumers that need the full list rather than one page of it (a
+        // hardcoded large perPage like 100 just moves the truncation bug to
+        // a higher, still-arbitrary ceiling). Still returns a
+        // LengthAwarePaginator so the controller's response envelope
+        // (current_page/last_page/per_page/total) is unchanged either way.
+        if ((int) ($filters['perPage'] ?? null) === -1) {
+            return $query->paginate(max($query->count(), 1));
+        }
+
         $perPage = (int) ($filters['perPage'] ?? $perPage);
 
         return $query->paginate($perPage > 0 ? $perPage : 15)->withQueryString();
