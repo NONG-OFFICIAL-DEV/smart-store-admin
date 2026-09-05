@@ -5,7 +5,7 @@
       :title="isEdit ? t('po.edit') : t('po.new')"
       show-back
       :breadcrumbs="[
-        { title: t('po.title'), to: '/mart/purchase-order' },
+        { title: t('po.title'), to: '/inventory/purchase-orders' },
         { title: isEdit ? po?.po_number : t('po.subtitle') }
       ]"
     >
@@ -551,7 +551,7 @@
         await poStore.createOrder(form)
         notif(t('po.messages.created'), { type: 'success' })
       }
-      router.push({ name: 'MartPurchaseOrders' })
+      router.push({ name: 'inventory-purchase-orders' })
     } catch (e) {
       notif(e.response?.data?.message ?? t('po.messages.save_failed'), { type: 'error' })
     } finally {
@@ -605,7 +605,7 @@
         }
       } catch {
         notif(t('po.load_failed'), { type: 'error' })
-        router.push({ name: 'MartPurchaseOrders' })
+        router.push({ name: 'inventory-purchase-orders' })
       }
     }
   })

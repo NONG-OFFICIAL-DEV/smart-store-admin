@@ -27,13 +27,6 @@
           <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
         </template>
 
-        <!-- Payment terms -->
-        <template #item.payment_terms="{ item }">
-          <span class="text-caption text-grey">
-            {{ item.payment_terms || '—' }}
-          </span>
-        </template>
-
         <!-- Actions -->
         <template #item.actions="{ item }">
           <v-btn
@@ -85,7 +78,6 @@
     { title: t('suppliers.table.contact_person'), key: 'contact_person' },
     { title: t('suppliers.table.phone'), key: 'phone' },
     { title: t('suppliers.table.email'), key: 'email' },
-    { title: t('suppliers.table.payment_terms'), key: 'payment_terms' },
     { title: t('suppliers.table.status'), key: 'is_active' },
     {
       title: t('suppliers.table.actions'),

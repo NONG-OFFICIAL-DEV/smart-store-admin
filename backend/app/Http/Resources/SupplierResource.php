@@ -17,7 +17,6 @@ class SupplierResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'address' => $this->address,
-            'payment_terms' => $this->payment_terms,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
         ];

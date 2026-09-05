@@ -161,14 +161,6 @@
       </AppTable>
     </v-card>
 
-    <!-- ── Create/Edit Dialog ─────────────────────────────────────────────── -->
-    <PurchaseOrderDialog
-      v-model="dialog"
-      :purchase-order="selectedPO"
-      :loading="saving"
-      @save="handleSave"
-    />
-
     <!-- ── Detail Dialog ──────────────────────────────────────────────────── -->
     <PurchaseOrderDetailDialog
       v-model="detailDialog"
@@ -206,12 +198,12 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
   import { usePurchaseOrderStore } from '@/stores/purchaseOrderStore'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { AppTable, AppDialog } from '@nong-official-dev/core'
   import AppToolbar from '@/components/common/AppToolbar.vue'
-  import PurchaseOrderDialog from '@/components/purchase-orders/PurchaseOrderDialog.vue'
   import PurchaseOrderDetailDialog from '@/components/purchase-orders/PurchaseOrderDetailDialog.vue'
   import PurchaseOrderReceiveDialog from '@/components/purchase-orders/PurchaseOrderReceiveDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
@@ -224,15 +216,14 @@
   const poStore = usePurchaseOrderStore()
   const supplierStore = useSupplierStore()
   const { notif } = useAppUtils()
+  const router = useRouter()
 
-  const dialog = ref(false)
   const detailDialog = ref(false)
   const receiveDialog = ref(false)
   const cancelDialog = ref(false)
   const selectedPO = ref(null)
   const receivingPO = ref(null)
   const cancelTarget = ref(null)
-  const saving = ref(false)
   const receiving = ref(false)
   const cancelling = ref(false)
   const tableRef = ref(null)
@@ -313,14 +304,8 @@
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────────
-  const openCreate = () => {
-    selectedPO.value = null
-    dialog.value = true
-  }
-  const openEdit = po => {
-    selectedPO.value = po
-    dialog.value = true
-  }
+  const openCreate = () => router.push({ name: 'purchase-order-create' })
+  const openEdit = po => router.push({ name: 'purchase-order-edit', params: { id: po.id } })
   const openDetail = po => {
     selectedPO.value = po
     detailDialog.value = true
@@ -333,25 +318,6 @@
     detailDialog.value = false
     receivingPO.value = po
     receiveDialog.value = true
-  }
-
-  const handleSave = async payload => {
-    saving.value = true
-    try {
-      if (payload.id) {
-        await poStore.updatePurchaseOrder(payload.id, payload)
-        notif(t('po.messages.updated'), { type: 'success' })
-      } else {
-        await poStore.createPurchaseOrder(payload)
-        notif(t('po.messages.created'), { type: 'success' })
-      }
-      dialog.value = false
-      tableRef.value?.refresh()
-    } catch {
-      notif(t('po.messages.save_failed'), { type: 'error' })
-    } finally {
-      saving.value = false
-    }
   }
 
   const handleReceive = async payload => {

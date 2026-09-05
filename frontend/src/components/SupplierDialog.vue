@@ -71,26 +71,14 @@
 
           <v-divider />
 
-          <!-- Payment & Settings -->
+          <!-- Settings -->
           <div class="form-section">
             <div class="form-section-label">
-              <v-icon icon="mdi-cash-outline" size="13" class="mr-1" />
-              {{ $t('suppliers.dialog.payment_settings') }}
+              <v-icon icon="mdi-cog-outline" size="13" class="mr-1" />
+              {{ $t('suppliers.dialog.settings') }}
             </div>
             <v-row dense>
-              <v-col cols="12" sm="6">
-                <v-combobox
-                  v-model="form.payment_terms"
-                  :items="paymentTermOptions"
-                  :label="$t('suppliers.form.payment_terms')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-file-sign"
-                  :placeholder="$t('suppliers.form.payment_terms_placeholder')"
-                  hide-details
-                />
-              </v-col>
-              <v-col cols="12" sm="6" class="d-flex align-center">
+              <v-col cols="12" class="d-flex align-center">
                 <v-card
                   rounded="lg"
                   border
@@ -153,8 +141,6 @@
   })
   const isEdit = computed(() => !!props.supplier?.id)
 
-  const paymentTermOptions = ['Net 30', 'Net 60', 'Net 90', 'COD', 'Prepaid']
-
   // ── Default form — matches DB schema exactly ───────────────────────────────────
   const defaultForm = () => ({
     name: '',
@@ -162,7 +148,6 @@
     phone: '',
     email: '',
     address: '',
-    payment_terms: null,
     is_active: true // ← schema: is_active boolean (not status int)
   })
 
@@ -180,7 +165,6 @@
               phone: val.phone ?? '',
               email: val.email ?? '',
               address: val.address ?? '',
-              payment_terms: val.payment_terms ?? null,
               is_active: val.is_active ?? true
             }
           : defaultForm()
@@ -208,7 +192,6 @@
       phone: form.phone,
       email: form.email,
       address: form.address,
-      payment_terms: form.payment_terms,
       is_active: form.is_active
     }
 

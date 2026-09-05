@@ -577,6 +577,7 @@
     "receive": "Receive Stock",
     "po_number": "PO Number",
     "order_items": "Order Items",
+    "items_locked_hint": "Line items can't be changed after a purchase order is created — cancel and create a new one instead.",
     "order_details": "Order Details",
     "summary": "Summary",
     "total_items": "Total Items",
@@ -1114,7 +1115,7 @@
       "subtitleEdit": "Update supplier details",
       "subtitleCreate": "Add a new supplier to your business",
       "basic_info": "Basic Info",
-      "payment_settings": "Payment & Settings"
+      "settings": "Settings"
     },
     "validation": {
       "invalid_phone": "Invalid phone"

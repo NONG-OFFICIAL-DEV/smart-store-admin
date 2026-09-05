@@ -12,7 +12,7 @@ class Supplier extends BaseModel
 
     protected $fillable = [
         'tenant_id', 'name', 'contact_person', 'phone',
-        'email', 'address', 'payment_terms', 'is_active',
+        'email', 'address', 'is_active',
     ];
 
     protected $casts = [

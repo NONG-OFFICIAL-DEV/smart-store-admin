@@ -392,17 +392,30 @@ const routes = [
         name: 'MartPurchaseOrders',
         redirect: '/inventory/purchase-orders'
       },
+      // Food and Mart purchase orders used to have separate create/edit
+      // routes (Food as a dialog inside PurchaseManagement.vue, Mart as its
+      // own page). Both now share one route — PurchaseOrderFormPage.vue
+      // picks FoodPoForm.vue vs the pre-existing MartPoForm.vue by business
+      // type — so the old Mart-only paths just redirect here.
+      {
+        path: '/purchase-orders/create',
+        name: 'purchase-order-create',
+        component: () => import('@/views/stocks/PurchaseOrderFormPage.vue'),
+        meta: { requiresAuth: true, transition: 'slide', permission: 'purchase_orders.manage' }
+      },
+      {
+        path: '/purchase-orders/:id/edit',
+        name: 'purchase-order-edit',
+        component: () => import('@/views/stocks/PurchaseOrderFormPage.vue'),
+        meta: { requiresAuth: true, transition: 'slide', permission: 'purchase_orders.manage' }
+      },
       {
         path: '/mart/purchase-orders/create',
-        name: 'MartPurchaseOrderCreate',
-        component: () => import('@/views/mart/MartPoForm.vue'),
-        meta: { requiresAuth: true, transition: 'slide' }
+        redirect: '/purchase-orders/create'
       },
       {
         path: '/mart/purchase-orders/:id/edit',
-        name: 'MartPurchaseOrderEdit',
-        component: () => import('@/views/mart/MartPoForm.vue'),
-        meta: { requiresAuth: true, transition: 'slide' }
+        redirect: to => ({ name: 'purchase-order-edit', params: to.params })
       },
       {
         path: '/mart/stock',

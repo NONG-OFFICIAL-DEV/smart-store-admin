@@ -24,7 +24,6 @@ class StoreSupplierRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string'],
-            'payment_terms' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
 
             // Super admin only — optionally pass tenant_id.

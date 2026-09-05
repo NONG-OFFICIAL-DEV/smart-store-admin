@@ -221,10 +221,9 @@
     { title: '', key: 'actions', sortable: false, width: '160' }
   ])
 
-  // Replace these two methods:
-  const openCreate = () => router.push({ name: 'MartPurchaseOrderCreate' })
+  const openCreate = () => router.push({ name: 'purchase-order-create' })
   const openEdit = po =>
-    router.push({ name: 'MartPurchaseOrderEdit', params: { id: po.id } })
+    router.push({ name: 'purchase-order-edit', params: { id: po.id } })
 
   const statusColor = s =>
     ({
