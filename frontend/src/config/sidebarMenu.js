@@ -303,6 +303,17 @@ export const SIDEBAR_MENU = [
         visible: ctx => !ctx.isSuperAdmin
       },
       {
+        key: 'billing',
+        titleKey: 'billing.title',
+        icon: 'mdi-credit-card-outline',
+        path: '/tenants-billing',
+        // Moved here from the profile dropdown — it's tenant/business
+        // configuration, not a personal account action. Same visibility
+        // rule as before (no owner-only restriction — the route itself
+        // has none either, preserved as-is rather than tightened here).
+        visible: ctx => !ctx.isSuperAdmin
+      },
+      {
         key: 'general-settings',
         titleKey: 'menu.security',
         icon: 'mdi-shield-lock-outline',

@@ -452,16 +452,14 @@
     userMenu.value = false
     shortcutsDialog.value = true
   }
+  // Personal account actions only — Security and Billing are business/
+  // system-level and live in the sidebar (System group) instead, so the
+  // same destination isn't reachable from two differently-labeled menus.
   const menuItems = computed(() => [
     {
       title: 'profile.title',
       icon: 'mdi-account-circle-outline',
       action: () => goToProfile()
-    },
-    {
-      title: 'settings.title',
-      icon: 'mdi-shield-lock-outline',
-      action: () => goToSettings()
     },
     {
       title: 'preferences.title',
@@ -472,17 +470,7 @@
       title: 'shortcuts.title',
       icon: 'mdi-keyboard-outline',
       action: () => openShortcuts()
-    },
-    // Super admin isn't tied to any tenant, so there's no plan/subscription to show
-    ...(authStore.isSuperAdmin
-      ? []
-      : [
-          {
-            title: 'billing.title',
-            icon: 'mdi-credit-card-outline',
-            action: () => goToBilling()
-          }
-        ])
+    }
   ])
   // Avatar
   const initials = computed(() => getInitials(props.user, '?'))
@@ -543,16 +531,6 @@
   const goToProfile = () => {
     userMenu.value = false
     router.push({ name: 'profile' })
-  }
-
-  const goToSettings = () => {
-    userMenu.value = false
-    router.push({ name: 'settings-security' })
-  }
-
-  const goToBilling = () => {
-    userMenu.value = false
-    router.push({ name: 'tenant-billing' })
   }
 
   // Logout
