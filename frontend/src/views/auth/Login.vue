@@ -91,7 +91,7 @@
           type="submit"
           color="primary"
           block
-          class="mt-6 py-7 text-none submit-btn"
+          size="large"
           rounded="lg"
           elevation="0"
           :loading="loading"
