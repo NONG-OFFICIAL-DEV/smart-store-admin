@@ -75,7 +75,7 @@
         type="submit"
         color="primary"
         block
-        class="mt-6 py-7 text-none submit-btn"
+        size="large"
         rounded="lg"
         elevation="0"
         :loading="loading"
@@ -180,11 +180,6 @@
     font-size: 14px;
     color: rgba(var(--v-theme-on-surface), 0.6);
     margin-top: 4px;
-  }
-  .submit-btn {
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    box-shadow: 0 4px 18px rgba(var(--v-theme-primary), 0.28) !important;
   }
   .fade-in {
     animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);

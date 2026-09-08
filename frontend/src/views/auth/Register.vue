@@ -35,9 +35,6 @@
     <v-form ref="formRef" class="fade-in" @submit.prevent="handleRegister">
       <v-row dense>
         <v-col cols="6">
-          <label class="text-caption ml-1">
-            {{ t('register.owner_first_name') }}
-          </label>
           <v-text-field
             v-model="form.owner_first_name"
             variant="outlined"
@@ -46,12 +43,14 @@
             :rules="[required]"
             :error-messages="errors.owner_first_name"
             :disabled="loading"
-          />
+          >
+            <template #label>
+              {{ t('register.owner_first_name') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-text-field>
         </v-col>
         <v-col cols="6">
-          <label class="text-caption ml-1">
-            {{ t('register.owner_last_name') }}
-          </label>
           <v-text-field
             v-model="form.owner_last_name"
             variant="outlined"
@@ -60,14 +59,16 @@
             :rules="[required]"
             :error-messages="errors.owner_last_name"
             :disabled="loading"
-          />
+          >
+            <template #label>
+              {{ t('register.owner_last_name') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-text-field>
         </v-col>
       </v-row>
       <v-row dense>
         <v-col cols="6">
-          <label class="text-caption ml-1">
-            {{ t('register.business_name') }}
-          </label>
           <v-text-field
             v-model="form.name"
             variant="outlined"
@@ -77,12 +78,14 @@
             :rules="[required]"
             :error-messages="errors.name"
             :disabled="loading"
-          />
+          >
+            <template #label>
+              {{ t('register.business_name') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-text-field>
         </v-col>
         <v-col cols="6">
-          <label class="text-caption ml-1">
-            {{ t('register.business_type') }}
-          </label>
           <v-select
             v-model="form.business_type_id"
             :items="businessTypes"
@@ -95,44 +98,59 @@
             :rules="[required]"
             :error-messages="errors.business_type_id"
             :disabled="loading"
-          />
+          >
+            <template #label>
+              {{ t('register.business_type') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-select>
         </v-col>
       </v-row>
-
-      <label class="text-caption ml-1">{{ t('register.owner_email') }}</label>
-      <v-text-field
-        v-model="form.owner_email"
-        variant="outlined"
-        rounded="lg"
-        prepend-inner-icon="mdi-email-outline"
-        class="mt-1"
-        :rules="emailRules"
-        :error-messages="errors.owner_email"
-        :disabled="loading"
-      />
-
-      <label class="text-caption ml-1">
-        {{ t('register.owner_password') }}
-      </label>
-      <v-text-field
-        v-model="form.owner_password"
-        :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
-        :type="visible ? 'text' : 'password'"
-        variant="outlined"
-        rounded="lg"
-        prepend-inner-icon="mdi-lock-outline"
-        class="mt-1"
-        :rules="passwordRules"
-        :error-messages="errors.owner_password"
-        :disabled="loading"
-        @click:append-inner="visible = !visible"
-      />
+      <v-row dense>
+        <v-col cols="12">
+          <v-text-field
+            v-model="form.owner_email"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-email-outline"
+            class="mt-1"
+            :rules="emailRules"
+            :error-messages="errors.owner_email"
+            :disabled="loading"
+          >
+            <template #label>
+              {{ t('register.owner_email') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-text-field>
+        </v-col>
+        <v-col cols="12">
+          <v-text-field
+            v-model="form.owner_password"
+            :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
+            :type="visible ? 'text' : 'password'"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-lock-outline"
+            class="mt-1"
+            :rules="passwordRules"
+            :error-messages="errors.owner_password"
+            :disabled="loading"
+            @click:append-inner="visible = !visible"
+          >
+            <template #label>
+              {{ t('register.owner_password') }}
+              <span class="text-error">*</span>
+            </template>
+          </v-text-field>
+        </v-col>
+      </v-row>
 
       <v-btn
         type="submit"
         color="primary"
         block
-        class="mt-6 py-7 text-none submit-btn"
+       size="large"
         rounded="lg"
         elevation="0"
         :loading="loading"
@@ -281,11 +299,6 @@
     font-size: 14px;
     color: rgba(var(--v-theme-on-surface), 0.6);
     margin-top: 4px;
-  }
-  .submit-btn {
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    box-shadow: 0 4px 18px rgba(var(--v-theme-primary), 0.28) !important;
   }
   .fade-in {
     animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);

@@ -33,7 +33,11 @@
         <div class="form-header">
           <div class="form-title">{{ t('login.two_factor.title') }}</div>
           <div class="form-sub">
-            {{ useRecoveryCode ? t('login.two_factor.recovery_sub') : t('login.two_factor.sub') }}
+            {{
+              useRecoveryCode
+                ? t('login.two_factor.recovery_sub')
+                : t('login.two_factor.sub')
+            }}
           </div>
         </div>
       </div>
@@ -53,7 +57,9 @@
 
       <v-form class="fade-in" @submit.prevent="handleVerifyTwoFactor">
         <template v-if="!useRecoveryCode">
-          <label class="text-caption ml-1">{{ t('login.two_factor.code') }}</label>
+          <label class="text-caption ml-1">
+            {{ t('login.two_factor.code') }}
+          </label>
           <v-otp-input
             v-model="code"
             length="6"
@@ -65,7 +71,9 @@
           />
         </template>
         <template v-else>
-          <label class="text-caption ml-1">{{ t('login.two_factor.recovery_code') }}</label>
+          <label class="text-caption ml-1">
+            {{ t('login.two_factor.recovery_code') }}
+          </label>
           <v-text-field
             v-model="code"
             :placeholder="t('login.two_factor.recovery_code_placeholder')"
@@ -92,11 +100,21 @@
         </v-btn>
 
         <div class="d-flex justify-space-between mt-4">
-          <a class="text-caption text-primary cursor-pointer" @click="backToLogin">
+          <a
+            class="text-caption text-primary cursor-pointer"
+            @click="backToLogin"
+          >
             {{ t('login.two_factor.back_to_login') }}
           </a>
-          <a class="text-caption text-primary cursor-pointer" @click="toggleRecoveryCode">
-            {{ useRecoveryCode ? t('login.two_factor.use_code') : t('login.two_factor.use_recovery_code') }}
+          <a
+            class="text-caption text-primary cursor-pointer"
+            @click="toggleRecoveryCode"
+          >
+            {{
+              useRecoveryCode
+                ? t('login.two_factor.use_code')
+                : t('login.two_factor.use_recovery_code')
+            }}
           </a>
         </div>
       </v-form>
@@ -126,48 +144,60 @@
         </v-alert>
       </v-slide-y-transition>
 
-      <v-form
-        ref="formRef"
-        class="fade-in"
-        @submit.prevent="handleLogin"
-      >
-        <label class="text-caption ml-1">{{ t('login.email') }}</label>
-        <v-text-field
-          v-model="email"
-          :placeholder="t('login.emailPlaceholder')"
-          variant="outlined"
-          rounded="lg"
-          prepend-inner-icon="mdi-email-outline"
-          class="mt-1 mb-2"
-          color="primary"
-          :rules="emailRules"
-          :error-messages="errors.email"
-          :disabled="loading"
-          validate-on="blur"
-          @update:model-value="errors.email = ''"
-        />
+      <v-form ref="formRef" class="fade-in" @submit.prevent="handleLogin">
+        <v-row>
+          <v-col cols="12">
+            <v-text-field
+              v-model="email"
+              :placeholder="t('login.emailPlaceholder')"
+              variant="outlined"
+              rounded="lg"
+              prepend-inner-icon="mdi-email-outline"
+              class="mt-1 mb-2"
+              color="primary"
+              :rules="emailRules"
+              :error-messages="errors.email"
+              :disabled="loading"
+              validate-on="blur"
+              @update:model-value="errors.email = ''"
+            >
+              <template #label>
+                {{ t('login.email') }}
+                <span class="text-error">*</span>
+              </template>
+            </v-text-field>
+          </v-col>
+          <v-col cols="12">
+            <v-text-field
+              v-model="password"
+              :placeholder="t('login.passwordPlaceholder')"
+              variant="outlined"
+              rounded="lg"
+              :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
+              :type="visible ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock-outline"
+              class="mt-1"
+              color="primary"
+              :rules="passwordRules"
+              :error-messages="errors.password"
+              :disabled="loading"
+              validate-on="blur"
+              @click:append-inner="visible = !visible"
+              @update:model-value="errors.password = ''"
+            >
+              <template #label>
+                {{ t('login.password') }}
+                <span class="text-error">*</span>
+              </template>
+            </v-text-field>
+          </v-col>
+        </v-row>
 
-        <label class="text-caption ml-1">{{ t('login.password') }}</label>
-        <v-text-field
-          v-model="password"
-          :placeholder="t('login.passwordPlaceholder')"
-          variant="outlined"
-          rounded="lg"
-          :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
-          :type="visible ? 'text' : 'password'"
-          prepend-inner-icon="mdi-lock-outline"
-          class="mt-1"
-          color="primary"
-          :rules="passwordRules"
-          :error-messages="errors.password"
-          :disabled="loading"
-          validate-on="blur"
-          @click:append-inner="visible = !visible"
-          @update:model-value="errors.password = ''"
-        />
-
-        <div class="text-end mt-2">
-          <router-link :to="{ name: 'ForgotPassword' }" class="text-caption text-primary">
+        <div class="text-end mt-0 mb-3">
+          <router-link
+            :to="{ name: 'ForgotPassword' }"
+            class="text-body-2 text-primary font-weight-medium auth-link"
+          >
             {{ t('login.forgot_password') }}
           </router-link>
         </div>
@@ -176,17 +206,20 @@
           type="submit"
           color="primary"
           block
-          class="mt-6 py-7 text-none submit-btn"
           rounded="lg"
           elevation="0"
+          size="large"
           :loading="loading"
         >
-         {{ t('login.signIn') }}
+          {{ t('login.signIn') }}
         </v-btn>
 
         <div class="text-center mt-6 text-caption">
           {{ t('login.no_account') }}
-          <router-link :to="{ name: 'Register' }" class="text-primary font-weight-medium">
+          <router-link
+            :to="{ name: 'Register' }"
+            class="text-primary font-weight-medium"
+          >
             {{ t('login.register_link') }}
           </router-link>
         </div>
@@ -289,15 +322,13 @@
         errors.email = res.errors?.email?.[0] ?? ''
         errors.password = res.errors?.password?.[0] ?? ''
       } else if (code === 'invalid_credentials') {
-        errors.general =
-          res.message ?? t('login.errors.invalid_credentials')
+        errors.general = res.message ?? t('login.errors.invalid_credentials')
       } else if (err.response?.status === 429) {
         errors.general = t('login.errors.too_many_attempts_retry')
       } else if (!err.response) {
         errors.general = t('login.errors.cannot_connect')
       } else {
-        errors.general =
-          res?.message ?? t('login.errors.unexpected_retry')
+        errors.general = res?.message ?? t('login.errors.unexpected_retry')
       }
     } finally {
       loading.value = false
@@ -310,7 +341,10 @@
     errors.code = errors.general = ''
     loading.value = true
     try {
-      const response = await store.verifyTwoFactor(twoFactorToken.value, code.value)
+      const response = await store.verifyTwoFactor(
+        twoFactorToken.value,
+        code.value
+      )
       if (response) {
         navigateAfterLogin(response.data)
       }
@@ -338,6 +372,13 @@
 </script>
 
 <style scoped>
+  .auth-link {
+    color: rgb(var(--v-theme-primary));
+    text-decoration: none;
+  }
+  .auth-link:hover {
+    text-decoration: underline;
+  }
   .eyebrow {
     font-size: 10px;
     font-weight: 700;
@@ -412,22 +453,6 @@
   }
 
   /* ── Submit ───────────────────────────────────────────────────────────── */
-  .submit-btn {
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    letter-spacing: 0.1px !important;
-    box-shadow: 0 4px 18px rgba(var(--v-theme-primary), 0.28) !important;
-    transition:
-      box-shadow 0.2s,
-      transform 0.1s !important;
-  }
-  .submit-btn:hover:not(:disabled) {
-    box-shadow: 0 6px 24px rgba(var(--v-theme-primary), 0.4) !important;
-    transform: translateY(-1px);
-  }
-  .submit-btn:active {
-    transform: translateY(0) !important;
-  }
 
   .cursor-pointer {
     cursor: pointer;

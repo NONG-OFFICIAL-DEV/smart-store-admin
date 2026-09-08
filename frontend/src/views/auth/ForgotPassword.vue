@@ -14,10 +14,19 @@
     </div>
 
     <template v-if="sent">
-      <v-alert type="success" variant="tonal" density="comfortable" class="mb-6 rounded-lg" border="start">
+      <v-alert
+        type="success"
+        variant="tonal"
+        density="comfortable"
+        class="mb-6 rounded-lg"
+        border="start"
+      >
         <span class="text-body-2">{{ t('forgot_password.sent_message') }}</span>
       </v-alert>
-      <router-link :to="{ name: 'Login' }" class="text-primary font-weight-medium text-body-2">
+      <router-link
+        :to="{ name: 'Login' }"
+        class="text-primary font-weight-medium text-body-2"
+      >
         {{ t('forgot_password.back_to_login') }}
       </router-link>
     </template>
@@ -52,7 +61,7 @@
         type="submit"
         color="primary"
         block
-        class="mt-6 py-7 text-none submit-btn"
+        size="large"
         rounded="lg"
         elevation="0"
         :loading="loading"
@@ -61,7 +70,10 @@
       </v-btn>
 
       <div class="text-center mt-6 text-caption">
-        <router-link :to="{ name: 'Login' }" class="text-primary font-weight-medium">
+        <router-link
+          :to="{ name: 'Login' }"
+          class="text-primary font-weight-medium"
+        >
           {{ t('forgot_password.back_to_login') }}
         </router-link>
       </div>
@@ -148,16 +160,17 @@
     color: rgba(var(--v-theme-on-surface), 0.6);
     margin-top: 4px;
   }
-  .submit-btn {
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    box-shadow: 0 4px 18px rgba(var(--v-theme-primary), 0.28) !important;
-  }
   .fade-in {
     animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
