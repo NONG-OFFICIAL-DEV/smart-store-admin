@@ -145,7 +145,7 @@
       </v-slide-y-transition>
 
       <v-form ref="formRef" class="fade-in" @submit.prevent="handleLogin">
-        <v-row>
+        <v-row dense>
           <v-col cols="12">
             <v-text-field
               v-model="email"
