@@ -1,11 +1,16 @@
 <template>
   <v-container fluid class="pa-0">
     <AppPageHeader
-      :title="$t('subscription.manage_dialog.title', { name: tenantName || '' })"
+      :title="
+        $t('subscription.manage_dialog.title', { name: tenantName || '' })
+      "
       show-back
       :breadcrumbs="[
         { title: $t('menu.tenant'), to: '/tenants' },
-        { title: tenantName || $t('tenant_details.detail_fallback'), to: `/tenants/${tenantId}` },
+        {
+          title: tenantName || $t('tenant_details.detail_fallback'),
+          to: `/tenants/${tenantId}`
+        },
         { title: $t('subscription.manage_subscription') }
       ]"
     />
@@ -19,19 +24,39 @@
       <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
         <div class="d-flex align-center justify-space-between">
           <div>
-            <div class="text-h6">{{ plan?.name ?? $t('subscription.no_active_plan') }}</div>
+            <div class="text-h6">
+              {{ plan?.name ?? $t('subscription.no_active_plan') }}
+            </div>
             <div v-if="subscription" class="text-body-2 text-medium-emphasis">
               ${{ cyclePrice }} / {{ activeBillingCycle?.label ?? '—' }}
             </div>
           </div>
-          <v-chip v-if="subscription" size="small" variant="flat" :color="statusColor(subscription.status)">
+          <v-chip
+            v-if="subscription"
+            size="small"
+            variant="flat"
+            :color="statusColor(subscription.status)"
+          >
             {{ statusLabel(subscription.status) }}
           </v-chip>
         </div>
 
-        <div v-if="subscription" class="d-flex flex-wrap ga-4 mt-3 text-caption text-medium-emphasis">
-          <span>{{ $t('subscription.list.field.period_end') }}: {{ subscription.current_period_end ? formatDate(subscription.current_period_end) : '—' }}</span>
-          <span v-if="subscription.trial_ends_at">{{ $t('subscription.status.trial') }}: {{ formatDate(subscription.trial_ends_at) }}</span>
+        <div
+          v-if="subscription"
+          class="d-flex flex-wrap ga-4 mt-3 text-caption text-medium-emphasis"
+        >
+          <span>
+            {{ $t('subscription.list.field.period_end') }}:
+            {{
+              subscription.current_period_end
+                ? formatDate(subscription.current_period_end)
+                : '—'
+            }}
+          </span>
+          <span v-if="subscription.trial_ends_at">
+            {{ $t('subscription.status.trial') }}:
+            {{ formatDate(subscription.trial_ends_at) }}
+          </span>
         </div>
 
         <!-- ── Lifecycle actions ── -->
@@ -52,11 +77,19 @@
             size="small"
             variant="outlined"
             :color="subscription.status === 'active' ? 'warning' : 'success'"
-            :prepend-icon="subscription.status === 'active' ? 'mdi-pause-circle-outline' : 'mdi-play-circle-outline'"
+            :prepend-icon="
+              subscription.status === 'active'
+                ? 'mdi-pause-circle-outline'
+                : 'mdi-play-circle-outline'
+            "
             :loading="actionLoading === 'toggle'"
             @click="toggle"
           >
-            {{ subscription.status === 'active' ? $t('subscription.list.action.pause') : $t('subscription.list.action.resume') }}
+            {{
+              subscription.status === 'active'
+                ? $t('subscription.list.action.pause')
+                : $t('subscription.list.action.resume')
+            }}
           </v-btn>
           <v-btn
             size="small"
@@ -66,7 +99,11 @@
             :loading="actionLoading === 'delete'"
             @click="deleteOrCancel"
           >
-            {{ ['active', 'trial'].includes(subscription.status) ? $t('subscription.list.action.cancel') : $t('subscription.list.action.delete') }}
+            {{
+              ['active', 'trial'].includes(subscription.status)
+                ? $t('subscription.list.action.cancel')
+                : $t('subscription.list.action.delete')
+            }}
           </v-btn>
         </div>
       </v-card>
@@ -77,7 +114,11 @@
           <!-- Change / assign plan -->
           <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
             <div class="text-subtitle-1 font-weight-bold mb-3">
-              {{ subscription ? $t('subscription.list.change_plan') : $t('subscription.list.assign_plan') }}
+              {{
+                subscription
+                  ? $t('subscription.list.change_plan')
+                  : $t('subscription.list.assign_plan')
+              }}
             </div>
             <v-select
               v-model="planForm.plan_id"
@@ -138,13 +179,9 @@
                 />
               </v-col>
             </v-row>
-            <v-text-field
+            <AppDatePicker
               v-model="paymentForm.paid_at"
-              type="date"
               :label="$t('subscription.payment_dialog.paid_at')"
-              variant="outlined"
-              rounded="lg"
-              class="mb-2"
             />
             <v-textarea
               v-model="paymentForm.note"
@@ -183,7 +220,9 @@
             <v-table density="compact">
               <thead>
                 <tr>
-                  <th>{{ $t('subscription.payments.table.invoice_number') }}</th>
+                  <th>
+                    {{ $t('subscription.payments.table.invoice_number') }}
+                  </th>
                   <th>{{ $t('subscription.payments.table.amount') }}</th>
                   <th>{{ $t('subscription.payments.table.paid_at') }}</th>
                   <th>{{ $t('subscription.payments.table.note') }}</th>
@@ -193,7 +232,9 @@
                 <tr v-for="invoice in invoices" :key="invoice.id">
                   <td>{{ invoice.invoice_number }}</td>
                   <td>{{ invoice.currency }} {{ invoice.amount_usd }}</td>
-                  <td>{{ invoice.paid_at ? formatDate(invoice.paid_at) : '—' }}</td>
+                  <td>
+                    {{ invoice.paid_at ? formatDate(invoice.paid_at) : '—' }}
+                  </td>
                   <td>{{ invoice.note ?? '—' }}</td>
                 </tr>
                 <tr v-if="!invoices.length">
@@ -220,7 +261,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { useAppUtils, AppDatePicker } from '@nong-official-dev/core'
   import { usePlanStore } from '@/stores/planStore'
   import { useSubscriptionStore } from '@/stores/subscriptionStore'
   import { getPlanByTenantApi } from '@/api/planService'
@@ -264,13 +305,19 @@
   const cyclePrice = computed(() => {
     const base = Number(plan.value?.price_usd || 0)
     const months = activeBillingCycle.value?.months ?? 1
-    const discount = Number(activeBillingCycle.value?.discount_percent || 0) / 100
+    const discount =
+      Number(activeBillingCycle.value?.discount_percent || 0) / 100
     return (base * months * (1 - discount)).toFixed(2)
   })
 
   const statusColor = s =>
-    ({ active: 'success', trial: 'info', cancelled: 'error', suspended: 'warning' })[s] ?? 'default'
-  const statusLabel = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '—'
+    ({
+      active: 'success',
+      trial: 'info',
+      cancelled: 'error',
+      suspended: 'warning'
+    })[s] ?? 'default'
+  const statusLabel = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—')
 
   async function load() {
     loading.value = true
@@ -301,24 +348,43 @@
       if (successMessage) notif(successMessage, { type: 'success' })
       await load()
     } catch (err) {
-      notif(err.response?.data?.message ?? t('messages.error_occurred'), { type: 'error' })
+      notif(err.response?.data?.message ?? t('messages.error_occurred'), {
+        type: 'error'
+      })
     } finally {
       actionLoading.value = null
     }
   }
 
-  const changePlan = () => runAction('change_plan', () =>
-    subscriptionStore.createSubscription({
-      tenant_id: tenantId,
-      plan_id: planForm.value.plan_id,
-      billing_cycle_id: planForm.value.billing_cycle_id
-    }), t('messages.saved_success'))
+  const changePlan = () =>
+    runAction(
+      'change_plan',
+      () =>
+        subscriptionStore.createSubscription({
+          tenant_id: tenantId,
+          plan_id: planForm.value.plan_id,
+          billing_cycle_id: planForm.value.billing_cycle_id
+        }),
+      t('messages.saved_success')
+    )
 
-  const recordPayment = () => runAction('record_payment', () =>
-    subscriptionStore.recordPayment(tenantId, paymentForm.value), t('subscription.payment_dialog.recorded_success'))
+  const recordPayment = () =>
+    runAction(
+      'record_payment',
+      () => subscriptionStore.recordPayment(tenantId, paymentForm.value),
+      t('subscription.payment_dialog.recorded_success')
+    )
 
-  const renew = () => runAction('renew', () => subscriptionStore.renewSubscription(subscription.value.id), t('messages.updated_success'))
-  const toggle = () => runAction('toggle', () => subscriptionStore.toggleActive(subscription.value.id))
+  const renew = () =>
+    runAction(
+      'renew',
+      () => subscriptionStore.renewSubscription(subscription.value.id),
+      t('messages.updated_success')
+    )
+  const toggle = () =>
+    runAction('toggle', () =>
+      subscriptionStore.toggleActive(subscription.value.id)
+    )
 
   // Active/trial subscriptions can't be hard-deleted (invoices/history are
   // linked to them) — cancel instead; only a cancelled row can be purged.
@@ -333,13 +399,17 @@
         ? `${t('subscription.list.confirm_cancel.alert_before')} ${tenantName} ${t('subscription.list.confirm_cancel.alert_after')}`
         : t('subscription.list.confirm_delete.message', { name: tenantName }),
       options: { type: 'warning', color: 'warning', width: 400 },
-      agree: () => runAction(
-        'delete',
-        () => isLive
-          ? subscriptionStore.cancelSubscription(subscription.value.id)
-          : subscriptionStore.deleteSubscription(subscription.value.id),
-        isLive ? t('messages.cancelled_success') : t('messages.deleted_success')
-      ),
+      agree: () =>
+        runAction(
+          'delete',
+          () =>
+            isLive
+              ? subscriptionStore.cancelSubscription(subscription.value.id)
+              : subscriptionStore.deleteSubscription(subscription.value.id),
+          isLive
+            ? t('messages.cancelled_success')
+            : t('messages.deleted_success')
+        ),
       cancel: () => {}
     })
   }

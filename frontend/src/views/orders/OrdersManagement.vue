@@ -1,7 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-receipt-text-outline"
+    <AppToolbar
       :title="t('orders_admin.title')"
       :subtitle="t('orders_admin.subtitle')"
     />
@@ -9,14 +8,20 @@
     <v-row v-if="stats" dense class="mb-4">
       <v-col cols="6" sm="3">
         <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis">{{ t('orders_admin.stats.total_orders') }}</div>
+          <div class="text-caption text-medium-emphasis">
+            {{ t('orders_admin.stats.total_orders') }}
+          </div>
           <div class="text-h6 font-weight-bold">{{ stats.total_orders }}</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
         <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis">{{ t('orders_admin.stats.total_revenue') }}</div>
-          <div class="text-h6 font-weight-bold">{{ formatMoney(stats.total_revenue) }}</div>
+          <div class="text-caption text-medium-emphasis">
+            {{ t('orders_admin.stats.total_revenue') }}
+          </div>
+          <div class="text-h6 font-weight-bold">
+            {{ format(stats.total_revenue) }}
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -47,23 +52,15 @@
         />
       </v-col>
       <v-col cols="6" sm="3">
-        <v-text-field
+        <AppDatePicker
           v-model="filters.date_from"
-          type="date"
           :label="t('orders_admin.filters.date_from')"
-          variant="outlined"
-          rounded="lg"
-          clearable
         />
       </v-col>
       <v-col cols="6" sm="3">
-        <v-text-field
+        <AppDatePicker
           v-model="filters.date_to"
-          type="date"
           :label="t('orders_admin.filters.date_to')"
-          variant="outlined"
-          rounded="lg"
-          clearable
         />
       </v-col>
     </v-row>
@@ -78,16 +75,24 @@
         :item-label="t('orders_admin.title')"
       >
         <template #item.order_number="{ item }">
-          <div class="text-body-2 font-weight-medium">{{ item.order_number }}</div>
-          <div class="text-caption text-medium-emphasis">{{ formatDateTime(item.created_at) }}</div>
+          <div class="text-body-2 font-weight-medium">
+            {{ item.order_number }}
+          </div>
+          <div class="text-caption text-medium-emphasis">
+            {{ formatDateTime(item.created_at) }}
+          </div>
         </template>
 
         <template #item.customer="{ item }">
-          <span class="text-body-2">{{ item.customer?.name ?? t('orders_admin.walk_in') }}</span>
+          <span class="text-body-2">
+            {{ item.customer?.name ?? t('orders_admin.walk_in') }}
+          </span>
         </template>
 
         <template #item.order_type="{ item }">
-          <span class="text-body-2 text-capitalize">{{ (item.order_type ?? '').replace('_', ' ') }}</span>
+          <span class="text-body-2 text-capitalize">
+            {{ (item.order_type ?? '').replace('_', ' ') }}
+          </span>
         </template>
 
         <template #item.items_count="{ item }">
@@ -95,7 +100,9 @@
         </template>
 
         <template #item.total_amount="{ item }">
-          <span class="text-body-2 font-weight-bold">{{ formatMoney(item.total_amount) }}</span>
+          <span class="text-body-2 font-weight-bold">
+            {{ format(item.total_amount) }}
+          </span>
         </template>
 
         <template #item.status="{ item }">
@@ -104,18 +111,32 @@
 
         <template #item.payment_method="{ item }">
           <span class="text-body-2 text-uppercase">
-            {{ item.payments?.[0]?.payment_method ?? item.payment_method ?? '—' }}
+            {{
+              item.payments?.[0]?.payment_method ?? item.payment_method ?? '—'
+            }}
           </span>
         </template>
 
         <template #item.actions="{ item }">
-          <v-btn icon="mdi-eye-outline" size="small" variant="text" @click="viewOrder(item)" />
+          <v-btn
+            icon="mdi-eye-outline"
+            size="small"
+            variant="text"
+            @click="viewOrder(item)"
+          />
         </template>
 
         <template #no-data>
           <div class="text-center py-10">
-            <v-icon icon="mdi-receipt-text-outline" size="48" color="grey-lighten-1" class="mb-2" />
-            <p class="text-body-2 text-medium-emphasis">{{ t('orders_admin.empty') }}</p>
+            <v-icon
+              icon="mdi-receipt-text-outline"
+              size="48"
+              color="grey-lighten-1"
+              class="mb-2"
+            />
+            <p class="text-body-2 text-medium-emphasis">
+              {{ t('orders_admin.empty') }}
+            </p>
           </div>
         </template>
       </AppTable>
@@ -129,26 +150,48 @@
     >
       <template v-if="detailOrder">
         <div class="d-flex justify-space-between text-body-2 mb-2">
-          <span class="text-medium-emphasis">{{ t('orders_admin.detail.status') }}</span>
-          <AppStatusChip :status="detailOrder.status" :map="statusMap" size="small" />
+          <span class="text-medium-emphasis">
+            {{ t('orders_admin.detail.status') }}
+          </span>
+          <AppStatusChip
+            :status="detailOrder.status"
+            :map="statusMap"
+            size="small"
+          />
         </div>
-        <div v-if="detailOrder.table" class="d-flex justify-space-between text-body-2 mb-2">
-          <span class="text-medium-emphasis">{{ t('orders_admin.detail.table') }}</span>
+        <div
+          v-if="detailOrder.table"
+          class="d-flex justify-space-between text-body-2 mb-2"
+        >
+          <span class="text-medium-emphasis">
+            {{ t('orders_admin.detail.table') }}
+          </span>
           <span>{{ detailOrder.table.number }}</span>
         </div>
         <v-divider class="my-2" />
-        <div v-for="item in detailOrder.items" :key="item.id" class="d-flex justify-space-between text-body-2 mb-1">
+        <div
+          v-for="item in detailOrder.items"
+          :key="item.id"
+          class="d-flex justify-space-between text-body-2 mb-1"
+        >
           <span>{{ item.quantity }} × {{ item.product_name }}</span>
-          <span class="font-weight-medium">{{ formatMoney(item.total_price) }}</span>
+          <span class="font-weight-medium">
+            {{ format(item.total_price) }}
+          </span>
         </div>
         <v-divider class="my-2" />
         <div class="d-flex justify-space-between text-body-1 font-weight-bold">
           <span>{{ t('orders_admin.detail.total') }}</span>
-          <span>{{ formatMoney(detailOrder.total_amount) }}</span>
+          <span>{{ format(detailOrder.total_amount) }}</span>
         </div>
       </template>
       <template #actions="{ loading }">
-        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="detailDialog = false">
+        <v-btn
+          variant="tonal"
+          rounded="lg"
+          :disabled="loading"
+          @click="detailDialog = false"
+        >
           {{ t('btn.close') }}
         </v-btn>
       </template>
@@ -159,10 +202,18 @@
 <script setup>
   import { ref, reactive } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppTable, AppStatusChip, AppDialog } from '@nong-official-dev/core'
+  import {
+    AppTable,
+    AppStatusChip,
+    AppDialog,
+    AppToolbar,
+    AppDatePicker
+  } from '@nong-official-dev/core'
   import { useOrderStore } from '@/stores/orderStore'
   import { getAllOrdersReportApi } from '@/api/orderService'
   import { useDate } from '@/composables/useDate'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  const { format } = useCurrency()
 
   const { t } = useI18n()
   const orderStore = useOrderStore()
@@ -179,13 +230,23 @@
   })
 
   const statusOptions = [
-    'draft', 'pending', 'confirmed', 'preparing', 'ready', 'served', 'completed', 'cancelled', 'refunded'
+    'draft',
+    'pending',
+    'confirmed',
+    'preparing',
+    'ready',
+    'served',
+    'completed',
+    'cancelled',
+    'refunded'
   ].map(value => ({ value, label: t(`orders_admin.status.${value}`) }))
 
-  const orderTypeOptions = ['dine_in', 'takeaway', 'delivery', 'online'].map(value => ({
-    value,
-    label: t(`orders_admin.order_type.${value}`)
-  }))
+  const orderTypeOptions = ['dine_in', 'takeaway', 'delivery', 'online'].map(
+    value => ({
+      value,
+      label: t(`orders_admin.order_type.${value}`)
+    })
+  )
 
   const statusMap = {
     draft: { color: 'grey', label: t('orders_admin.status.draft') },
@@ -200,12 +261,38 @@
   }
 
   const headers = [
-    { title: t('orders_admin.columns.order'), key: 'order_number', sortable: false },
-    { title: t('orders_admin.columns.customer'), key: 'customer', sortable: false },
-    { title: t('orders_admin.columns.type'), key: 'order_type', sortable: false },
-    { title: t('orders_admin.columns.items'), key: 'items_count', sortable: false, align: 'center' },
-    { title: t('orders_admin.columns.total'), key: 'total_amount', sortable: false, align: 'end' },
-    { title: t('orders_admin.columns.payment'), key: 'payment_method', sortable: false },
+    {
+      title: t('orders_admin.columns.order'),
+      key: 'order_number',
+      sortable: false
+    },
+    {
+      title: t('orders_admin.columns.customer'),
+      key: 'customer',
+      sortable: false
+    },
+    {
+      title: t('orders_admin.columns.type'),
+      key: 'order_type',
+      sortable: false
+    },
+    {
+      title: t('orders_admin.columns.items'),
+      key: 'items_count',
+      sortable: false,
+      align: 'center'
+    },
+    {
+      title: t('orders_admin.columns.total'),
+      key: 'total_amount',
+      sortable: false,
+      align: 'end'
+    },
+    {
+      title: t('orders_admin.columns.payment'),
+      key: 'payment_method',
+      sortable: false
+    },
     { title: t('orders_admin.columns.status'), key: 'status', sortable: false },
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ]
@@ -244,7 +331,4 @@
     }
   }
 
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
-  }
 </script>
