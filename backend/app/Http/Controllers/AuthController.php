@@ -246,7 +246,6 @@ class AuthController extends Controller
             'bu_category'       => null,
             'logo_url'          => null,
             'currency'          => null,
-            'locale'            => null,
             'plan'              => null,
             'pos_settings'      => Tenant::DEFAULT_POS_SETTINGS,
             'branch_id'         => null,
@@ -311,7 +310,6 @@ class AuthController extends Controller
                 'bu_category'      => $ownedTenant->businessType?->category,
                 'logo_url'         => $ownedTenant->logo_url,
                 'currency'         => $ownedTenant->currency,
-                'locale'           => $ownedTenant->locale,
                 'plan'             => $ownedTenant->activeSubscription?->plan?->code,
                 'pos_settings'     => $ownedTenant->pos_settings ?? Tenant::DEFAULT_POS_SETTINGS,
                 'branch_id'        => null,       // access ALL branches

@@ -187,8 +187,11 @@ class DigitalMenuController extends Controller
             'receipt_footer'      => $branch->receipt_footer,
             // From tenant
             'currency'            => $branch->tenant->currency     ?? 'USD',
-            'locale'              => $branch->tenant->locale       ?? 'en-US',
-            'timezone'            => $branch->tenant->timezone     ?? 'UTC',
+            // tenants.locale/timezone were dropped — kept as fixed values
+            // here since this is a public, unauthenticated response shape
+            // that an external consumer may depend on.
+            'locale'              => 'en-US',
+            'timezone'            => 'UTC',
             'logo_url'            => $branch->tenant->logo_url,
             'primary_color'       => $branch->tenant->primary_color,
             'business_name'       => $branch->tenant->name,

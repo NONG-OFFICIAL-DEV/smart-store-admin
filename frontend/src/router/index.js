@@ -47,18 +47,6 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
-        path: '/tenants/create',
-        name: 'tenant-create',
-        component: () => import('@/views/tenants/TenantCreate.vue'),
-        meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
-      },
-      {
-        path: '/tenants/:id/edit',
-        name: 'tenant-edit',
-        component: () => import('@/views/tenants/TenantCreate.vue'),
-        meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
-      },
-      {
         path: '/tenants/:id/subscription',
         name: 'tenant-subscription',
         component: () => import('@/views/tenants/TenantSubscriptionPage.vue'),

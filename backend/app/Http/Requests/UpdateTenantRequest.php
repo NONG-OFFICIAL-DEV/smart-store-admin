@@ -29,8 +29,6 @@ class UpdateTenantRequest extends FormRequest
             'primary_color' => 'nullable|string|max:7',
             'is_active' => 'boolean',
             'currency' => 'nullable|string|size:3',
-            'locale' => 'nullable|string|max:10',
-            'timezone' => 'nullable|string|max:60',
         ];
     }
 

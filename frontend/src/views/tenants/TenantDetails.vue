@@ -34,7 +34,7 @@
           rounded="lg"
           variant="flat"
           color="primary"
-          :to="{ name: 'tenant-edit', params: { id: tenantData.tenant.id } }"
+          @click="editDialog = true"
         >
           {{ $t('tenant_details.edit_tenant') }}
         </v-btn>
@@ -191,18 +191,6 @@
                   <div class="info-tile pa-3">
                     <div class="info-tile-label">{{ $t('tenant_create.field.currency') }}</div>
                     <div class="info-tile-value">{{ tenant.currency }}</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_create.field.locale') }}</div>
-                    <div class="info-tile-value">{{ tenant.locale }}</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_create.field.timezone') }}</div>
-                    <div class="info-tile-value">{{ tenant.timezone }}</div>
                   </div>
                 </v-col>
                 <v-col cols="12" sm="3">
@@ -482,6 +470,12 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <TenantDialog
+      v-model="editDialog"
+      :tenant="tenantData.tenant"
+      @saved="handleSaved"
+    />
   </v-container>
 </template>
 
@@ -492,6 +486,7 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import { useTenantStore } from '@/stores/tenantStore'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
+  import TenantDialog from '@/components/tenants/TenantDialog.vue'
   import { useDate } from '@/composables/useDate'
 
   defineEmits(['edit'])
@@ -504,9 +499,14 @@
   const { formatShortDate } = useDate()
   const tab = ref('overview')
   const togglingActive = ref(false)
+  const editDialog = ref(false)
 
   const openManageSubscription = () => {
     router.push({ name: 'tenant-subscription', params: { id: route.params.id }, query: { tenantName: tenant.value?.name } })
+  }
+
+  const handleSaved = () => {
+    tenantStore.fetchTenantById(route.params.id)
   }
 
   // ── The store should hold the full response: { tenant, subscription, plan, plan_history, invoices }

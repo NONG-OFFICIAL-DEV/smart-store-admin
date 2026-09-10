@@ -249,7 +249,7 @@ class TenantServiceTest extends TestCase
     public function test_update_updates_owner_and_tenant_fields(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantI');
-        $tenant->refresh(); // pick up DB defaults (timezone/currency/locale)
+        $tenant->refresh(); // pick up DB defaults (currency)
         $businessType = \App\Models\BusinessType::create(['code' => 'restaurant', 'name' => 'Restaurant']);
         $service = $this->app->make(TenantService::class);
 

@@ -70,30 +70,6 @@
                   prepend-inner-icon="mdi-currency-usd"
                 />
               </v-col>
-              <v-col cols="12" sm="4">
-                <v-select
-                  v-model="form.locale"
-                  :items="localeOptions"
-                  item-title="label"
-                  item-value="value"
-                  :label="t('tenant_create.field.locale')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-translate"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <v-select
-                  v-model="form.timezone"
-                  :items="timezoneOptions"
-                  item-title="label"
-                  item-value="value"
-                  :label="t('tenant_create.field.timezone')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-clock-outline"
-                />
-              </v-col>
             </v-row>
           </v-form>
 
@@ -216,8 +192,6 @@
     logo_url: '',
     primary_color: '#6366f1',
     currency: 'USD',
-    locale: 'en-US',
-    timezone: 'Asia/Phnom_Penh',
     pos_settings: {
       order_types: ['dine_in', 'takeaway', 'delivery'],
       customer_selection: true,
@@ -240,8 +214,6 @@
     form.logo_url = tenant.logo_url ?? ''
     form.primary_color = tenant.primary_color ?? '#6366f1'
     form.currency = tenant.currency ?? 'USD'
-    form.locale = tenant.locale ?? 'en-US'
-    form.timezone = tenant.timezone ?? 'Asia/Phnom_Penh'
     if (tenant.pos_settings) {
       form.pos_settings.order_types = tenant.pos_settings.order_types ?? form.pos_settings.order_types
       form.pos_settings.customer_selection = tenant.pos_settings.customer_selection ?? true
@@ -272,20 +244,5 @@
     { value: 'GBP', label: t('tenant_create.currency.gbp') },
     { value: 'SGD', label: t('tenant_create.currency.sgd') },
     { value: 'MYR', label: t('tenant_create.currency.myr') }
-  ]
-
-  const localeOptions = [
-    { value: 'en-US', label: t('tenant_create.locale_options.en_us') },
-    { value: 'en-GB', label: t('tenant_create.locale_options.en_gb') },
-    { value: 'km-KH', label: t('tenant_create.locale_options.km_kh') },
-    { value: 'zh-CN', label: t('tenant_create.locale_options.zh_cn') }
-  ]
-
-  const timezoneOptions = [
-    { value: 'Asia/Phnom_Penh', label: t('tenant_create.timezone_options.phnom_penh') },
-    { value: 'Asia/Bangkok', label: t('tenant_create.timezone_options.bangkok') },
-    { value: 'Asia/Singapore', label: t('tenant_create.timezone_options.singapore') },
-    { value: 'Asia/Ho_Chi_Minh', label: t('tenant_create.timezone_options.ho_chi_minh') },
-    { value: 'UTC', label: t('tenant_create.timezone_options.utc') }
   ]
 </script>

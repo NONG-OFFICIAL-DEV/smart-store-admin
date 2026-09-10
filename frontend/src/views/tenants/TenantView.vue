@@ -171,13 +171,6 @@
           </v-tooltip>
         </template>
 
-        <!-- Currency -->
-        <template #item.locale="{ item }">
-          <v-chip size="x-small" variant="tonal" color="grey">
-            {{ item.currency }}
-          </v-chip>
-        </template>
-
         <!-- Status -->
         <template #item.is_active="{ item }">
           <v-chip
@@ -295,11 +288,18 @@
 
     <!-- ── Manage Users Dialog ── -->
     <AdminTenantUsersDialog v-model="usersDialog" :tenant="usersTarget" />
+
+    <!-- ── Create/Edit Dialog ── -->
+    <TenantDialog
+      v-model="dialog.show"
+      :tenant="dialog.tenant"
+      @saved="handleSaved"
+    />
   </v-container>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, reactive, computed, onMounted } from 'vue'
   import CustomSelect from '@/components/customs/CustomSelect.vue'
   import { useTenantStore } from '@/stores/tenantStore'
   import { useAuthStore } from '@/stores/authStore'
@@ -311,6 +311,7 @@
   import { useI18n } from 'vue-i18n'
   import BusinessTypeManagerDialog from '@/components/business/BusinessTypeManagerDialog.vue'
   import AdminTenantUsersDialog from '@/components/tenants/AdminTenantUsersDialog.vue'
+  import TenantDialog from '@/components/tenants/TenantDialog.vue'
 
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
@@ -326,6 +327,7 @@
   const manageBusinessTypesDialog = ref(false)
   const usersDialog = ref(false)
   const usersTarget = ref(null)
+  const dialog = reactive({ show: false, tenant: null })
   const impersonatingId = ref(null)
   const planFilter = ref([])
   const businessFiter = ref([])
@@ -450,11 +452,17 @@
 
   // ── Actions ───────────────────────────────────────────────────────────────────
   const openCreate = () => {
-    router.push({ name: 'tenant-create' })
+    dialog.tenant = null
+    dialog.show = true
   }
 
   const openEdit = t => {
-    router.push({ name: 'tenant-edit', params: { id: t.id } })
+    dialog.tenant = t
+    dialog.show = true
+  }
+
+  const handleSaved = () => {
+    tableRef.value?.refresh()
   }
 
   const openManageSubscription = tenant => {

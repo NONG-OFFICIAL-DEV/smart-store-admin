@@ -92,8 +92,6 @@ class TenantService extends BaseService
             'logo_url' => $tenant->logo_url,
             'primary_color' => $tenant->primary_color,
             'currency' => $tenant->currency,
-            'locale' => $tenant->locale,
-            'timezone' => $tenant->timezone,
             'owner' => [
                 'first_name' => $tenant->owner?->first_name,
                 'last_name' => $tenant->owner?->last_name,
@@ -219,8 +217,6 @@ class TenantService extends BaseService
                 'slug' => $slug,
                 'business_type_id' => $validated['business_type_id'],
                 'currency' => $validated['currency'] ?? 'USD',
-                'locale' => $validated['locale'] ?? 'en-US',
-                'timezone' => $validated['timezone'] ?? 'UTC',
                 'primary_color' => $validated['primary_color'] ?? '#6366f1',
                 'logo_url' => $logoUrl,
                 'owner_user_id' => $owner->id,
@@ -298,8 +294,6 @@ class TenantService extends BaseService
                 'primary_color' => $validated['primary_color'] ?? $tenant->primary_color,
                 'is_active' => $validated['is_active'] ?? $tenant->is_active,
                 'currency' => $validated['currency'] ?? $tenant->currency,
-                'locale' => $validated['locale'] ?? $tenant->locale,
-                'timezone' => $validated['timezone'] ?? $tenant->timezone,
             ]);
         });
     }
@@ -317,8 +311,6 @@ class TenantService extends BaseService
             'logo_url' => $validated['logo_url'] ?? $tenant->logo_url,
             'primary_color' => $validated['primary_color'] ?? $tenant->primary_color,
             'currency' => $validated['currency'] ?? $tenant->currency,
-            'locale' => $validated['locale'] ?? $tenant->locale,
-            'timezone' => $validated['timezone'] ?? $tenant->timezone,
         ];
 
         // Merged against a fresh read (not the possibly-stale in-memory

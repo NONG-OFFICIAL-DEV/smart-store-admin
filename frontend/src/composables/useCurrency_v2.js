@@ -1,15 +1,10 @@
 import { useAuthStore } from '@/stores/authStore'
 import { computed } from 'vue'
-import {
-  formatCurrency,
-  formatKHR,
-  formatCurrencyNoSymbol
-} from '@nong-official-dev/core'
+import { formatCurrency, formatKHR } from '@nong-official-dev/core'
 
 export function useCurrency() {
   const authStore = useAuthStore()
 
-  const locale = computed(() => authStore.tenant?.locale ?? 'en-US')
   const currency = computed(() => authStore.currency ?? 'USD')
 
   function format(value) {
@@ -21,9 +16,5 @@ export function useCurrency() {
     return currency.value === 'KHR' ? '៛' : '$'
   }
 
-  function formatNoSymbol(value) {
-    return formatCurrencyNoSymbol(value, locale.value)
-  }
-
-  return { format, formatNoSymbol, currency, locale, currencySymbol }
+  return { format, currency, currencySymbol }
 }

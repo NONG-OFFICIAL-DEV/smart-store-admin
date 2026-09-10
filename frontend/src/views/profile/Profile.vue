@@ -136,15 +136,13 @@
 
             <div class="d-flex align-start ga-3">
               <v-icon color="indigo" size="20" class="mt-0.5">
-                mdi-translate
+                mdi-currency-usd
               </v-icon>
               <div>
                 <div class="text-caption text-medium-emphasis">
-                  {{ $t('tenant_profile.businessDetails.localization') }}
+                  {{ $t('tenant_create.field.currency') }}
                 </div>
                 <div class="text-body-2 font-weight-medium">
-                  {{ tenant.tenant?.locale ?? '—' }}
-                  <span class="text-disabled mx-1">•</span>
                   {{ tenant.tenant?.currency ?? 'USD' }}
                 </div>
               </div>

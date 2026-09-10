@@ -11,8 +11,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
  * Self-service company-info update (tenant owner) — deliberately a much
  * narrower field set than UpdateTenantRequest (the super-admin edit form),
  * which also lets an admin change business_type_id/is_active/slug/owner
- * identity. Those stay admin-only; this only ever touches branding/locale
- * fields safe for an owner to change about their own tenant.
+ * identity. Those stay admin-only; this only ever touches branding fields
+ * safe for an owner to change about their own tenant.
  */
 class UpdateTenantProfileRequest extends FormRequest
 {
@@ -30,8 +30,6 @@ class UpdateTenantProfileRequest extends FormRequest
             'logo_url' => 'nullable|url|max:500',
             'primary_color' => 'nullable|string|max:7',
             'currency' => 'nullable|string|size:3',
-            'locale' => 'nullable|string|max:10',
-            'timezone' => 'nullable|string|max:60',
             // Which POS controls actually show on the POS screen — optional
             // subset of the 3 order types, plus two independent toggles.
             'pos_settings' => 'nullable|array',

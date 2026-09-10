@@ -26,7 +26,6 @@ export const useAuthStore = defineStore('auth', {
     logo_url:  null,
     plan:      null,
     currency:  null,
-    locale:    null,
     subscription_status: null,
     trial_ends_at: null,
 
@@ -240,7 +239,6 @@ export const useAuthStore = defineStore('auth', {
       this.logo_url  = d.logo_url  ?? null
       this.plan      = d.plan      ?? null
       this.currency  = d.currency  ?? null
-      this.locale    = d.locale    ?? null
       this.subscription_status = d.subscription_status ?? null
       this.trial_ends_at       = d.trial_ends_at        ?? null
       if (d.pos_settings) this.posSettings = d.pos_settings

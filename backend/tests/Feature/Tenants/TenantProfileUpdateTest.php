@@ -17,7 +17,7 @@ class TenantProfileUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_updates_only_the_safe_branding_and_locale_fields(): void
+    public function test_updates_only_the_safe_branding_fields(): void
     {
         $businessType = BusinessType::create(['name' => 'Restaurant', 'code' => 'restaurant', 'category' => 'food']);
 
@@ -35,8 +35,6 @@ class TenantProfileUpdateTest extends TestCase
             'business_type_id' => $businessType->id,
             'is_active' => true,
             'currency' => 'USD',
-            'locale' => 'en',
-            'timezone' => 'UTC',
         ]);
 
         $service = $this->app->make(TenantService::class);
@@ -46,16 +44,12 @@ class TenantProfileUpdateTest extends TestCase
             'logo_url' => 'https://example.test/logo.png',
             'primary_color' => '#123456',
             'currency' => 'KHR',
-            'locale' => 'km',
-            'timezone' => 'Asia/Phnom_Penh',
         ]);
 
         $this->assertSame('New Company Name', $updated->name);
         $this->assertSame('https://example.test/logo.png', $updated->logo_url);
         $this->assertSame('#123456', $updated->primary_color);
         $this->assertSame('KHR', $updated->currency);
-        $this->assertSame('km', $updated->locale);
-        $this->assertSame('Asia/Phnom_Penh', $updated->timezone);
 
         // Fields not in the allowlist must be untouched — these stay
         // admin-only (TenantService::update()).
@@ -77,9 +71,7 @@ class TenantProfileUpdateTest extends TestCase
             'name' => 'Takeaway Coffee',
             'slug' => 'takeaway-coffee',
             'owner_user_id' => $owner->id,
-            'timezone' => 'UTC',
             'currency' => 'USD',
-            'locale' => 'en-US',
         ]);
 
         // DB-level column default — every order type + customer + notes
@@ -116,9 +108,7 @@ class TenantProfileUpdateTest extends TestCase
             'name' => 'Full Service Restaurant',
             'slug' => 'full-service-restaurant',
             'owner_user_id' => $owner->id,
-            'timezone' => 'UTC',
             'currency' => 'USD',
-            'locale' => 'en-US',
         ]);
 
         $service = $this->app->make(TenantService::class);

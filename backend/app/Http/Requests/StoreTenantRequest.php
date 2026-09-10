@@ -37,10 +37,7 @@ class StoreTenantRequest extends FormRequest
             'logo_url' => 'nullable|url|max:500',
             'primary_color' => 'nullable|string|max:7',
 
-            // Localisation
-            'timezone' => 'nullable|string|max:60',
             'currency' => 'nullable|string|size:3',
-            'locale' => 'nullable|string|max:10',
         ];
     }
 

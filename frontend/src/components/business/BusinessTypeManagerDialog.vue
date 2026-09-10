@@ -6,7 +6,13 @@
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="d-flex justify-end px-5 pb-3">
-      <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-plus" @click="openCreate">
+      <v-btn
+        color="primary"
+        variant="tonal"
+        rounded="lg"
+        prepend-icon="mdi-plus"
+        @click="openCreate"
+      >
         {{ $t('business_type.add') }}
       </v-btn>
     </div>
@@ -14,7 +20,13 @@
     <v-list density="compact">
       <v-list-item v-for="item in store.businessTypes" :key="item.id">
         <template #prepend>
-          <v-avatar size="32" rounded="lg" color="primary" variant="tonal" class="me-2">
+          <v-avatar
+            size="32"
+            rounded="lg"
+            color="primary"
+            variant="tonal"
+            class="me-2"
+          >
             <v-icon size="16">{{ item.icon }}</v-icon>
           </v-avatar>
         </template>
@@ -30,7 +42,11 @@
             size="x-small"
             class="me-2"
           >
-            {{ item.category === 'food' ? $t('business_type.category_food') : $t('business_type.category_mart') }}
+            {{
+              item.category === 'food'
+                ? $t('business_type.category_food')
+                : $t('business_type.category_mart')
+            }}
           </v-chip>
           <v-chip
             :color="item.is_active ? 'success' : 'default'"
@@ -40,13 +56,27 @@
           >
             {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
           </v-chip>
-          <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="openEdit(item)" />
-          <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="askDelete(item)" />
+          <v-btn
+            icon="mdi-pencil-outline"
+            size="small"
+            variant="text"
+            color="primary"
+            @click="openEdit(item)"
+          />
+          <v-btn
+            icon="mdi-delete-outline"
+            size="small"
+            variant="text"
+            color="error"
+            @click="askDelete(item)"
+          />
         </template>
       </v-list-item>
 
       <v-list-item v-if="!store.businessTypes.length">
-        <v-list-item-title class="text-body-2 text-medium-emphasis text-center py-4">
+        <v-list-item-title
+          class="text-body-2 text-medium-emphasis text-center py-4"
+        >
           {{ $t('business_type.empty') }}
         </v-list-item-title>
       </v-list-item>
@@ -55,34 +85,35 @@
     <!-- ── Create / Edit sub-dialog ─────────────────────────────────────── -->
     <AppDialog
       v-model="formDialog"
-      :max-width="480"
-      :title="isEdit ? $t('business_type.edit_title') : $t('business_type.create_title')"
+      :max-width="570"
+      :title="
+        isEdit
+          ? $t('business_type.edit_title')
+          : $t('business_type.create_title')
+      "
       :loading="formLoading"
     >
       <v-form ref="formRef" @submit.prevent>
-        <v-row dense>
-          <!-- Icon picker -->
-          <v-col cols="12">
-            <div class="text-caption text-medium-emphasis mb-2 font-weight-medium text-uppercase" style="letter-spacing: 0.5px">
-              {{ $t('business_type.icon') }}
-            </div>
-            <div class="d-flex flex-wrap gap-2 mb-1">
-              <v-btn
-                v-for="icon in iconOptions"
-                :key="icon"
-                :variant="form.icon === icon ? 'tonal' : 'outlined'"
-                :color="form.icon === icon ? 'primary' : 'default'"
-                size="small"
-                rounded="lg"
-                @click="form.icon = icon"
-              >
-                <v-icon>{{ icon }}</v-icon>
-              </v-btn>
-            </div>
-          </v-col>
+        <v-col cols="12">
+          <div class="d-flex flex-wrap gap-2 mb-1">
+            {{ $t('business_type.icon') }}
+            <v-btn
+              v-for="icon in iconOptions"
+              :key="icon"
+              :variant="form.icon === icon ? 'tonal' : 'outlined'"
+              :color="form.icon === icon ? 'primary' : 'default'"
+              size="small"
+              rounded="lg"
+              @click="form.icon = icon"
+            >
+              <v-icon>{{ icon }}</v-icon>
+            </v-btn>
+          </div>
+        </v-col>
 
+        <v-row dense>
           <!-- Name -->
-          <v-col cols="12">
+          <v-col cols="6">
             <v-text-field
               v-model="form.name"
               :label="$t('business_type.name_label')"
@@ -96,7 +127,7 @@
           </v-col>
 
           <!-- Code -->
-          <v-col cols="12">
+          <v-col cols="6">
             <v-text-field
               v-model="form.code"
               :label="$t('business_type.code_label')"
@@ -107,12 +138,15 @@
               :placeholder="$t('business_type.code_placeholder')"
               :hint="$t('business_type.code_hint')"
               persistent-hint
-              @input="form.code = form.code.toUpperCase().replace(/[^A-Z0-9_]/g, '')"
+              @input="
+                form.code = form.code.toUpperCase().replace(/[^A-Z0-9_]/g, '')
+              "
             />
           </v-col>
-
+        </v-row>
+        <v-row dense>
           <!-- Category -->
-          <v-col cols="12">
+          <v-col cols="6">
             <v-select
               v-model="form.category"
               :items="categoryOptions"
@@ -121,28 +155,31 @@
               rounded="lg"
               :rules="[rules.required]"
               prepend-inner-icon="mdi-shape-outline"
-              :hint="$t('business_type.category_hint')"
               persistent-hint
             />
           </v-col>
 
           <!-- Status -->
-          <v-col cols="12">
-            <v-card rounded="lg" variant="outlined" class="pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div>
-                  <div class="text-body-2 font-weight-medium">{{ $t('status.active') }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ $t('business_type.enable_hint') }}</div>
-                </div>
-                <v-switch v-model="form.is_active" color="primary" hide-details density="compact" inset />
-              </div>
-            </v-card>
+          <v-col cols="6">
+            <v-switch
+              v-model="form.is_active"
+              color="primary"
+              hide-details
+              density="compact"
+              inset
+              :label="$t('status.active')"
+            />
           </v-col>
         </v-row>
       </v-form>
 
       <template #actions="{ loading }">
-        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="closeForm">
+        <v-btn
+          variant="tonal"
+          rounded="lg"
+          :disabled="loading"
+          @click="closeForm"
+        >
           {{ $t('btn.cancel') }}
         </v-btn>
         <v-btn
@@ -159,7 +196,11 @@
     </AppDialog>
 
     <template #actions>
-      <v-btn variant="tonal" rounded="lg" @click="emit('update:modelValue', false)">
+      <v-btn
+        variant="tonal"
+        rounded="lg"
+        @click="emit('update:modelValue', false)"
+      >
         {{ $t('btn.cancel') }}
       </v-btn>
     </template>
@@ -207,8 +248,12 @@
   const form = reactive(defaultForm())
 
   const iconOptions = [
-    'mdi-silverware', 'mdi-coffee', 'mdi-store', 'mdi-cart', 'mdi-pizza',
-    'mdi-noodles', 'mdi-fish', 'mdi-shopping', 'mdi-bag-personal', 'mdi-cake', 'mdi-cup'
+    'mdi-silverware',
+    'mdi-coffee',
+    'mdi-store',
+    'mdi-cart',
+    'mdi-noodles',
+    'mdi-shopping'
   ]
 
   // Drives authStore.isFood/isMart app-wide (see authStore.js) — deliberately
@@ -227,7 +272,10 @@
 
   const autoCode = () => {
     if (!isEdit.value) {
-      form.code = form.name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '')
+      form.code = form.name
+        .toUpperCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^A-Z0-9_]/g, '')
     }
   }
 
@@ -264,7 +312,10 @@
       }
       closeForm()
     } catch (e) {
-      notif(e?.response?.data?.message || t('business_type.messages.save_failed'), { type: 'error' })
+      notif(
+        e?.response?.data?.message || t('business_type.messages.save_failed'),
+        { type: 'error' }
+      )
     } finally {
       formLoading.value = false
     }
@@ -280,7 +331,11 @@
           await store.deleteBusinessType(item.id)
           notif(t('business_type.messages.deleted'), { type: 'success' })
         } catch (e) {
-          notif(e?.response?.data?.message || t('business_type.messages.delete_failed'), { type: 'error' })
+          notif(
+            e?.response?.data?.message ||
+              t('business_type.messages.delete_failed'),
+            { type: 'error' }
+          )
         }
       },
       cancel: () => {}
