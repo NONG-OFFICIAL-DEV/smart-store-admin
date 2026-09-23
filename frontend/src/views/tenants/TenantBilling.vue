@@ -24,51 +24,45 @@
 
     <!-- Main Content -->
     <template v-else>
-      <v-card rounded="lg">
-        <v-tabs v-model="tab" color="indigo" align-tabs="start" class="px-4">
-          <v-tab value="plan">{{ $t('billing.subscription') }}</v-tab>
-          <v-tab value="invoices">{{ $t('billing.invoice_history') }}</v-tab>
-          <v-tab value="history">{{ $t('billing.plan_history') }}</v-tab>
-        </v-tabs>
+      <v-tabs v-model="tab" color="primary" show-arrows class="mb-4">
+        <v-tab value="plan">{{ $t('billing.subscription') }}</v-tab>
+        <v-tab value="invoices">{{ $t('billing.invoice_history') }}</v-tab>
+        <v-tab value="history">{{ $t('billing.plan_history') }}</v-tab>
+      </v-tabs>
 
-        <v-divider />
+      <v-divider />
 
-        <!-- TAB 1: Overview (plan + billing stats) -->
-        <v-window v-model="tab">
-          <v-window-item value="plan">
-            <v-card-text>
-              <PlanOverviewCard
-                :plan="plan"
-                :subscription="subscription"
-                :active-billing-cycle="activeBillingCycle"
-                :billing-cycles="billingCycles"
-                :billing="tenant.billing"
-                @upgrade="upgradeDialog = true"
-                @pay="handlePay"
-                @renew="handleRenew"
-              />
-            </v-card-text>
-          </v-window-item>
+      <!-- TAB 1: Overview (plan + billing stats) -->
+      <v-window v-model="tab">
+        <v-window-item value="plan">
+            <PlanOverviewCard
+              :plan="plan"
+              :subscription="subscription"
+              :active-billing-cycle="activeBillingCycle"
+              :billing-cycles="billingCycles"
+              :billing="tenant.billing"
+              @upgrade="upgradeDialog = true"
+              @pay="handlePay"
+              @renew="handleRenew"
+            />
+        </v-window-item>
 
-          <!-- TAB 2: Invoices -->
-          <v-window-item value="invoices">
-            <v-card-text class="pa-0">
-              <InvoiceTable
-                :invoices="invoices"
-                :currency="authStore.currency ?? 'USD'"
-                @pay="inv => generateQR(inv.payment_method ?? 'aba', inv)"
-              />
-            </v-card-text>
-          </v-window-item>
+        <!-- TAB 2: Invoices -->
+        <v-window-item value="invoices">
+            <InvoiceTable
+              :invoices="invoices"
+              :currency="authStore.currency ?? 'USD'"
+              @pay="inv => generateQR(inv.payment_method ?? 'aba', inv)"
+            />
+        </v-window-item>
 
-          <!-- TAB 3: Plan History -->
-          <v-window-item value="history">
-            <v-card-text class="pa-0">
+        <!-- TAB 3: Plan History -->
+        <v-window-item value="history">
+            <v-card rounded="lg" elevation="0" border>
               <PlanHistoryTable :history="plan_history" />
-            </v-card-text>
-          </v-window-item>
-        </v-window>
-      </v-card>
+            </v-card>
+        </v-window-item>
+      </v-window>
     </template>
 
     <!-- Dialogs -->
@@ -94,7 +88,6 @@
       :invoices="invoices"
       @upgraded="onUpgraded"
     />
-
   </v-container>
 </template>
 
@@ -218,9 +211,15 @@
         try {
           await planStore.renewSubscription()
           await planStore.fetchPlansByTenant(authStore.tenant_id)
-          notif(t('subscription.upgrade_dialog.renew_success'), { type: 'success' })
+          notif(t('subscription.upgrade_dialog.renew_success'), {
+            type: 'success'
+          })
         } catch (err) {
-          notif(err?.response?.data?.message || t('subscription.upgrade_dialog.renew_failed'), { type: 'error' })
+          notif(
+            err?.response?.data?.message ||
+              t('subscription.upgrade_dialog.renew_failed'),
+            { type: 'error' }
+          )
         }
       },
       cancel: () => {}

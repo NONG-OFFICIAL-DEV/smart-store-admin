@@ -2067,6 +2067,7 @@
       "subtitle": "Define subscription plans for tenants",
       "new": "New Plan",
       "seats_count": "{count} seat | {count} seats",
+      "toggle_hint": "Click to toggle active status",
       "table": {
         "name": "Plan",
         "limits": "Limits"

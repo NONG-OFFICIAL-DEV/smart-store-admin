@@ -1,90 +1,72 @@
 <template>
-  <v-card rounded="lg" class="mb-4" variant="outlined">
-    <template #prepend>
-      <v-icon color="indigo" size="28">mdi-crown-outline</v-icon>
-    </template>
-    <template #append>
-      <div class="d-flex ga-2">
-        <v-btn
-          v-if="subscription.status === 'active'"
-          variant="tonal"
-          color="success"
-          rounded="lg"
-          prepend-icon="mdi-refresh"
-          class="text-none font-weight-bold"
-          @click="$emit('renew')"
-        >
-          {{ t('subscription.renew_plan') }}
-        </v-btn>
-        <v-btn
-          variant="tonal"
-          color="indigo-darken-1"
-          rounded="lg"
-          prepend-icon="mdi-crown-outline"
-          class="text-none font-weight-bold"
-          @click="$emit('upgrade')"
-        >
-          {{ t('subscription.upgrade_plan') }}
-        </v-btn>
-      </div>
-    </template>
-
-    <template #title>
-      {{ t('subscription.subscription_plan') }}
-    </template>
-
-    <v-divider />
-
-    <v-card-text>
-      <v-row align="center">
-        <!-- Plan Info -->
-        <v-col cols="12" sm="6">
-          <div class="text-h5 font-weight-bold text-indigo-darken-2">
-            {{ plan.name ?? t('subscription.no_active_plan') }}
-          </div>
-          <div class="text-body-2 text-medium-emphasis mt-1">
-            {{ t('subscription.billed') }}
-            {{ activeBillingCycle?.label ?? '—' }} • ${{
-              activeBillingCycle ? cyclePrice : (plan.price_usd ?? '—')
-            }}
-            /
-            {{
-              activeBillingCycle?.months > 1
-                ? activeBillingCycle.months + ' months'
-                : t('subscription.month')
-            }}
-          </div>
-
-          <v-chip class="mt-3" color="indigo" size="small" variant="tonal">
-            {{ activeBillingCycle?.label?.toUpperCase() ?? '—' }}
-          </v-chip>
-
-          <!-- Status Chip -->
-          <v-chip
-            v-if="subscription.status"
-            class="mt-2 ml-2"
-            :color="getStatusColor()"
-            size="small"
-            variant="tonal"
-          >
-            {{ subscription.status.toUpperCase() }}
-          </v-chip>
-        </v-col>
-
-        <!-- Stats -->
-        <v-col cols="12" sm="6">
-          <v-sheet rounded="lg" border>
-            <div
-              v-for="(stat, idx) in planStats"
-              :key="stat.label"
-              class="d-flex align-center justify-space-between px-4 py-3"
-              :class="{ 'border-b': idx < planStats.length - 1 }"
-            >
-              <span class="text-body-2 text-medium-emphasis">{{ stat.label }}</span>
-              <span class="text-body-1 font-weight-bold text-indigo-darken-3">
-                {{ stat.value }}
+  <v-card rounded="lg" class="mb-4" elevation="0" border>
+    <v-card-text class="pa-5 pb-4">
+      <!-- Header: plan identity + actions -->
+      <div class="d-flex flex-wrap justify-space-between align-start ga-4">
+        <div class="d-flex align-center ga-3">
+          <v-avatar color="indigo" variant="tonal" size="48" rounded="lg">
+            <v-icon icon="mdi-crown-outline" size="24" />
+          </v-avatar>
+          <div>
+            <div class="d-flex align-center flex-wrap ga-2">
+              <span class="text-h5 font-weight-bold">
+                {{ plan.name ?? t('subscription.no_active_plan') }}
               </span>
+              <AppStatusChip
+                v-if="subscription.status"
+                :status="subscription.status"
+                size="small"
+              />
             </div>
+            <div class="text-body-2 text-medium-emphasis mt-1">
+              {{ t('subscription.billed') }}
+              {{ activeBillingCycle?.label ?? '—' }} • ${{
+                activeBillingCycle ? cyclePrice : (plan.price_usd ?? '—')
+              }}
+              /
+              {{
+                activeBillingCycle?.months > 1
+                  ? activeBillingCycle.months + ' months'
+                  : t('subscription.month')
+              }}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex ga-2">
+          <v-btn
+            v-if="subscription.status === 'active'"
+            variant="outlined"
+            color="success"
+            rounded="lg"
+            prepend-icon="mdi-refresh"
+            class="text-none font-weight-bold"
+            @click="$emit('renew')"
+          >
+            {{ t('subscription.renew_plan') }}
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="indigo-darken-1"
+            rounded="lg"
+            prepend-icon="mdi-crown-outline"
+            class="text-none font-weight-bold"
+            @click="$emit('upgrade')"
+          >
+            {{ t('subscription.upgrade_plan') }}
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <v-row dense class="mt-5">
+        <v-col v-for="stat in planStats" :key="stat.label" cols="6" sm="3">
+          <v-sheet rounded="lg" border class="pa-3 h-100">
+            <div class="d-flex align-center ga-2 mb-1">
+              <v-icon :icon="stat.icon" size="16" color="indigo" />
+              <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
+            </div>
+            <div class="text-body-1 font-weight-bold">{{ stat.value }}</div>
           </v-sheet>
         </v-col>
       </v-row>
@@ -94,19 +76,18 @@
       <div class="text-subtitle-2 text-medium-emphasis mb-3">
         {{ t('subscription.whats_included') }}
       </div>
-      <v-row dense>
-        <v-col
+      <div class="d-flex flex-wrap ga-2">
+        <v-chip
           v-for="feature in translatedFeatures"
-          :key="feature.key"
-          cols="12"
-          sm="6"
+          :key="feature"
+          size="small"
+          variant="tonal"
+          color="success"
+          prepend-icon="mdi-check"
         >
-          <div class="d-flex align-center ga-2 text-body-2">
-            <v-icon color="success" size="18">mdi-check-circle</v-icon>
-            {{ feature }}
-          </div>
-        </v-col>
-      </v-row>
+          {{ feature }}
+        </v-chip>
+      </div>
 
       <!-- Payment -->
       <v-divider class="my-6" />
@@ -115,7 +96,6 @@
       </div>
 
       <PaymentBar
-        class="mt-6"
         :amount="String(cyclePrice)"
         :currency="currency"
         :loading-method="loadingMethod"
@@ -129,7 +109,7 @@
   import { computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import PaymentBar from './PaymentBar.vue'
-  import { formatCurrency, formatDateText } from '@nong-official-dev/core'
+  import { formatCurrency, formatDateText, AppStatusChip } from '@nong-official-dev/core'
 
   const { t, locale } = useI18n()
 
@@ -177,6 +157,7 @@
 
     if (props.billing?.last_payment_date) {
       stats.push({
+        icon: 'mdi-cash-check',
         label: t('billing.overview.lastPayment'),
         value: formatDateText(props.billing.last_payment_date)
       })
@@ -184,6 +165,7 @@
 
     stats.push(
       {
+        icon: 'mdi-calendar-clock',
         label:
           sub.status === 'trial'
             ? t('billing.overview.trialEnds')
@@ -191,14 +173,17 @@
         value: endDate ? formatDateText(endDate) : '—'
       },
       {
+        icon: 'mdi-currency-usd',
         label: t('billing.overview.nextCharge'),
         value: formatCurrency(cyclePrice.value)
       },
       {
+        icon: 'mdi-account-group',
         label: t('billing.overview.userSeats'),
         value: props.plan.seats ?? '—'
       },
       {
+        icon: 'mdi-clock-outline',
         label: t('billing.overview.daysLeft'),
         value: endDate ? daysLeft(endDate) : '—'
       }
@@ -212,13 +197,5 @@
     const diff = new Date(dateStr) - new Date()
     const days = Math.ceil(diff / 86400000)
     return days > 0 ? `${days}d` : 'Expired'
-  }
-
-  function getStatusColor() {
-    const status = props.subscription.status?.toLowerCase()
-    if (status === 'trial') return 'warning'
-    if (status === 'active') return 'success'
-    if (status === 'cancelled') return 'error'
-    return 'grey'
   }
 </script>

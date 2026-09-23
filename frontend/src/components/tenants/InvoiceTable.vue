@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded="xl" variant="flat" :elevation="0">
+  <v-card rounded="lg" :elevation="0" border>
     <template #title>
       <div class="d-flex align-center">
         <v-icon color="indigo" class="me-3">mdi-crown-outline</v-icon>

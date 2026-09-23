@@ -63,37 +63,25 @@
         </template>
 
         <template #item.seats="{ item }">
-          <div class="d-flex flex-wrap ga-1">
-            <v-chip
-              size="x-small"
-              variant="tonal"
-              :color="planColor(item.code)"
-            >
-              {{ $t('subscription.plan.seats_count', item.seats) }}
-            </v-chip>
-            <v-chip
-              size="x-small"
-              variant="tonal"
-              :color="planColor(item.code)"
-            >
-              {{ item.storage_gb }}GB
-            </v-chip>
-            <v-chip
-              size="x-small"
-              variant="tonal"
-              :color="planColor(item.code)"
-            >
-              {{
-                item.api_limit > 0
-                  ? item.api_limit.toLocaleString() + ' API'
-                  : '∞ API'
-              }}
-            </v-chip>
+          <div class="text-body-2 text-medium-emphasis">
+            {{ $t('subscription.plan.seats_count', item.seats) }}
+            • {{ item.storage_gb }}GB
+            • {{ item.api_limit > 0 ? item.api_limit.toLocaleString() + ' API' : '∞ API' }}
           </div>
         </template>
 
         <template #item.is_active="{ item }">
-          <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
+          <v-tooltip :text="$t('subscription.plan.toggle_hint')">
+            <template #activator="{ props: tooltipProps }">
+              <AppStatusChip
+                v-bind="tooltipProps"
+                class="cursor-pointer"
+                :status="item.is_active ? 'active' : 'inactive'"
+                size="x-small"
+                @click="togglePlan(item)"
+              />
+            </template>
+          </v-tooltip>
         </template>
 
         <template #item.actions="{ item }">
@@ -104,15 +92,6 @@
               variant="text"
               @click="openEdit(item)"
             />
-            <v-switch
-              v-model="item.is_active"
-              inset
-              hide-details
-              density="compact"
-              color="success"
-              true-icon="mdi-checkbox-marked-circle-outline"
-              @click="togglePlan(item)"
-            ></v-switch>
             <v-btn
               icon="mdi-delete-outline"
               size="small"

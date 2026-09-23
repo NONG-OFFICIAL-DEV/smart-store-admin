@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Resources\PlanResource;
 use App\Models\Branch;
 use App\Models\BranchType;
 use App\Models\Plan;
@@ -395,7 +396,13 @@ class TenantService extends BaseService
 
         return [
             'subscription' => $activeSubscription,
-            'plan' => $activeSubscription?->plan,
+            // Raw model has a `features` relation, not `feature_list` — the
+            // frontend's PlanOverviewCard ("What's included") reads
+            // `plan.feature_list`, which only PlanResource computes (joined
+            // against the live feature catalog via PlanFeatureListingService).
+            // Returning the bare model here left that section perpetually
+            // empty even though it's built correctly.
+            'plan' => $activeSubscription?->plan ? new PlanResource($activeSubscription->plan) : null,
             'active_billing_cycle' => $activeSubscription?->billingCycle,
             'billing_cycles' => $activeSubscription?->plan?->billingCycles->where('is_active', true)->values(),
             'invoices' => $tenant->invoices->sortByDesc('created_at')->values(),

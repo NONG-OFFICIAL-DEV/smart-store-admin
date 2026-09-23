@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Tenants;
 
+use App\Http\Resources\PlanResource;
 use App\Models\Branch;
 use App\Models\Plan;
 use App\Models\PlanBillingCycle;
@@ -10,7 +11,10 @@ use App\Models\Staff;
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
 use App\Models\User;
+use App\Services\PlanFeatureListingService;
+use App\Services\PlanService;
 use App\Services\TenantService;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -336,5 +340,43 @@ class TenantServiceTest extends TestCase
         $results = $service->list(['is_active' => 'true']);
 
         $this->assertSame(1, $results->total());
+    }
+
+    /**
+     * The Billing page's "What's included" section (PlanOverviewCard.vue)
+     * reads `plan.feature_list` — a field only PlanResource computes (joined
+     * against the live feature catalog via PlanFeatureListingService).
+     * subscriptionDetail() used to return the bare Plan model, which only
+     * has a `features` relation — feature_list was never present, so the
+     * section always rendered empty.
+     */
+    public function test_subscription_detail_returns_the_plan_wrapped_with_its_feature_list(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantFeatureList');
+
+        $listingService = $this->app->make(PlanFeatureListingService::class);
+        $listingService->create([
+            'key' => 'inventory', 'label_en' => 'Inventory management', 'value_type' => 'boolean', 'sort_order' => 0,
+        ]);
+
+        $plan = $this->app->make(PlanService::class)->create([
+            'name' => 'Pro', 'code' => 'BILLING-PRO', 'price_usd' => 10, 'seats' => 1, 'storage_gb' => 1,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+            'features' => [['key' => 'inventory', 'value' => true]],
+        ]);
+        $cycleId = $plan->billingCycles->first()->id;
+
+        $this->app->make(TenantSubscriptionService::class)
+            ->changePlan($tenant, $plan->id, $cycleId, $owner->id, 'Initial assignment');
+
+        $service = $this->app->make(TenantService::class);
+        $result = $service->subscriptionDetail($tenant);
+
+        $this->assertInstanceOf(PlanResource::class, $result['plan']);
+        $data = $result['plan']->resolve();
+
+        $this->assertNotEmpty($data['feature_list']);
+        $inventory = collect($data['feature_list'])->firstWhere('key', 'inventory');
+        $this->assertTrue($inventory['value']);
     }
 }
