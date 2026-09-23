@@ -149,22 +149,6 @@
 
                       <v-divider class="mb-3" />
 
-                      <!-- Limits -->
-                      <!-- <div class="d-flex flex-column ga-1 mb-2">
-                        <div class="d-flex align-center ga-1 text-caption text-medium-emphasis">
-                          <v-icon size="12" color="primary">mdi-account-group-outline</v-icon>
-                          {{ t('subscription.plan.seats_count', plan.seats) }}
-                        </div>
-                        <div class="d-flex align-center ga-1 text-caption text-medium-emphasis">
-                          <v-icon size="12" color="primary">mdi-database-outline</v-icon>
-                          {{ plan.storage_gb }} {{ t('tenant_create.storage_suffix') }}
-                        </div>
-                        <div class="d-flex align-center ga-1 text-caption text-medium-emphasis">
-                          <v-icon size="12" color="primary">mdi-api</v-icon>
-                          {{ plan.api_limit > 0 ? plan.api_limit.toLocaleString() + ' ' + t('tenant_create.api_calls_suffix') : t('tenant_create.unlimited_api') }}
-                        </div>
-                      </div> -->
-
                       <!-- Features -->
                       <div v-if="planFeatureLines(plan).length" class="flex-grow-1">
                         <div

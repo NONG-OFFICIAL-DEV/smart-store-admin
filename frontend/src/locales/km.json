@@ -1939,8 +1939,8 @@
     "kpi": {
       "branches": "សាខា",
       "plan": "គម្រោងបច្ចុប្បន្ន",
-      "seats": "អ្នកប្រើ",
-      "storage": "ទំហំផ្ទុក"
+      "seats": "ដែនកំណត់អ្នកប្រើប្រាស់",
+      "products": "ដែនកំណត់ផលិតផល"
     }
   },
   "subscription": {
@@ -1977,10 +1977,10 @@
         "code_hint": "ឧ. pro",
         "price_usd": "តម្លៃ (ដុល្លារ) *",
         "price_khr": "តម្លៃ (រៀល)",
-        "seats": "ចំនួនកៅអី *",
-        "storage_gb": "ទំហំផ្ទុក (GB) *",
-        "api_limit": "កម្រិត API",
-        "api_limit_hint": "0 = គ្មានដែនកំណត់",
+        "seats": "ដែនកំណត់អ្នកប្រើប្រាស់ *",
+        "branches_limit": "ដែនកំណត់សាខា",
+        "products_limit": "ដែនកំណត់ផលិតផល",
+        "unlimited_hint": "ទុកចោលបើគ្មានដែនកំណត់",
         "trial_days": "ចំនួនថ្ងៃសាកល្បង",
         "trial_days_hint": "ទុកចោលបើគ្មានការសាកល្បង"
       },
@@ -2048,6 +2048,10 @@
       "new": "គម្រោងថ្មី",
       "seats_count": "{count} កៅអី",
       "toggle_hint": "ចុចដើម្បីប្ដូរស្ថានភាពដំណើរការ",
+      "branches_suffix": "សាខា",
+      "unlimited_branches": "∞ សាខា",
+      "products_suffix": "ផលិតផល",
+      "unlimited_products": "∞ ផលិតផល",
       "table": {
         "name": "គម្រោង",
         "limits": "ដែនកំណត់"
@@ -3337,9 +3341,6 @@
     "no_credit_card": "មិនតម្រូវឱ្យប្រើប័ណ្ណឥណទានទេ",
     "month_unit": "ខែ",
     "per_month_suffix": "/ខែ",
-    "storage_suffix": "GB ទំហំផ្ទុក",
-    "api_calls_suffix": "ការហៅ API",
-    "unlimited_api": "API មិនកំណត់",
     "plan_change_warning": "ការផ្លាស់ប្តូរគម្រោងនឹងចូលជាធរមាននៅដើមវដ្តទូទាត់បន្ទាប់។",
     "trial_notice_before": "អ្នកជួលថ្មីទាំងអស់ចាប់ផ្តើមជាមួយ",
     "trial_notice_bold": "ការសាកល្បង ១៤ ថ្ងៃ",
@@ -3379,7 +3380,7 @@
     "no_subscription_short": "គ្មានគម្រោង",
     "assign_plan": "កំណត់គម្រោង",
     "edit_tenant": "កែសម្រួលអ្នកជួល",
-    "seats_label": "កៅអី",
+    "seats_label": "ដែនកំណត់អ្នកប្រើប្រាស់",
     "tabs": {
       "subscription": "ការជាវសេវាកម្ម",
       "history": "ប្រវត្តិ"

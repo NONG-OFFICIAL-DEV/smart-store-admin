@@ -65,8 +65,8 @@
         <template #item.seats="{ item }">
           <div class="text-body-2 text-medium-emphasis">
             {{ $t('subscription.plan.seats_count', item.seats) }}
-            • {{ item.storage_gb }}GB
-            • {{ item.api_limit > 0 ? item.api_limit.toLocaleString() + ' API' : '∞ API' }}
+            • {{ item.branches_limit ? item.branches_limit + ' ' + $t('subscription.plan.branches_suffix') : $t('subscription.plan.unlimited_branches') }}
+            • {{ item.products_limit ? item.products_limit + ' ' + $t('subscription.plan.products_suffix') : $t('subscription.plan.unlimited_products') }}
           </div>
         </template>
 

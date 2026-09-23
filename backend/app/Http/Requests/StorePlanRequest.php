@@ -26,8 +26,8 @@ class StorePlanRequest extends FormRequest
             'price_usd' => ['required', 'numeric', 'min:0'],
             'price_khr' => ['nullable', 'numeric', 'min:0'],
             'seats' => ['required', 'integer', 'min:1'],
-            'storage_gb' => ['required', 'integer', 'min:1'],
-            'api_limit' => ['nullable', 'integer', 'min:0'],
+            'branches_limit' => ['nullable', 'integer', 'min:1'],
+            'products_limit' => ['nullable', 'integer', 'min:1'],
             'trial_days' => ['nullable', 'integer', 'min:0', 'max:365'],
             'is_active' => ['boolean'],
 

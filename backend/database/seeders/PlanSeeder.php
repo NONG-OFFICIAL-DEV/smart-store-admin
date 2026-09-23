@@ -31,10 +31,10 @@ class PlanSeeder extends Seeder
             'code'        => 'free',
             'price_usd'   => 0.00,
             'price_khr'   => 0,
-            'seats'       => 1,
-            'storage_gb'  => 1,
-            'api_limit'   => 500,
-            'is_active'   => true,
+            'seats'          => 1,
+            'branches_limit' => 1,
+            'products_limit' => 20,
+            'is_active'      => true,
         ]);
 
         $this->createBillingCycles($free, [
@@ -58,10 +58,10 @@ class PlanSeeder extends Seeder
             'code'        => 'starter',
             'price_usd'   => 3.00,
             'price_khr'   => 12000,
-            'seats'       => 2,
-            'storage_gb'  => 5,
-            'api_limit'   => 3000,
-            'is_active'   => true,
+            'seats'          => 2,
+            'branches_limit' => 2,
+            'products_limit' => 50,
+            'is_active'      => true,
         ]);
 
         $this->createBillingCycles($starter, [
@@ -87,10 +87,10 @@ class PlanSeeder extends Seeder
             'code'        => 'pro',
             'price_usd'   => 5.00,
             'price_khr'   => 20000,
-            'seats'       => 5,
-            'storage_gb'  => 10,
-            'api_limit'   => 10000,
-            'is_active'   => true,
+            'seats'          => 5,
+            'branches_limit' => 5,
+            'products_limit' => null,
+            'is_active'      => true,
         ]);
 
         $this->createBillingCycles($pro, [
@@ -118,10 +118,10 @@ class PlanSeeder extends Seeder
             'code'        => 'enterprise',
             'price_usd'   => 7.00,
             'price_khr'   => 28000,
-            'seats'       => 999,
-            'storage_gb'  => 100,
-            'api_limit'   => 100000,
-            'is_active'   => true,
+            'seats'          => 999,
+            'branches_limit' => null,
+            'products_limit' => null,
+            'is_active'      => true,
         ]);
 
         $this->createBillingCycles($enterprise, [
@@ -168,7 +168,9 @@ class PlanSeeder extends Seeder
         ];
 
         foreach ($catalog as $index => $listing) {
-            PlanFeatureListing::updateOrCreate(
+            // withTrashed so a previously soft-deleted key is revived
+            // instead of colliding with the unique index on `key`.
+            $row = PlanFeatureListing::withTrashed()->updateOrCreate(
                 ['key' => $listing['key']],
                 [
                     'label_en' => $listing['label_en'],
@@ -178,6 +180,10 @@ class PlanSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
+
+            if ($row->trashed()) {
+                $row->restore();
+            }
         }
     }
 

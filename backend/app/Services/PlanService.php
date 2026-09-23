@@ -34,8 +34,8 @@ class PlanService extends BaseService
                 'price_usd' => $data['price_usd'],
                 'price_khr' => $data['price_khr'] ?? 0,
                 'seats' => $data['seats'],
-                'storage_gb' => $data['storage_gb'],
-                'api_limit' => $data['api_limit'] ?? 0,
+                'branches_limit' => $data['branches_limit'] ?? null,
+                'products_limit' => $data['products_limit'] ?? null,
                 'trial_days' => $data['trial_days'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
             ]);
@@ -65,8 +65,8 @@ class PlanService extends BaseService
                 'price_usd' => $data['price_usd'],
                 'price_khr' => $data['price_khr'] ?? $plan->price_khr,
                 'seats' => $data['seats'],
-                'storage_gb' => $data['storage_gb'],
-                'api_limit' => $data['api_limit'] ?? $plan->api_limit,
+                'branches_limit' => $data['branches_limit'] ?? null,
+                'products_limit' => $data['products_limit'] ?? null,
                 'trial_days' => $data['trial_days'] ?? $plan->trial_days,
                 'is_active' => $data['is_active'] ?? $plan->is_active,
             ]);

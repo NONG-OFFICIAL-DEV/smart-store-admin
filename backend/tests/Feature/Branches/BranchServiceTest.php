@@ -8,9 +8,12 @@ use App\Models\BusinessType;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\BranchService;
+use App\Services\PlanService;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
@@ -46,6 +49,47 @@ class BranchServiceTest extends TestCase
         ]);
 
         return [$tenant, $owner];
+    }
+
+    private function assignPlanWithBranchLimit(Tenant $tenant, User $owner, ?int $branchesLimit): void
+    {
+        $plan = $this->app->make(PlanService::class)->create([
+            'name' => 'Branch Limited', 'code' => 'branch-limited-'.uniqid(),
+            'price_usd' => 10, 'seats' => 99, 'branches_limit' => $branchesLimit,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+        ]);
+
+        $this->app->make(TenantSubscriptionService::class)
+            ->changePlan($tenant, $plan->id, $plan->billingCycles->first()->id, $owner->id);
+    }
+
+    public function test_create_rejects_a_branch_beyond_the_plan_branch_limit(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $this->assignPlanWithBranchLimit($tenantA, $ownerA, 1);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(BranchService::class);
+        $service->create(['name' => 'Main', 'address_line1' => '1 St', 'city' => 'PP'], new Request());
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('This plan is limited to 1 branches. Upgrade to add more.');
+
+        $service->create(['name' => 'Second', 'address_line1' => '2 St', 'city' => 'PP'], new Request());
+    }
+
+    public function test_create_allows_unlimited_branches_when_the_plan_limit_is_null(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $this->assignPlanWithBranchLimit($tenantA, $ownerA, null);
+
+        Auth::login($ownerA);
+        $service = $this->app->make(BranchService::class);
+        $service->create(['name' => 'Main', 'address_line1' => '1 St', 'city' => 'PP'], new Request());
+        $branch = $service->create(['name' => 'Second', 'address_line1' => '2 St', 'city' => 'PP'], new Request());
+
+        $this->assertNotNull($branch->id);
+        $this->assertSame(2, Branch::where('tenant_id', $tenantA->id)->count());
     }
 
     public function test_a_tenant_owner_only_sees_their_own_branches(): void

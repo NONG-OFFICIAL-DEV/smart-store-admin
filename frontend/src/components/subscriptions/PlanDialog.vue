@@ -102,25 +102,26 @@
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="form.storage_gb"
-                :label="$t('subscription.plan_dialog.fields.storage_gb')"
+                v-model="form.branches_limit"
+                :label="$t('subscription.plan_dialog.fields.branches_limit')"
                 type="number"
-                :rules="[r.required]"
                 min="1"
-                prepend-inner-icon="mdi-database-outline"
+                :hint="$t('subscription.plan_dialog.fields.unlimited_hint')"
+                persistent-hint
+                prepend-inner-icon="mdi-store-outline"
                 rounded="lg"
                 variant="outlined"
               />
             </v-col>
             <v-col cols="4">
               <v-text-field
-                v-model="form.api_limit"
-                :label="$t('subscription.plan_dialog.fields.api_limit')"
+                v-model="form.products_limit"
+                :label="$t('subscription.plan_dialog.fields.products_limit')"
                 type="number"
-                min="0"
-                :hint="$t('subscription.plan_dialog.fields.api_limit_hint')"
+                min="1"
+                :hint="$t('subscription.plan_dialog.fields.unlimited_hint')"
                 persistent-hint
-                prepend-inner-icon="mdi-api"
+                prepend-inner-icon="mdi-package-variant-closed"
                 rounded="lg"
                 variant="outlined"
               />
@@ -421,8 +422,8 @@
     price_usd: 0,
     price_khr: 0,
     seats: 1,
-    storage_gb: 1,
-    api_limit: 0,
+    branches_limit: null,
+    products_limit: null,
     trial_days: null,
     is_active: true,
     billing_cycles: [],
@@ -442,8 +443,7 @@
       isEmpty(form.value.name) ||
       isEmpty(form.value.code) ||
       isEmpty(form.value.price_usd) ||
-      isEmpty(form.value.seats) ||
-      isEmpty(form.value.storage_gb)
+      isEmpty(form.value.seats)
 
     const cycles = form.value.billing_cycles.some(
       c => isEmpty(c.label) || isEmpty(c.months)
@@ -465,8 +465,8 @@
           price_usd: plan.price_usd ?? 0,
           price_khr: plan.price_khr ?? 0,
           seats: plan.seats ?? 1,
-          storage_gb: plan.storage_gb ?? 1,
-          api_limit: plan.api_limit ?? 0,
+          branches_limit: plan.branches_limit ?? null,
+          products_limit: plan.products_limit ?? null,
           trial_days: plan.trial_days ?? null,
           is_active: plan.is_active ?? true,
           billing_cycles: Array.isArray(plan.billing_cycles)

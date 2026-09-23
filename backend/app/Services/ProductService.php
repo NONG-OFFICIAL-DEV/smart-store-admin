@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Tenant;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
@@ -43,6 +44,8 @@ class ProductService extends BaseService
 
     public function create(array $data, string $tenantId, ?UploadedFile $image = null): Product
     {
+        $this->assertProductLimit($tenantId);
+
         return DB::transaction(function () use ($data, $tenantId, $image) {
             $product = $this->repository->create([
                 'tenant_id' => $tenantId,
@@ -145,6 +148,26 @@ class ProductService extends BaseService
         }
 
         return $product;
+    }
+
+    // plans.products_limit caps how many products a tenant may create. Null
+    // means unlimited (Pro/Enterprise). No subscription at all means no
+    // data to enforce against, so it's let through rather than blocked on
+    // a data gap (e.g. tenants created before this existed).
+    private function assertProductLimit(string $tenantId): void
+    {
+        $plan = Tenant::find($tenantId)?->activeSubscription?->plan;
+        if (! $plan || $plan->products_limit === null) {
+            return;
+        }
+
+        $productCount = Product::where('tenant_id', $tenantId)->count();
+
+        if ($productCount >= $plan->products_limit) {
+            throw ValidationException::withMessages([
+                'name' => "This plan is limited to {$plan->products_limit} products. Upgrade to add more.",
+            ]);
+        }
     }
 
     /**

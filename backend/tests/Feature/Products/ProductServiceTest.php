@@ -7,7 +7,9 @@ use App\Models\ModifierGroup;
 use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PlanService;
 use App\Services\ProductService;
+use App\Services\TenantSubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -49,6 +51,49 @@ class ProductServiceTest extends TestCase
     private function makeCategory(string $name = 'Drinks'): Category
     {
         return Category::create(['name' => $name]);
+    }
+
+    private function assignPlanWithProductLimit(Tenant $tenant, User $owner, ?int $productsLimit): void
+    {
+        $plan = $this->app->make(PlanService::class)->create([
+            'name' => 'Product Limited', 'code' => 'product-limited-'.uniqid(),
+            'price_usd' => 10, 'seats' => 99, 'products_limit' => $productsLimit,
+            'billing_cycles' => [['label' => 'Monthly', 'months' => 1, 'discount_percent' => 0]],
+        ]);
+
+        $this->app->make(TenantSubscriptionService::class)
+            ->changePlan($tenant, $plan->id, $plan->billingCycles->first()->id, $owner->id);
+    }
+
+    public function test_create_rejects_a_product_beyond_the_plan_product_limit(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $category = $this->makeCategory();
+        $this->assignPlanWithProductLimit($tenant, $owner, 1);
+        $service = $this->app->make(ProductService::class);
+
+        $service->create(['category_id' => $category->id, 'name' => 'Iced Latte', 'base_price' => 4.5], $tenant->id);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('This plan is limited to 1 products. Upgrade to add more.');
+
+        $service->create(['category_id' => $category->id, 'name' => 'Hot Latte', 'base_price' => 4.5], $tenant->id);
+    }
+
+    public function test_create_allows_unlimited_products_when_the_plan_limit_is_null(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $category = $this->makeCategory();
+        $this->assignPlanWithProductLimit($tenant, $owner, null);
+        $service = $this->app->make(ProductService::class);
+
+        $service->create(['category_id' => $category->id, 'name' => 'Iced Latte', 'base_price' => 4.5], $tenant->id);
+        $product = $service->create(['category_id' => $category->id, 'name' => 'Hot Latte', 'base_price' => 4.5], $tenant->id);
+
+        $this->assertNotNull($product->id);
+        $this->assertSame(2, Product::where('tenant_id', $tenant->id)->count());
     }
 
     public function test_create_persists_variants_units_and_the_new_food_and_mart_fields(): void

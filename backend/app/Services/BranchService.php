@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Branch;
 use App\Models\Order;
+use App\Models\Tenant;
 use App\Repositories\Contracts\BranchRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class BranchService extends BaseService
 {
@@ -24,9 +26,33 @@ class BranchService extends BaseService
 
     public function create(array $data, Request $request): Branch
     {
-        $data['tenant_id'] = $this->tenantResolver->resolve($request);
+        $tenantId = $this->tenantResolver->resolve($request);
+
+        $this->assertBranchLimit($tenantId);
+
+        $data['tenant_id'] = $tenantId;
 
         return $this->repository->create($data);
+    }
+
+    // plans.branches_limit caps how many branches a tenant may create.
+    // Null means unlimited (Enterprise). No subscription at all means no
+    // data to enforce against, so it's let through rather than blocked on
+    // a data gap (e.g. tenants created before this existed).
+    private function assertBranchLimit(string $tenantId): void
+    {
+        $plan = Tenant::find($tenantId)?->activeSubscription?->plan;
+        if (! $plan || $plan->branches_limit === null) {
+            return;
+        }
+
+        $branchCount = Branch::where('tenant_id', $tenantId)->count();
+
+        if ($branchCount >= $plan->branches_limit) {
+            throw ValidationException::withMessages([
+                'name' => "This plan is limited to {$plan->branches_limit} branches. Upgrade to add more.",
+            ]);
+        }
     }
 
     public function update(Branch $branch, array $data): Branch

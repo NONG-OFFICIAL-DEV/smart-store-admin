@@ -319,9 +319,9 @@
         iconColor: 'success'
       },
       {
-        label: t('tenant_profile.kpi.storage'),
-        value: sub?.plan?.storage_gb ? `${sub.plan.storage_gb} GB` : '—',
-        icon: 'mdi-database-outline',
+        label: t('tenant_profile.kpi.products'),
+        value: sub?.plan?.products_limit ?? '∞',
+        icon: 'mdi-package-variant-closed',
         iconColor: 'indigo'
       }
     )

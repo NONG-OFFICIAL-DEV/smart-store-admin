@@ -107,9 +107,9 @@
             <v-divider vertical class="mx-1" />
             <div class="text-center">
               <div class="text-body-2 font-weight-bold">
-                {{ plan?.storage_gb ?? '—' }}GB
+                {{ plan?.products_limit ?? '∞' }}
               </div>
-              <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.storage') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.products') }}</div>
             </div>
           </div>
         </div>

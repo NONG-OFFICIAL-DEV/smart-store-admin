@@ -1959,8 +1959,8 @@
     "kpi": {
       "branches": "Branches",
       "plan": "Current Plan",
-      "seats": "User Seats",
-      "storage": "Storage"
+      "seats": "User Limit",
+      "products": "Products Limit"
     }
   },
   "subscription": {
@@ -1997,10 +1997,10 @@
         "code_hint": "e.g. pro",
         "price_usd": "Price (USD) *",
         "price_khr": "Price (KHR)",
-        "seats": "Seats *",
-        "storage_gb": "Storage (GB) *",
-        "api_limit": "API Limit",
-        "api_limit_hint": "0 = unlimited",
+        "seats": "User Limit *",
+        "branches_limit": "Branches Limit",
+        "products_limit": "Products Limit",
+        "unlimited_hint": "Leave empty for unlimited",
         "trial_days": "Trial Days",
         "trial_days_hint": "Leave empty for no trial"
       },
@@ -2068,6 +2068,14 @@
       "new": "New Plan",
       "seats_count": "{count} seat | {count} seats",
       "toggle_hint": "Click to toggle active status",
+      "branches_suffix": "branches",
+      "unlimited_branches": "∞ branches",
+      "products_suffix": "products",
+      "unlimited_products": "∞ products",
+      "branches_suffix": "branches",
+      "unlimited_branches": "∞ branches",
+      "products_suffix": "products",
+      "unlimited_products": "∞ products",
       "table": {
         "name": "Plan",
         "limits": "Limits"
@@ -3357,9 +3365,6 @@
     "no_credit_card": "No credit card required",
     "month_unit": "month | months",
     "per_month_suffix": "/month",
-    "storage_suffix": "GB storage",
-    "api_calls_suffix": "API calls",
-    "unlimited_api": "Unlimited API",
     "plan_change_warning": "Changing the plan will take effect at the start of the next billing cycle.",
     "trial_notice_before": "All new tenants start on a",
     "trial_notice_bold": "14-day trial",
@@ -3399,7 +3404,7 @@
     "no_subscription_short": "No plan",
     "assign_plan": "Assign a Plan",
     "edit_tenant": "Edit Tenant",
-    "seats_label": "Seats",
+    "seats_label": "User Limit",
     "tabs": {
       "subscription": "Subscription",
       "history": "History"
