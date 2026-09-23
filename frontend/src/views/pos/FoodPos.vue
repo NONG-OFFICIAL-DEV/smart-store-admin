@@ -26,7 +26,7 @@
       type="warning"
       variant="tonal"
       rounded="lg"
-      class="flex-grow-0 flex-shrink-0 mb-2"
+      class="pos-no-branch-alert mb-2"
     >
       <div class="d-flex flex-column flex-sm-row align-start align-sm-center ga-3">
         <div>
@@ -445,6 +445,16 @@
     height: auto;
     min-height: calc(100vh - 96px);
     overflow: visible;
+  }
+  /* Vuetify's own .v-alert base rule sets `overflow: hidden` and
+     `flex: 1 1` (i.e. flex-basis: 0%, shrinkable) unconditionally — that's
+     what was actually clipping the button, independent of any sizing on
+     ancestor elements. Override both directly rather than relying on
+     flex-grow-0/flex-shrink-0 utility classes, whose cascade order against
+     Vuetify's own component styles isn't guaranteed. */
+  .pos-no-branch-alert {
+    overflow: visible !important;
+    flex: 0 0 auto !important;
   }
   .pos-page__workspace {
     min-height: 0;
