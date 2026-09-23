@@ -27,14 +27,13 @@
       <v-card rounded="lg">
         <v-tabs v-model="tab" color="indigo" align-tabs="start" class="px-4">
           <v-tab value="plan">{{ $t('billing.subscription') }}</v-tab>
-          <v-tab value="billing">{{ $t('billing.billing_summary') }}</v-tab>
           <v-tab value="invoices">{{ $t('billing.invoice_history') }}</v-tab>
           <v-tab value="history">{{ $t('billing.plan_history') }}</v-tab>
         </v-tabs>
 
         <v-divider />
 
-        <!-- TAB 1: Current Plan -->
+        <!-- TAB 1: Overview (plan + billing stats) -->
         <v-window v-model="tab">
           <v-window-item value="plan">
             <v-card-text>
@@ -43,6 +42,7 @@
                 :subscription="subscription"
                 :active-billing-cycle="activeBillingCycle"
                 :billing-cycles="billingCycles"
+                :billing="tenant.billing"
                 @upgrade="upgradeDialog = true"
                 @pay="handlePay"
                 @renew="handleRenew"
@@ -50,19 +50,7 @@
             </v-card-text>
           </v-window-item>
 
-          <!-- TAB 2: Billing Summary -->
-          <v-window-item value="billing">
-            <v-card-text>
-              <BillingSummaryCards
-                :billing="tenant.billing"
-                :subscription="subscription"
-                :plan="plan"
-                :active-billing-cycle="activeBillingCycle"
-              />
-            </v-card-text>
-          </v-window-item>
-
-          <!-- TAB 3: Invoices -->
+          <!-- TAB 2: Invoices -->
           <v-window-item value="invoices">
             <v-card-text class="pa-0">
               <InvoiceTable
@@ -73,7 +61,7 @@
             </v-card-text>
           </v-window-item>
 
-          <!-- TAB 4: Plan History -->
+          <!-- TAB 3: Plan History -->
           <v-window-item value="history">
             <v-card-text class="pa-0">
               <PlanHistoryTable :history="plan_history" />
@@ -119,7 +107,6 @@
   import { useAppUtils } from '@/composables/useAppUtils'
 
   import PlanOverviewCard from '@/components/tenants/PlanOverviewCard.vue'
-  import BillingSummaryCards from '@/components/tenants/BillingSummaryCards.vue'
   import InvoiceTable from '@/components/tenants/InvoiceTable.vue'
   import PlanHistoryTable from '@/components/tenants/PlanHistoryTable.vue'
   import QRPaymentDialog from '@/components/tenants/QRPaymentDialog.vue'

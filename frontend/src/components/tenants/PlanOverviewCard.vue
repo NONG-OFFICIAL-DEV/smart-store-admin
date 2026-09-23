@@ -73,22 +73,19 @@
 
         <!-- Stats -->
         <v-col cols="12" sm="6">
-          <v-row dense>
-            <v-col v-for="stat in planStats" :key="stat.label" cols="6">
-              <v-sheet
-                rounded="lg"
-                border
-                class="pa-3 text-center"
-              >
-                <div class="text-body-1 font-weight-bold text-indigo-darken-3">
-                  {{ stat.value }}
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1">
-                  {{ stat.label }}
-                </div>
-              </v-sheet>
-            </v-col>
-          </v-row>
+          <v-sheet rounded="lg" border>
+            <div
+              v-for="(stat, idx) in planStats"
+              :key="stat.label"
+              class="d-flex align-center justify-space-between px-4 py-3"
+              :class="{ 'border-b': idx < planStats.length - 1 }"
+            >
+              <span class="text-body-2 text-medium-emphasis">{{ stat.label }}</span>
+              <span class="text-body-1 font-weight-bold text-indigo-darken-3">
+                {{ stat.value }}
+              </span>
+            </div>
+          </v-sheet>
         </v-col>
       </v-row>
 
@@ -140,6 +137,7 @@
     plan: { type: Object, default: () => ({}) },
     subscription: { type: Object, default: () => ({}) },
     activeBillingCycle: { type: Object, default: null }, // ← add
+    billing: { type: Object, default: () => ({}) },
     currency: { type: String, default: 'USD' },
     loadingMethod: { type: String, default: null }
   })
@@ -175,7 +173,16 @@
     const endDate =
       sub.status === 'trial' ? sub.trial_ends_at : sub.current_period_end
 
-    return [
+    const stats = []
+
+    if (props.billing?.last_payment_date) {
+      stats.push({
+        label: t('billing.overview.lastPayment'),
+        value: formatDateText(props.billing.last_payment_date)
+      })
+    }
+
+    stats.push(
       {
         label:
           sub.status === 'trial'
@@ -195,7 +202,9 @@
         label: t('billing.overview.daysLeft'),
         value: endDate ? daysLeft(endDate) : '—'
       }
-    ]
+    )
+
+    return stats
   })
 
   function daysLeft(dateStr) {
