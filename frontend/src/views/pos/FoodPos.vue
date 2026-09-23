@@ -1,5 +1,5 @@
 <template>
-  <div class="pos-page d-flex flex-column">
+  <div class="pos-page d-flex flex-column" :class="{ 'pos-page--no-branch': !branchId }">
     <!-- Compact header — back + title + branch, nothing else -->
     <div
       class="pos-page__header d-flex align-center flex-grow-0"
@@ -21,64 +21,88 @@
       </v-chip>
     </div>
 
-    <PosOrderOptionsBar
-      class="flex-grow-0 pb-2"
-      :class="touch ? 'px-2' : 'px-1'"
-      :order-type-options="enabledOrderTypes"
-      :order-type="posStore.orderType"
-      :tables="tableOptions"
-      :table-id="posStore.tableId"
-      :show-customer="showCustomer"
-      :customers="customerOptions"
-      :customer-id="posStore.customerId"
-      :customer-name="posStore.customerName"
-      :show-notes="showNotes"
-      :note="posStore.note"
-      @update-order-type="posStore.setOrderType"
-      @update-table-id="posStore.setTable"
-      @search-customer="onSearchCustomer"
-      @update-customer="posStore.setCustomer"
-      @update-note="posStore.setNote"
-    />
-
-    <v-alert v-if="!branchId" type="warning" variant="tonal" rounded="lg" class="flex-grow-0">
-      {{ t('pos.select_branch') }}
+    <v-alert
+      v-if="!branchId"
+      type="warning"
+      variant="tonal"
+      rounded="lg"
+      class="flex-grow-0 flex-shrink-0 mb-2"
+    >
+      <div class="d-flex flex-column flex-sm-row align-start align-sm-center ga-3">
+        <div>
+          <div class="font-weight-medium">{{ t('pos.no_branch.title') }}</div>
+          <div class="text-caption">{{ t('pos.no_branch.subtitle') }}</div>
+        </div>
+        <v-spacer />
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          size="small"
+          prepend-icon="mdi-plus"
+          :to="{ name: 'settings-hub', query: { tab: 'branch' } }"
+        >
+          {{ t('pos.no_branch.action') }}
+        </v-btn>
+      </div>
     </v-alert>
 
-    <div v-else class="pos-page__workspace flex-grow-1 d-flex ga-2">
-      <div class="pos-page__products flex-grow-1">
-        <PosProductGrid
-          ref="productGridRef"
-          customizable
-          :products="normalizedProducts"
-          :categories="categories"
-          :category-id="categoryId"
-          :search="search"
-          :loading="loading"
-          @update:search="search = $event"
-          @update:category-id="categoryId = $event"
-          @add="onAdd"
-          @customize="openCustomize"
-        />
-      </div>
+    <template v-else>
+      <PosOrderOptionsBar
+        class="flex-grow-0 pb-2"
+        :class="touch ? 'px-2' : 'px-1'"
+        :order-type-options="enabledOrderTypes"
+        :order-type="posStore.orderType"
+        :tables="tableOptions"
+        :table-id="posStore.tableId"
+        :show-customer="showCustomer"
+        :customers="customerOptions"
+        :customer-id="posStore.customerId"
+        :customer-name="posStore.customerName"
+        :show-notes="showNotes"
+        :note="posStore.note"
+        @update-order-type="posStore.setOrderType"
+        @update-table-id="posStore.setTable"
+        @search-customer="onSearchCustomer"
+        @update-customer="posStore.setCustomer"
+        @update-note="posStore.setNote"
+      />
 
-      <!-- Desktop/tablet — cart column, always visible. Narrower on tablet
-           portrait so the product grid still has room to breathe. -->
-      <div v-if="!xs" class="pos-page__cart" :style="{ flexBasis: cartWidth + 'px', width: cartWidth + 'px' }">
-        <PosCartPanel
-          ref="cartPanelRef"
-          :items="posStore.items"
-          :subtotal="posStore.subtotal"
-          :loading="submitting"
-          show-notes
-          @update-qty="posStore.updateQty"
-          @update-notes="posStore.updateNotes"
-          @remove="posStore.removeItem"
-          @clear="posStore.clear"
-          @checkout="submitOrder"
-        />
+      <div class="pos-page__workspace flex-grow-1 d-flex ga-2">
+        <div class="pos-page__products flex-grow-1">
+          <PosProductGrid
+            ref="productGridRef"
+            customizable
+            :products="normalizedProducts"
+            :categories="categories"
+            :category-id="categoryId"
+            :search="search"
+            :loading="loading"
+            @update:search="search = $event"
+            @update:category-id="categoryId = $event"
+            @add="onAdd"
+            @customize="openCustomize"
+          />
+        </div>
+
+        <!-- Desktop/tablet — cart column, always visible. Narrower on tablet
+             portrait so the product grid still has room to breathe. -->
+        <div v-if="!xs" class="pos-page__cart" :style="{ flexBasis: cartWidth + 'px', width: cartWidth + 'px' }">
+          <PosCartPanel
+            ref="cartPanelRef"
+            :items="posStore.items"
+            :subtotal="posStore.subtotal"
+            :loading="submitting"
+            show-notes
+            @update-qty="posStore.updateQty"
+            @update-notes="posStore.updateNotes"
+            @remove="posStore.removeItem"
+            @clear="posStore.clear"
+            @checkout="submitOrder"
+          />
+        </div>
       </div>
-    </div>
+    </template>
 
     <!-- Mobile — sticky order bar opens the cart as a bottom sheet -->
     <div
@@ -295,6 +319,8 @@
         search: search.value || undefined
       })
       rawProducts.value = data.data.data
+    } catch {
+      notif(t('pos.load_failed'), { type: 'error' })
     } finally {
       loading.value = false
     }
@@ -377,6 +403,18 @@
   onMounted(async () => {
     window.addEventListener('keydown', handlePosShortcuts)
     await branchStore.fetchBranches?.()
+
+    // authStore.activeBranchId can be stale (persisted from a previous
+    // session/tenant, or a branch that's since been deleted) — the API
+    // 404s on a branch_id that doesn't resolve for the current tenant.
+    // Re-validate against the just-fetched list rather than trusting it
+    // blindly; the sidebar's own BranchSwitcher does the same self-repair
+    // on its own mount, but that's a separate component with no
+    // guaranteed ordering against this page's mount.
+    if (branchId.value && !branchStore.branches.some(b => b.id === branchId.value)) {
+      authStore.setActiveBranch(branchStore.branches[0]?.id ?? null)
+    }
+
     await loadCategories()
     if (branchId.value) {
       await loadProducts()
@@ -397,6 +435,16 @@
     height: calc(100vh - 96px);
     min-height: 0;
     overflow: hidden;
+  }
+  /* No-branch empty state has no scrollable workspace to constrain —
+     drop the fixed height/overflow-hidden entirely so the alert (and its
+     wrapped title/subtitle/button content) always renders at its natural
+     size instead of being squeezed and clipped by a flex ancestor that
+     assumes there's a product grid + cart filling the rest of the page. */
+  .pos-page--no-branch {
+    height: auto;
+    min-height: calc(100vh - 96px);
+    overflow: visible;
   }
   .pos-page__workspace {
     min-height: 0;

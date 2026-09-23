@@ -1529,6 +1529,11 @@
     "owner_only": "Only the tenant owner can edit company information.",
     "saved": "Company info updated successfully",
     "save_failed": "Failed to update company info",
+    "logo_upload": {
+      "title": "Company Logo",
+      "drag_hint": "Click or drag a logo here",
+      "format_hint": "PNG, JPG or WEBP, up to 5MB"
+    },
     "pos_settings_helper": "Choose which order options actually appear on the POS screen. Disabled options are hidden entirely, not just greyed out.",
     "pos_order_types": "Order Types",
     "pos_customer_selection": "Customer Selection",
@@ -2274,6 +2279,12 @@
   "pos": {
     "branch_label": "Branch",
     "select_branch": "Select a branch from the sidebar to start selling.",
+    "no_branch": {
+      "title": "You don't have a branch yet",
+      "subtitle": "Create your first branch to start selling.",
+      "action": "Create Branch"
+    },
+    "load_failed": "Couldn't load products right now. Please try again.",
     "settings": {
       "title": "POS Settings"
     },
@@ -3196,7 +3207,7 @@
     "category_food": "Food & Beverage",
     "category_mart": "Retail / Mart",
     "enable_hint": "Enable this business type",
-    "manage_title": "Manage Business Types",
+    "manage_title": "Business Types",
     "delete_title": "Delete Business Type?",
     "delete_message": "Delete \"{name}\"? Tenants using it will have their business type cleared, and any branch types under it will be deleted too.",
     "messages": {

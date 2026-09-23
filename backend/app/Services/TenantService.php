@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Branch;
+use App\Models\BranchType;
 use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Staff;
@@ -229,6 +231,20 @@ class TenantService extends BaseService
             $this->ownerRoleProvisioner->ensureFor($tenant);
 
             $this->assignFreePlan($tenant, $owner->id);
+
+            // Every tenant must leave create() able to actually sell —
+            // without at least one branch, POS has nothing to scope
+            // products/orders to and shows a permanent "select a branch"
+            // dead end. Address/contact fields are deliberately left blank
+            // (all nullable) — the owner fills those in via Settings >
+            // Branch whenever they want; only a sellable branch matters now.
+            Branch::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Main Branch',
+                'branch_type_id' => BranchType::where('business_type_id', $validated['business_type_id'])
+                    ->where('is_hq', true)
+                    ->value('id'),
+            ]);
 
             return ['tenant_id' => $tenant->id, 'owner_id' => $owner->id];
         });

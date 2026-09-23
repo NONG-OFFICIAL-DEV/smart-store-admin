@@ -9,20 +9,10 @@
     "
     :loading="saving"
   >
-    <v-tabs
-      v-model="tab"
-      color="primary"
-      density="comfortable"
-      class="px-3"
-    >
+    <v-tabs v-model="tab" color="primary" density="comfortable" class="px-3">
       <v-tab value="basic">
         {{ $t('subscription.plan_dialog.tabs.basic_info') }}
-        <v-icon
-          v-if="tabErrors.basic"
-          size="14"
-          color="error"
-          class="ms-1"
-        >
+        <v-icon v-if="tabErrors.basic" size="14" color="error" class="ms-1">
           mdi-alert-circle
         </v-icon>
       </v-tab>
@@ -37,12 +27,7 @@
         >
           {{ form.billing_cycles.length }}
         </v-chip>
-        <v-icon
-          v-if="tabErrors.cycles"
-          size="14"
-          color="error"
-          class="ms-1"
-        >
+        <v-icon v-if="tabErrors.cycles" size="14" color="error" class="ms-1">
           mdi-alert-circle
         </v-icon>
       </v-tab>
@@ -52,279 +37,299 @@
     </v-tabs>
 
     <v-form ref="formRef" @submit.prevent="submit" v-model="isValid">
-      <v-window v-model="tab" class="pa-5">
-            <!-- Basic Info -->
-            <v-window-item value="basic">
-              <v-row dense>
-                <v-col cols="8">
-                  <v-text-field
-                    v-model="form.name"
-                    :label="$t('subscription.plan_dialog.fields.plan_name')"
-                    :rules="[r.required]"
-                    maxlength="80"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field
-                    v-model="form.code"
-                    :label="$t('subscription.plan_dialog.fields.code')"
-                    :rules="[r.required]"
-                    maxlength="30"
-                    :hint="$t('subscription.plan_dialog.fields.code_hint')"
-                    persistent-hint
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="form.price_usd"
-                    :label="$t('subscription.plan_dialog.fields.price_usd')"
-                    type="number"
-                    :rules="[r.required]"
-                    min="0"
-                    prepend-inner-icon="mdi-currency-usd"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="form.price_khr"
-                    :label="$t('subscription.plan_dialog.fields.price_khr')"
-                    type="number"
-                    min="0"
-                    prepend-inner-icon="mdi-currency-sign"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-
-                <v-col cols="4">
-                  <v-text-field
-                    v-model="form.seats"
-                    :label="$t('subscription.plan_dialog.fields.seats')"
-                    type="number"
-                    :rules="[r.required]"
-                    min="1"
-                    prepend-inner-icon="mdi-account-group-outline"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field
-                    v-model="form.storage_gb"
-                    :label="$t('subscription.plan_dialog.fields.storage_gb')"
-                    type="number"
-                    :rules="[r.required]"
-                    min="1"
-                    prepend-inner-icon="mdi-database-outline"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field
-                    v-model="form.api_limit"
-                    :label="$t('subscription.plan_dialog.fields.api_limit')"
-                    type="number"
-                    min="0"
-                    :hint="$t('subscription.plan_dialog.fields.api_limit_hint')"
-                    persistent-hint
-                    prepend-inner-icon="mdi-api"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-
-                <v-col cols="4">
-                  <v-text-field
-                    v-model="form.trial_days"
-                    :label="$t('subscription.plan_dialog.fields.trial_days')"
-                    type="number"
-                    min="0"
-                    max="365"
-                    :hint="$t('subscription.plan_dialog.fields.trial_days_hint')"
-                    persistent-hint
-                    prepend-inner-icon="mdi-calendar-clock-outline"
-                    rounded="lg"
-                    variant="outlined"
-                  />
-                </v-col>
-
-                <v-col cols="12">
-                  <v-switch
-                    v-model="form.is_active"
-                    :label="$t('status.active')"
-                    color="success"
-                    inset
-                  />
-                </v-col>
-              </v-row>
-            </v-window-item>
-
-            <!-- Billing Cycles Tab -->
-            <v-window-item value="cycles">
-              <div class="text-caption text-medium-emphasis mb-4">
-                {{ $t('subscription.plan_dialog.cycles.description') }}
-              </div>
-
-              <div
-                v-for="(cycle, i) in form.billing_cycles"
-                :key="i"
-                class="cycle-row mb-3"
-              >
-                <v-row dense align="center">
-                  <v-col cols="12" sm="4">
-                    <v-text-field
-                      v-model="cycle.label"
-                      :label="$t('subscription.plan_dialog.cycles.label')"
-                      :rules="[r.required]"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="5" sm="3">
-                    <v-select
-                      v-model="cycle.months"
-                      :items="monthOptions"
-                      item-title="label"
-                      item-value="value"
-                      :label="$t('subscription.plan_dialog.cycles.months')"
-                      :rules="[r.required]"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col cols="5" sm="3">
-                    <v-text-field
-                      v-model="cycle.discount_percent"
-                      :label="$t('subscription.plan_dialog.cycles.discount_percent')"
-                      type="number"
-                      min="0"
-                      max="100"
-                      suffix="%"
-                      rounded="lg"
-                      variant="outlined"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="2"
-                    sm="1"
-                    class="d-flex align-center justify-center"
-                  >
-                    <v-btn
-                      icon="mdi-delete-outline"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      class="mb-4"
-                      @click="removeCycle(i)"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="1">
-                    <v-switch
-                      v-model="cycle.is_active"
-                      color="success"
-                      inset
-                      density="compact"
-                    />
-                  </v-col>
-                </v-row>
-              </div>
-
-              <v-btn
-                variant="tonal"
+      <v-window v-model="tab" class="py-5">
+        <!-- Basic Info -->
+        <v-window-item value="basic">
+          <v-row dense>
+            <v-col cols="8">
+              <v-text-field
+                v-model="form.name"
+                :label="$t('subscription.plan_dialog.fields.plan_name')"
+                :rules="[r.required]"
+                maxlength="80"
                 rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="form.code"
+                :label="$t('subscription.plan_dialog.fields.code')"
+                :rules="[r.required]"
+                maxlength="30"
+                :hint="$t('subscription.plan_dialog.fields.code_hint')"
+                persistent-hint
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="6">
+              <v-text-field
+                v-model="form.price_usd"
+                :label="$t('subscription.plan_dialog.fields.price_usd')"
+                type="number"
+                :rules="[r.required]"
+                min="0"
+                prepend-inner-icon="mdi-currency-usd"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="form.price_khr"
+                :label="$t('subscription.plan_dialog.fields.price_khr')"
+                type="number"
+                min="0"
+                prepend-inner-icon="mdi-currency-sign"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="4">
+              <v-text-field
+                v-model="form.seats"
+                :label="$t('subscription.plan_dialog.fields.seats')"
+                type="number"
+                :rules="[r.required]"
+                min="1"
+                prepend-inner-icon="mdi-account-group-outline"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="form.storage_gb"
+                :label="$t('subscription.plan_dialog.fields.storage_gb')"
+                type="number"
+                :rules="[r.required]"
+                min="1"
+                prepend-inner-icon="mdi-database-outline"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                v-model="form.api_limit"
+                :label="$t('subscription.plan_dialog.fields.api_limit')"
+                type="number"
+                min="0"
+                :hint="$t('subscription.plan_dialog.fields.api_limit_hint')"
+                persistent-hint
+                prepend-inner-icon="mdi-api"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="4">
+              <v-text-field
+                v-model="form.trial_days"
+                :label="$t('subscription.plan_dialog.fields.trial_days')"
+                type="number"
+                min="0"
+                max="365"
+                :hint="$t('subscription.plan_dialog.fields.trial_days_hint')"
+                persistent-hint
+                prepend-inner-icon="mdi-calendar-clock-outline"
+                rounded="lg"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <v-switch
+                v-model="form.is_active"
+                :label="$t('status.active')"
+                color="success"
+                inset
+              />
+            </v-col>
+          </v-row>
+        </v-window-item>
+
+        <!-- Billing Cycles Tab -->
+        <v-window-item value="cycles">
+          <div class="text-caption text-medium-emphasis mb-4">
+            {{ $t('subscription.plan_dialog.cycles.description') }}
+          </div>
+
+          <div
+            v-for="(cycle, i) in form.billing_cycles"
+            :key="i"
+            class="cycle-row mb-3"
+          >
+            <v-row dense align="center">
+              <v-col cols="12" sm="4">
+                <v-text-field
+                  v-model="cycle.label"
+                  :label="$t('subscription.plan_dialog.cycles.label')"
+                  :rules="[r.required]"
+                  rounded="lg"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="5" sm="3">
+                <v-select
+                  v-model="cycle.months"
+                  :items="monthOptions"
+                  item-title="label"
+                  item-value="value"
+                  :label="$t('subscription.plan_dialog.cycles.months')"
+                  :rules="[r.required]"
+                  rounded="lg"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="5" sm="3">
+                <v-text-field
+                  v-model="cycle.discount_percent"
+                  :label="
+                    $t('subscription.plan_dialog.cycles.discount_percent')
+                  "
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  rounded="lg"
+                  variant="outlined"
+                />
+              </v-col>
+              <v-col cols="2" sm="1" class="d-flex align-center justify-center">
+                <v-btn
+                  icon="mdi-delete-outline"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  class="mb-4"
+                  @click="removeCycle(i)"
+                />
+              </v-col>
+              <v-col cols="12" sm="1">
+                <v-switch
+                  v-model="cycle.is_active"
+                  color="success"
+                  inset
+                  density="compact"
+                />
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-btn
+            variant="tonal"
+            rounded="lg"
+            size="small"
+            prepend-icon="mdi-plus"
+            color="primary"
+            @click="addCycle"
+          >
+            {{ $t('subscription.plan_dialog.cycles.add_cycle') }}
+          </v-btn>
+          <div
+            v-if="submitted && form.billing_cycles.length === 0"
+            class="text-error text-caption mt-3"
+          >
+            {{ $t('subscription.plan_dialog.cycles.required_error') }}
+          </div>
+          <div class="mt-4">
+            <div class="text-caption text-medium-emphasis mb-2">
+              {{ $t('subscription.plan_dialog.cycles.quick_presets') }}
+            </div>
+            <div class="d-flex flex-wrap ga-2">
+              <v-chip
+                v-for="preset in cyclePresets"
+                :key="preset.months"
                 size="small"
-                prepend-icon="mdi-plus"
+                variant="tonal"
                 color="primary"
-                @click="addCycle"
+                @click="applyPreset(preset)"
               >
-                {{ $t('subscription.plan_dialog.cycles.add_cycle') }}
-              </v-btn>
-              <div
-                v-if="submitted && form.billing_cycles.length === 0"
-                class="text-error text-caption mt-3"
-              >
-                {{ $t('subscription.plan_dialog.cycles.required_error') }}
-              </div>
-              <div class="mt-4">
-                <div class="text-caption text-medium-emphasis mb-2">
-                  {{ $t('subscription.plan_dialog.cycles.quick_presets') }}
-                </div>
-                <div class="d-flex flex-wrap ga-2">
-                  <v-chip
-                    v-for="preset in cyclePresets"
-                    :key="preset.months"
-                    size="small"
-                    variant="tonal"
-                    color="primary"
-                    @click="applyPreset(preset)"
-                  >
-                    {{ preset.title }}
-                  </v-chip>
-                </div>
-              </div>
-            </v-window-item>
+                {{ preset.title }}
+              </v-chip>
+            </div>
+          </div>
+        </v-window-item>
 
-            <!-- Features -->
-            <v-window-item value="features">
-              <div class="text-caption text-medium-emphasis mb-4">
-                {{ $t('subscription.plan_dialog.features.description') }}
-              </div>
+        <!-- Features -->
+        <v-window-item value="features">
+          <div class="text-caption text-medium-emphasis mb-4">
+            {{ $t('subscription.plan_dialog.features.description') }}
+          </div>
 
-              <p v-if="!activeFeatures.length" class="text-caption text-medium-emphasis">
-                {{ $t('subscription.plan_dialog.features.no_catalog_features') }}
-              </p>
+          <p
+            v-if="!activeFeatures.length"
+            class="text-caption text-medium-emphasis"
+          >
+            {{ $t('subscription.plan_dialog.features.no_catalog_features') }}
+          </p>
 
-              <v-row v-for="listing in activeFeatures" :key="listing.id" class="mb-1" dense align="center">
-                <v-col cols="12" sm="4" class="text-body-2">{{ listing.label.en }}</v-col>
-                <v-col cols="12" sm="8">
-                  <v-switch
-                    v-if="listing.value_type === 'boolean'"
-                    :model-value="featureValue(listing.key, true)"
+          <v-row
+            v-for="listing in activeFeatures"
+            :key="listing.id"
+            class="mb-1"
+            dense
+            align="center"
+          >
+            <v-col cols="12" sm="4" class="text-body-2">
+              {{ listing.label.en }}
+            </v-col>
+            <v-col cols="12" sm="8">
+              <v-switch
+                v-if="listing.value_type === 'boolean'"
+                :model-value="featureValue(listing.key, true)"
+                density="compact"
+                hide-details
+                color="primary"
+                @update:model-value="setFeatureValue(listing.key, $event)"
+              />
+              <v-row v-else dense>
+                <v-col cols="6">
+                  <v-text-field
+                    :model-value="featureValue(listing.key, false).en"
                     density="compact"
                     hide-details
-                    color="primary"
-                    @update:model-value="setFeatureValue(listing.key, $event)"
+                    :label="$t('subscription.plan_dialog.features.english')"
+                    rounded="lg"
+                    variant="outlined"
+                    @update:model-value="
+                      updateFeatureText(listing.key, 'en', $event)
+                    "
                   />
-                  <v-row v-else dense>
-                    <v-col cols="6">
-                      <v-text-field
-                        :model-value="featureValue(listing.key, false).en"
-                        density="compact"
-                        hide-details
-                        :label="$t('subscription.plan_dialog.features.english')"
-                        rounded="lg"
-                        variant="outlined"
-                        @update:model-value="updateFeatureText(listing.key, 'en', $event)"
-                      />
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field
-                        :model-value="featureValue(listing.key, false).km"
-                        density="compact"
-                        hide-details
-                        label="ខ្មែរ"
-                        rounded="lg"
-                        variant="outlined"
-                        @update:model-value="updateFeatureText(listing.key, 'km', $event)"
-                      />
-                    </v-col>
-                  </v-row>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    :model-value="featureValue(listing.key, false).km"
+                    density="compact"
+                    hide-details
+                    label="ខ្មែរ"
+                    rounded="lg"
+                    variant="outlined"
+                    @update:model-value="
+                      updateFeatureText(listing.key, 'km', $event)
+                    "
+                  />
                 </v-col>
               </v-row>
-            </v-window-item>
-          </v-window>
-        </v-form>
+            </v-col>
+          </v-row>
+        </v-window-item>
+      </v-window>
+    </v-form>
 
     <template #actions="{ loading }">
-      <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="model = false">{{ $t('btn.cancel') }}</v-btn>
+      <v-btn
+        variant="tonal"
+        rounded="lg"
+        :disabled="loading"
+        @click="model = false"
+      >
+        {{ $t('btn.cancel') }}
+      </v-btn>
       <v-btn
         :color="editingPlan ? 'primary' : 'success'"
         variant="flat"
@@ -332,7 +337,11 @@
         :loading="loading"
         @click="submit"
       >
-        {{ editingPlan ? $t('btn.save_changes') : $t('subscription.plan_dialog.create_plan') }}
+        {{
+          editingPlan
+            ? $t('btn.save_changes')
+            : $t('subscription.plan_dialog.create_plan')
+        }}
       </v-btn>
     </template>
   </AppDialog>
@@ -346,7 +355,9 @@
 
   const { t } = useI18n()
   const catalogStore = usePlanFeatureListingStore()
-  const activeFeatures = computed(() => catalogStore.items.filter(item => item.is_active))
+  const activeFeatures = computed(() =>
+    catalogStore.items.filter(item => item.is_active)
+  )
 
   const props = defineProps({
     editingPlan: { type: Object, default: null },
@@ -423,8 +434,7 @@
   // ─── Per-tab error detection (data-level, not DOM) ───────────────────────────
   // Only show tab error badges after the user has attempted to submit once.
   const tabErrors = computed(() => {
-    if (!submitted.value)
-      return { basic: false, cycles: false }
+    if (!submitted.value) return { basic: false, cycles: false }
 
     const isEmpty = v => v === null || v === undefined || v === ''
 
@@ -562,8 +572,8 @@
     // every feature out from under an unrelated field edit.
     let features = form.value.features
     if (catalogStore.items.length) {
-      const catalogKeys = new Set(catalogStore.items.map((item) => item.key))
-      features = features.filter((f) => catalogKeys.has(f.key))
+      const catalogKeys = new Set(catalogStore.items.map(item => item.key))
+      features = features.filter(f => catalogKeys.has(f.key))
     }
 
     emit('submit', { ...form.value, features })

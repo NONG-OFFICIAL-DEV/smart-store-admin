@@ -144,7 +144,17 @@ class TenantController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $tenant = $this->tenants->updateProfile($tenant, $request->validated());
+        $validated = $request->validated();
+
+        // A newly-uploaded file always wins over a hand-typed logo_url —
+        // same disk/path as store()'s tenant-creation upload, so both land
+        // in the same storage/app/public/logos location.
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $validated['logo_url'] = Storage::url($path);
+        }
+
+        $tenant = $this->tenants->updateProfile($tenant, $validated);
 
         return $this->success($tenant, 'Company info updated successfully');
     }

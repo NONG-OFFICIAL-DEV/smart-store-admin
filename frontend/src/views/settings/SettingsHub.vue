@@ -26,9 +26,17 @@
             :text="t('settings_hub.owner_only')"
           />
 
+          <ProductImageUpload
+            v-model:image-file="logoFile"
+            v-model:image-preview="logoPreview"
+            compact
+            :title="t('settings_hub.logo_upload.title')"
+            :format-hint="t('settings_hub.logo_upload.format_hint')"
+          />
+
           <v-form ref="formRef" :disabled="!canEdit || saving">
             <v-row dense>
-              <v-col cols="12" sm="8">
+              <v-col cols="12" sm="4">
                 <v-text-field
                   v-model="form.name"
                   :label="t('tenant_create.field.business_name')"
@@ -37,15 +45,6 @@
                   prepend-inner-icon="mdi-domain"
                   :rules="[v => !!v || t('validation.required')]"
                   maxlength="150"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <v-text-field
-                  v-model="form.logo_url"
-                  :label="t('tenant_create.field.logo_url')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-image-outline"
                 />
               </v-col>
               <v-col cols="12" sm="4">
@@ -174,6 +173,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
   import Branch from '@/views/branches/Branch.vue'
+  import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
 
   const { t } = useI18n()
   const route = useRoute()
@@ -187,9 +187,10 @@
 
   const formRef = ref(null)
   const saving = ref(false)
+  const logoFile = ref(null)
+  const logoPreview = ref(null)
   const form = reactive({
     name: '',
-    logo_url: '',
     primary_color: '#6366f1',
     currency: 'USD',
     pos_settings: {
@@ -211,7 +212,7 @@
     const tenant = res?.data?.data?.tenant
     if (!tenant) return
     form.name = tenant.name ?? ''
-    form.logo_url = tenant.logo_url ?? ''
+    logoPreview.value = tenant.logo_url ?? null
     form.primary_color = tenant.primary_color ?? '#6366f1'
     form.currency = tenant.currency ?? 'USD'
     if (tenant.pos_settings) {
@@ -227,9 +228,24 @@
 
     saving.value = true
     try {
-      await updateTenantProfileApi(authStore.tenant_id, { ...form })
+      // No new logo picked → plain JSON, existing logo_url stays untouched
+      // server-side. A new file → multipart, the file always wins over
+      // whatever's already stored (see TenantController::updateProfile()).
+      let body = { ...form }
+      if (logoFile.value) {
+        const fd = new FormData()
+        fd.append('logo', logoFile.value)
+        Object.entries(form).forEach(([key, value]) => {
+          if (value === null || value === undefined) return
+          fd.append(key, typeof value === 'object' ? JSON.stringify(value) : value)
+        })
+        body = fd
+      }
+
+      await updateTenantProfileApi(authStore.tenant_id, body)
       await authStore.fetchMe()
-      notif(t('settings_hub.saved'), { type: 'success' })
+      logoFile.value = null
+      notif(t('settings_hub.saved'), { type: 'success'})
     } catch (err) {
       notif(err?.response?.data?.message || t('settings_hub.save_failed'), { type: 'error' })
     } finally {

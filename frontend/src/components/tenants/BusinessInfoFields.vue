@@ -103,17 +103,6 @@
     </v-col>
 
     <v-col cols="12" sm="6">
-      <v-text-field
-        :model-value="logoUrl"
-        :label="$t('tenant_create.field.logo_url')"
-        variant="outlined"
-        rounded="lg"
-        prepend-inner-icon="mdi-image-outline"
-        @update:model-value="v => $emit('update:logoUrl', v)"
-      />
-    </v-col>
-
-    <v-col cols="12" sm="6">
       <v-color-input
         :model-value="primaryColor"
         color-pip
@@ -134,7 +123,6 @@
     name: { type: String, default: '' },
     slug: { type: String, default: '' },
     businessTypeId: { type: String, default: null },
-    logoUrl: { type: String, default: '' },
     primaryColor: { type: String, default: '#6366f1' },
     currency: { type: String, default: 'USD' },
     editingSlug: { type: Boolean, default: false },
@@ -149,7 +137,6 @@
     'update:name',
     'update:slug',
     'update:businessTypeId',
-    'update:logoUrl',
     'update:primaryColor',
     'update:currency',
     'update:editingSlug',

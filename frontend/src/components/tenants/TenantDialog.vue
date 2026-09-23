@@ -147,7 +147,6 @@
           v-model:name="form.name"
           v-model:slug="form.slug"
           v-model:business-type-id="form.business_type_id"
-          v-model:logo-url="form.logo_url"
           v-model:primary-color="form.primary_color"
           v-model:currency="form.currency"
           v-model:editing-slug="editingSlug"
@@ -242,7 +241,6 @@
     name: '',
     slug: '',
     business_type_id: null,
-    logo_url: '',
     primary_color: '#6366f1',
     currency: 'USD'
   })
@@ -272,7 +270,6 @@
     form.name = tenant.name ?? ''
     form.slug = tenant.slug ?? ''
     form.business_type_id = tenant.business_type_id ?? null
-    form.logo_url = tenant.logo_url ?? ''
     form.primary_color = tenant.primary_color ?? '#6366f1'
     form.currency = tenant.currency ?? 'USD'
   }
@@ -380,7 +377,7 @@
 
 <style scoped>
   .form-section {
-    padding: 16px 20px;
+    padding: 16px 0px;
   }
   .form-section-label {
     font-size: 0.68rem;

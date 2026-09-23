@@ -1,15 +1,15 @@
 <template>
-  <v-card rounded="xl" border elevation="0" class="mb-4">
+  <v-card v-if="!compact" rounded="xl" border elevation="0" class="mb-4">
     <v-card-text class="pa-4">
       <div class="section-label mb-3">
         <v-icon icon="mdi-image-outline" size="12" class="mr-1" />
-        {{$t('products.cardTitle.productImage')}}
+        {{ title || $t('products.cardTitle.productImage') }}
       </div>
 
-      <!-- Drop / click zone -->
       <div
         class="image-upload-area mx-auto"
         :class="{ dragging: isDragging }"
+        @click="triggerFileInput"
         @dragover.prevent="isDragging = true"
         @dragleave="isDragging = false"
         @drop.prevent="handleDrop"
@@ -43,14 +43,13 @@
             class="mb-2"
           />
           <div class="text-body-2 text-grey font-weight-medium">
-            {{ $t('products.image.dragHint') }}
+            {{ dragHint || $t('products.image.dragHint') }}
           </div>
           <div class="text-caption text-grey-lighten-1 mt-1">
-            {{ $t('products.image.formatHint') }}
+            {{ formatHint || $t('products.image.formatHint') }}
           </div>
         </template>
 
-        <!-- Regular file picker -->
         <input
           ref="fileInputRef"
           type="file"
@@ -58,7 +57,6 @@
           class="d-none"
           @change="handleFileChange"
         />
-        <!-- Camera capture -->
         <input
           ref="cameraInputRef"
           type="file"
@@ -97,6 +95,62 @@
       </div>
     </v-card-text>
   </v-card>
+
+  <!-- Compact — a small clickable square + inline text label, for use
+       inside an already-bordered form (e.g. a settings panel) rather than
+       as its own big standalone card. -->
+  <div v-else class="d-flex align-center ga-3 mb-4">
+    <div
+      class="image-upload-area image-upload-area--compact"
+      :class="{ dragging: isDragging }"
+      @click="triggerFileInput"
+      @dragover.prevent="isDragging = true"
+      @dragleave="isDragging = false"
+      @drop.prevent="handleDrop"
+    >
+      <img v-if="imagePreview" :src="imagePreview" class="image-preview" />
+      <v-icon v-else icon="mdi-image-plus-outline" size="20" color="grey-lighten-1" />
+
+      <input
+        ref="fileInputRef"
+        type="file"
+        accept="image/*"
+        class="d-none"
+        @change="handleFileChange"
+      />
+    </div>
+    <div>
+      <div class="text-body-2 font-weight-medium">
+        {{ title || $t('products.cardTitle.productImage') }}
+      </div>
+      <div class="text-caption text-medium-emphasis mb-1">
+        {{ formatHint || $t('products.image.formatHint') }}
+      </div>
+      <div class="d-flex ga-2">
+        <v-btn
+          variant="text"
+          color="primary"
+          size="small"
+          
+          class="text-none px-1"
+          @click="triggerFileInput"
+        >
+          {{ $t('btn.upload') }}
+        </v-btn>
+        <v-btn
+          v-if="imagePreview"
+          variant="text"
+          color="error"
+          size="small"
+          
+          class="text-none px-1"
+          @click="removeImage"
+        >
+          {{ $t('btn.remove') }}
+        </v-btn>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -110,7 +164,16 @@
   defineProps({
     imageFile: { default: null },
     imagePreview: { type: String, default: null },
-    imageUrl: { type: String, default: null }
+    imageUrl: { type: String, default: null },
+    // Override the default product-image copy — lets this component be
+    // reused for any single-image upload (e.g. a tenant logo), not just
+    // products.
+    title: { type: String, default: null },
+    dragHint: { type: String, default: null },
+    formatHint: { type: String, default: null },
+    // Small clickable square + inline label instead of the big standalone
+    // drop-zone card — for use inside an already-bordered form section.
+    compact: { type: Boolean, default: false }
   })
 
   const emit = defineEmits([
@@ -215,6 +278,12 @@
   .image-upload-area.dragging {
     border-color: rgb(var(--v-theme-primary));
     background: rgba(var(--v-theme-primary), 0.06);
+  }
+  .image-upload-area--compact {
+    max-width: 64px;
+    min-width: 64px;
+    border-radius: 12px;
+    flex-shrink: 0;
   }
   .image-preview {
     width: 100%;

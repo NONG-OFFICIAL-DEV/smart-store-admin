@@ -144,7 +144,7 @@
 
     <AppDialog
       v-model="detailDialog"
-      :title="detailOrder?.order_number"
+      :title="detailOrder?.order_number ?? ''"
       :max-width="440"
       :loading="detailLoading"
     >

@@ -23,11 +23,33 @@ class UpdateTenantProfileRequest extends FormRequest
         return true;
     }
 
+    /**
+     * The Company Info form submits multipart/form-data whenever a new logo
+     * file is attached (needed for the file upload itself) — but
+     * `pos_settings` is a nested object, which FormData can't carry as a
+     * real array, so the frontend JSON-encodes it into a single string
+     * field in that case. Decode it back to an array here so `rules()`
+     * validates the same shape either way (plain JSON PUT vs multipart).
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('pos_settings'))) {
+            $decoded = json_decode($this->input('pos_settings'), true);
+            if (is_array($decoded)) {
+                $this->merge(['pos_settings' => $decoded]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:150',
             'logo_url' => 'nullable|url|max:500',
+            // A newly-picked file, if any — takes precedence over logo_url
+            // in the controller (see updateProfile()). Same constraints as
+            // the product image upload this UI reuses.
+            'logo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
             'primary_color' => 'nullable|string|max:7',
             'currency' => 'nullable|string|size:3',
             // Which POS controls actually show on the POS screen — optional

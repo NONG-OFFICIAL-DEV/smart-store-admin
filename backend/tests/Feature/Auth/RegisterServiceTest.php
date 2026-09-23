@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Branch;
 use App\Models\BusinessType;
 use App\Models\Plan;
 use App\Models\PlanBillingCycle;
@@ -66,6 +67,11 @@ class RegisterServiceTest extends TestCase
         $this->assertArrayHasKey('token', $result);
         $this->assertArrayHasKey('refresh_token', $result);
         $this->assertSame(1, RefreshToken::where('user_id', $owner->id)->whereNull('revoked_at')->count());
+
+        // A self-registered owner must be able to open POS immediately —
+        // with zero branches, POS has nothing to scope products/orders to
+        // and dead-ends on a "select a branch" screen forever.
+        $this->assertTrue(Branch::where('tenant_id', $tenant->id)->exists());
     }
 
     public function test_the_owner_password_is_not_flagged_for_a_forced_change(): void

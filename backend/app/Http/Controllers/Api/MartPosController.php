@@ -290,10 +290,24 @@ class MartPosController extends Controller
 
         $branch = Branch::findOrFail($request->branch_id);
 
-        $products = Product::with(['activeUnits', 'category:id,name,is_lid_exchange'])
-
+        // branch_id only resolves the tenant above — this is the actual
+        // per-branch scoping: branch_product_overrides can hide a product
+        // at this branch (is_available=false) or re-price it
+        // (override_price), same table Order::createFromPos() already
+        // reads via Product::getPriceForBranch() at checkout. Eager-loaded
+        // (not getPriceForBranch() per row) to avoid an N+1 over up to
+        // 10000 products.
+        $products = Product::with([
+            'activeUnits',
+            'category:id,name,is_lid_exchange',
+            'branchOverrides' => fn($q) => $q->where('branch_id', $branch->id),
+        ])
             ->where('tenant_id', $branch->tenant_id)
             ->where('is_available', true)
+            ->whereDoesntHave(
+                'branchOverrides',
+                fn($q) => $q->where('branch_id', $branch->id)->where('is_available', false)
+            )
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
             ->when(
                 $request->search,
@@ -309,6 +323,15 @@ class MartPosController extends Controller
             ->orderBy('sort_order')
             ->paginate(10000);
 
+        $products->getCollection()->transform(function ($product) {
+            $override = $product->branchOverrides->first();
+            if ($override?->override_price !== null) {
+                $product->selling_price = (float) $override->override_price;
+            }
+            unset($product->branchOverrides);
+            return $product;
+        });
+
         return response()->json(['success' => true, 'data' => $products]);
     }
 
@@ -322,7 +345,11 @@ class MartPosController extends Controller
 
         $categories = Category::whereHas('products', function ($q) use ($branch) {
             $q->where('tenant_id', $branch->tenant_id)
-                ->where('is_available', true);
+                ->where('is_available', true)
+                ->whereDoesntHave(
+                    'branchOverrides',
+                    fn($o) => $o->where('branch_id', $branch->id)->where('is_available', false)
+                );
         })
             ->where('is_active', true)
             ->orderBy('sort_order')

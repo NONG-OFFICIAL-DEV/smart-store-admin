@@ -87,6 +87,68 @@ class TenantServiceTest extends TestCase
         $this->assertTrue(Role::where('tenant_id', $tenant->id)->where('is_system', true)->exists());
     }
 
+    /**
+     * A tenant with zero branches has nothing for POS to sell into — this is
+     * the fix for "POS errors when a newly registered tenant has no branch
+     * yet". create() must always leave the tenant with at least one usable
+     * branch, defaulting to the business type's HQ branch type when one
+     * exists.
+     */
+    public function test_create_provisions_a_default_branch(): void
+    {
+        $this->seedFreePlan();
+        $service = $this->app->make(TenantService::class);
+        $businessType = \App\Models\BusinessType::create(['code' => 'mart', 'name' => 'Mart']);
+        $hqBranchType = \App\Models\BranchType::create([
+            'business_type_id' => $businessType->id,
+            'code' => 'hq',
+            'name' => 'Main Store',
+            'is_hq' => true,
+        ]);
+        \App\Models\BranchType::create([
+            'business_type_id' => $businessType->id,
+            'code' => 'kiosk',
+            'name' => 'Kiosk',
+            'is_hq' => false,
+        ]);
+
+        $result = $service->create([
+            'owner_first_name' => 'Sok',
+            'owner_last_name' => 'Dara',
+            'owner_email' => 'sok@example.test',
+            'owner_password' => 'SuperSecret123!',
+            'name' => 'Sok Shop',
+            'business_type_id' => $businessType->id,
+        ], null);
+
+        $branch = Branch::where('tenant_id', $result['tenant_id'])->first();
+
+        $this->assertNotNull($branch, 'A default branch should be created for a new tenant');
+        $this->assertSame('Main Branch', $branch->name);
+        $this->assertSame($hqBranchType->id, $branch->branch_type_id);
+    }
+
+    public function test_create_provisions_a_default_branch_even_with_no_hq_branch_type(): void
+    {
+        $this->seedFreePlan();
+        $service = $this->app->make(TenantService::class);
+        $businessType = \App\Models\BusinessType::create(['code' => 'coffee', 'name' => 'Coffee']);
+
+        $result = $service->create([
+            'owner_first_name' => 'Lina',
+            'owner_last_name' => 'Chan',
+            'owner_email' => 'lina@example.test',
+            'owner_password' => 'SuperSecret123!',
+            'name' => 'Lina Coffee',
+            'business_type_id' => $businessType->id,
+        ], null);
+
+        $branch = Branch::where('tenant_id', $result['tenant_id'])->first();
+
+        $this->assertNotNull($branch);
+        $this->assertNull($branch->branch_type_id);
+    }
+
     public function test_create_assigns_the_free_plan_by_default(): void
     {
         $this->seedFreePlan();

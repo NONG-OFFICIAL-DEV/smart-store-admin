@@ -6,7 +6,7 @@
     :title="t('preferences.title')"
   >
         <!-- Language -->
-        <div class="px-5 py-4">
+        <div class="px-0 py-4">
           <div class="d-flex align-center gap-2 mb-3">
             <v-icon size="16" color="primary">mdi-translate</v-icon>
             <span class="section-label">{{ t('preferences.language') }}</span>
@@ -34,7 +34,7 @@
         <v-divider />
 
         <!-- Theme -->
-        <div class="px-5 py-4">
+        <div class="px-0 py-4">
           <div class="d-flex align-center gap-2 mb-3">
             <v-icon size="16" color="primary">mdi-palette-outline</v-icon>
             <span class="section-label">{{ t('preferences.theme') }}</span>
@@ -62,7 +62,7 @@
         <v-divider />
 
         <!-- Density -->
-        <div class="px-5 py-4">
+        <div class="px-0 py-4">
           <div class="d-flex align-center gap-2 mb-3">
             <v-icon size="16" color="primary">mdi-view-compact-outline</v-icon>
             <span class="section-label">{{ t('preferences.density') }}</span>
