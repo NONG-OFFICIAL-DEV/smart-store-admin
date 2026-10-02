@@ -236,6 +236,10 @@
   }
 
   /* ── Active item (sidebar + flyout share this) ──────────────────────────── */
+  :deep(.v-list-item) {
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
   .active-item {
     background: rgba(var(--v-theme-primary), 0.1) !important;
     color: rgb(var(--v-theme-primary)) !important;

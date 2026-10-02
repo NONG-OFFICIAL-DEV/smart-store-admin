@@ -460,12 +460,12 @@
 
   /* ── Animation ────────────────────────────────────────────────────────── */
   .fade-in {
-    animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: fadeIn 0.18s ease-out;
   }
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(4px);
     }
     to {
       opacity: 1;

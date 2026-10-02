@@ -97,8 +97,10 @@
   import { computed } from 'vue'
   import { AppDialog } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const { formatShortDate: fmtDate } = useDate()
+  const { format: fmt } = useCurrency()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -120,11 +122,6 @@
       cancelled: 'error'
     })[s] ?? 'grey'
 
-  const fmt = v =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(v ?? 0)
 </script>
 
 <style scoped>

@@ -164,7 +164,7 @@
     <!-- ── Detail Dialog ──────────────────────────────────────────────────── -->
     <PurchaseOrderDetailDialog
       v-model="detailDialog"
-      :purchase-order-id="selectedPO?.id"
+      :purchase-order="selectedPO"
       @receive="openReceiveFromDetail"
     />
 

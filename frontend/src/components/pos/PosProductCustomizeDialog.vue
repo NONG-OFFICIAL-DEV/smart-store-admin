@@ -171,8 +171,10 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const { xs } = useDisplay()
+  const { format: formatMoney } = useCurrency()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -300,10 +302,6 @@
       modifier_option_ids: modifierOptionIds
     })
     emit('update:modelValue', false)
-  }
-
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
   }
 </script>
 

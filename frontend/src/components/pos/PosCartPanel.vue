@@ -226,6 +226,9 @@
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
   import PosNumpad from './PosNumpad.vue'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+
+  const { format: formatMoney, currencySymbol } = useCurrency()
 
   const props = defineProps({
     items: { type: Array, default: () => [] },
@@ -264,7 +267,9 @@
   const cashBuffer = ref('')
 
   const numpadDisplay = computed(() =>
-    cashBuffer.value !== '' ? `$${cashBuffer.value}` : formatMoney(cashTendered.value ?? props.subtotal)
+    cashBuffer.value !== ''
+      ? `${currencySymbol()}${cashBuffer.value}`
+      : formatMoney(cashTendered.value ?? props.subtotal)
   )
 
   function openNumpad() {
@@ -307,13 +312,6 @@
       payment_method: paymentMethod.value,
       cash_tendered: paymentMethod.value === 'cash' ? (cashTendered.value ?? props.subtotal) : undefined
     })
-  }
-
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value ?? 0)
   }
 
   defineExpose({ submitCheckout: onCheckout })

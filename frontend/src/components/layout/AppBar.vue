@@ -68,7 +68,6 @@
           v-model="userMenu"
           rounded="xl"
           min-width="230"
-          max-width="80"
           offset="8"
           :close-on-content-click="false"
         >

@@ -153,8 +153,10 @@
 <script setup>
   import { ref } from 'vue'
   import { useDisplay } from 'vuetify'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const { mdAndDown: touch } = useDisplay()
+  const { format: formatMoney } = useCurrency()
 
   const props = defineProps({
     products: { type: Array, default: () => [] },
@@ -190,12 +192,6 @@
     }
   }
 
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value ?? 0)
-  }
 
   function stockColor(status) {
     return { in_stock: 'success', low_stock: 'warning', out_of_stock: 'error' }[status]

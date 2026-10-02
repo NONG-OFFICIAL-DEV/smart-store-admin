@@ -11,7 +11,7 @@
 
   const { t } = useI18n()
   const { formatShortDate: formatDate } = useDate()
-  const { confirm } = useAppUtils()
+  const { confirm, notif } = useAppUtils()
   const promotionStore = usePromotionStore()
   const couponStore = useCouponStore()
 
@@ -101,25 +101,26 @@
       }
       promoDialog.value = false
     } catch (e) {
-      console.error('Failed to save promotion:', e)
+      notif(e?.response?.data?.message || t('messages.error_occurred'), { type: 'error' })
     }
   }
 
-  const deletePromo = async id => {
-    try {
-      confirm({
-        title: 'Delete Promotion',
-        message: `Are you sure you want to delete this"?`,
-        options: { type: 'warning', width: 400 },
-        agree: async () => {
+  const deletePromo = id => {
+    confirm({
+      title: t('promotions.delete_title'),
+      message: t('promotions.delete_message'),
+      options: { type: 'warning', width: 400 },
+      agree: async () => {
+        try {
           await promotionStore.deletePromotion(id)
           await promotionStore.fetchPromotions()
-        },
-        cancel: () => {}
-      })
-    } catch (e) {
-      console.error('Failed to delete promotion:', e)
-    }
+          notif(t('messages.deleted_success'), { type: 'success' })
+        } catch (e) {
+          notif(e?.response?.data?.message || t('messages.error_occurred'), { type: 'error' })
+        }
+      },
+      cancel: () => {}
+    })
   }
 
   // ── Coupon Dialog ─────────────────────────────────────────────────────────────
@@ -142,25 +143,26 @@
       couponDialog.value = false
       couponTableRef.value?.refresh()
     } catch (e) {
-      console.error('Failed to save coupon:', e)
+      notif(e?.response?.data?.message || t('messages.error_occurred'), { type: 'error' })
     }
   }
 
-  const deleteCoupon = async id => {
-    try {
-      confirm({
-        title: 'Delete Coupon',
-        message: `Are you sure you want to delete this"?`,
-        options: { type: 'warning', width: 400 },
-        agree: async () => {
+  const deleteCoupon = id => {
+    confirm({
+      title: t('coupons.delete_title'),
+      message: t('coupons.delete_message'),
+      options: { type: 'warning', width: 400 },
+      agree: async () => {
+        try {
           await couponStore.deleteCoupon(id)
           couponTableRef.value?.refresh()
-        },
-        cancel: () => {}
-      })
-    } catch (e) {
-      console.error('Failed to delete coupon:', e)
-    }
+          notif(t('messages.deleted_success'), { type: 'success' })
+        } catch (e) {
+          notif(e?.response?.data?.message || t('messages.error_occurred'), { type: 'error' })
+        }
+      },
+      cancel: () => {}
+    })
   }
 
   // ── Coupon Table (AppTable-driven) ──────────────────────────────────────────
@@ -425,7 +427,7 @@
                     size="x-small"
                     label
                   >
-                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                    {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
                   </v-chip>
                 </template>
 
@@ -533,7 +535,7 @@
                     size="x-small"
                     label
                   >
-                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                    {{ item.is_active ? $t('status.active') : $t('status.inactive') }}
                   </v-chip>
                 </template>
 

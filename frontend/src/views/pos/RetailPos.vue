@@ -169,8 +169,10 @@
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const { t } = useI18n()
+  const { format: formatMoney } = useCurrency()
   const { xs, sm, mdAndDown: touch } = useDisplay()
   // Tablet portrait (~600-960px) gets a narrower cart column so the
   // product grid still has room to breathe; landscape tablet/desktop keep
@@ -302,10 +304,6 @@
       unit_label: option.label,
       unit_price: option.price
     })
-  }
-
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
   }
 
   async function submitOrder({ payment_method, cash_tendered }) {

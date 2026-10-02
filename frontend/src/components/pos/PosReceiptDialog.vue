@@ -116,6 +116,9 @@
 <script setup>
   import { watch } from 'vue'
   import { AppDialog } from '@nong-official-dev/core'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+
+  const { format: formatMoney } = useCurrency()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -136,13 +139,6 @@
 
   function print() {
     window.print()
-  }
-
-  function formatMoney(value) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value ?? 0)
   }
 </script>
 

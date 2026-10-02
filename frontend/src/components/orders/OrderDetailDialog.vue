@@ -6,6 +6,7 @@
     :title="order?.order_number ?? '...'"
   >
     <template v-if="order">
+      <div class="order-detail-printable">
           <div class="d-flex justify-end mb-2">
             <v-chip
               size="small"
@@ -144,6 +145,7 @@
               </span>
             </div>
           </div>
+      </div>
         </template>
 
     <template #actions="{ loading }">
@@ -228,5 +230,24 @@
   }
   .gap-3 {
     gap: 12px;
+  }
+</style>
+
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .order-detail-printable,
+    .order-detail-printable * {
+      visibility: visible;
+    }
+    .order-detail-printable {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 16px;
+    }
   }
 </style>
