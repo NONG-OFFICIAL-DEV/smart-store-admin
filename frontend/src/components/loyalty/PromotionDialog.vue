@@ -548,7 +548,7 @@
       >
         {{ $t('btn.back') }}
       </v-btn>
-      <v-btn v-else variant="text" :disabled="loading" @click="close">
+      <v-btn v-else variant="tonal" :disabled="loading" @click="close">
         {{ $t('btn.cancel') }}
       </v-btn>
 

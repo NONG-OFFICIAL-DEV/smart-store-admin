@@ -145,7 +145,7 @@
         {{ $t('btn.refresh') }}
       </v-btn>
       <v-spacer />
-      <v-btn variant="outlined" rounded="lg" @click="close">{{ $t('btn.close') }}</v-btn>
+      <v-btn variant="tonal" rounded="lg" @click="close">{{ $t('btn.close') }}</v-btn>
       <v-btn
         color="primary"
         variant="flat"

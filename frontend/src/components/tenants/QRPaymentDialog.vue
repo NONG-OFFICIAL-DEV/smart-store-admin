@@ -148,7 +148,7 @@
       <v-btn variant="flat" :color="method === 'aba' ? 'blue-darken-3' : 'red-darken-3'" size="small" prepend-icon="mdi-check-circle-outline" @click="$emit('confirm')">
         {{ $t('tenants.qr_payment.paid_confirm') }}
       </v-btn>
-      <v-btn variant="text" size="small" @click="$emit('close')">{{ $t('btn.cancel') }}</v-btn>
+      <v-btn variant="tonal" size="small" @click="$emit('close')">{{ $t('btn.cancel') }}</v-btn>
     </template>
   </AppDialog>
 </template>

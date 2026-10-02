@@ -7,11 +7,6 @@
         md="6"
         class="left-panel d-none d-md-flex flex-column pa-12 text-white"
       >
-        <!-- Decorative orbs -->
-        <div class="orb orb-1" />
-        <div class="orb orb-2" />
-        <div class="orb orb-3" />
-
         <!-- Brand -->
         <div class="brand-mark d-flex align-center mb-auto">
           <div class="brand-icon-wrapper mr-3">
@@ -170,65 +165,11 @@
     );
   }
 
-  /* Mesh gradient overlay */
-  .left-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(
-        ellipse at 20% 50%,
-        rgba(99, 102, 241, 0.35) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse at 80% 10%,
-        rgba(59, 130, 246, 0.25) 0%,
-        transparent 55%
-      ),
-      radial-gradient(
-        ellipse at 60% 90%,
-        rgba(139, 92, 246, 0.2) 0%,
-        transparent 50%
-      );
-    pointer-events: none;
-  }
-
-  /* Floating orbs */
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-    filter: blur(60px);
-  }
-  .orb-1 {
-    width: 340px;
-    height: 340px;
-    top: -100px;
-    right: -80px;
-    background: rgba(99, 102, 241, 0.3);
-  }
-  .orb-2 {
-    width: 240px;
-    height: 240px;
-    bottom: 40px;
-    left: -60px;
-    background: rgba(59, 130, 246, 0.25);
-  }
-  .orb-3 {
-    width: 180px;
-    height: 180px;
-    top: 45%;
-    left: 55%;
-    background: rgba(139, 92, 246, 0.2);
-  }
-
   .brand-icon-wrapper {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
     padding: 9px;
     border-radius: 11px;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     display: grid;
     place-items: center;
   }
@@ -264,12 +205,12 @@
 
   /* ── Animation ────────────────────────────────────────────────────────── */
   .fade-in {
-    animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: fadeIn 0.18s ease-out;
   }
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(4px);
     }
     to {
       opacity: 1;

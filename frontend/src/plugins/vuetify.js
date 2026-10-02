@@ -74,7 +74,13 @@ const vuetify = createVuetify({
       color: 'primary'
     },
     VDataTable: { class: 'rounded-lg' },
-    VDataTableServer: { class: 'rounded-lg' }
+    VDataTableServer: { class: 'rounded-lg' },
+    // Calm, flat surface as the app-wide default — most screens already
+    // hand-wrote `rounded="lg" border elevation="0"` individually; this
+    // makes that the baseline so new/unstyled cards match without it, and
+    // any card that deliberately wants a shadow/different radius (menus,
+    // popovers) still overrides these per-instance as before.
+    VCard: { rounded: 'lg', border: true, elevation: 0 }
   },
   theme: {
     themes: {

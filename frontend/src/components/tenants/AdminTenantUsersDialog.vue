@@ -62,7 +62,7 @@
     </v-table>
 
     <template #actions="{ loading }">
-      <v-btn variant="text" :disabled="loading" @click="emit('update:modelValue', false)">{{ t('btn.close') }}</v-btn>
+      <v-btn variant="tonal" :disabled="loading" @click="emit('update:modelValue', false)">{{ t('btn.close') }}</v-btn>
     </template>
   </AppDialog>
 

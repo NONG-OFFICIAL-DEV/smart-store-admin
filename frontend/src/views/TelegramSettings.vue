@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container fluid class="pa-0">
     <custom-title icon="mdi-send-outline">
       {{ $t('telegram_settings.title') }}
@@ -9,7 +9,7 @@
 
     <v-row>
       <v-col cols="12" md="7">
-        <v-card variant="flat" class="rounded-xl">
+        <v-card rounded="lg" border elevation="0">
           <v-card-text class="pa-6">
             <v-form @submit.prevent="save">
               <v-text-field
@@ -60,7 +60,7 @@
       </v-col>
 
       <v-col cols="12" md="5">
-        <v-card variant="flat" class="rounded-xl">
+        <v-card rounded="lg" border elevation="0">
           <v-card-text class="pa-6">
             <div class="text-subtitle-2 font-weight-bold mb-3">
               {{ $t('telegram_settings.how_to_title') }}

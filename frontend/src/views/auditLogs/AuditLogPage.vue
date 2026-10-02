@@ -43,7 +43,7 @@
           >
             {{ $t('audit_log.generate') }}
           </v-btn>
-          <v-btn variant="outlined" @click="closeExportForm">
+          <v-btn variant="tonal" @click="closeExportForm">
             {{ $t('btn.cancel') }}
           </v-btn>
         </v-col>

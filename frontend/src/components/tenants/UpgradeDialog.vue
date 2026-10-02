@@ -280,7 +280,7 @@
         </v-tabs-window>
 
     <template #actions="{ loading }">
-      <v-btn variant="text" rounded="lg" size="small" :disabled="loading" @click="model = false">
+      <v-btn variant="tonal" rounded="lg" size="small" :disabled="loading" @click="model = false">
         {{ t('btn.cancel') }}
       </v-btn>
       <v-spacer />

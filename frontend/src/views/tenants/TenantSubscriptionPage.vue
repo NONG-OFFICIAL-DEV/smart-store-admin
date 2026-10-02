@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container fluid class="pa-0">
     <AppPageHeader
       :title="
@@ -20,15 +20,15 @@
     </div>
 
     <template v-else>
-      <!-- ── Current plan overview ── -->
-      <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
+      <!--  Current plan overview  -->
+      <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
         <div class="d-flex align-center justify-space-between">
           <div>
             <div class="text-h6">
               {{ plan?.name ?? $t('subscription.no_active_plan') }}
             </div>
             <div v-if="subscription" class="text-body-2 text-medium-emphasis">
-              ${{ cyclePrice }} / {{ activeBillingCycle?.label ?? '—' }}
+              ${{ cyclePrice }} / {{ activeBillingCycle?.label ?? 'â€”' }}
             </div>
           </div>
           <v-chip
@@ -50,7 +50,7 @@
             {{
               subscription.current_period_end
                 ? formatDate(subscription.current_period_end)
-                : '—'
+                : 'â€”'
             }}
           </span>
           <span v-if="subscription.trial_ends_at">
@@ -59,7 +59,7 @@
           </span>
         </div>
 
-        <!-- ── Lifecycle actions ── -->
+        <!--  Lifecycle actions  -->
         <div v-if="subscription" class="d-flex flex-wrap ga-2 mt-4">
           <v-btn
             v-if="subscription.status === 'active'"
@@ -109,10 +109,10 @@
       </v-card>
 
       <v-row dense>
-        <!-- ── LEFT: actions ── -->
+        <!--  LEFT: actions  -->
         <v-col cols="12" md="5">
           <!-- Change / assign plan -->
-          <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
+          <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
             <div class="text-subtitle-1 font-weight-bold mb-3">
               {{
                 subscription
@@ -153,7 +153,7 @@
           </v-card>
 
           <!-- Record payment -->
-          <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
+          <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
             <div class="text-subtitle-1 font-weight-bold mb-3">
               {{ $t('subscription.payment_dialog.title') }}
             </div>
@@ -204,16 +204,16 @@
           </v-card>
         </v-col>
 
-        <!-- ── RIGHT: history ── -->
+        <!--  RIGHT: history  -->
         <v-col cols="12" md="7">
-          <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
+          <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
             <div class="text-subtitle-1 font-weight-bold mb-3">
               {{ $t('subscription.history.tabs.plan_history') }}
             </div>
             <PlanHistoryTable :history="planHistory" />
           </v-card>
 
-          <v-card rounded="xl" border elevation="0" class="pa-5">
+          <v-card rounded="lg" border elevation="0" class="pa-5">
             <div class="text-subtitle-1 font-weight-bold mb-3">
               {{ $t('subscription.history.tabs.payments') }}
             </div>
@@ -233,9 +233,9 @@
                   <td>{{ invoice.invoice_number }}</td>
                   <td>{{ invoice.currency }} {{ invoice.amount_usd }}</td>
                   <td>
-                    {{ invoice.paid_at ? formatDate(invoice.paid_at) : '—' }}
+                    {{ invoice.paid_at ? formatDate(invoice.paid_at) : 'â€”' }}
                   </td>
-                  <td>{{ invoice.note ?? '—' }}</td>
+                  <td>{{ invoice.note ?? 'â€”' }}</td>
                 </tr>
                 <tr v-if="!invoices.length">
                   <td colspan="4" class="text-center text-medium-emphasis py-3">
@@ -252,11 +252,11 @@
 </template>
 
 <script setup>
-  // Consolidated "manage this tenant's subscription" page — plan status,
+  // Consolidated "manage this tenant's subscription" page â€” plan status,
   // change-plan, record-payment, lifecycle actions (renew/pause/cancel),
   // and both history tables, all in one place instead of the old 3-page
   // split (Subscriptions.vue, SubscriptionHistory.vue, TenantView.vue's own
-  // AssignPlanDialog). A dedicated page rather than a dialog — this is a
+  // AssignPlanDialog). A dedicated page rather than a dialog â€” this is a
   // lot of content to read/act on comfortably in a modal.
   import { ref, computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
@@ -317,7 +317,7 @@
       cancelled: 'error',
       suspended: 'warning'
     })[s] ?? 'default'
-  const statusLabel = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—')
+  const statusLabel = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 'â€”')
 
   async function load() {
     loading.value = true
@@ -387,7 +387,7 @@
     )
 
   // Active/trial subscriptions can't be hard-deleted (invoices/history are
-  // linked to them) — cancel instead; only a cancelled row can be purged.
+  // linked to them) â€” cancel instead; only a cancelled row can be purged.
   function deleteOrCancel() {
     const isLive = ['active', 'trial'].includes(subscription.value.status)
 

@@ -43,7 +43,7 @@
 
 
     <!-- ── Identity banner ── -->
-    <v-card rounded="xl" border elevation="0" class="mb-4 overflow-hidden">
+    <v-card rounded="lg" border elevation="0" class="mb-4 overflow-hidden">
       <div
         class="pa-5"
         :style="{
@@ -119,7 +119,7 @@
     <v-row>
       <!-- ── LEFT: tabs ── -->
       <v-col cols="12" md="8">
-        <v-card rounded="xl" border elevation="0">
+        <v-card rounded="lg" border elevation="0">
           <v-tabs v-model="tab" color="primary" density="comfortable">
             <v-tab value="overview">
               <v-icon size="15" class="mr-1">mdi-information-outline</v-icon>
@@ -339,7 +339,7 @@
         <!-- Business type -->
         <v-card
           v-if="tenant.business_type"
-          rounded="xl"
+          rounded="lg"
           border
           elevation="0"
           class="pa-5 mb-4"
@@ -367,7 +367,7 @@
         </v-card>
 
         <!-- Subscription summary -->
-        <v-card rounded="xl" border elevation="0" class="pa-5 mb-4">
+        <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
           <div class="section-label mb-3">{{ $t('tenant_details.tabs.subscription') }}</div>
 
           <div v-if="!subscription" class="text-center py-4">
@@ -439,7 +439,7 @@
         </v-card>
 
         <!-- Quick actions -->
-        <v-card rounded="xl" border elevation="0" class="pa-5">
+        <v-card rounded="lg" border elevation="0" class="pa-5">
           <div class="section-label mb-3">{{ $t('dashboard.quick_actions') }}</div>
           <v-btn
             block
