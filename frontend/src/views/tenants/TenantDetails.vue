@@ -43,22 +43,16 @@
 
 
     <!-- ── Identity banner ── -->
-    <v-card rounded="lg" border elevation="0" class="mb-4 overflow-hidden">
-      <div
-        class="pa-5"
-        :style="{
-          background: `linear-gradient(135deg, ${tenant.primary_color ?? '#6366f1'}14 0%, ${tenant.primary_color ?? '#6366f1'}06 100%)`,
-          borderBottom: `2px solid ${tenant.primary_color ?? '#6366f1'}22`
-        }"
-      >
+    <v-card
+      rounded="lg"
+      border
+      elevation="0"
+      class="mb-4 pa-5"
+      style="width: fit-content; max-width: 100%"
+    >
+      <div class="d-flex align-center flex-wrap ga-6">
         <div class="d-flex align-center">
-          <v-avatar
-            size="60"
-            rounded="xl"
-            :color="tenant.primary_color ?? 'primary'"
-            class="me-4"
-            style="box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12)"
-          >
+          <v-avatar size="60" rounded="xl" color="primary" variant="tonal" class="me-4">
             <span v-if="!tenant.logo_url" class="text-h5">
               {{
                 tenant.business_type?.icon ?? tenant.name?.[0]?.toUpperCase()
@@ -67,7 +61,7 @@
             <v-img v-else :src="tenant.logo_url" cover />
           </v-avatar>
 
-          <div class="flex-grow-1">
+          <div>
             <div class="text-h6 font-weight-bold">{{ tenant.name }}</div>
             <div class="text-body-2 text-medium-emphasis">
               {{ tenant.slug }}.app.com
@@ -88,29 +82,31 @@
               </v-chip>
             </div>
           </div>
+        </div>
 
-          <!-- Quick stats inline -->
-          <div class="d-none d-sm-flex ga-3">
-            <div class="text-center">
-              <div class="text-body-2 font-weight-bold">
-                {{ tenant.branches?.length ?? 0 }}
-              </div>
-              <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.branches') }}</div>
+        <v-divider vertical class="d-none d-sm-block" style="align-self: stretch" />
+
+        <!-- Quick stats inline -->
+        <div class="d-none d-sm-flex ga-3">
+          <div class="text-center">
+            <div class="text-body-2 font-weight-bold">
+              {{ tenant.branches?.length ?? 0 }}
             </div>
-            <v-divider vertical class="mx-1" />
-            <div class="text-center">
-              <div class="text-body-2 font-weight-bold">
-                {{ plan?.seats ?? '—' }}
-              </div>
-              <div class="text-caption text-medium-emphasis">{{ $t('tenant_details.seats_label') }}</div>
+            <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.branches') }}</div>
+          </div>
+          <v-divider vertical class="mx-1" />
+          <div class="text-center">
+            <div class="text-body-2 font-weight-bold">
+              {{ plan?.seats ?? '—' }}
             </div>
-            <v-divider vertical class="mx-1" />
-            <div class="text-center">
-              <div class="text-body-2 font-weight-bold">
-                {{ plan?.products_limit ?? '∞' }}
-              </div>
-              <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.products') }}</div>
+            <div class="text-caption text-medium-emphasis">{{ $t('tenant_details.seats_label') }}</div>
+          </div>
+          <v-divider vertical class="mx-1" />
+          <div class="text-center">
+            <div class="text-body-2 font-weight-bold">
+              {{ plan?.products_limit ?? '∞' }}
             </div>
+            <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.products') }}</div>
           </div>
         </div>
       </div>
@@ -144,115 +140,64 @@
             <!-- ══ OVERVIEW ══ -->
             <v-window-item value="overview">
               <div class="section-label mb-3">{{ $t('tenant_details.general') }}</div>
-              <v-row dense class="mb-4">
-                <v-col cols="12" sm="6">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_profile.identity.tenantId') }}</div>
-                    <div
-                      class="info-tile-value text-truncate"
-                      style="font-family: monospace; font-size: 12px"
-                    >
-                      {{ tenant.id }}
-                    </div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_create.field.slug') }}</div>
-                    <div class="info-tile-value">{{ tenant.slug }}.app.com</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_profile.businessDetails.businessType') }}</div>
-                    <div class="d-flex align-center ga-2 mt-1">
-                      <v-avatar
-                        size="28"
-                        rounded="lg"
-                        color="primary"
-                        variant="tonal"
-                      >
-                        <v-icon size="16">
-                          {{ tenant.business_type?.icon }}
-                        </v-icon>
-                      </v-avatar>
-                      <div>
-                        <div class="info-tile-value">
-                          {{ tenant.business_type?.name }}
-                        </div>
-                        <div class="text-caption text-medium-emphasis">
-                          {{ tenant.business_type?.code }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_create.field.currency') }}</div>
-                    <div class="info-tile-value">{{ tenant.currency }}</div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('tenant_create.field.brand_color') }}</div>
-                    <div class="d-flex align-center ga-2 mt-1">
-                      <span
-                        style="
-                          display: inline-block;
-                          width: 18px;
-                          height: 18px;
-                          border-radius: 5px;
-                          border: 1px solid rgba(0, 0, 0, 0.1);
-                        "
-                        :style="{
-                          background: tenant.primary_color ?? '#6366f1'
-                        }"
-                      />
-                      <div class="info-tile-value">
-                        {{ tenant.primary_color ?? '—' }}
-                      </div>
-                    </div>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <div class="info-tile pa-3">
-                    <div class="info-tile-label">{{ $t('common.created_at') }}</div>
-                    <div class="info-tile-value">
-                      {{ formatDate(tenant.created_at) }}
-                    </div>
-                  </div>
-                </v-col>
-              </v-row>
+              <div class="detail-grid mb-4">
+                <div class="detail-row border-b">
+                  <span class="detail-label">{{ $t('tenant_profile.identity.tenantId') }}</span>
+                  <span class="detail-value font-mono text-truncate">{{ tenant.id }}</span>
+                </div>
+                <div class="detail-row border-b">
+                  <span class="detail-label">{{ $t('tenant_create.field.slug') }}</span>
+                  <span class="detail-value">{{ tenant.slug }}.app.com</span>
+                </div>
+                <div class="detail-row border-b">
+                  <span class="detail-label">{{ $t('tenant_profile.businessDetails.businessType') }}</span>
+                  <span class="detail-value d-flex align-center ga-2">
+                    <v-avatar size="22" rounded="md" color="primary" variant="tonal">
+                      <v-icon size="12">{{ tenant.business_type?.icon }}</v-icon>
+                    </v-avatar>
+                    {{ tenant.business_type?.name }}
+                    <span class="text-caption text-medium-emphasis">({{ tenant.business_type?.code }})</span>
+                  </span>
+                </div>
+                <div class="detail-row border-b">
+                  <span class="detail-label">{{ $t('tenant_create.field.currency') }}</span>
+                  <span class="detail-value">{{ tenant.currency }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">{{ $t('tenant_create.field.brand_color') }}</span>
+                  <span class="detail-value d-flex align-center ga-2">
+                    <span
+                      class="color-swatch"
+                      :style="{ background: tenant.primary_color ?? '#6366f1' }"
+                    />
+                    {{ tenant.primary_color ?? '—' }}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">{{ $t('common.created_at') }}</span>
+                  <span class="detail-value">{{ formatDate(tenant.created_at) }}</span>
+                </div>
+              </div>
 
               <v-divider class="mb-4" />
               <div class="section-label mb-3">{{ $t('tenant_create.review.owner') }}</div>
 
-              <v-card rounded="lg" variant="outlined">
-                <v-list-item class="pa-4">
-                  <template #prepend>
-                    <v-avatar
-                      color="primary"
-                      variant="tonal"
-                      size="44"
-                      rounded="lg"
-                    >
-                      <span class="text-body-1 font-weight-medium">
-                        {{ ownerInitials }}
-                      </span>
-                    </v-avatar>
-                  </template>
-                  <v-list-item-title class="font-weight-medium">
+              <div class="d-flex align-center ga-3">
+                <v-avatar color="primary" variant="tonal" size="44" rounded="lg">
+                  <span class="text-body-1 font-weight-medium">
+                    {{ ownerInitials }}
+                  </span>
+                </v-avatar>
+                <div>
+                  <div class="font-weight-medium">
                     {{ tenant.owner?.first_name }} {{ tenant.owner?.last_name }}
-                  </v-list-item-title>
-                  <v-list-item-subtitle>
-                    <div>{{ tenant.owner?.email }}</div>
-                    <div v-if="tenant.owner?.phone" class="text-caption">
-                      {{ tenant.owner?.phone }}
-                    </div>
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </v-card>
+                  </div>
+                  <div class="text-body-2 text-medium-emphasis">{{ tenant.owner?.email }}</div>
+                  <div v-if="tenant.owner?.phone" class="text-caption text-medium-emphasis">
+                    {{ tenant.owner?.phone }}
+                  </div>
+                </div>
+              </div>
             </v-window-item>
 
             <!-- ══ BRANCHES ══ -->
@@ -279,7 +224,7 @@
                         <v-avatar
                           size="32"
                           rounded="md"
-                          :color="tenant.primary_color ?? 'primary'"
+                          color="primary"
                           variant="tonal"
                         >
                           <v-icon size="16">mdi-storefront-outline</v-icon>
@@ -336,36 +281,6 @@
 
       <!-- ── RIGHT: sidebar ── -->
       <v-col cols="12" md="4">
-        <!-- Business type -->
-        <v-card
-          v-if="tenant.business_type"
-          rounded="lg"
-          border
-          elevation="0"
-          class="pa-5 mb-4"
-        >
-          <div class="section-label mb-3">{{ $t('tenant_profile.businessDetails.businessType') }}</div>
-          <div class="d-flex align-center ga-3">
-            <v-avatar
-              size="44"
-              rounded="xl"
-              color="primary"
-              variant="tonal"
-              class="me-1"
-            >
-              <v-icon size="16">{{ tenant.business_type.icon }}</v-icon>
-            </v-avatar>
-            <div>
-              <div class="text-body-2 font-weight-medium">
-                {{ tenant.business_type.name }}
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                {{ tenant.business_type.code }}
-              </div>
-            </div>
-          </div>
-        </v-card>
-
         <!-- Subscription summary -->
         <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
           <div class="section-label mb-3">{{ $t('tenant_details.tabs.subscription') }}</div>
@@ -632,22 +547,52 @@
     color: rgb(var(--v-theme-primary));
   }
 
-  .info-tile {
-    background: rgba(var(--v-theme-surface-variant), 0.1);
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     border-radius: 10px;
-    border: 0.5px solid rgba(var(--v-border-color), 0.15);
-    height: 100%;
+    overflow: hidden;
   }
-  .info-tile-label {
-    font-size: 11px;
-    color: rgba(var(--v-theme-on-surface), 0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+  @media (min-width: 600px) {
+    .detail-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .detail-grid > .detail-row:nth-child(2n) {
+      border-left: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    }
   }
-  .info-tile-value {
+  .detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 16px;
+  }
+  .detail-row.border-b {
+    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+  .detail-label {
+    font-size: 13px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    flex-shrink: 0;
+  }
+  .detail-value {
     font-size: 14px;
     font-weight: 500;
     color: rgba(var(--v-theme-on-surface), 0.87);
+    text-align: right;
+    min-width: 0;
+  }
+  .font-mono {
+    font-family: monospace;
+    font-size: 12px;
+  }
+  .color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
   }
 </style>

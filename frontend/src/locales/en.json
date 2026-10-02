@@ -325,7 +325,7 @@
     "action_failed": "Something went wrong. Please try again."
   },
   "shortcuts": {
-    "title": "Keyboard Shortcuts",
+    "title": "Keyboard",
     "search": "Focus search",
     "checkout": "Checkout",
     "close": "Close dialog"
