@@ -207,8 +207,8 @@ class CategoryServiceTest extends TestCase
      */
     public function test_a_system_category_is_visible_only_to_tenants_of_the_matching_business_type(): void
     {
-        $restaurantType = \App\Models\BusinessType::create(['code' => 'RESTAURANT', 'name' => 'Restaurant']);
-        $martType = \App\Models\BusinessType::create(['code' => 'MART', 'name' => 'Mart']);
+        $restaurantType = \App\Models\BusinessType::firstOrCreate(['code' => 'RESTAURANT'], ['name' => 'Restaurant']);
+        $martType = \App\Models\BusinessType::firstOrCreate(['code' => 'MART'], ['name' => 'Mart']);
 
         $admin = User::create([
             'email' => 'admin3@example.test',

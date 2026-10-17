@@ -146,7 +146,7 @@ class BranchServiceTest extends TestCase
     public function test_detail_payload_includes_snake_case_business_type_matching_frontend_expectations(): void
     {
         [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
-        $businessType = BusinessType::create(['code' => 'RESTAURANT', 'name' => 'Restaurant']);
+        $businessType = BusinessType::firstOrCreate(['code' => 'RESTAURANT'], ['name' => 'Restaurant']);
         $tenantA->update(['business_type_id' => $businessType->id]);
 
         Auth::login($ownerA);

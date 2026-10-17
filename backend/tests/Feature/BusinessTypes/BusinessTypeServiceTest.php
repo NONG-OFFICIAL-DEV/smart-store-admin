@@ -23,11 +23,14 @@ class BusinessTypeServiceTest extends TestCase
 
     public function test_list_orders_by_sort_order(): void
     {
-        BusinessType::create(['code' => 'mart', 'name' => 'Mart', 'sort_order' => 2]);
-        BusinessType::create(['code' => 'coffee', 'name' => 'Coffee', 'sort_order' => 1]);
+        // Low sort_order values (0/-1) so these two sort before any
+        // platform-catalog business types seeded by migrations, keeping
+        // this assertion independent of how many other rows exist.
+        BusinessType::create(['code' => 'mart', 'name' => 'Mart', 'sort_order' => 0]);
+        BusinessType::create(['code' => 'coffee', 'name' => 'Coffee', 'sort_order' => -1]);
 
         $service = $this->app->make(BusinessTypeService::class);
-        $results = $service->list();
+        $results = $service->list()->whereIn('code', ['coffee', 'mart'])->values();
 
         $this->assertSame('coffee', $results->first()->code);
         $this->assertSame('mart', $results->last()->code);
