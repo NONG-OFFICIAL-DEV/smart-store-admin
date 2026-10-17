@@ -21,10 +21,10 @@ class DatabaseSeeder extends Seeder
             // TableSeeder::class,
             // Add other seeders here,
             // BusinessTypeSeeder::class,
-            FeatureSeeder::class,
-            // BranchTypeSeeder::class,
-            BranchTypeFeatureSeeder::class,
-            PermissionSeeder::class,
+            // FeatureSeeder::class,
+            BranchTypeSeeder::class,
+            // BranchTypeFeatureSeeder::class,
+            // PermissionSeeder::class,
         ]);
         // \App\Models\User::firstOrCreate(
         //     ['email' => 'adminstore@example.com'],
