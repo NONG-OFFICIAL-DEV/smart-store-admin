@@ -24,22 +24,6 @@
               v-model:image-url="form.image_url"
             />
 
-            <!-- ── Business Type ──────────────────────────────────────── -->
-            <v-card rounded="xl" border elevation="0" class="mb-4">
-              <v-card-text class="pa-4">
-                <div class="section-label mb-3">
-                  <v-icon icon="mdi-store-outline" size="12" class="mr-1" />
-                  {{ $t('products.cardTitle.businessType') }}
-                </div>
-
-                <BusinessTypeChip
-                  :config="resolvedBuConfig"
-                  :label="resolvedBuLabel"
-                  :nature="productNature"
-                />
-              </v-card-text>
-            </v-card>
-
             <!-- ── Visibility ─────────────────────────────────────────── -->
             <v-card rounded="xl" border elevation="0" class="mb-4">
               <v-card-text class="pa-4">
@@ -129,6 +113,21 @@
                       prepend-inner-icon="mdi-tag-outline"
                     />
                   </v-col>
+                  <v-col v-if="isFoodProduct" cols="12" sm="6">
+                    <v-text-field
+                      v-model.number="form.preparation_time"
+                      :label="t('products.field.prepTime')"
+                      type="number"
+                      variant="outlined"
+                      rounded="lg"
+                      hide-details="auto"
+                      :rules="[r.nonNegativeInt]"
+                      prepend-inner-icon="mdi-clock-outline"
+                      suffix="min"
+                      min="0"
+                      clearable
+                    />
+                  </v-col>
                   <v-col cols="12">
                     <v-textarea
                       v-model="form.description"
@@ -146,14 +145,17 @@
             </v-card>
 
             <!-- ── Identifiers ────────────────────────────────────────── -->
-            <v-card rounded="xl" border elevation="0" class="mb-4">
+            <!-- SKU/barcode only apply to mart products — sort_order used
+                 to live here too, now set via drag-reorder in the product
+                 table instead of a manual number field. -->
+            <v-card v-if="isMartProduct" rounded="xl" border elevation="0" class="mb-4">
               <v-card-text class="pa-5">
                 <div class="section-label mb-4">
                   <v-icon icon="mdi-barcode-scan" size="12" class="mr-1" />
                   {{ $t('products.cardTitle.identifiers') }}
                 </div>
                 <v-row dense>
-                  <v-col v-if="isMartProduct" cols="12" sm="4">
+                  <v-col v-if="isMartProduct" cols="12" sm="6">
                     <v-text-field
                       v-model="form.sku"
                       :label="t('products.field.sku')"
@@ -165,7 +167,7 @@
                       clearable
                     />
                   </v-col>
-                  <v-col v-if="isMartProduct" cols="12" sm="4">
+                  <v-col v-if="isMartProduct" cols="12" sm="6">
                     <v-text-field
                       v-model="form.barcode"
                       :label="t('products.field.barcode')"
@@ -177,19 +179,6 @@
                       clearable
                     />
                   </v-col>
-                  <v-col cols="12" :sm="isMartProduct ? 4 : 6">
-                    <v-text-field
-                      v-model.number="form.sort_order"
-                      :label="t('products.field.sortOrder')"
-                      type="number"
-                      variant="outlined"
-                      rounded="lg"
-                      hide-details="auto"
-                      :rules="[r.nonNegativeInt]"
-                      prepend-inner-icon="mdi-sort-numeric-ascending"
-                      min="0"
-                    />
-                  </v-col>
                 </v-row>
               </v-card-text>
             </v-card>
@@ -199,7 +188,16 @@
             ═══════════════════════════════════════════════════════════════ -->
             <template v-if="isFoodProduct && resolvedBuConfig">
               <!-- ── Kitchen Details ──────────────────────────────────── -->
-              <v-card rounded="xl" border elevation="0" class="mb-4">
+              <!-- Prep Time moved to Core Information; calories removed
+                   entirely. Only COFFEE_SHOP/BAKERY have anything left to
+                   show here, so the card itself is gated on those too. -->
+              <v-card
+                v-if="resolvedBuCode === 'COFFEE_SHOP' || resolvedBuCode === 'BAKERY'"
+                rounded="xl"
+                border
+                elevation="0"
+                class="mb-4"
+              >
                 <v-card-text class="pa-5">
                   <div class="section-label mb-4">
                     <v-icon
@@ -210,37 +208,6 @@
                     {{ $t('products.cardTitle.kitchenDetails') }}
                   </div>
                   <v-row dense>
-                    <v-col cols="12" sm="6">
-                      <v-text-field
-                        v-model.number="form.preparation_time"
-                        :label="t('products.field.prepTime')"
-                        type="number"
-                        variant="outlined"
-                        rounded="lg"
-                        hide-details="auto"
-                        :rules="[r.nonNegativeInt]"
-                        prepend-inner-icon="mdi-clock-outline"
-                        suffix="min"
-                        min="0"
-                        clearable
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <v-text-field
-                        v-model.number="form.calories"
-                        :label="t('products.field.calories')"
-                        type="number"
-                        variant="outlined"
-                        rounded="lg"
-                        hide-details="auto"
-                        :rules="[r.nonNegativeInt]"
-                        prepend-inner-icon="mdi-fire"
-                        suffix="kcal"
-                        min="0"
-                        clearable
-                      />
-                    </v-col>
-
                     <template v-if="resolvedBuCode === 'COFFEE_SHOP'">
                       <v-col cols="12" sm="6">
                         <v-select
@@ -1028,7 +995,6 @@
     cost_price: null,
     variants: [],
     preparation_time: null,
-    calories: null,
     cup_sizes: [],
     temperature_options: [],
     shelf_life_hours: null,
@@ -1069,12 +1035,6 @@
 
   const resolvedBuConfig = computed(() =>
     resolvedBuCode.value ? (BUSINESS_TYPES[resolvedBuCode.value] ?? null) : null
-  )
-
-  const resolvedBuLabel = computed(() =>
-    resolvedBuCode.value
-      ?.replace(/_/g, ' ')
-      .replace(/\b\w/g, c => c.toUpperCase()) ?? '—'
   )
 
   // Dynamic (backend business_types.category), not the static icon/color
@@ -1205,7 +1165,6 @@
     if (isHydrating.value) return
     Object.assign(form.value, {
       preparation_time: null,
-      calories: null,
       cup_sizes: [],
       temperature_options: [],
       shelf_life_hours: null,
@@ -1283,7 +1242,6 @@
       cost_price: food ? form.value.cost_price : null,
       variants: food ? form.value.variants : [],
       preparation_time: food ? form.value.preparation_time : null,
-      calories: food ? form.value.calories : null,
       cup_sizes: food ? form.value.cup_sizes : [],
       temperature_options: food ? form.value.temperature_options : [],
       shelf_life_hours: food ? form.value.shelf_life_hours : null,

@@ -23,6 +23,9 @@ export const updateProductApi = (id, formData) => {
 }
 export const deleteProductApi = id => http.delete(`/v1/products/${id}`)
 
+export const reorderProductsApi = productIds =>
+  http.post('/v1/products/reorder', { product_ids: productIds })
+
 export const attachModifierGroupsApi = (productId, modifierGroupIds) =>
   http.post(`/v1/products/${productId}/modifier-groups/sync`, {
     modifier_group_ids: modifierGroupIds

@@ -13,7 +13,7 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     // actually sent sort_by=price. Kept as an alias since nothing in the
     // frontend currently sends it (only `name` is sortable in the UI).
     private const SORT_ALIASES = ['price' => 'base_price'];
-    private const SORTABLE = ['name', 'created_at', 'base_price', 'is_available'];
+    private const SORTABLE = ['name', 'created_at', 'base_price', 'is_available', 'sort_order'];
 
     public function __construct(Product $model)
     {

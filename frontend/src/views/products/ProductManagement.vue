@@ -2,11 +2,21 @@
   <v-container fluid class="pa-0">
     <AppToolbar :title="t('products.title')" :subtitle="t('products.subtitle')">
       <template #actions>
-        <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-shape-outline" @click="categoryManagerOpen = true">
+        <v-btn
+          variant="outlined"
+          rounded="lg"
+          prepend-icon="mdi-shape-outline"
+          @click="categoryManagerOpen = true"
+        >
           {{ t('menu.categories') }}
         </v-btn>
         <template v-if="authStore.isFood">
-          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-tune-variant" @click="modifierManagerOpen = true">
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            prepend-icon="mdi-tune-variant"
+            @click="modifierManagerOpen = true"
+          >
             {{ t('menu.modifiers') }}
           </v-btn>
         </template>
@@ -50,10 +60,88 @@
           hide-details
         />
       </v-col>
+      <v-col cols="auto">
+        <v-btn
+          :color="reorderMode ? 'primary' : 'default'"
+          :variant="reorderMode ? 'flat' : 'outlined'"
+          rounded="lg"
+          :prepend-icon="reorderMode ? 'mdi-check' : 'mdi-sort'"
+          @click="toggleReorderMode"
+        >
+          {{
+            reorderMode
+              ? t('products.reorder.done')
+              : t('products.reorder.toggle')
+          }}
+        </v-btn>
+      </v-col>
     </v-row>
 
+    <!-- ── Reorder view — toggled explicitly via the button above. Scoped by
+         whatever category/availability filters are currently set (all
+         products if none). ── -->
+    <v-card v-if="reorderMode" rounded="lg" elevation="0" border class="pa-4">
+      <v-alert
+        type="info"
+        variant="tonal"
+        density="compact"
+        rounded="lg"
+        class="mb-3"
+      >
+        {{ t('products.reorder.hint') }}
+      </v-alert>
+
+      <v-progress-linear v-if="reorderLoading" indeterminate class="mb-3" />
+
+      <draggable
+        v-model="reorderItems"
+        item-key="id"
+        handle=".drag-handle"
+        :disabled="reorderLoading || reorderSaving"
+        @end="onReorderEnd"
+      >
+        <template #item="{ element: item }">
+          <div class="reorder-row d-flex align-center ga-3 py-2 px-2">
+            <v-icon
+              icon="mdi-drag-vertical"
+              class="drag-handle"
+              style="cursor: grab"
+            />
+            <v-avatar size="35" rounded="lg" color="grey-lighten-2">
+              <v-img v-if="item.image_url" :src="item.image_url" cover />
+              <v-icon v-else icon="mdi-food" size="20" color="grey" />
+            </v-avatar>
+            <div class="flex-grow-1">
+              <div class="font-weight-medium">{{ item.name }}</div>
+              <div class="text-caption text-medium-emphasis">
+                {{ formatMoney(item.base_price) }}
+              </div>
+            </div>
+            <AppStatusChip
+              :status="item.is_available ? 'active' : 'inactive'"
+              size="x-small"
+            />
+            <v-btn
+              icon="mdi-pencil-outline"
+              size="small"
+              variant="text"
+              color="primary"
+              @click="openEdit(item)"
+            />
+          </div>
+        </template>
+      </draggable>
+
+      <div
+        v-if="!reorderLoading && !reorderItems.length"
+        class="text-center py-10"
+      >
+        <p class="text-medium-emphasis">{{ t('products.empty') }}</p>
+      </div>
+    </v-card>
+
     <!-- ── Table View ─────────────────────────────────────────────────────── -->
-    <v-card rounded="lg" elevation="0" border class="pa-4">
+    <v-card v-else rounded="lg" elevation="0" border class="pa-4">
       <AppTable
         ref="tableRef"
         :headers="headers"
@@ -82,12 +170,16 @@
 
         <!-- Price -->
         <template #item.base_price="{ item }">
-          <span class="text-body-2 font-weight-medium">{{ formatMoney(item.base_price) }}</span>
+          <span class="text-body-2 font-weight-medium">
+            {{ formatMoney(item.base_price) }}
+          </span>
         </template>
 
         <!-- Stock -->
         <template #item.stock_quantity="{ item }">
-          <span v-if="item.track_stock" class="text-body-2">{{ item.stock_quantity }}</span>
+          <span v-if="item.track_stock" class="text-body-2">
+            {{ item.stock_quantity }}
+          </span>
           <span v-else class="text-body-2 text-medium-emphasis">—</span>
         </template>
 
@@ -146,14 +238,14 @@
               size="48"
               color="grey-lighten-1"
             />
-            <p class="text-medium-emphasis mt-3">{{$t('products.empty')}}</p>
+            <p class="text-medium-emphasis mt-3">{{ $t('products.empty') }}</p>
             <v-btn
               color="primary"
               variant="tonal"
               class="mt-3"
               @click="openCreate"
             >
-               {{ t('btn.add_product') }}
+              {{ t('btn.add_product') }}
             </v-btn>
           </div>
         </template>
@@ -174,6 +266,7 @@
   import CategoryManagerDialog from '@/components/catalogs/CategoryManagerDialog.vue'
   import ModifierManagerDialog from '@/components/catalogs/ModifierManagerDialog.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
+  import draggable from 'vuedraggable'
 
   const router = useRouter()
   const { t } = useI18n()
@@ -199,13 +292,60 @@
   const filterAvailable = ref(null)
 
   const filters = computed(() => ({
-    categories: filterCategories.value?.length ? filterCategories.value : undefined,
+    categories: filterCategories.value?.length
+      ? filterCategories.value
+      : undefined,
     is_available:
       filterAvailable.value !== null ? filterAvailable.value : undefined
   }))
 
   // ── AppTable's fetch-fn contract: params -> { items, total } ─────────────────
   const fetchProductsForTable = params => productStore.fetchProducts(params)
+
+  // ── Drag-reorder — toggled explicitly, scoped by whatever filters are
+  // currently active (category/availability), or every product if none.
+  const reorderMode = ref(false)
+  const reorderItems = ref([])
+  const reorderLoading = ref(false)
+  const reorderSaving = ref(false)
+
+  async function loadReorderItems() {
+    reorderLoading.value = true
+    try {
+      const { items } = await productStore.fetchProducts({
+        perPage: -1,
+        sortBy: 'sort_order',
+        sortDesc: false,
+        ...filters.value
+      })
+      reorderItems.value = items
+    } finally {
+      reorderLoading.value = false
+    }
+  }
+
+  function toggleReorderMode() {
+    reorderMode.value = !reorderMode.value
+    if (reorderMode.value) loadReorderItems()
+  }
+
+  // Filters changing while already in reorder mode should re-scope the list.
+  watch(filters, () => {
+    if (reorderMode.value) loadReorderItems()
+  })
+
+  async function onReorderEnd() {
+    reorderSaving.value = true
+    try {
+      await productStore.reorderProducts(reorderItems.value.map(p => p.id))
+      notif(t('products.reorder.saved'), { type: 'success' })
+    } catch {
+      notif(t('products.reorder.failed'), { type: 'error' })
+      await loadReorderItems() // resync to the server's actual order
+    } finally {
+      reorderSaving.value = false
+    }
+  }
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────────
   onMounted(async () => {
@@ -245,8 +385,16 @@
 
     if (authStore.isMart) {
       cols.push(
-        { title: t('products.table.stock'), key: 'stock_quantity', sortable: false },
-        { title: t('products.table.status'), key: 'stock_status', sortable: false }
+        {
+          title: t('products.table.stock'),
+          key: 'stock_quantity',
+          sortable: false
+        },
+        {
+          title: t('products.table.status'),
+          key: 'stock_status',
+          sortable: false
+        }
       )
     }
 
@@ -288,18 +436,28 @@
 
   // ── Price/stock display ──────────────────────────────────────────────────────
   const formatMoney = value =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0)
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value ?? 0)
 
   // Untracked items (e.g. made-to-order food) have no meaningful stock state.
   const stockStatus = item => {
     if (!item.track_stock) return null
     if (item.stock_quantity <= 0) return 'out_of_stock'
-    if (item.reorder_level && item.stock_quantity <= item.reorder_level) return 'low_stock'
+    if (item.reorder_level && item.stock_quantity <= item.reorder_level)
+      return 'low_stock'
     return 'in_stock'
   }
   const stockStatusMap = {
-    out_of_stock: { color: 'error', label: t('products.stock_status.out_of_stock') },
-    low_stock: { color: 'warning', label: t('products.stock_status.low_stock') },
+    out_of_stock: {
+      color: 'error',
+      label: t('products.stock_status.out_of_stock')
+    },
+    low_stock: {
+      color: 'warning',
+      label: t('products.stock_status.low_stock')
+    },
     in_stock: { color: 'success', label: t('products.stock_status.in_stock') }
   }
 
@@ -317,3 +475,9 @@
     })
   }
 </script>
+
+<style scoped>
+  .reorder-row + .reorder-row {
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+</style>

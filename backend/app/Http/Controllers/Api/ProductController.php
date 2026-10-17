@@ -89,6 +89,25 @@ class ProductController extends Controller
         return $this->success($product, 'Modifier groups linked successfully.');
     }
 
+    // Drag-reorder in ProductManagement.vue — only enabled there when a
+    // single category is selected, but this itself doesn't care which
+    // category the ids belong to, it just assigns sequential sort_order
+    // in the given order. Any id not belonging to the caller's tenant is
+    // silently skipped (TenantScope-filtered inside the service), not an
+    // error — reordering a product that doesn't exist for you isn't a
+    // security issue, just a no-op.
+    public function reorder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1'],
+            'product_ids.*' => ['required', 'uuid'],
+        ]);
+
+        $this->products->reorder($validated['product_ids']);
+
+        return $this->success(null, 'Products reordered successfully.');
+    }
+
     // Barcode scan lookup — routed under mart POS sale-taking, no frontend
     // consumer yet (no hardware scanner integration built in the UI).
     public function scan(ScanProductRequest $request): JsonResponse

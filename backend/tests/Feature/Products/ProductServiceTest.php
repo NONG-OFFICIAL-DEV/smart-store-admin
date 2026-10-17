@@ -154,6 +154,46 @@ class ProductServiceTest extends TestCase
         $this->assertNull($updated->fresh()->stock_quantity);
     }
 
+    public function test_reorder_assigns_sequential_sort_order_matching_the_given_id_order(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $category = $this->makeCategory();
+        $service = $this->app->make(ProductService::class);
+
+        $a = $service->create(['category_id' => $category->id, 'name' => 'A'], $tenant->id);
+        $b = $service->create(['category_id' => $category->id, 'name' => 'B'], $tenant->id);
+        $c = $service->create(['category_id' => $category->id, 'name' => 'C'], $tenant->id);
+
+        $service->reorder([$c->id, $a->id, $b->id]);
+
+        $this->assertSame(0, $c->fresh()->sort_order);
+        $this->assertSame(1, $a->fresh()->sort_order);
+        $this->assertSame(2, $b->fresh()->sort_order);
+    }
+
+    public function test_reorder_silently_skips_an_id_belonging_to_another_tenant(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        [$tenantB, $ownerB] = $this->makeTenantWithOwner('TenantB');
+        $service = $this->app->make(ProductService::class);
+
+        Auth::login($ownerA);
+        $categoryA = $this->makeCategory('A Cat');
+        $a = $service->create(['category_id' => $categoryA->id, 'name' => 'A'], $tenantA->id);
+
+        Auth::login($ownerB);
+        $categoryB = $this->makeCategory('B Cat');
+        $b = $service->create(['category_id' => $categoryB->id, 'name' => 'B'], $tenantB->id);
+
+        Auth::login($ownerA);
+        $service->reorder([$a->id, $b->id]);
+
+        $this->assertSame(0, $a->fresh()->sort_order);
+        // $b belongs to TenantB — untouched by TenantA's reorder call.
+        $this->assertSame(0, Product::withoutGlobalScopes()->find($b->id)->sort_order);
+    }
+
     public function test_partial_update_toggling_availability_does_not_wipe_variants_or_units(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');

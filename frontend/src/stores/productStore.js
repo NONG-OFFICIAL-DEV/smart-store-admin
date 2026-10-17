@@ -7,7 +7,8 @@ import {
   deleteProductApi,
   attachModifierGroupsApi,
   getProductForEditApi,
-  updateProductApiV2
+  updateProductApiV2,
+  reorderProductsApi
 } from '../api/productService'
 
 export const useProductStore = defineStore('product', {
@@ -40,6 +41,9 @@ export const useProductStore = defineStore('product', {
     },
     async deleteProduct(id) {
       await deleteProductApi(id)
+    },
+    async reorderProducts(productIds) {
+      await reorderProductsApi(productIds)
     },
     // ✅ Attach modifier groups to a product via pivot
     async attachModifierGroups({ product_id, modifier_group_ids }) {

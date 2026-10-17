@@ -195,7 +195,6 @@
               v-if="
                 isFoodProduct &&
                 (product.preparation_time ||
-                  product.calories ||
                   product.shelf_life_hours != null)
               "
               rounded="xl"
@@ -222,17 +221,6 @@
                       prepend-icon="mdi-clock-outline"
                     >
                       {{ product.preparation_time }} min
-                    </v-chip>
-                  </div>
-                  <div v-if="product.calories" class="meta-row">
-                    <span class="text-caption text-grey">Calories</span>
-                    <v-chip
-                      size="x-small"
-                      variant="tonal"
-                      color="orange"
-                      prepend-icon="mdi-fire"
-                    >
-                      {{ product.calories }} kcal
                     </v-chip>
                   </div>
                   <div v-if="product.shelf_life_hours" class="meta-row">

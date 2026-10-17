@@ -127,6 +127,20 @@ class ProductService extends BaseService
         $product->delete();
     }
 
+    // Assigns sequential sort_order (0..n-1) matching the given id order —
+    // TenantScope on Product filters the query automatically, so an id
+    // belonging to another tenant just isn't in $products and is skipped.
+    public function reorder(array $orderedIds): void
+    {
+        $products = Product::whereIn('id', $orderedIds)->get()->keyBy('id');
+
+        DB::transaction(function () use ($orderedIds, $products) {
+            foreach ($orderedIds as $index => $id) {
+                $products->get($id)?->update(['sort_order' => $index]);
+            }
+        });
+    }
+
     public function attachModifierGroups(Product $product, array $modifierGroupIds): Product
     {
         // syncWithoutDetaching keeps existing links, only adds new ones.
@@ -181,7 +195,7 @@ class ProductService extends BaseService
         foreach ([
             'category_id', 'name', 'description', 'sku', 'barcode', 'sort_order',
             'is_available', 'is_featured',
-            'base_price', 'cost_price', 'preparation_time', 'calories',
+            'base_price', 'cost_price', 'preparation_time',
             'cup_sizes', 'temperature_options', 'shelf_life_hours',
             'stock_quantity', 'reorder_level', 'track_stock', 'expiry_date', 'supplier_code',
         ] as $field) {

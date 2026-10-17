@@ -79,7 +79,6 @@ class StoreProductRequest extends FormRequest
             'variants.*.sort_order' => ['integer', 'min:0'],
 
             'preparation_time' => ['nullable', 'integer', 'min:0'],
-            'calories' => ['nullable', 'integer', 'min:0'],
             'cup_sizes' => ['nullable', 'array'],
             'cup_sizes.*' => ['string'],
             'temperature_options' => ['nullable', 'array'],

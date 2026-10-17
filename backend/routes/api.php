@@ -325,6 +325,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
 
     // ── Products ──────────────────────────────────────────────────────────────
     Route::middleware('permission:products.manage')->group(function () {
+        Route::post('products/reorder', [ProductController::class, 'reorder']);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product-variants', ProductVariantController::class);
         Route::prefix('products/{product}')->group(function () {

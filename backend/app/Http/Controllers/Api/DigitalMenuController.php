@@ -219,7 +219,6 @@ class DigitalMenuController extends Controller
             'base_price'       => (float) $product->base_price,
             'is_featured'      => $product->is_featured,
             'preparation_time' => $product->preparation_time,
-            'calories'         => $product->calories,
             'sort_order'       => $product->sort_order,
             'category'         => $product->category ? [
                 'id'   => $product->category->id,
