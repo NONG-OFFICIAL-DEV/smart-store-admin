@@ -65,6 +65,7 @@
     "pricing_plans": "Pricing Plan",
     "subscriptions": "Subscriptions",
     "telegram_settings": "Telegram Bot",
+    "emenu_settings": "E-Menu Settings",
     "tenants_management": "Tenants",
     "expenses": "Expenses",
     "business_management": "Platform",
@@ -3163,6 +3164,16 @@
     "how_to_step2": "Send /newbot and follow the prompts to name your bot.",
     "how_to_step3": "BotFather replies with a token — paste it below.",
     "how_to_step4": "Enter the bot's {'@'}username above, then save and test the connection."
+  },
+  "emenu_settings": {
+    "title": "E-Menu Settings",
+    "subtitle": "Configure the base URL used when generating table QR codes / digital menu links.",
+    "base_url": "E-Menu Base URL",
+    "base_url_hint": "Leave empty to use the default platform URL.",
+    "currently_resolves_to": "New QR codes will currently use:",
+    "what_is_this_title": "What this controls",
+    "what_is_this_body": "Every table's QR code links to this base URL plus /menu/[branch-slug]/table/[table-id]. This setting controls that base URL for every QR code generated from now on.",
+    "change_warning": "Changing this does not update QR codes that were already printed — those keep pointing at the old URL until you regenerate them."
   },
   "audit_log": {
     "title": "Audit Logs",

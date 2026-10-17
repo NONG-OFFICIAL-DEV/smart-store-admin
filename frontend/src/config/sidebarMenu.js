@@ -328,6 +328,13 @@ export const SIDEBAR_MENU = [
         visible: ctx => ctx.isSuperAdmin
       },
       {
+        key: 'emenu-settings',
+        titleKey: 'menu.emenu_settings',
+        icon: 'mdi-qrcode',
+        path: '/emenu-settings',
+        visible: ctx => ctx.isSuperAdmin
+      },
+      {
         key: 'roles',
         titleKey: 'menu.users_roles',
         icon: 'mdi-shield-account-outline',

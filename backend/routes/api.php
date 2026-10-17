@@ -86,6 +86,7 @@ use App\Http\Controllers\Api\TenantSubscriptionController;
 use App\Http\Controllers\Api\SubscriptionPlanHistoryController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\TelegramSettingController;
+use App\Http\Controllers\Api\EmenuSettingController;
 
 Route::get('/test', [AuthController::class, 'test']);
 
@@ -201,6 +202,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
             Route::get('/',    [TelegramSettingController::class, 'show']);
             Route::put('/',    [TelegramSettingController::class, 'update']);
             Route::post('test', [TelegramSettingController::class, 'test']);
+        });
+
+        Route::prefix('emenu-settings')->group(function () {
+            Route::get('/', [EmenuSettingController::class, 'show']);
+            Route::put('/', [EmenuSettingController::class, 'update']);
         });
     });
 

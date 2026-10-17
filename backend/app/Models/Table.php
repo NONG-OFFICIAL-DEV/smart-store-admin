@@ -114,7 +114,7 @@ class Table extends BaseModel
 
         if (!$branch?->slug) return;
 
-        $url = config('app.frontend_url')
+        $url = EmenuSetting::baseUrl()
             . '/menu/' . $branch->slug
             . '/table/' . $this->id;
 

@@ -185,6 +185,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/emenu-settings',
+        name: 'EmenuSettings',
+        component: () => import('@/views/EmenuSettings.vue'),
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+      },
+      {
         path: '/branches',
         name: 'branches',
         redirect: to => ({ name: 'settings-hub', query: { ...to.query, tab: 'branch' } })
