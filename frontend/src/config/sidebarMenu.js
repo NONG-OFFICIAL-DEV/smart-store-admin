@@ -120,10 +120,12 @@ export const SIDEBAR_MENU = [
   },
 
   // ── Products — Product management covers products themselves plus
-  //    categories/menus/modifiers via "manage" dialogs on that page (see
-  //    ProductManagement.vue) rather than their own tabs/routes. Ingredients
-  //    stays a separate page since it's recipe/inventory-linkage data, not
-  //    a sales-catalog concept.
+  //    categories/modifiers via "manage" dialogs on that page (see
+  //    ProductManagement.vue). Menus/Branch Menus got their own page
+  //    (MenuHub.vue) since branch-menu assignment is a real scheduling
+  //    workflow, not a quick-edit dialog. Ingredients stays a separate
+  //    page since it's recipe/inventory-linkage data, not a sales-catalog
+  //    concept.
   {
     key: 'products-group',
     titleKey: 'menu.products',
@@ -136,6 +138,14 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-package-variant-closed',
         path: '/products',
         permission: 'products.manage'
+      },
+      {
+        key: 'menus',
+        titleKey: 'menu.menus',
+        icon: 'mdi-book-open-variant-outline',
+        path: '/menu-management',
+        permission: 'menus.manage',
+        visible: ctx => ctx.isFood
       },
       {
         key: 'ingredients',

@@ -2765,6 +2765,10 @@
     "status": {
       "seated": "Seated"
     },
+    "timing": {
+      "past": "Past",
+      "upcoming": "Upcoming"
+    },
     "status_updated": "Reservation {status}",
     "messages": {
       "created": "Reservation created",
@@ -3292,7 +3296,12 @@
     "product": "Product"
   },
   "menus": {
+    "hub": {
+      "title": "Menus",
+      "subtitle": "Manage menus and which branches serve them, and when"
+    },
     "form": {
+      "name": "Menu Name",
       "name_placeholder": "e.g. Breakfast Menu, Drinks, Lunch Special"
     },
     "validation": {
@@ -3326,6 +3335,7 @@
       "assign_menu": "Assign Menu"
     },
     "list": {
+      "new": "New Menu",
       "default_badge": "Default",
       "not_assigned": "Not assigned",
       "branches_count": "{n} branches",

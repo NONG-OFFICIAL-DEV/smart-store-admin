@@ -22,26 +22,8 @@
 
       <!-- Filters -->
       <v-row dense align="center" class="mb-2">
-        <v-col cols="12" sm="6" md="2">
-          <div class="d-flex ga-2 mb-4">
-            <v-btn-toggle
-              v-model="dateQuickFilter"
-              color="primary"
-              variant="outlined"
-              rounded="lg"
-              divided
-            >
-              <v-btn value="today" size="small" class="text-none">
-                {{ $t('common.today') }}
-              </v-btn>
-              <v-btn value="all" size="small" class="text-none">
-                {{ $t('common.all') }}
-              </v-btn>
-            </v-btn-toggle>
-          </div>
-        </v-col>
         <v-col cols="12" sm="6" md="3">
-          <AppDatePicker v-model="filters.date" :label="$t('form.date')" />
+          <AppDatePicker v-model="filters.date" :label="$t('form.date')" clearable />
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-select
@@ -122,7 +104,16 @@
 
           <!-- Date & Time -->
           <template #item.reserved_at="{ item }">
-            <div class="text-body-2">{{ formatDateTime(item.reserved_at) }}</div>
+            <div class="d-flex align-center ga-2">
+              <span class="text-body-2">{{ formatDateTime(item.reserved_at) }}</span>
+              <v-chip
+                :color="isPast(item.reserved_at) ? 'grey' : 'success'"
+                size="x-small"
+                variant="tonal"
+              >
+                {{ isPast(item.reserved_at) ? $t('reservations.timing.past') : $t('reservations.timing.upcoming') }}
+              </v-chip>
+            </div>
             <div v-if="item.duration_minutes" class="text-caption text-grey">
               {{ item.duration_minutes }}m
             </div>
@@ -230,7 +221,7 @@
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { confirm, notif } = useAppUtils()
-  const { formatLocalDate, formatShortDateTime: formatDateTime } = useDate()
+  const { formatShortDateTime: formatDateTime } = useDate()
   const { getInitials } = useAvatar()
   const { t } = useI18n()
   const route = useRoute()
@@ -244,12 +235,13 @@
   const dialog = ref(false)
   const selectedItem = ref(null)
 
-  const todayStr = formatLocalDate(new Date())
-
   // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
-  // search is AppTable's own built-in field). ───────────────────────────────────
+  // search is AppTable's own built-in field). No date filter applied by
+  // default — every reservation shows, past and upcoming alike, each row
+  // labelled instead (see isPast below) so nothing needs filtering out to
+  // stay legible.
   const filters = ref({
-    date: todayStr,
+    date: null,
     status: null,
     table_id: route.query.table_id || null
   })
@@ -274,27 +266,12 @@
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ]
 
-  // "Today" / "All" quick toggle — reads/writes the same filters.date, so
-  // picking a specific day via the date input below just leaves neither
-  // button highlighted (v-btn-toggle allows no selection to match).
-  const dateQuickFilter = computed({
-    get: () => {
-      if (filters.value.date === todayStr) return 'today'
-      if (!filters.value.date) return 'all'
-      return null
-    },
-    set: v => {
-      if (v === 'today') filters.value.date = todayStr
-      else if (v === 'all') filters.value.date = null
-    }
-  })
-
   const statusOptions = [
     { value: 'pending', label: t('status.pending') },
-    { value: 'confirmed', label: t('order.status.confirmed') },
-    { value: 'seated', label: t('reservations.status.seated') },
+    { value: 'confirmed', label: t('status.confirmed') },
+    { value: 'seated', label: t('status.seated') },
     { value: 'completed', label: t('status.completed') },
-    { value: 'no_show', label: t('reservations.no_show') },
+    { value: 'no_show', label: t('status.no_show') },
     { value: 'cancelled', label: t('status.cancelled') }
   ]
 
@@ -417,14 +394,15 @@
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const initials = name => getInitials(name)
+  const isPast = reservedAt => !!reservedAt && new Date(reservedAt) < new Date()
 
   const reservationStatusMap = {
-    pending: { color: 'warning', label: t('reservations.status.pending') },
-    confirmed: { color: 'success', label: t('reservations.status.confirmed') },
-    seated: { color: 'info', label: t('reservations.status.seated') },
-    completed: { color: 'grey', label: t('reservations.status.completed') },
-    no_show: { color: 'error', label: t('reservations.status.no_show') },
-    cancelled: { color: 'grey', label: t('reservations.status.cancelled') }
+    pending: { color: 'warning', label: t('status.pending') },
+    confirmed: { color: 'success', label: t('status.confirmed') },
+    seated: { color: 'info', label: t('status.seated') },
+    completed: { color: 'grey', label: t('status.completed') },
+    no_show: { color: 'error', label: t('status.no_show') },
+    cancelled: { color: 'grey', label: t('status.cancelled') }
   }
 
 

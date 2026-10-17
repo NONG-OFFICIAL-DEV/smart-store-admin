@@ -1,92 +1,5 @@
 <template>
   <v-container fluid class="pa-0">
-    <div class="d-flex justify-end align-center ga-2 mb-4">
-      <v-btn
-        :color="showFilters ? 'primary' : 'default'"
-        :variant="showFilters ? 'flat' : 'tonal'"
-        rounded="lg"
-        :prepend-icon="
-          showFilters ? 'mdi-filter-off-outline' : 'mdi-filter-outline'
-        "
-        @click="showFilters = !showFilters"
-      >
-        {{ t('btn.filter') }}
-        <!-- badge shows how many filters are active -->
-        <v-badge
-          v-if="activeFilterCount > 0"
-          :content="activeFilterCount"
-          color="error"
-          floating
-        />
-      </v-btn>
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-plus"
-        rounded="lg"
-        elevation="0"
-        @click="openCreateDialog"
-      >
-        {{ t('menus.assign.assign_menu') }}
-      </v-btn>
-    </div>
-
-    <!-- ── Filters ─────────────────────────────────────────────────────────── -->
-    <v-expand-transition>
-      <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
-        <v-card-text>
-          <v-row dense align="center">
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="filters.branch_id"
-                :items="branchStore.branches"
-                item-title="name"
-                item-value="id"
-                :label="t('branch_menu.filter_by_branch')"
-                variant="outlined"
-                clearable
-                hide-details
-                prepend-inner-icon="mdi-store"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="filters.menu_id"
-                :items="menus"
-                item-title="name"
-                item-value="id"
-                :label="t('branch_menu.filter_by_menu')"
-                variant="outlined"
-                clearable
-                hide-details
-                prepend-inner-icon="mdi-book-open-outline"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions class="px-4">
-          <v-spacer />
-          <v-btn
-            v-if="hasActiveFilters"
-            rounded="lg"
-            variant="tonal"
-            color="error"
-            prepend-icon="mdi-close"
-            @click="resetFilters"
-          >
-            {{ t('btn.reset') }}
-          </v-btn>
-          <v-btn
-            class="bg-primary"
-            rounded="lg"
-            prepend-icon="mdi-magnify"
-            @click="onFilterChange"
-          >
-            {{ t('btn.search') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-expand-transition>
-
     <!-- ── Data Table ───────────────────────────────────────────────────────── -->
     <v-card rounded="lg" elevation="0" border>
       <v-data-table
@@ -290,20 +203,6 @@
     { title: '', key: 'actions', sortable: false, align: 'end' }
   ])
 
-  // ── Filters ───────────────────────────────────────────────────────────────────
-  const filters = ref({ branch_id: null, menu_id: null })
-  const menus = ref([]) // TODO: load from menu store
-  const showFilters = ref(false)
-
-  // ── Active filter badge ───────────────────────────────────────────────────────
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (filters.value.branch_id) count++
-    if (filters.value.menu_id) count++
-    return count
-  })
-  const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
   // ── Dialog state ──────────────────────────────────────────────────────────────
   const dialog = ref(false)
   const editItem = ref(null)
@@ -313,16 +212,6 @@
     store.fetchAll()
     branchStore.fetchBranches({ perPage: -1 })
     menuStore.fetchMenus({ perPage: -1 })
-  }
-
-  // ── Reset to page 1 and reload when filters change ───────────────────────────
-  const onFilterChange = () => {
-    loadData()
-  }
-
-  const resetFilters = () => {
-    filters.value = { branch_id: null, menu_id: null }
-    loadData()
   }
 
   // ── Available now check ───────────────────────────────────────────────────────
@@ -389,4 +278,8 @@
 
   // ── Init ──────────────────────────────────────────────────────────────────────
   onMounted(() => loadData())
+
+  // Exposed so the hosting hub page (MenuHub.vue) can trigger "create" from
+  // its own title-bar button instead of this tab needing one of its own.
+  defineExpose({ openCreate: openCreateDialog })
 </script>

@@ -1,40 +1,5 @@
 <template>
   <v-container fluid class="pa-0">
-    <!-- Add — inline, no dialog: a name field, two switches, and a plus
-         button that creates the menu immediately. -->
-    <v-card v-if="canManage" rounded="lg" elevation="0" border class="pa-3 mb-4">
-      <div class="d-flex align-center flex-wrap ga-3">
-        <v-text-field
-          v-model="newMenu.name"
-          :placeholder="t('menus.form.name_placeholder')"
-          variant="outlined"
-          density="compact"
-          rounded="lg"
-          hide-details
-          maxlength="80"
-          class="flex-grow-1"
-          style="min-width: 200px"
-          @keyup.enter="submitNew"
-        />
-        <div class="d-flex align-center ga-2">
-          <span class="text-body-2">{{ t('status.active') }}</span>
-          <v-switch v-model="newMenu.is_active" color="success" hide-details density="compact" inset />
-        </div>
-        <div class="d-flex align-center ga-2">
-          <span class="text-body-2">{{ t('menus.list.default_badge') }}</span>
-          <v-switch v-model="newMenu.is_default" color="primary" hide-details density="compact" inset />
-        </div>
-        <v-btn
-          icon="mdi-plus"
-          color="primary"
-          variant="flat"
-          :loading="saving"
-          :disabled="!newMenu.name.trim()"
-          @click="submitNew"
-        />
-      </div>
-    </v-card>
-
     <!-- List -->
     <v-card rounded="lg" elevation="0" border>
       <v-list v-if="menuStore.menus.length" lines="two" class="menu-list">
@@ -109,6 +74,9 @@
       </div>
     </v-card>
 
+    <!-- Create menu -->
+    <MenuFormDialog v-model="createDialog" @saved="submitNew" />
+
     <!-- Assign to branch(es) — a real scheduling assignment (branch, time
          window, days), not something that fits the inline name+switch
          shape above, so it stays a dialog. -->
@@ -123,24 +91,22 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
+  import { ref, reactive, onMounted } from 'vue'
   import { useMenuStore } from '@/stores/menuStore'
   import { useBranchMenuStore } from '@/stores/branchMenuStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
-  import { usePermission } from '@/composables/usePermission'
   import { useI18n } from 'vue-i18n'
   import BranchMenuFormDialog from '@/components/catalogs/BranchMenuFormDialog.vue'
+  import MenuFormDialog from '@/components/catalogs/MenuFormDialog.vue'
 
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
-  const { can } = usePermission()
 
   const menuStore = useMenuStore()
   const branchStore = useBranchStore()
   const branchMenuStore = useBranchMenuStore()
 
-  const canManage = computed(() => can('menus.manage'))
   const saving = ref(false)
 
   async function load() {
@@ -158,18 +124,13 @@
 
   // ── Add ────────────────────────────────────────────────────────────────────
   const defaultNew = () => ({ name: '', is_active: true, is_default: false })
-  const newMenu = reactive(defaultNew())
+  const createDialog = ref(false)
 
-  async function submitNew() {
-    if (!newMenu.name.trim()) return
+  async function submitNew(payload) {
     saving.value = true
     try {
-      await menuStore.createMenu({
-        name: newMenu.name.trim(),
-        is_active: newMenu.is_active,
-        is_default: newMenu.is_default
-      })
-      Object.assign(newMenu, defaultNew())
+      await menuStore.createMenu(payload)
+      createDialog.value = false
       notif(t('messages.saved_success'), { type: 'success' })
       await load()
     } catch (err) {
@@ -259,6 +220,10 @@
       saving.value = false
     }
   }
+
+  // Exposed so the hosting hub page (MenuHub.vue) can trigger "create" from
+  // its own title-bar button instead of this tab needing one of its own.
+  defineExpose({ openCreate: () => { createDialog.value = true } })
 </script>
 
 <style scoped>

@@ -2741,6 +2741,10 @@
     "status": {
       "seated": "កំពុងអង្គុយ"
     },
+    "timing": {
+      "past": "កន្លងទៅ",
+      "upcoming": "នឹងមកដល់"
+    },
     "status_updated": "ការកក់ {status}",
     "messages": {
       "created": "បានបង្កើតការកក់",
@@ -3268,7 +3272,12 @@
     "product": "ផលិតផល"
   },
   "menus": {
+    "hub": {
+      "title": "ម៉ឺនុយ",
+      "subtitle": "គ្រប់គ្រងម៉ឺនុយ និងសាខាណាដែលប្រើវា ព្រមទាំងពេលវេលា"
+    },
     "form": {
+      "name": "ឈ្មោះម៉ឺនុយ",
       "name_placeholder": "ឧ. ម៉ឺនុយអាហារពេលព្រឹក ភេសជ្ជៈ អាហារថ្ងៃត្រង់ពិសេស"
     },
     "validation": {
@@ -3302,6 +3311,7 @@
       "assign_menu": "កំណត់ម៉ឺនុយ"
     },
     "list": {
+      "new": "ម៉ឺនុយថ្មី",
       "default_badge": "លំនាំដើម",
       "not_assigned": "មិនទាន់កំណត់",
       "branches_count": "{n} សាខា",

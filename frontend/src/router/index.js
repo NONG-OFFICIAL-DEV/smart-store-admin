@@ -226,7 +226,7 @@ const routes = [
       {
         path: '/branch-menus',
         name: 'BranchMenus',
-        redirect: '/products'
+        redirect: { path: '/menu-management', query: { tab: 'branch-menus' } }
       },
       {
         path: '/products',
@@ -326,7 +326,8 @@ const routes = [
       {
         path: '/menu-management',
         name: 'MenuManagement',
-        redirect: '/products'
+        component: () => import('@/views/catalogs/MenuHub.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'menus.manage' }
       },
       {
         path: '/notifications',

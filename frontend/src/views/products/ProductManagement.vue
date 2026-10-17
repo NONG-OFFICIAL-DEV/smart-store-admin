@@ -6,9 +6,6 @@
           {{ t('menu.categories') }}
         </v-btn>
         <template v-if="authStore.isFood">
-          <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-book-open-variant-outline" @click="menuManagerOpen = true">
-            {{ t('menu.menus') }}
-          </v-btn>
           <v-btn variant="outlined" rounded="lg" prepend-icon="mdi-tune-variant" @click="modifierManagerOpen = true">
             {{ t('menu.modifiers') }}
           </v-btn>
@@ -26,7 +23,6 @@
     </AppToolbar>
 
     <CategoryManagerDialog v-model="categoryManagerOpen" />
-    <MenuManagerDialog v-model="menuManagerOpen" />
     <ModifierManagerDialog v-model="modifierManagerOpen" />
 
     <!-- ── Filters ────────────────────────────────────────────────────────── -->
@@ -176,7 +172,6 @@
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import CategoryManagerDialog from '@/components/catalogs/CategoryManagerDialog.vue'
-  import MenuManagerDialog from '@/components/catalogs/MenuManagerDialog.vue'
   import ModifierManagerDialog from '@/components/catalogs/ModifierManagerDialog.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
 
@@ -192,10 +187,10 @@
 
   const tableRef = ref(null)
 
-  // ── "Manage X" dialogs — Category/Menu/Modifier are managed from here via
-  // a modal, not their own sidebar page (see sidebarMenu.js's Products group).
+  // ── "Manage X" dialogs — Category/Modifier are managed from here via a
+  // modal, not their own sidebar page (see sidebarMenu.js's Products
+  // group). Menus/Branch Menus moved to their own page (MenuHub.vue).
   const categoryManagerOpen = ref(false)
-  const menuManagerOpen = ref(false)
   const modifierManagerOpen = ref(false)
 
   // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
@@ -231,30 +226,46 @@
   ]
 
   // ── Table headers ─────────────────────────────────────────────────────────────
-  const headers = computed(() => [
-    { title: t('products.table.name'), key: 'name', sortable: true },
-    {
-      title: t('products.table.category'),
-      key: 'category.name',
-      sortable: false
-    },
-    // `base_price` is the one extra column in ProductRepository::SORTABLE
-    // besides name/created_at/is_available — safe to mark sortable.
-    { title: t('products.table.price'), key: 'base_price', sortable: true },
-    { title: t('products.table.stock'), key: 'stock_quantity', sortable: false },
-    { title: t('products.table.status'), key: 'stock_status', sortable: false },
-    {
-      title: t('products.table.available'),
-      key: 'is_available',
-      sortable: false
-    },
-    {
-      title: t('products.table.actions'),
-      key: 'actions',
-      sortable: false,
-      align: 'start'
+  // Stock/stock-status only ever apply to track_stock products (mart) —
+  // every food product has track_stock false, so these two columns were
+  // permanently stuck showing "—" for restaurant tenants. Hidden there
+  // instead of rendered empty.
+  const headers = computed(() => {
+    const cols = [
+      { title: t('products.table.name'), key: 'name', sortable: true },
+      {
+        title: t('products.table.category'),
+        key: 'category.name',
+        sortable: false
+      },
+      // `base_price` is the one extra column in ProductRepository::SORTABLE
+      // besides name/created_at/is_available — safe to mark sortable.
+      { title: t('products.table.price'), key: 'base_price', sortable: true }
+    ]
+
+    if (authStore.isMart) {
+      cols.push(
+        { title: t('products.table.stock'), key: 'stock_quantity', sortable: false },
+        { title: t('products.table.status'), key: 'stock_status', sortable: false }
+      )
     }
-  ])
+
+    cols.push(
+      {
+        title: t('products.table.available'),
+        key: 'is_available',
+        sortable: false
+      },
+      {
+        title: t('products.table.actions'),
+        key: 'actions',
+        sortable: false,
+        align: 'start'
+      }
+    )
+
+    return cols
+  })
 
   // ── Navigation ────────────────────────────────────────────────────────────────
   const openCreate = () => router.push('/products/create')

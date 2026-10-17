@@ -129,6 +129,31 @@ class ProductServiceTest extends TestCase
         $this->assertSame('cup', $product->units->first()->unit_name);
     }
 
+    // Food products aren't stock-tracked — the frontend explicitly sends
+    // stock_quantity: null for them (ProductFormPage.vue's `!food ? ... : null`
+    // branch), which used to 500 with a not-null constraint violation since
+    // the column had no default beyond 0 for mart rows.
+    public function test_create_and_update_allow_a_null_stock_quantity_for_food_products(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $category = $this->makeCategory();
+        $service = $this->app->make(ProductService::class);
+
+        $product = $service->create([
+            'category_id' => $category->id,
+            'name' => 'Cappuccino',
+            'base_price' => 3.5,
+            'stock_quantity' => null,
+            'track_stock' => false,
+        ], $tenant->id);
+
+        $this->assertNull($product->fresh()->stock_quantity);
+
+        $updated = $service->update($product, ['stock_quantity' => null], null, false);
+        $this->assertNull($updated->fresh()->stock_quantity);
+    }
+
     public function test_partial_update_toggling_availability_does_not_wipe_variants_or_units(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');

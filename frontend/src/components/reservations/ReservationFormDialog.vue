@@ -146,6 +146,7 @@
               <AppDatePicker
                 v-model="form.reserved_date"
                 :label="$t('reservations.field.reserved_date')"
+                :error-messages="dateErrors"
               />
             </v-col>
 
@@ -372,6 +373,13 @@
 
   const form = reactive(defaultForm())
 
+  // AppDatePicker has no `rules` prop (only `errorMessages`), so it never
+  // registers with the surrounding v-form's validate() — a required check
+  // has to be driven manually, same as any other field that skips the
+  // dialog entirely on an empty date.
+  const dateErrors = ref([])
+  watch(() => form.reserved_date, () => { dateErrors.value = [] })
+
   // ── Local date/time helpers ──────────────────────────────────────────────
   // Built from local getters (not toISOString(), which is UTC-based and can
   // land on the wrong calendar day near midnight) so "today"/"now" always
@@ -478,7 +486,10 @@
   // unfilled later step can never block progress on an earlier one.
   const nextStep = async () => {
     const { valid } = await stepRefs[currentStep.value - 1].value.validate()
-    if (!valid) return
+    if (currentStep.value === 2 && !form.reserved_date) {
+      dateErrors.value = [t('validation.required')]
+    }
+    if (!valid || dateErrors.value.length) return
     if (currentStep.value < steps.value.length) currentStep.value++
   }
 

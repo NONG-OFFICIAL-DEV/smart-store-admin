@@ -88,13 +88,6 @@
               @click="openQR(item)"
             />
             <v-btn
-              icon="mdi-calendar-plus"
-              size="small"
-              variant="text"
-              color="primary"
-              @click="openReservation(item)"
-            />
-            <v-btn
               icon="mdi-pencil-outline"
               size="small"
               variant="text"
@@ -176,7 +169,6 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
   import { useTableStore } from '@/stores/tableStore'
   import { useFloorPlanStore } from '@/stores/floorPlanStore'
@@ -193,7 +185,6 @@
     qrDialog.value = true
   }
 
-  const router = useRouter()
   const tableStore = useTableStore()
   const floorPlanStore = useFloorPlanStore()
 
@@ -277,9 +268,6 @@
       }
     }
   }
-  const openReservation = t =>
-    router.push({ name: 'Reservations', query: { table_id: t.id } })
-
   const changeStatus = async status => {
     newStatus.value = status
     saving.value = true
