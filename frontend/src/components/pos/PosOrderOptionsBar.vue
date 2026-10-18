@@ -24,23 +24,6 @@
       </v-btn>
     </v-btn-toggle>
 
-    <!-- Table — dine-in only, and only when the tenant actually has tables. -->
-    <v-select
-      v-if="orderType === 'dine_in' && tables.length"
-      :model-value="tableId"
-      :items="tables"
-      item-title="table_number"
-      item-value="id"
-      :placeholder="$t('pos.cart.table_label')"
-      variant="outlined"
-      :density="touch ? 'comfortable' : 'compact'"
-      rounded="lg"
-      hide-details
-      clearable
-      :style="{ maxWidth: touch ? '170px' : '140px' }"
-      @update:model-value="$emit('update-table-id', $event)"
-    />
-
     <v-spacer class="d-none d-sm-block" />
 
     <!-- Customer — compact trigger, opens a small searchable menu. Never
@@ -120,8 +103,6 @@
   const props = defineProps({
     orderTypeOptions: { type: Array, default: () => [] },
     orderType: { type: String, default: 'takeaway' },
-    tables: { type: Array, default: () => [] },
-    tableId: { type: String, default: null },
     showCustomer: { type: Boolean, default: false },
     customers: { type: Array, default: () => [] },
     customerId: { type: String, default: null },
@@ -132,7 +113,6 @@
 
   const emit = defineEmits([
     'update-order-type',
-    'update-table-id',
     'search-customer',
     'update-customer',
     'update-note'
@@ -141,7 +121,6 @@
   const hasAnyControl = computed(
     () =>
       props.orderTypeOptions.length > 1 ||
-      (props.orderType === 'dine_in' && props.tables.length > 0) ||
       props.showCustomer ||
       props.showNotes
   )

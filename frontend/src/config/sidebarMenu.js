@@ -86,19 +86,16 @@ export const SIDEBAR_MENU = [
         permission: 'orders.manage'
       },
       {
-        key: 'orders',
-        titleKey: 'menu.orders',
-        icon: 'mdi-receipt-text-outline',
-        path: '/orders',
-        permission: 'reports.view'
-      },
-      {
         key: 'dining-table',
         titleKey: 'menu.tables',
         icon: 'mdi-table-chair',
         path: '/dining-table',
         permission: 'floor_plans.manage',
-        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro') && ctx.hasFeature('TABLE_MGMT')
+        visible: ctx =>
+          !ctx.isSuperAdmin &&
+          ctx.isFood &&
+          ctx.hasPlan('pro') &&
+          ctx.hasFeature('TABLE_MGMT')
       },
       {
         key: 'reservations',
@@ -106,7 +103,11 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-calendar-check-outline',
         path: '/reservations',
         permission: 'reservations.manage',
-        visible: ctx => !ctx.isSuperAdmin && ctx.isFood && ctx.hasPlan('pro') && ctx.hasFeature('RESERVATION')
+        visible: ctx =>
+          !ctx.isSuperAdmin &&
+          ctx.isFood &&
+          ctx.hasPlan('pro') &&
+          ctx.hasFeature('RESERVATION')
       },
       {
         key: 'kitchen',
@@ -115,6 +116,13 @@ export const SIDEBAR_MENU = [
         path: '/kitchen',
         permission: 'kitchen.manage',
         visible: ctx => ctx.isFood && ctx.hasFeature('KDS')
+      },
+      {
+        key: 'orders',
+        titleKey: 'menu.orders',
+        icon: 'mdi-receipt-text-outline',
+        path: '/orders',
+        permission: 'reports.view'
       }
     ]
   },

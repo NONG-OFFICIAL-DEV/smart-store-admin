@@ -7,146 +7,161 @@
   >
     <template v-if="order">
       <div class="order-detail-printable">
-          <div class="d-flex justify-end mb-2">
-            <v-chip
-              size="small"
-              rounded="lg"
-              :color="statusColor(order.status)"
-              variant="tonal"
-            >
-              {{ order.status }}
-            </v-chip>
-          </div>
+        <!-- ── Info Row ──────────────────────────────────────────────────── -->
+        <div class="pa-5 pb-4">
+          <v-row dense>
+            <v-col cols="6" sm="3">
+              <div class="text-caption text-medium-emphasis">
+                {{ t('form.type') }}
+              </div>
+              <div class="text-body-2 font-weight-medium capitalize">
+                {{ order.order_type?.replace('_', ' ') ?? '—' }}
+              </div>
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div class="text-caption text-medium-emphasis">
+                {{ t('customers.table.customer') }}
+              </div>
+              <div class="text-body-2 font-weight-medium">
+                {{ order.customer?.name ?? t('customers.source.walk_in') }}
+              </div>
+              <div
+                v-if="order.customer?.phone"
+                class="text-caption text-medium-emphasis"
+              >
+                {{ order.customer.phone }}
+              </div>
+            </v-col>
+            <v-col>
+              <v-chip
+                size="small"
+                rounded="lg"
+                :color="statusColor(order.status)"
+                variant="tonal"
+              >
+                {{ order.status }}
+              </v-chip>
+            </v-col>
+          </v-row>
+        </div>
 
-          <!-- ── Info Row ──────────────────────────────────────────────────── -->
-          <div class="pa-5 pb-4">
-            <v-row dense>
-              <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">{{ t('form.type') }}</div>
-                <div class="text-body-2 font-weight-medium capitalize">
-                  {{ order.order_type?.replace('_', ' ') ?? '—' }}
-                </div>
-              </v-col>
-              <v-col cols="6" sm="3">
-                <div class="text-caption text-medium-emphasis">{{ t('customers.table.customer') }}</div>
+        <v-divider />
+
+        <!-- ── Order Items ───────────────────────────────────────────────── -->
+        <div class="pa-5 pb-3">
+          <div
+            class="text-caption text-medium-emphasis font-weight-bold mb-3 text-uppercase"
+          >
+            {{ t('order.items') }}
+          </div>
+          <div
+            v-for="item in order.items"
+            :key="item.id"
+            class="d-flex align-center justify-space-between mb-3"
+          >
+            <div class="d-flex align-center gap-3">
+              <v-avatar color="grey-lighten-3" size="40" rounded="md">
+                <v-img v-if="item.image_url" :src="item.image_url" cover />
+                <v-icon v-else icon="mdi-food" size="18" />
+              </v-avatar>
+              <div>
                 <div class="text-body-2 font-weight-medium">
-                  {{ order.customer?.name ?? t('customers.source.walk_in') }}
+                  {{ item.product_name }}
                 </div>
-                <div
-                  v-if="order.customer?.phone"
-                  class="text-caption text-medium-emphasis"
-                >
-                  {{ order.customer.phone }}
+                <div class="text-caption text-medium-emphasis">
+                  {{ format(item.unit_price) }} × {{ item.quantity }}
+                  <span v-if="item.unit_name">({{ item.unit_name }})</span>
                 </div>
-              </v-col>
-            </v-row>
-          </div>
-
-          <v-divider />
-
-          <!-- ── Order Items ───────────────────────────────────────────────── -->
-          <div class="pa-5 pb-3">
-            <div
-              class="text-caption text-medium-emphasis font-weight-bold mb-3 text-uppercase"
-            >
-              {{ t('order.items') }}
-            </div>
-            <div
-              v-for="item in order.items"
-              :key="item.id"
-              class="d-flex align-center justify-space-between mb-3"
-            >
-              <div class="d-flex align-center gap-3">
-                <v-avatar color="grey-lighten-3" size="40" rounded="md">
-                  <v-img v-if="item.image_url" :src="item.image_url" cover />
-                  <v-icon v-else icon="mdi-food" size="18" />
-                </v-avatar>
-                <div>
-                  <div class="text-body-2 font-weight-medium">
-                    {{ item.product_name }}
-                  </div>
-                  <div class="text-caption text-medium-emphasis">
-                    {{ format(item.unit_price) }} × {{ item.quantity }}
-                    <span v-if="item.unit_name">({{ item.unit_name }})</span>
-                  </div>
-                  <div v-if="item.note" class="text-caption text-info">
-                    {{ t('order.note_prefix') }} {{ item.note }}
-                  </div>
+                <div v-if="item.note" class="text-caption text-info">
+                  {{ t('order.note_prefix') }} {{ item.note }}
                 </div>
               </div>
-              <div class="text-body-2 font-weight-bold">
-                {{ format(item.unit_price * item.quantity) }}
-              </div>
+            </div>
+            <div class="text-body-2 font-weight-bold">
+              {{ format(item.unit_price * item.quantity) }}
             </div>
           </div>
+        </div>
 
-          <v-divider />
+        <v-divider />
 
-          <!-- ── Totals ────────────────────────────────────────────────────── -->
-          <div class="pa-5 pt-4">
-            <div class="d-flex justify-space-between mb-2">
-              <span class="text-body-2 text-medium-emphasis">{{ t('order.subtotal') }}</span>
-              <span class="text-body-2">
-                {{ format(order.subtotal) }}
-              </span>
-            </div>
-            <div
-              v-if="order.discount_amount > 0"
-              class="d-flex justify-space-between mb-2"
-            >
-              <span class="text-body-2 text-medium-emphasis">{{ t('order.discount') }}</span>
-              <span class="text-body-2 text-error">
-                -{{ format(order.discount_amount) }}
-              </span>
-            </div>
-            <div
-              v-if="order.tax_amount > 0"
-              class="d-flex justify-space-between mb-2"
-            >
-              <span class="text-body-2 text-medium-emphasis">{{ t('order.tax') }}</span>
-              <span class="text-body-2">
-                {{ format(order.tax_amount) }}
-              </span>
-            </div>
-            <div
-              v-if="order.service_charge > 0"
-              class="d-flex justify-space-between mb-2"
-            >
-              <span class="text-body-2 text-medium-emphasis">
-                {{ t('branches.detail.service_charge') }}
-              </span>
-              <span class="text-body-2">
-                {{ format(order.service_charge) }}
-              </span>
-            </div>
-            <v-divider class="my-3" />
-            <div class="d-flex justify-space-between">
-              <span class="text-body-1 font-weight-bold">{{ t('order.total') }}</span>
-              <span class="text-body-1 font-weight-bold text-primary">
-                {{ format(order.total_amount) }}
-              </span>
-            </div>
-            <div
-              v-if="order.amount_tendered"
-              class="d-flex justify-space-between mt-2"
-            >
-              <span class="text-body-2 text-medium-emphasis">{{ t('pos.cash_tendered') }}</span>
-              <span class="text-body-2">
-                {{ format(order.amount_tendered) }}
-              </span>
-            </div>
-            <div
-              v-if="order.change_amount"
-              class="d-flex justify-space-between mt-1"
-            >
-              <span class="text-body-2 text-medium-emphasis">{{ t('pos.change') }}</span>
-              <span class="text-body-2 text-success">
-                {{ format(order.change_amount) }}
-              </span>
-            </div>
+        <!-- ── Totals ────────────────────────────────────────────────────── -->
+        <div class="pa-5 pt-4">
+          <div class="d-flex justify-space-between mb-2">
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('order.subtotal') }}
+            </span>
+            <span class="text-body-2">
+              {{ format(order.subtotal) }}
+            </span>
           </div>
+          <div
+            v-if="order.discount_amount > 0"
+            class="d-flex justify-space-between mb-2"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('order.discount') }}
+            </span>
+            <span class="text-body-2 text-error">
+              -{{ format(order.discount_amount) }}
+            </span>
+          </div>
+          <div
+            v-if="order.tax_amount > 0"
+            class="d-flex justify-space-between mb-2"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('order.tax') }}
+            </span>
+            <span class="text-body-2">
+              {{ format(order.tax_amount) }}
+            </span>
+          </div>
+          <div
+            v-if="order.service_charge > 0"
+            class="d-flex justify-space-between mb-2"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('branches.detail.service_charge') }}
+            </span>
+            <span class="text-body-2">
+              {{ format(order.service_charge) }}
+            </span>
+          </div>
+          <v-divider class="my-3" />
+          <div class="d-flex justify-space-between">
+            <span class="text-body-1 font-weight-bold">
+              {{ t('order.total') }}
+            </span>
+            <span class="text-body-1 font-weight-bold text-primary">
+              {{ format(order.total_amount) }}
+            </span>
+          </div>
+          <div
+            v-if="order.amount_tendered"
+            class="d-flex justify-space-between mt-2"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('pos.cash_tendered') }}
+            </span>
+            <span class="text-body-2">
+              {{ format(order.amount_tendered) }}
+            </span>
+          </div>
+          <div
+            v-if="order.change_amount"
+            class="d-flex justify-space-between mt-1"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('pos.change') }}
+            </span>
+            <span class="text-body-2 text-success">
+              {{ format(order.change_amount) }}
+            </span>
+          </div>
+        </div>
       </div>
-        </template>
+    </template>
 
     <template #actions="{ loading }">
       <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
@@ -218,7 +233,6 @@
       completed: 'success',
       cancelled: 'error'
     })[s] ?? 'grey'
-
 </script>
 
 <style scoped>

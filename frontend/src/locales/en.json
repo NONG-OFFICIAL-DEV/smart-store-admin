@@ -8,7 +8,7 @@
     "dashboard": "Dashboard",
     "tenant": "Tenants",
     "business_type": "Business type",
-    "pos": "Point of Sale",
+    "pos": "POS",
     "products_management": "Products",
     "products": "Products",
     "product": "Product",
@@ -79,9 +79,7 @@
     "system": "System",
     "security": "Security",
     "users_roles": "Users & Roles",
-    "pos": "POS",
     "quick_sale": "Quick Sale",
-    "orders": "Orders",
     "ops": "Operations",
     "business": "Business"
   },
@@ -991,7 +989,7 @@
       "shelfLife": "Shelf Life",
       "availableSizes": "Available Sizes",
       "temperatureOptionsLabel": "Temperature Options",
-      "sku":"SKU"
+      "sku": "SKU"
     },
     "image": {
       "upload": "Upload",
@@ -2079,10 +2077,6 @@
       "unlimited_branches": "∞ branches",
       "products_suffix": "products",
       "unlimited_products": "∞ products",
-      "branches_suffix": "branches",
-      "unlimited_branches": "∞ branches",
-      "products_suffix": "products",
-      "unlimited_products": "∞ products",
       "table": {
         "name": "Plan",
         "limits": "Limits"
@@ -2306,7 +2300,7 @@
     },
     "retail": {
       "title": "Retail Quick Sale",
-      "subtitle":"Sell products quickly and easily",
+      "subtitle": "Sell products quickly and easily",
       "customer_type": "Customer type",
       "customer_types": {
         "retail": "Retail",
@@ -2350,6 +2344,9 @@
         "delivery": "Delivery"
       },
       "table_label": "Table",
+      "choose_table": "Choose a Table",
+      "clear_table": "No table",
+      "no_tables_available": "No tables available right now.",
       "customer_label": "Customer",
       "customer_placeholder": "Walk-in customer",
       "add_note": "Add note",
@@ -2709,12 +2706,7 @@
   },
   "reservations": {
     "status": {
-      "pending": "Pending",
-      "confirmed": "Confirmed",
-      "seated": "Seated",
-      "completed": "Completed",
-      "no_show": "No Show",
-      "cancelled": "Cancelled"
+      "seated": "Seated"
     },
     "dialog": {
       "edit": "Edit Reservation",
@@ -2768,9 +2760,6 @@
     "empty": "No reservations found",
     "empty_search": "Try a different search",
     "empty_period": "No reservations for this period",
-    "status": {
-      "seated": "Seated"
-    },
     "timing": {
       "past": "Past",
       "upcoming": "Upcoming"
@@ -3007,6 +2996,16 @@
     "confirm_delete": {
       "title": "Delete Table?",
       "message": "Table <strong>{number}</strong> will be permanently removed."
+    },
+    "mode": {
+      "order": "Order",
+      "manage": "Manage"
+    },
+    "order": {
+      "view_order": "Tap to view order",
+      "start_order": "Tap to start order",
+      "no_active_order": "No active order found for this table.",
+      "load_failed": "Failed to load the order."
     }
   },
   "tenants": {

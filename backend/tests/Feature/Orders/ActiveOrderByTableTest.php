@@ -1,0 +1,123 @@
+<?php
+
+namespace Tests\Feature\Orders;
+
+use App\Http\Controllers\Api\CoffeePOSorderController;
+use App\Http\Controllers\Api\OrderController;
+use App\Models\Branch;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\Table;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\ProductService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Tests\TestCase;
+
+/**
+ * GET tables/{table}/active-order (OrderController::byTable) used to exclude
+ * 'completed' orders — correct for a running-tab model, but Coffee/Mart POS
+ * records a sale as 'completed' the instant it's rung up while the table
+ * stays occupied, so a table's just-placed order was never found: Table
+ * Management's "tap occupied table -> view order" always came back empty.
+ */
+class ActiveOrderByTableTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function makeTenantWithOwner(string $name): array
+    {
+        $owner = User::create([
+            'email' => strtolower($name).'@example.test',
+            'first_name' => $name,
+            'last_name' => 'Owner',
+            'is_super_admin' => false,
+        ]);
+
+        $tenant = Tenant::create([
+            'name' => $name,
+            'slug' => strtolower($name).'-'.substr((string) $owner->id, 0, 8),
+            'owner_user_id' => $owner->id,
+        ]);
+
+        return [$tenant, $owner];
+    }
+
+    private function makeBranch(Tenant $tenant): Branch
+    {
+        return Branch::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Main Branch',
+            'address_line1' => '123 Main St',
+            'city' => 'Phnom Penh',
+        ]);
+    }
+
+    private function makeProduct(string $tenantId): \App\Models\Product
+    {
+        $category = Category::create(['name' => 'Drinks']);
+
+        return $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Iced Latte',
+            'base_price' => 4.5,
+        ], $tenantId);
+    }
+
+    public function test_a_completed_coffee_pos_sale_is_still_found_as_the_table_active_order(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $request = Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'cash',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders($request);
+
+        $order = Order::firstWhere('table_id', $table->id);
+        $this->assertSame('completed', $order->status);
+
+        $response = $this->app->make(OrderController::class)->byTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertNotNull($data);
+        $this->assertSame($order->id, $data['id']);
+    }
+
+    public function test_a_cancelled_order_is_not_returned_as_the_table_active_order(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        Order::create([
+            'branch_id' => $branch->id,
+            'table_id' => $table->id,
+            'order_type' => 'dine_in',
+            'status' => 'cancelled',
+            'source' => 'pos',
+            'subtotal' => 0,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'discount_amount' => 0,
+            'total_amount' => 0,
+            'queue_number' => 1,
+        ]);
+
+        $response = $this->app->make(OrderController::class)->byTable($table->id);
+
+        $this->assertNull($response->getData(true)['data']);
+    }
+}

@@ -1,147 +1,222 @@
 <template>
-  <div class="pos-page d-flex flex-column" :class="{ 'pos-page--no-branch': !branchId }">
-    <!-- Compact header — back + title + branch, nothing else -->
-    <div
-      class="pos-page__header d-flex align-center flex-grow-0"
-      :class="touch ? 'px-2 py-2' : 'px-1 py-1'"
-    >
-      <v-btn
-        icon="mdi-arrow-left"
-        variant="text"
-        :density="touch ? 'default' : 'comfortable'"
-        :size="touch ? 'default' : 'small'"
-        @click="$router.back()"
-      />
-      <span class="font-weight-bold ml-1" :class="touch ? 'text-body-1' : 'text-body-2'">
-        {{ t('pos.food.title') }}
-      </span>
-      <v-spacer />
-      <v-chip :size="touch ? 'default' : 'small'" variant="tonal" rounded="lg" prepend-icon="mdi-store-outline">
-        {{ selectedBranchName || t('pos.select_branch') }}
-      </v-chip>
-    </div>
-
-    <v-alert
-      v-if="!branchId"
-      type="warning"
-      variant="tonal"
-      rounded="lg"
-      class="pos-no-branch-alert mb-2"
-    >
-      <div class="d-flex flex-column flex-sm-row align-start align-sm-center ga-3">
-        <div>
-          <div class="font-weight-medium">{{ t('pos.no_branch.title') }}</div>
-          <div class="text-caption">{{ t('pos.no_branch.subtitle') }}</div>
-        </div>
-        <v-spacer />
+  <div>
+    <AppToolbar :title="t('pos.food.title')">
+      <template #actions>
         <v-btn
-          color="primary"
-          variant="flat"
+          v-if="posStore.orderType === 'dine_in' && tableOptions.length"
+          :color="posStore.tableId ? 'primary' : 'warning'"
+          :variant="posStore.tableId ? 'tonal' : 'flat'"
           rounded="lg"
-          size="small"
-          prepend-icon="mdi-plus"
-          :to="{ name: 'settings-hub', query: { tab: 'branch' } }"
+          :size="touch ? 'default' : 'small'"
+          prepend-icon="mdi-table-furniture"
+          @click="tableSheetOpen = true"
         >
-          {{ t('pos.no_branch.action') }}
+          {{ tableButtonLabel }}
         </v-btn>
-      </div>
-    </v-alert>
+        <!-- <v-chip
+          :size="touch ? 'default' : 'small'"
+          variant="tonal"
+          rounded="lg"
+          prepend-icon="mdi-store-outline"
+        >
+          {{ selectedBranchName || t('pos.select_branch') }}
+        </v-chip> -->
+      </template>
+    </AppToolbar>
 
-    <template v-else>
-      <PosOrderOptionsBar
-        class="flex-grow-0 pb-2"
-        :class="touch ? 'px-2' : 'px-1'"
-        :order-type-options="enabledOrderTypes"
-        :order-type="posStore.orderType"
-        :tables="tableOptions"
-        :table-id="posStore.tableId"
-        :show-customer="showCustomer"
-        :customers="customerOptions"
-        :customer-id="posStore.customerId"
-        :customer-name="posStore.customerName"
-        :show-notes="showNotes"
-        :note="posStore.note"
-        @update-order-type="posStore.setOrderType"
-        @update-table-id="posStore.setTable"
-        @search-customer="onSearchCustomer"
-        @update-customer="posStore.setCustomer"
-        @update-note="posStore.setNote"
-      />
-
-      <div class="pos-page__workspace flex-grow-1 d-flex ga-2">
-        <div class="pos-page__products flex-grow-1">
-          <PosProductGrid
-            ref="productGridRef"
-            customizable
-            :products="normalizedProducts"
-            :categories="categories"
-            :category-id="categoryId"
-            :search="search"
-            :loading="loading"
-            @update:search="search = $event"
-            @update:category-id="categoryId = $event"
-            @add="onAdd"
-            @customize="openCustomize"
+    <v-bottom-sheet v-model="tableSheetOpen">
+      <v-card rounded="t-xl">
+        <div class="pa-4 d-flex align-center">
+          <span class="text-subtitle-1 font-weight-bold">
+            {{ t('pos.cart.choose_table') }}
+          </span>
+          <v-spacer />
+          <v-btn
+            v-if="posStore.tableId"
+            variant="text"
+            size="small"
+            @click="selectTable(null)"
+          >
+            {{ t('pos.cart.clear_table') }}
+          </v-btn>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="tableSheetOpen = false"
           />
         </div>
-
-        <!-- Desktop/tablet — cart column, always visible. Narrower on tablet
-             portrait so the product grid still has room to breathe. -->
-        <div v-if="!xs" class="pos-page__cart" :style="{ flexBasis: cartWidth + 'px', width: cartWidth + 'px' }">
-          <PosCartPanel
-            ref="cartPanelRef"
-            :items="posStore.items"
-            :subtotal="posStore.subtotal"
-            :loading="submitting"
-            show-notes
-            @update-qty="posStore.updateQty"
-            @update-notes="posStore.updateNotes"
-            @remove="posStore.removeItem"
-            @clear="posStore.clear"
-            @checkout="submitOrder"
-          />
-        </div>
-      </div>
-    </template>
-
-    <!-- Mobile — sticky order bar opens the cart as a bottom sheet -->
-    <div
-      v-if="xs && branchId && posStore.items.length"
-      class="pos-page__mobile-bar flex-grow-0 d-flex align-center px-4 py-3"
-      @click="mobileCartOpen = true"
-    >
-      <v-badge :content="posStore.itemCount" color="white" inline class="me-2" />
-      <span class="text-body-1 font-weight-medium">{{ t('pos.cart.view_order') }}</span>
-      <v-spacer />
-      <span class="text-h6 font-weight-black">{{ formatMoney(posStore.subtotal) }}</span>
-    </div>
-
-    <v-bottom-sheet v-if="xs" v-model="mobileCartOpen">
-      <PosCartPanel
-        class="pos-page__mobile-cart"
-        :items="posStore.items"
-        :subtotal="posStore.subtotal"
-        :loading="submitting"
-        show-notes
-        @update-qty="posStore.updateQty"
-        @update-notes="posStore.updateNotes"
-        @remove="posStore.removeItem"
-        @clear="posStore.clear"
-        @checkout="onMobileCheckout"
-      />
+        <v-divider />
+        <v-row class="pa-4 ma-0" dense>
+          <v-col v-for="tb in tableOptions" :key="tb.id" cols="4" sm="3" md="2">
+            <v-card
+              :color="posStore.tableId === tb.id ? 'primary' : undefined"
+              :variant="posStore.tableId === tb.id ? 'flat' : 'tonal'"
+              rounded="lg"
+              class="pa-3 text-center table-sheet-card"
+              @click="selectTable(tb.id)"
+            >
+              <div class="text-h6 font-weight-bold">{{ tb.table_number }}</div>
+              <div
+                class="d-flex align-center justify-center ga-1 text-caption"
+                :class="
+                  posStore.tableId === tb.id ? '' : 'text-medium-emphasis'
+                "
+              >
+                <v-icon icon="mdi-account-group-outline" size="14" />
+                {{ tb.capacity }}
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-alert
+          v-if="!tableOptions.length"
+          type="info"
+          variant="tonal"
+          rounded="lg"
+          class="ma-4"
+        >
+          {{ t('pos.cart.no_tables_available') }}
+        </v-alert>
+      </v-card>
     </v-bottom-sheet>
+    <div
+      class="pos-page d-flex flex-column"
+      :class="{ 'pos-page--no-branch': !branchId }"
+    >
+      <v-alert
+        v-if="!branchId"
+        type="warning"
+        variant="tonal"
+        rounded="lg"
+        class="pos-no-branch-alert mb-2"
+      >
+        <div
+          class="d-flex flex-column flex-sm-row align-start align-sm-center ga-3"
+        >
+          <div>
+            <div class="font-weight-medium">{{ t('pos.no_branch.title') }}</div>
+            <div class="text-caption">{{ t('pos.no_branch.subtitle') }}</div>
+          </div>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            size="small"
+            prepend-icon="mdi-plus"
+            :to="{ name: 'settings-hub', query: { tab: 'branch' } }"
+          >
+            {{ t('pos.no_branch.action') }}
+          </v-btn>
+        </div>
+      </v-alert>
 
-    <PosReceiptDialog
-      v-model="receiptOpen"
-      :receipt="receipt"
-      @close="receiptOpen = false"
-    />
+      <template v-else>
+        <PosOrderOptionsBar
+          class="flex-grow-0 pb-2"
+          :class="touch ? 'px-2' : 'px-1'"
+          :order-type-options="enabledOrderTypes"
+          :order-type="posStore.orderType"
+          :show-customer="showCustomer"
+          :customers="customerOptions"
+          :customer-id="posStore.customerId"
+          :customer-name="posStore.customerName"
+          :show-notes="showNotes"
+          :note="posStore.note"
+          @update-order-type="posStore.setOrderType"
+          @search-customer="onSearchCustomer"
+          @update-customer="posStore.setCustomer"
+          @update-note="posStore.setNote"
+        />
 
-    <PosProductCustomizeDialog
-      v-model="customizeOpen"
-      :product="customizeProduct"
-      @add="onAddFromDialog"
-    />
+        <div class="pos-page__workspace flex-grow-1 d-flex ga-2">
+          <div class="pos-page__products flex-grow-1">
+            <PosProductGrid
+              ref="productGridRef"
+              customizable
+              :products="normalizedProducts"
+              :categories="categories"
+              :category-id="categoryId"
+              :search="search"
+              :loading="loading"
+              @update:search="search = $event"
+              @update:category-id="categoryId = $event"
+              @add="onAdd"
+              @customize="openCustomize"
+            />
+          </div>
+
+          <!-- Desktop/tablet — cart column, always visible. Narrower on tablet
+             portrait so the product grid still has room to breathe. -->
+          <div
+            v-if="!xs"
+            class="pos-page__cart"
+            :style="{ flexBasis: cartWidth + 'px', width: cartWidth + 'px' }"
+          >
+            <PosCartPanel
+              ref="cartPanelRef"
+              :items="posStore.items"
+              :subtotal="posStore.subtotal"
+              :loading="submitting"
+              show-notes
+              @update-qty="posStore.updateQty"
+              @update-notes="posStore.updateNotes"
+              @remove="posStore.removeItem"
+              @clear="posStore.clear"
+              @checkout="submitOrder"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- Mobile — sticky order bar opens the cart as a bottom sheet -->
+      <div
+        v-if="xs && branchId && posStore.items.length"
+        class="pos-page__mobile-bar flex-grow-0 d-flex align-center px-4 py-3"
+        @click="mobileCartOpen = true"
+      >
+        <v-badge
+          :content="posStore.itemCount"
+          color="white"
+          inline
+          class="me-2"
+        />
+        <span class="text-body-1 font-weight-medium">
+          {{ t('pos.cart.view_order') }}
+        </span>
+        <v-spacer />
+        <span class="text-h6 font-weight-black">
+          {{ formatMoney(posStore.subtotal) }}
+        </span>
+      </div>
+
+      <v-bottom-sheet v-if="xs" v-model="mobileCartOpen">
+        <PosCartPanel
+          class="pos-page__mobile-cart"
+          :items="posStore.items"
+          :subtotal="posStore.subtotal"
+          :loading="submitting"
+          show-notes
+          @update-qty="posStore.updateQty"
+          @update-notes="posStore.updateNotes"
+          @remove="posStore.removeItem"
+          @clear="posStore.clear"
+          @checkout="onMobileCheckout"
+        />
+      </v-bottom-sheet>
+
+      <PosReceiptDialog
+        v-model="receiptOpen"
+        :receipt="receipt"
+        @close="receiptOpen = false"
+      />
+
+      <PosProductCustomizeDialog
+        v-model="customizeOpen"
+        :product="customizeProduct"
+        @add="onAddFromDialog"
+      />
+    </div>
   </div>
 </template>
 
@@ -163,6 +238,7 @@
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
   import PosProductCustomizeDialog from '@/components/pos/PosProductCustomizeDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const { t } = useI18n()
   const { format: formatMoney } = useCurrency()
@@ -220,12 +296,18 @@
     delivery: () => t('pos.cart.order_type.delivery')
   }
   const enabledOrderTypes = computed(() => {
-    const enabled = authStore.posSettings?.order_types ?? ['dine_in', 'takeaway', 'delivery']
+    const enabled = authStore.posSettings?.order_types ?? [
+      'dine_in',
+      'takeaway',
+      'delivery'
+    ]
     return Object.keys(ORDER_TYPE_LABELS)
       .filter(key => enabled.includes(key))
       .map(key => ({ value: key, label: ORDER_TYPE_LABELS[key]() }))
   })
-  const showCustomer = computed(() => authStore.posSettings?.customer_selection ?? true)
+  const showCustomer = computed(
+    () => authStore.posSettings?.customer_selection ?? true
+  )
   const showNotes = computed(() => authStore.posSettings?.order_notes ?? true)
 
   const categories = ref([])
@@ -240,6 +322,19 @@
 
   const tableOptions = ref([])
   const customerOptions = ref([])
+  const tableSheetOpen = ref(false)
+
+  const tableButtonLabel = computed(() => {
+    const table = tableOptions.value.find(tb => tb.id === posStore.tableId)
+    return table
+      ? `${t('tables.table_prefix')} ${table.table_number}`
+      : t('pos.cart.table_label')
+  })
+
+  function selectTable(id) {
+    posStore.setTable(id)
+    tableSheetOpen.value = false
+  }
 
   async function loadTables() {
     if (!branchId.value) return
@@ -252,7 +347,10 @@
   }
 
   async function onSearchCustomer(search) {
-    const { data } = await getAllCustomersApi({ search: search || undefined, perPage: 20 })
+    const { data } = await getAllCustomersApi({
+      search: search || undefined,
+      perPage: 20
+    })
     customerOptions.value = data.data
   }
 
@@ -347,7 +445,10 @@
         payment_method,
         cash_tendered,
         order_type: posStore.orderType,
-        table_id: posStore.orderType === 'dine_in' ? posStore.tableId || undefined : undefined,
+        table_id:
+          posStore.orderType === 'dine_in'
+            ? posStore.tableId || undefined
+            : undefined,
         customer_id: posStore.customerId || undefined,
         notes: posStore.note || undefined,
         items: posStore.items.map(i => ({
@@ -355,8 +456,12 @@
           variant_id: i.variant_id || undefined,
           quantity: i.qty,
           note: i.notes || undefined,
-          customizations: i.customizations?.length ? i.customizations : undefined,
-          modifier_option_ids: i.modifier_option_ids?.length ? i.modifier_option_ids : undefined
+          customizations: i.customizations?.length
+            ? i.customizations
+            : undefined,
+          modifier_option_ids: i.modifier_option_ids?.length
+            ? i.modifier_option_ids
+            : undefined
         }))
       })
       receipt.value = data.data.prints.receipt
@@ -366,7 +471,9 @@
       notif(t('pos.checkout.success'), { type: 'success' })
     } catch (err) {
       notif(
-        err.response?.data?.message ?? err.response?.data?.errors?.[0] ?? t('pos.checkout.failed'),
+        err.response?.data?.message ??
+          err.response?.data?.errors?.[0] ??
+          t('pos.checkout.failed'),
         { type: 'error' }
       )
     } finally {
@@ -376,11 +483,15 @@
 
   // If the tenant disables whichever order type is currently selected
   // (including the default 'takeaway'), fall back to the first one still enabled.
-  watch(enabledOrderTypes, types => {
-    if (types.length && !types.some(o => o.value === posStore.orderType)) {
-      posStore.setOrderType(types[0].value)
-    }
-  }, { immediate: true })
+  watch(
+    enabledOrderTypes,
+    types => {
+      if (types.length && !types.some(o => o.value === posStore.orderType)) {
+        posStore.setOrderType(types[0].value)
+      }
+    },
+    { immediate: true }
+  )
 
   watch(branchId, () => {
     loadProducts()
@@ -389,7 +500,10 @@
   watch(search, loadProducts)
 
   function handlePosShortcuts(e) {
-    if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || e.key === 'F2') {
+    if (
+      ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') ||
+      e.key === 'F2'
+    ) {
       e.preventDefault()
       productGridRef.value?.focus()
     } else if (e.key === 'F10') {
@@ -409,7 +523,10 @@
     // blindly; the sidebar's own BranchSwitcher does the same self-repair
     // on its own mount, but that's a separate component with no
     // guaranteed ordering against this page's mount.
-    if (branchId.value && !branchStore.branches.some(b => b.id === branchId.value)) {
+    if (
+      branchId.value &&
+      !branchStore.branches.some(b => b.id === branchId.value)
+    ) {
       authStore.setActiveBranch(branchStore.branches[0]?.id ?? null)
     }
 
@@ -426,11 +543,14 @@
 </script>
 
 <style scoped>
+  .table-sheet-card {
+    cursor: pointer;
+  }
   .pos-page {
     /* Approximate remaining viewport below the app bar + page container
        padding — the workspace below scrolls internally instead of the
        whole page, so a few px of slack here is harmless. */
-    height: calc(100vh - 96px);
+    height: calc(94vh - 97px);
     min-height: 0;
     overflow: hidden;
   }
@@ -441,7 +561,7 @@
      assumes there's a product grid + cart filling the rest of the page. */
   .pos-page--no-branch {
     height: auto;
-    min-height: calc(100vh - 96px);
+    min-height: calc(94vh - 96px);
     overflow: visible;
   }
   /* Vuetify's own .v-alert base rule sets `overflow: hidden` and

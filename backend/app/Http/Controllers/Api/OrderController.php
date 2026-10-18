@@ -244,7 +244,14 @@ class OrderController extends Controller
             'statusHistory',
         ])
             ->where('table_id', $tableId)
-            ->whereNotIn('status', ['completed', 'cancelled', 'refunded'])
+            // Coffee/Mart POS sales are recorded 'completed' the instant
+            // they're rung up (no running-tab lifecycle), but the table
+            // stays occupied until staff frees it — so "completed" here
+            // does not mean "nothing to show for this table" the way it
+            // does for a running tab. Only cancelled/refunded orders are
+            // genuinely dead and excluded; latest() still always returns
+            // whichever order is actually current for the table.
+            ->whereNotIn('status', ['cancelled', 'refunded'])
             ->latest()
             ->first();
 

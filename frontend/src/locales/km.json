@@ -8,7 +8,7 @@
     "dashboard": "ផ្ទាំងគ្រប់គ្រង",
     "tenant": "អ្នកជួល",
     "business_type": "ប្រភេទអាជីវកម្ម",
-    "pos": "កន្លែងលក់",
+    "pos": "POS",
     "products_management": "គ្រប់គ្រងទំនិញ",
     "products": "ទំនិញ",
     "product": "ផលិតផល",
@@ -25,7 +25,7 @@
     "purchase_order": "បញ្ជាទិញ",
     "low_stock": "ស្តុកទាប",
     "sales": "ការលក់",
-    "orders": "កម្មង់",
+    "orders": "ការបញ្ជាទិញ",
     "reports": "របាយការណ៍",
     "settings": "ការកំណត់",
     "users": "អ្នកប្រើប្រាស់",
@@ -79,9 +79,7 @@
     "system": "ប្រព័ន្ធ",
     "security": "សុវត្ថិភាព",
     "users_roles": "អ្នកប្រើប្រាស់ និងតួនាទី",
-    "pos": "POS",
     "quick_sale": "លក់រហ័ស",
-    "orders": "ការបញ្ជាទិញ",
     "ops": "ប្រតិបត្តិការ",
     "business": "អាជីវកម្ម"
   },
@@ -2326,6 +2324,9 @@
         "delivery": "ដឹកជញ្ជូន"
       },
       "table_label": "តុ",
+      "choose_table": "ជ្រើសរើសតុ",
+      "clear_table": "គ្មានតុ",
+      "no_tables_available": "មិនមានតុទំនេរទេពេលនេះ។",
       "customer_label": "អតិថិជន",
       "customer_placeholder": "អតិថិជនចូលមក",
       "add_note": "បន្ថែមចំណាំ",
@@ -2685,12 +2686,7 @@
   },
   "reservations": {
     "status": {
-      "pending": "កំពុងរង់ចាំ",
-      "confirmed": "បានបញ្ជាក់",
-      "seated": "កំពុងអង្គុយ",
-      "completed": "បានបញ្ចប់",
-      "no_show": "មិនបានមក",
-      "cancelled": "បានលុបចោល"
+      "seated": "កំពុងអង្គុយ"
     },
     "dialog": {
       "edit": "កែប្រែការកក់",
@@ -2744,9 +2740,6 @@
     "empty": "រកមិនឃើញការកក់ទេ",
     "empty_search": "សូមសាកល្បងស្វែងរកម្តងទៀត",
     "empty_period": "មិនមានការកក់សម្រាប់រយៈពេលនេះទេ",
-    "status": {
-      "seated": "កំពុងអង្គុយ"
-    },
     "timing": {
       "past": "កន្លងទៅ",
       "upcoming": "នឹងមកដល់"
@@ -2983,6 +2976,16 @@
     "confirm_delete": {
       "title": "លុបតុ?",
       "message": "តុ <strong>{number}</strong> នឹងត្រូវលុបជាអចិន្ត្រៃយ៍។"
+    },
+    "mode": {
+      "order": "បញ្ជាទិញ",
+      "manage": "គ្រប់គ្រង"
+    },
+    "order": {
+      "view_order": "ចុចដើម្បីមើលការបញ្ជាទិញ",
+      "start_order": "ចុចដើម្បីចាប់ផ្តើមបញ្ជាទិញ",
+      "no_active_order": "រកមិនឃើញការបញ្ជាទិញសកម្មសម្រាប់តុនេះទេ។",
+      "load_failed": "បរាជ័យក្នុងការផ្ទុកការបញ្ជាទិញ។"
     }
   },
   "tenants": {

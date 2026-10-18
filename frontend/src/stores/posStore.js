@@ -13,8 +13,10 @@ export const usePosStore = defineStore('pos', {
 
     // Food tenants only — dine_in/takeaway/delivery, table only applies to
     // dine_in. Customer is optional for either business type (walk-in sales
-    // must keep working with none of this set).
-    orderType: 'takeaway',
+    // must keep working with none of this set). Defaults to dine_in so the
+    // table picker is visible immediately on open — FoodPos.vue falls back
+    // to the tenant's first enabled order type if dine_in isn't enabled.
+    orderType: 'dine_in',
     tableId: null,
     customerId: null,
     customerName: null,
@@ -80,7 +82,7 @@ export const usePosStore = defineStore('pos', {
 
     clear() {
       this.items = []
-      this.orderType = 'takeaway'
+      this.orderType = 'dine_in'
       this.tableId = null
       this.customerId = null
       this.customerName = null
