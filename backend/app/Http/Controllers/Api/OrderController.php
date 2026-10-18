@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\KitchenDisplayTicket;
 use App\Models\ModifierOption;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -64,7 +65,7 @@ class OrderController extends Controller
             'items.*.modifiers.*.quantity'           => 'integer|min:1',
         ]);
 
-        $branch = Branch::with('tenant')->findOrFail($request->branch_id);
+        $branch = Branch::with('tenant.businessType')->findOrFail($request->branch_id);
 
         return DB::transaction(function () use ($request, $branch) {
 
@@ -165,6 +166,17 @@ class OrderController extends Controller
                 'to_status'   => 'pending',
                 'notes'       => 'Order placed from mobile app',
             ]);
+
+            // Food tenants need a kitchen ticket for every order so it shows
+            // up on the Kitchen Display without a staff member manually
+            // looking it up by order number. Mart/retail tenants have no
+            // prep step, so no ticket is created for them.
+            if ($branch->tenant->businessType?->category === 'food') {
+                KitchenDisplayTicket::create([
+                    'order_id'  => $order->id,
+                    'branch_id' => $branch->id,
+                ]);
+            }
 
             $order->load(['items.modifiers', 'diningTable']);
 

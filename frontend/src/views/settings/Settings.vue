@@ -1,10 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-shield-lock-outline"
+    <AppToolbar
       :title="$t('settings.title')"
       :subtitle="$t('settings.subtitle')"
-      class="custom-title-modern"
     />
 
     <v-row>
@@ -162,6 +160,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import authService from '@/api/auth'
   import TwoFactorAuthSection from '@/components/common/TwoFactorAuthSection.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const { t } = useI18n()
   const authStore = useAuthStore()

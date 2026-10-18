@@ -1,9 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-cog-outline"
-      :title="t('settings_hub.title')"
-      :subtitle="t('settings_hub.subtitle')"
+    <AppToolbar
+      :title="$t('settings_hub.title')"
+      :subtitle="$t('settings_hub.subtitle')"
     />
 
     <v-tabs v-model="activeTab" color="primary" class="mb-4" show-arrows>
@@ -174,6 +173,7 @@
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
   import Branch from '@/views/branches/Branch.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const { t } = useI18n()
   const route = useRoute()

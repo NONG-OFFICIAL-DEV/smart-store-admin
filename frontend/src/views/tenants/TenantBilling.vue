@@ -1,10 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-credit-card"
+    <AppToolbar
       :title="$t('billing.title')"
       :subtitle="$t('billing.subtitle')"
-    ></custom-title>
+    ></AppToolbar>
     <!-- Loading -->
     <template v-if="tenantStore.loading">
       <v-skeleton-loader type="card" class="mb-4" />
@@ -104,6 +103,7 @@
   import PlanHistoryTable from '@/components/tenants/PlanHistoryTable.vue'
   import QRPaymentDialog from '@/components/tenants/QRPaymentDialog.vue'
   import UpgradeDialog from '@/components/tenants/UpgradeDialog.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const tenantStore = useTenantStore()
   const authStore = useAuthStore()

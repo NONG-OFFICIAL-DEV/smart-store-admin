@@ -1,11 +1,11 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
+    <AppToolbar
       icon="mdi-shield-crown"
       :title="$t('roles.title')"
       :subtitle="$t('roles.subtitle')"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           color="primary"
           variant="flat"
@@ -16,7 +16,7 @@
           {{ $t('roles.new') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <!-- ── Filters ────────────────────────────────────────────────────────────── -->
     <v-row class="mb-2" dense>
@@ -128,6 +128,7 @@
   import { usePermission } from '@/composables/usePermission'
   import RoleFormDialog from '@/components/rolePermissions/RoleFormDialog.vue'
   import RolePermissionsDialog from '@/components/rolePermissions/RolePermissionsDialog.vue'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useAppUtils, AppTable } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()

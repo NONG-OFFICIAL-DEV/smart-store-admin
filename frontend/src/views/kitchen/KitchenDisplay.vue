@@ -221,7 +221,7 @@
   const branchStore = useBranchStore()
   const orderStore = useOrderStore()
 
-  const branchId = ref(authStore.branch_id)
+  const branchId = ref(authStore.activeBranchId || authStore.branch_id)
   const loading = ref(false)
   const tickets = ref([])
   const orderCache = ref({})
@@ -381,6 +381,15 @@
 
   onMounted(async () => {
     await branchStore.fetchBranches?.()
+
+    // authStore.activeBranchId can be stale (persisted from a previous
+    // session/role) or simply absent for an owner — fall back to the
+    // first branch the user actually has access to instead of forcing
+    // a manual pick every time.
+    if (!branchId.value || !branchStore.branches.some(b => b.id === branchId.value)) {
+      branchId.value = branchStore.branches[0]?.id ?? null
+    }
+
     if (branchId.value) await loadTickets()
     pollTimer = setInterval(loadTickets, 20000)
     clockTimer = setInterval(() => {
