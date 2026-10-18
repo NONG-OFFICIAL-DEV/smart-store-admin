@@ -165,7 +165,6 @@
   const tickets = ref([])
   const orderCache = ref({})
   const now = ref(Date.now())
-  let pollTimer = null
   let clockTimer = null
 
   const columns = [
@@ -265,8 +264,7 @@
   }
 
   // ── Live push (new order placed from the e-menu or rung up on the POS) ─
-  // Polling (20s) stays as a fallback — this just makes a new order show
-  // up (and play a sound) immediately instead of up to 20s late.
+  // No polling fallback — tickets update purely from this socket event.
   let orderChannelName = null
 
   function subscribeOrderChannel(id) {
@@ -303,14 +301,12 @@
 
     if (branchId.value) await loadTickets()
     subscribeOrderChannel(branchId.value)
-    pollTimer = setInterval(loadTickets, 20000)
     clockTimer = setInterval(() => {
       now.value = Date.now()
     }, 30000)
   })
 
   onUnmounted(() => {
-    clearInterval(pollTimer)
     clearInterval(clockTimer)
     if (orderChannelName) getEcho()?.leave(orderChannelName)
   })
