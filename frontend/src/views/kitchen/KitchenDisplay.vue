@@ -19,16 +19,6 @@
             hide-details
             style="min-width: 200px"
           />
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            prepend-icon="mdi-plus"
-            :disabled="!branchId"
-            @click="openNewTicket"
-          >
-            {{ t('kitchen.new_ticket') }}
-          </v-btn>
         </div>
       </template>
     </custom-title>
@@ -87,8 +77,22 @@
               <div v-if="ticket.station" class="text-caption text-medium-emphasis">
                 {{ ticket.station }}
               </div>
-              <div v-if="orderCache[ticket.order_id]" class="text-caption text-medium-emphasis">
-                {{ t('kitchen.items_count', { n: orderCache[ticket.order_id].items?.length ?? 0 }) }}
+
+              <v-divider v-if="orderCache[ticket.order_id]?.items?.length" class="my-2" />
+              <div
+                v-for="item in orderCache[ticket.order_id]?.items ?? []"
+                :key="item.id"
+                class="text-caption mb-1"
+              >
+                <div class="d-flex justify-space-between">
+                  <span class="font-weight-medium">{{ item.quantity }}× {{ item.product_name }}</span>
+                </div>
+                <div v-if="item.modifiers?.length" class="text-medium-emphasis pl-3">
+                  {{ item.modifiers.map(m => m.name).join(', ') }}
+                </div>
+                <div v-if="item.notes" class="text-medium-emphasis pl-3 font-italic">
+                  {{ item.notes }}
+                </div>
               </div>
 
               <div class="d-flex align-center justify-space-between mt-2">
@@ -131,71 +135,6 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <AppDialog
-      v-model="newTicketDialog"
-      :title="t('kitchen.new_ticket')"
-      :max-width="400"
-      :loading="creating"
-    >
-      <v-text-field
-        v-model="orderLookupInput"
-        :label="t('kitchen.order_number_label')"
-        variant="outlined"
-        rounded="lg"
-        :loading="lookingUp"
-        append-inner-icon="mdi-magnify"
-        @click:append-inner="lookupOrder"
-        @keyup.enter="lookupOrder"
-      />
-
-      <v-card
-        v-if="lookedUpOrder"
-        variant="tonal"
-        color="success"
-        rounded="lg"
-        class="pa-3 mb-4"
-      >
-        <div class="text-body-2 font-weight-bold">{{ lookedUpOrder.order_number }}</div>
-        <div class="text-caption text-medium-emphasis">
-          {{ t('kitchen.items_count', { n: lookedUpOrder.items?.length ?? 0 }) }}
-          <span v-if="lookedUpOrder.table"> · {{ t('kitchen.table_prefix') }} {{ lookedUpOrder.table.number }}</span>
-        </div>
-      </v-card>
-
-      <v-text-field
-        v-model="newTicket.station"
-        :label="t('kitchen.station_label')"
-        :placeholder="t('kitchen.station_placeholder')"
-        variant="outlined"
-        rounded="lg"
-      />
-      <v-select
-        v-model="newTicket.priority"
-        :items="[1, 2, 3, 4, 5]"
-        :label="t('kitchen.priority_label')"
-        variant="outlined"
-        rounded="lg"
-      />
-      <template #actions="{ loading }">
-        <span v-if="lookupError" class="text-caption text-error mr-auto">
-          <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />{{ lookupError }}
-        </span>
-        <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="newTicketDialog = false">
-          {{ t('btn.cancel') }}
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="lg"
-          :loading="loading"
-          :disabled="!lookedUpOrder"
-          @click="submitNewTicket"
-        >
-          {{ t('kitchen.create_ticket') }}
-        </v-btn>
-      </template>
-    </AppDialog>
   </v-container>
 </template>
 
@@ -208,12 +147,12 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import {
     getAllKitchenDisplayTicketsApi,
-    createKitchenDisplayTicketApi,
     startKitchenDisplayTicketApi,
     completeKitchenDisplayTicketApi,
     cancelKitchenDisplayTicketApi
   } from '@/api/kitchenDisplayTicketService'
-  import { AppDialog } from '@nong-official-dev/core'
+  import { getEcho } from '@/utils/echo'
+  import { playNewOrderSound } from '@/utils/playNewOrderSound'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
@@ -325,59 +264,31 @@
     }
   }
 
-  // ── New ticket dialog ──────────────────────────────────────────────────
-  const newTicketDialog = ref(false)
-  const orderLookupInput = ref('')
-  const lookedUpOrder = ref(null)
-  const lookingUp = ref(false)
-  const lookupError = ref('')
-  const creating = ref(false)
-  const newTicket = ref({ station: '', priority: 3 })
+  // ── Live push (new order placed from the e-menu or rung up on the POS) ─
+  // Polling (20s) stays as a fallback — this just makes a new order show
+  // up (and play a sound) immediately instead of up to 20s late.
+  let orderChannelName = null
 
-  function openNewTicket() {
-    orderLookupInput.value = ''
-    lookedUpOrder.value = null
-    lookupError.value = ''
-    newTicket.value = { station: '', priority: 3 }
-    newTicketDialog.value = true
-  }
-
-  async function lookupOrder() {
-    if (!orderLookupInput.value) return
-    lookingUp.value = true
-    lookupError.value = ''
-    lookedUpOrder.value = null
-    try {
-      const res = await orderStore.fetchOrderById(orderLookupInput.value.trim())
-      lookedUpOrder.value = res.data.data
-    } catch {
-      lookupError.value = t('kitchen.order_not_found')
-    } finally {
-      lookingUp.value = false
+  function subscribeOrderChannel(id) {
+    const echo = getEcho()
+    if (!echo) return
+    if (orderChannelName) {
+      echo.leave(orderChannelName)
+      orderChannelName = null
     }
-  }
-
-  async function submitNewTicket() {
-    if (!lookedUpOrder.value) return
-    creating.value = true
-    try {
-      await createKitchenDisplayTicketApi({
-        order_id: lookedUpOrder.value.id,
-        branch_id: branchId.value,
-        station: newTicket.value.station || undefined,
-        priority: newTicket.value.priority
+    if (id) {
+      orderChannelName = `branch.${id}.orders`
+      echo.private(orderChannelName).listen('.order.new', () => {
+        playNewOrderSound()
+        loadTickets()
       })
-      newTicketDialog.value = false
-      notif(t('kitchen.created_success'), { type: 'success' })
-      await loadTickets()
-    } catch {
-      notif(t('kitchen.action_failed'), { type: 'error' })
-    } finally {
-      creating.value = false
     }
   }
 
-  watch(branchId, loadTickets)
+  watch(branchId, id => {
+    loadTickets()
+    subscribeOrderChannel(id)
+  })
 
   onMounted(async () => {
     await branchStore.fetchBranches?.()
@@ -391,6 +302,7 @@
     }
 
     if (branchId.value) await loadTickets()
+    subscribeOrderChannel(branchId.value)
     pollTimer = setInterval(loadTickets, 20000)
     clockTimer = setInterval(() => {
       now.value = Date.now()
@@ -400,6 +312,7 @@
   onUnmounted(() => {
     clearInterval(pollTimer)
     clearInterval(clockTimer)
+    if (orderChannelName) getEcho()?.leave(orderChannelName)
   })
 </script>
 

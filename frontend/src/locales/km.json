@@ -2888,10 +2888,8 @@
   "kitchen": {
     "title": "ផ្ទះបាយ",
     "subtitle": "តាមដានការរៀបចំម្ហូបជាបន្តបន្ទាប់។",
-    "new_ticket": "សំបុត្រថ្មី",
     "no_tickets": "មិនមានសំបុត្រនៅទីនេះទេ។",
     "table_prefix": "តុ",
-    "items_count": "{n} មុខ",
     "start": "ចាប់ផ្តើម",
     "complete": "បញ្ចប់",
     "columns": {
@@ -2900,14 +2898,7 @@
       "ready": "រួចរាល់"
     },
     "elapsed_minutes": "{n} នាទី",
-    "action_failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
-    "create_ticket": "បង្កើតសំបុត្រ",
-    "order_number_label": "លេខបញ្ជាទិញ ឬលេខសម្គាល់",
-    "station_label": "ស្ថានីយ៍",
-    "station_placeholder": "ឧ. ចង្ក្រានអាំង, បារ, បង្អែម",
-    "priority_label": "អាទិភាព (1 = បន្ទាន់, 5 = ធម្មតា)",
-    "order_not_found": "រកមិនឃើញការបញ្ជាទិញទេ។",
-    "created_success": "សំបុត្របានបង្កើត។"
+    "action_failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។"
   },
   "tables": {
     "current_order": {

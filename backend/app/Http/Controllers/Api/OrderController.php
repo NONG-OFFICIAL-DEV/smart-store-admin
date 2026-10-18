@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\NewOrderPlaced;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\KitchenDisplayTicket;
@@ -192,17 +193,31 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order->load(['items.modifiers', 'diningTable']);
-
             $order->load([
+                'items.product',
                 'items.modifiers',
                 'diningTable',
-                'statusHistory',  // ← was missing
+                'statusHistory',
             ]);
+
+            $formatted = $this->formatOrder($order);
+
+            // Live push to Kitchen Display / Orders Management — see
+            // NewOrderPlaced + routes/channels.php for the branch-scoped
+            // private channel both screens subscribe to. ShouldBroadcastNow
+            // dispatches synchronously inline here, so if Reverb is ever
+            // unreachable (down, restarting, network blip) this must not
+            // take the whole order down with it — staff just miss the
+            // live ping and fall back to the existing poll/manual refresh.
+            try {
+                event(new NewOrderPlaced($branch->id, $formatted));
+            } catch (\Throwable $e) {
+                report($e);
+            }
 
             return response()->json([
                 'success' => true,
-                'data'    => $this->formatOrder($order),
+                'data'    => $formatted,
             ], 201);
         });
     }

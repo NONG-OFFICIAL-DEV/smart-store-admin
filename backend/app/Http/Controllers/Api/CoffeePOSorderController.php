@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\KitchenDisplayTicket;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ModifierOption;
@@ -42,7 +43,7 @@ class CoffeePOSorderController extends Controller
             'items.*.modifier_option_ids.*' => 'uuid|exists:modifier_options,id',
         ]);
 
-        $branch  = Branch::with('tenant')->findOrFail($request->branch_id);
+        $branch  = Branch::with('tenant.businessType')->findOrFail($request->branch_id);
         $cashier = auth()->user();
         $staff   = $cashier->staff;
 
@@ -220,6 +221,18 @@ class CoffeePOSorderController extends Controller
                     'currency'       => $branch->tenant->currency ?? 'USD',
                     'status'         => 'completed',
                     'paid_at'        => now(),
+                ]);
+            }
+
+            // Food tenants need a kitchen ticket for every order, whether it
+            // came from the e-menu or was rung up here on the POS directly —
+            // see OrderController::store() for the same gate. Mart/retail
+            // and coffee-counter tenants have no prep step, so none is
+            // created for them.
+            if ($branch->tenant->businessType?->category === 'food') {
+                KitchenDisplayTicket::create([
+                    'order_id'  => $order->id,
+                    'branch_id' => $branch->id,
                 ]);
             }
 

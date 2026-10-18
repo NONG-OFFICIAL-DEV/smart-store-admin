@@ -217,7 +217,7 @@
 </template>
 
 <script setup>
-  import { ref, reactive } from 'vue'
+  import { ref, reactive, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import {
     AppTable,
@@ -227,14 +227,18 @@
     AppDatePicker
   } from '@nong-official-dev/core'
   import { useOrderStore } from '@/stores/orderStore'
+  import { useAuthStore } from '@/stores/authStore'
   import { getAllOrdersReportApi } from '@/api/orderService'
   import SettlePaymentDialog from '@/components/orders/SettlePaymentDialog.vue'
   import { useDate } from '@/composables/useDate'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { getEcho } from '@/utils/echo'
+  import { playNewOrderSound } from '@/utils/playNewOrderSound'
   const { format } = useCurrency()
 
   const { t } = useI18n()
   const orderStore = useOrderStore()
+  const authStore = useAuthStore()
   const { formatDateTime } = useDate()
 
   const tableRef = ref(null)
@@ -354,5 +358,26 @@
     detailOrder.value = order
     tableRef.value?.refresh()
   }
+
+  // ── Live push (new order placed from the e-menu) ───────────────────────
+  // No branch picker on this page — subscribes to the signed-in staff
+  // member's own/active branch, same source KitchenDisplay.vue uses.
+  let orderChannelName = null
+
+  onMounted(() => {
+    const echo = getEcho()
+    const branchId = authStore.activeBranchId || authStore.branch_id
+    if (echo && branchId) {
+      orderChannelName = `branch.${branchId}.orders`
+      echo.private(orderChannelName).listen('.order.new', () => {
+        playNewOrderSound()
+        tableRef.value?.refresh()
+      })
+    }
+  })
+
+  onUnmounted(() => {
+    if (orderChannelName) getEcho()?.leave(orderChannelName)
+  })
 
 </script>

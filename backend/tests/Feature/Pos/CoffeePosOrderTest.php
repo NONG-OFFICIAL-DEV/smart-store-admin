@@ -4,8 +4,10 @@ namespace Tests\Feature\Pos;
 
 use App\Http\Controllers\Api\CoffeePOSorderController;
 use App\Models\Branch;
+use App\Models\BusinessType;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\KitchenDisplayTicket;
 use App\Models\ModifierGroup;
 use App\Models\ModifierOption;
 use App\Models\Order;
@@ -29,7 +31,7 @@ class CoffeePosOrderTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeTenantWithOwner(string $name): array
+    private function makeTenantWithOwner(string $name, ?string $businessTypeCode = null): array
     {
         $owner = User::create([
             'email' => strtolower($name).'@example.test',
@@ -42,6 +44,9 @@ class CoffeePosOrderTest extends TestCase
             'name' => $name,
             'slug' => strtolower($name).'-'.substr((string) $owner->id, 0, 8),
             'owner_user_id' => $owner->id,
+            'business_type_id' => $businessTypeCode
+                ? BusinessType::firstWhere('code', $businessTypeCode)?->id
+                : null,
         ]);
 
         return [$tenant, $owner];
@@ -277,5 +282,43 @@ class CoffeePosOrderTest extends TestCase
         $this->assertSame('pay_later', $receipt['payment_method']);
         $this->assertNull($receipt['cash_tendered']);
         $this->assertNull($receipt['change_given']);
+    }
+
+    public function test_a_food_tenant_pos_sale_auto_creates_a_kitchen_ticket(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantFood', 'RESTAURANT');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $orderId = $response->getData(true)['data']['id'];
+
+        $this->assertSame(1, KitchenDisplayTicket::where('order_id', $orderId)->count());
+    }
+
+    public function test_a_non_food_tenant_pos_sale_does_not_create_a_kitchen_ticket(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantMart', 'MART');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $orderId = $response->getData(true)['data']['id'];
+
+        $this->assertSame(0, KitchenDisplayTicket::where('order_id', $orderId)->count());
     }
 }

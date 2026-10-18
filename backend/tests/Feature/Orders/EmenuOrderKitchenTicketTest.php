@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Orders;
 
+use App\Events\NewOrderPlaced;
 use App\Http\Controllers\Api\OrderController;
 use App\Models\BusinessType;
 use App\Models\Branch;
@@ -13,6 +14,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 /**
@@ -133,5 +135,22 @@ class EmenuOrderKitchenTicketTest extends TestCase
         $this->placeOrder($branch, $product, ['order_type' => 'takeaway']);
 
         $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
+    }
+
+    public function test_placing_an_order_broadcasts_new_order_placed_scoped_to_the_branch(): void
+    {
+        Event::fake([NewOrderPlaced::class]);
+
+        $tenant = $this->makeTenant('RESTAURANT');
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant);
+
+        $response = $this->placeOrder($branch, $product);
+        $orderId = $response->getData(true)['data']['id'];
+
+        Event::assertDispatched(NewOrderPlaced::class, function (NewOrderPlaced $event) use ($branch, $orderId) {
+            return $event->branchId === $branch->id
+                && $event->order['id'] === $orderId;
+        });
     }
 }

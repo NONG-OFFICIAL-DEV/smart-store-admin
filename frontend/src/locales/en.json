@@ -2908,10 +2908,8 @@
   "kitchen": {
     "title": "Kitchen",
     "subtitle": "Track order preparation in real time.",
-    "new_ticket": "New Ticket",
     "no_tickets": "No tickets here.",
     "table_prefix": "Table",
-    "items_count": "{n} item | {n} items",
     "start": "Start",
     "complete": "Complete",
     "columns": {
@@ -2920,14 +2918,7 @@
       "ready": "Ready"
     },
     "elapsed_minutes": "{n} min",
-    "action_failed": "Something went wrong. Please try again.",
-    "create_ticket": "Create Ticket",
-    "order_number_label": "Order number or ID",
-    "station_label": "Station",
-    "station_placeholder": "e.g. Grill, Bar, Pastry",
-    "priority_label": "Priority (1 = urgent, 5 = normal)",
-    "order_not_found": "Order not found.",
-    "created_success": "Ticket created."
+    "action_failed": "Something went wrong. Please try again."
   },
   "tables": {
     "current_order": {
