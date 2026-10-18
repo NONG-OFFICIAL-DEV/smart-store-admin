@@ -163,34 +163,6 @@
         $t('tables.status_dialog_title', { number: statusTarget?.table_number })
       "
     >
-      <div v-if="activeOrderLoading" class="d-flex justify-center py-4">
-        <v-progress-circular indeterminate color="primary" size="24" />
-      </div>
-
-      <v-card
-        v-else-if="activeOrder"
-        rounded="lg"
-        variant="tonal"
-        color="primary"
-        class="pa-3 mb-4"
-      >
-        <div class="d-flex justify-space-between align-center mb-1">
-          <span class="text-body-2 font-weight-bold">
-            {{ activeOrder.order_number }}
-          </span>
-          <span class="text-body-2 font-weight-black">
-            {{ formatMoney(activeOrder.total_amount) }}
-          </span>
-        </div>
-        <div class="text-caption text-medium-emphasis">
-          {{
-            $t('tables.current_order.items_count', {
-              n: activeOrder.items?.length ?? 0
-            })
-          }}
-        </div>
-      </v-card>
-
       <v-row dense>
         <v-col v-for="s in statusOptions" :key="s.value" cols="6">
           <v-btn
@@ -216,7 +188,16 @@
       :branch-name="$t('tables.default_branch_name')"
     />
 
-    <OrderDetailDialog v-model="orderDialog" :order-id="orderDialogOrderId" />
+    <!-- Always the same dialog whether the table has one order or several
+         — OrderDetailDialog combines every open order's items into one
+         merged list, so there's nothing to pick between first. Paying or
+         printing the bill is how staff closes out a table here, so either
+         one frees the table once it happens. -->
+    <OrderDetailDialog
+      v-model="orderDialog"
+      :orders="orderDialogOrders"
+      free-table-on-complete
+    />
   </v-container>
 </template>
 
@@ -247,9 +228,6 @@
   const floorPlanStore = useFloorPlanStore()
   const posStore = usePosStore()
 
-  const activeOrder = ref(null)
-  const activeOrderLoading = ref(false)
-
   // Order mode — tap a table to either view its active order (occupied) or
   // jump into Food POS with the table preselected (available). Manage mode
   // is the original create/edit/delete/QR workflow, unchanged.
@@ -265,7 +243,7 @@
   const newStatus = ref(null)
 
   const orderDialog = ref(false)
-  const orderDialogOrderId = ref(null)
+  const orderDialogOrders = ref([])
 
   // Real floor plans only — used by the create/edit form's picker.
   const floorPlanOptions = computed(() => floorPlanStore.floorPlans)
@@ -346,12 +324,12 @@
 
   async function viewTableOrder(table) {
     try {
-      const order = await tableStore.fetchActiveOrderForTable(table.id)
-      if (!order) {
+      const orders = await tableStore.fetchOrdersForTable(table.id)
+      if (!orders.length) {
         notif(t('tables.order.no_active_order'), { type: 'warning' })
         return
       }
-      orderDialogOrderId.value = order.id
+      orderDialogOrders.value = orders
       orderDialog.value = true
     } catch {
       notif(t('tables.order.load_failed'), { type: 'error' })
@@ -364,18 +342,9 @@
     router.push({ name: 'pos-food' })
   }
 
-  const openStatusChange = async t => {
+  const openStatusChange = t => {
     statusTarget.value = t
     statusDialog.value = true
-    activeOrder.value = null
-    if (t.status === 'occupied') {
-      activeOrderLoading.value = true
-      try {
-        activeOrder.value = await tableStore.fetchActiveOrderForTable(t.id)
-      } finally {
-        activeOrderLoading.value = false
-      }
-    }
   }
   const changeStatus = async status => {
     newStatus.value = status
@@ -477,12 +446,6 @@
       cleaning: t('tables.status.cleaning'),
       inactive: t('status.inactive')
     })[s] || s
-
-  const formatMoney = value =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value ?? 0)
 
   // Floor plans are only needed for the create/edit form's picker now — the
   // visual floor-plan/map view was removed in favor of a card grid.

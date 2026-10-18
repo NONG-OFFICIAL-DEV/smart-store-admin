@@ -364,6 +364,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         // order; a dedicated activeByTable() method was routed here but never
         // existed on the controller (would 500 if ever hit).
         Route::get('active-order',   [OrderController::class, 'byTable']);
+        // A table can carry more than one separate open order per sitting
+        // (customer orders again from the e-menu, or staff rings up a
+        // second round on the POS) — this returns every one of them, not
+        // just the most recent, for Table Management's "manage order" view.
+        Route::get('orders',         [OrderController::class, 'ordersByTable']);
         Route::get('reservations',   [ReservationController::class, 'byTable']);
     });
 

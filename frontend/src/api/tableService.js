@@ -9,6 +9,9 @@ export const updateTableStatusApi = (id, status) =>
   http.patch(`/v1/tables/${id}/status`, { status })
 export const getActiveOrderByTableApi = id =>
   http.get(`/v1/tables/${id}/active-order`)
+// A table can carry more than one separate open order per sitting (repeat
+// e-menu order, or a second POS round) — this returns every one of them.
+export const getOrdersByTableApi = id => http.get(`/v1/tables/${id}/orders`)
 export const deleteTableApi = id => http.delete(`/v1/tables/${id}`)
 // Get QR code info
 export const getQrCode = id => {

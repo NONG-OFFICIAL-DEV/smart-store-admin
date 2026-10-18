@@ -6,6 +6,7 @@ import {
   updateTableApi,
   updateTableStatusApi,
   getActiveOrderByTableApi,
+  getOrdersByTableApi,
   deleteTableApi,
   getQrCode,
   downloadQrCode,
@@ -50,6 +51,10 @@ export const useTableStore = defineStore('table', {
     async fetchActiveOrderForTable(id) {
       const res = await getActiveOrderByTableApi(id)
       this.activeOrders = { ...this.activeOrders, [id]: res.data.data }
+      return res.data.data
+    },
+    async fetchOrdersForTable(id) {
+      const res = await getOrdersByTableApi(id)
       return res.data.data
     },
     async deleteTable(id) {

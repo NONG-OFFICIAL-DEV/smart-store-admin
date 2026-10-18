@@ -273,6 +273,7 @@ class OrderController extends Controller
             'items.variant',
             'items.modifiers',
             'statusHistory',
+            'diningTable',
         ])
             ->where('table_id', $tableId)
             // Coffee/Mart POS sales are recorded 'completed' the instant
@@ -289,6 +290,36 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $order ? $this->formatOrder($order) : null,
+        ]);
+    }
+
+    // ── GET /api/v1/tables/{tableId}/orders ──────────────────────────────────
+    // A table can carry more than one separate open order per sitting —
+    // a customer ordering again from the e-menu, or staff ringing up a
+    // second round on the POS, each creates its own Order (the app
+    // deliberately doesn't merge repeat orders into one running tab — see
+    // CoffeePOSorderController/OrderController::store()). byTable() above
+    // only ever surfaces the single latest one, which is what hid earlier
+    // tickets from Table Management's "manage order" view entirely. This
+    // returns every still-open order for the table instead.
+    public function ordersByTable(string $tableId)
+    {
+        $orders = Order::with([
+            'items.product',
+            'items.variant',
+            'items.modifiers',
+            'statusHistory',
+            'payments',
+            'diningTable',
+        ])
+            ->where('table_id', $tableId)
+            ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders->map(fn($order) => $this->formatOrder($order))->values(),
         ]);
     }
 

@@ -120,4 +120,111 @@ class ActiveOrderByTableTest extends TestCase
 
         $this->assertNull($response->getData(true)['data']);
     }
+
+    public function test_orders_by_table_returns_every_open_order_not_just_the_latest(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        // Two separate rounds rung up at the same table — the app deliberately
+        // keeps repeat orders as distinct tickets rather than merging them
+        // into one running tab.
+        foreach (range(1, 2) as $i) {
+            $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+                'branch_id' => $branch->id,
+                'payment_method' => 'cash',
+                'order_type' => 'dine_in',
+                'table_id' => $table->id,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => $i],
+                ],
+            ]));
+        }
+
+        $response = $this->app->make(OrderController::class)->ordersByTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertCount(2, $data);
+    }
+
+    public function test_orders_by_table_excludes_cancelled_and_refunded_orders(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        foreach (['cancelled', 'refunded', 'pending'] as $status) {
+            Order::create([
+                'branch_id' => $branch->id,
+                'table_id' => $table->id,
+                'order_type' => 'dine_in',
+                'status' => $status,
+                'source' => 'pos',
+                'subtotal' => 0,
+                'tax_amount' => 0,
+                'service_charge_amount' => 0,
+                'discount_amount' => 0,
+                'total_amount' => 0,
+                'queue_number' => 1,
+            ]);
+        }
+
+        $response = $this->app->make(OrderController::class)->ordersByTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertCount(1, $data);
+        $this->assertSame('pending', $data[0]['status']);
+    }
+
+    public function test_orders_by_table_includes_the_table_number(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'cash',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]));
+
+        $response = $this->app->make(OrderController::class)->ordersByTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertSame('A1', $data[0]['table']['number']);
+    }
+
+    public function test_active_order_by_table_includes_the_table_number(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'cash',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]));
+
+        $response = $this->app->make(OrderController::class)->byTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertSame('A1', $data['table']['number']);
+    }
 }

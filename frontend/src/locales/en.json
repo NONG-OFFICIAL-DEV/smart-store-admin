@@ -711,7 +711,8 @@
       "online": "Online"
     },
     "note_prefix": "Note:",
-    "print_receipt": "Print Receipt"
+    "print_bill": "Print Bill",
+    "table_order_title": "Order of Table {number}"
   },
   "status": {
     "active": "Active",
@@ -2921,9 +2922,6 @@
     "action_failed": "Something went wrong. Please try again."
   },
   "tables": {
-    "current_order": {
-      "items_count": "{n} item | {n} items"
-    },
     "dialog": {
       "edit_title": "Edit Table",
       "add_title": "Add Table",

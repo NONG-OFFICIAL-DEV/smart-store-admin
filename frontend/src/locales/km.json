@@ -706,7 +706,8 @@
       "online": "អនឡាញ"
     },
     "note_prefix": "ចំណាំ៖",
-    "print_receipt": "បោះពុម្ពបង្កាន់ដៃ"
+    "print_bill": "បោះពុម្ពវិក្កយបត្រ",
+    "table_order_title": "ការបញ្ជាទិញរបស់តុ {number}"
   },
   "status": {
     "active": "សកម្ម",
@@ -2901,9 +2902,6 @@
     "action_failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។"
   },
   "tables": {
-    "current_order": {
-      "items_count": "{n} មុខ"
-    },
     "dialog": {
       "edit_title": "កែសម្រួលតុ",
       "add_title": "បន្ថែមតុ",

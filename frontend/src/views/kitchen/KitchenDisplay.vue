@@ -1,27 +1,9 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-chef-hat"
+    <AppToolbar
       :title="t('kitchen.title')"
       :subtitle="t('kitchen.subtitle')"
-    >
-      <template #right>
-        <div class="d-flex gap-2 align-center">
-          <v-select
-            v-model="branchId"
-            :items="branchStore.branches"
-            item-title="name"
-            item-value="id"
-            :label="t('pos.branch_label')"
-            variant="outlined"
-            density="compact"
-            rounded="lg"
-            hide-details
-            style="min-width: 200px"
-          />
-        </div>
-      </template>
-    </custom-title>
+    />
 
     <v-alert v-if="!branchId" type="warning" variant="tonal" rounded="lg">
       {{ t('pos.select_branch') }}
@@ -142,7 +124,6 @@
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/authStore'
-  import { useBranchStore } from '@/stores/branchStore'
   import { useOrderStore } from '@/stores/orderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import {
@@ -153,14 +134,16 @@
   } from '@/api/kitchenDisplayTicketService'
   import { getEcho } from '@/utils/echo'
   import { playNewOrderSound } from '@/utils/playNewOrderSound'
+  import AppToolbar from '@/components/common/AppToolbar.vue'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
-  const branchStore = useBranchStore()
   const orderStore = useOrderStore()
 
-  const branchId = ref(authStore.activeBranchId || authStore.branch_id)
+  // No local picker — branch comes from the global BranchSwitcher (see
+  // AppBar), same source FoodPos.vue/OrdersManagement.vue already read.
+  const branchId = computed(() => authStore.activeBranchId || authStore.branch_id)
   const loading = ref(false)
   const tickets = ref([])
   const orderCache = ref({})
@@ -289,16 +272,6 @@
   })
 
   onMounted(async () => {
-    await branchStore.fetchBranches?.()
-
-    // authStore.activeBranchId can be stale (persisted from a previous
-    // session/role) or simply absent for an owner — fall back to the
-    // first branch the user actually has access to instead of forcing
-    // a manual pick every time.
-    if (!branchId.value || !branchStore.branches.some(b => b.id === branchId.value)) {
-      branchId.value = branchStore.branches[0]?.id ?? null
-    }
-
     if (branchId.value) await loadTickets()
     subscribeOrderChannel(branchId.value)
     clockTimer = setInterval(() => {
