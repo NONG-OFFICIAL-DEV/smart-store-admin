@@ -2330,6 +2330,7 @@
       },
       "table_label": "តុ",
       "choose_table": "ជ្រើសរើសតុ",
+      "choose_table_prompt": "សូមជ្រើសរើសតុមុននឹងបញ្ជាទិញ។",
       "clear_table": "គ្មានតុ",
       "no_tables_available": "មិនមានតុទំនេរទេពេលនេះ។",
       "customer_label": "អតិថិជន",

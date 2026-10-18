@@ -2350,6 +2350,7 @@
       },
       "table_label": "Table",
       "choose_table": "Choose a Table",
+      "choose_table_prompt": "Please choose a table before placing the order.",
       "clear_table": "No table",
       "no_tables_available": "No tables available right now.",
       "customer_label": "Customer",

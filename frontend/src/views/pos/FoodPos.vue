@@ -483,6 +483,21 @@
   }
 
   async function submitOrder({ payment_method, cash_tendered }) {
+    // Dine-in without a table is a checkout we'd rather not allow when
+    // tables actually exist to pick from — prompt for one instead of
+    // silently placing an order no one can find on the floor. If the
+    // tenant has no tables configured at all, there's nothing to pick,
+    // so fall through and let it through as before.
+    if (
+      posStore.orderType === 'dine_in' &&
+      !posStore.tableId &&
+      tableOptions.value.length
+    ) {
+      tableSheetOpen.value = true
+      notif(t('pos.cart.choose_table_prompt'), { type: 'warning' })
+      return
+    }
+
     submitting.value = true
     try {
       const { data } = await submitFoodOrderApi({
