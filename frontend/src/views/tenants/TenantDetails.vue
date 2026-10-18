@@ -54,9 +54,7 @@
         <div class="d-flex align-center">
           <v-avatar size="60" rounded="xl" color="primary" variant="tonal" class="me-4">
             <span v-if="!tenant.logo_url" class="text-h5">
-              {{
-                tenant.business_type?.icon ?? tenant.name?.[0]?.toUpperCase()
-              }}
+              {{ tenant.name?.[0]?.toUpperCase() }}
             </span>
             <v-img v-else :src="tenant.logo_url" cover />
           </v-avatar>
@@ -152,9 +150,6 @@
                 <div class="detail-row border-b">
                   <span class="detail-label">{{ $t('tenant_profile.businessDetails.businessType') }}</span>
                   <span class="detail-value d-flex align-center ga-2">
-                    <v-avatar size="22" rounded="md" color="primary" variant="tonal">
-                      <v-icon size="12">{{ tenant.business_type?.icon }}</v-icon>
-                    </v-avatar>
                     {{ tenant.business_type?.name }}
                     <span class="text-caption text-medium-emphasis">({{ tenant.business_type?.code }})</span>
                   </span>

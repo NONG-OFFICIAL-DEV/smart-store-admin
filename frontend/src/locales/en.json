@@ -3242,7 +3242,6 @@
     "create_title": "Create Business Type",
     "edit_subtitle": "Update business type details",
     "create_subtitle": "Add a new business type",
-    "icon": "Icon",
     "selected": "Selected:",
     "name_label": "Name *",
     "name_placeholder": "e.g. Restaurant",

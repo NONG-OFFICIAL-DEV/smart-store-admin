@@ -13,7 +13,6 @@ class BusinessTypeResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
-            'icon' => $this->icon,
             'category' => $this->category,
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,

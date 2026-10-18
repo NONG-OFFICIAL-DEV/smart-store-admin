@@ -27,7 +27,9 @@
             variant="tonal"
             class="me-2"
           >
-            <v-icon size="16">{{ item.icon }}</v-icon>
+            <span class="text-caption font-weight-bold">
+              {{ item.name?.[0]?.toUpperCase() }}
+            </span>
           </v-avatar>
         </template>
         <v-list-item-title class="text-body-2 font-weight-medium">
@@ -94,23 +96,6 @@
       :loading="formLoading"
     >
       <v-form ref="formRef" @submit.prevent>
-        <v-col cols="12">
-          <div class="d-flex flex-wrap gap-2 mb-1">
-            {{ $t('business_type.icon') }}
-            <v-btn
-              v-for="icon in iconOptions"
-              :key="icon"
-              :variant="form.icon === icon ? 'tonal' : 'outlined'"
-              :color="form.icon === icon ? 'primary' : 'default'"
-              size="small"
-              rounded="lg"
-              @click="form.icon = icon"
-            >
-              <v-icon>{{ icon }}</v-icon>
-            </v-btn>
-          </div>
-        </v-col>
-
         <v-row dense>
           <!-- Name -->
           <v-col cols="6">
@@ -241,20 +226,10 @@
     id: null,
     name: '',
     code: '',
-    icon: 'mdi-silverware',
     category: 'food',
     is_active: true
   })
   const form = reactive(defaultForm())
-
-  const iconOptions = [
-    'mdi-silverware',
-    'mdi-coffee',
-    'mdi-store',
-    'mdi-cart',
-    'mdi-noodles',
-    'mdi-shopping'
-  ]
 
   // Drives authStore.isFood/isMart app-wide (see authStore.js) — deliberately
   // just these two, matching every existing food-vs-mart branch in the app

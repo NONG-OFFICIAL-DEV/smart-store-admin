@@ -134,7 +134,7 @@
         <template #item.bu_type="{ item }">
           <v-chip
             :color="getBuType(item.business_type?.name).color"
-            :prepend-icon="item.business_type?.icon"
+            :prepend-icon="getBuType(item.business_type?.name).icon"
             variant="tonal"
             size="small"
             rounded="lg"

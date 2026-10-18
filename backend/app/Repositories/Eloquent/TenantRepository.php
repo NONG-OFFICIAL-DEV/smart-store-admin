@@ -23,7 +23,7 @@ class TenantRepository extends BaseRepository implements TenantRepositoryInterfa
     {
         return parent::query()->with([
             'owner:id,first_name,last_name,email',
-            'businessType:id,name,code,icon',
+            'businessType:id,name,code',
             'activeSubscription.plan:id,name,code',
         ]);
     }
