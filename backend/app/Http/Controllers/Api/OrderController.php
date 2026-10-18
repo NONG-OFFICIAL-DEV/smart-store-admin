@@ -203,6 +203,8 @@ class OrderController extends Controller
             'items.modifiers',
             'diningTable',
             'statusHistory',
+            'payments',
+            'cashier.user',
         ])
             ->where(function ($q) use ($identifier) {
                 $q->where('order_number', $identifier)
@@ -292,6 +294,9 @@ class OrderController extends Controller
             'notes'                  => $order->notes,
             'estimated_ready_at'     => $order->estimated_ready_at,
             'created_at'             => $order->created_at,
+            'cashier'                => $order->relationLoaded('cashier') && $order->cashier?->user
+                ? $order->cashier->user->full_name
+                : null,
             'items'                  => $order->items->map(fn($item) => [
                 'id'           => $item->id,
                 'product_name' => $item->product_name,
@@ -313,6 +318,17 @@ class OrderController extends Controller
                 'notes'      => $h->notes,
                 'changed_at' => $h->changed_at,
             ]),
+            // POS checkout (CoffeePOSorderController etc.) pays in full the
+            // instant the order is rung up — one payment per order in
+            // practice, so the latest one is "the" payment.
+            'payment' => $order->relationLoaded('payments') && $order->payments->isNotEmpty() ? (function () use ($order) {
+                $payment = $order->payments->last();
+                return [
+                    'method'         => $payment->payment_method,
+                    'cash_tendered'  => (float) $payment->amount + (float) ($payment->change_given ?? 0),
+                    'change_given'   => (float) ($payment->change_given ?? 0),
+                ];
+            })() : null,
         ];
     }
 

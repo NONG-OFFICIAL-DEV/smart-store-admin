@@ -2,12 +2,36 @@
   <div>
     <AppToolbar :title="t('pos.food.title')">
       <template #actions>
+        <!-- Order type — only rendered at all when there's an actual
+             choice (2+ enabled); a single enabled type is just implied,
+             no UI needed. -->
+        <v-btn-toggle
+          v-if="enabledOrderTypes.length > 1"
+          :model-value="posStore.orderType"
+          color="primary"
+          variant="tonal"
+          :density="touch ? 'default' : 'compact'"
+          rounded="lg"
+          mandatory
+          @update:model-value="posStore.setOrderType"
+        >
+          <v-btn
+            v-for="ot in enabledOrderTypes"
+            :key="ot.value"
+            :value="ot.value"
+            :size="touch ? 'default' : 'small'"
+            class="text-none"
+            :class="touch ? 'px-5' : 'px-3'"
+          >
+            {{ ot.label }}
+          </v-btn>
+        </v-btn-toggle>
+
         <v-btn
           v-if="posStore.orderType === 'dine_in' && tableOptions.length"
           :color="posStore.tableId ? 'primary' : 'warning'"
           :variant="posStore.tableId ? 'tonal' : 'flat'"
           rounded="lg"
-          :size="touch ? 'default' : 'small'"
           prepend-icon="mdi-table-furniture"
           @click="tableSheetOpen = true"
         >
@@ -49,21 +73,20 @@
         <v-row class="pa-4 ma-0" dense>
           <v-col v-for="tb in tableOptions" :key="tb.id" cols="4" sm="3" md="2">
             <v-card
-              :color="posStore.tableId === tb.id ? 'primary' : undefined"
+              :color="posStore.tableId === tb.id ? 'primary' : tableStatusColor(tb.status)"
               :variant="posStore.tableId === tb.id ? 'flat' : 'tonal'"
               rounded="lg"
               class="pa-3 text-center table-sheet-card"
-              @click="selectTable(tb.id)"
+              :class="{ 'table-sheet-card--disabled': !isTablePickable(tb) }"
+              @click="isTablePickable(tb) && selectTable(tb.id)"
             >
               <div class="text-h6 font-weight-bold">{{ tb.table_number }}</div>
-              <div
-                class="d-flex align-center justify-center ga-1 text-caption"
-                :class="
-                  posStore.tableId === tb.id ? '' : 'text-medium-emphasis'
-                "
-              >
+              <div class="d-flex align-center justify-center ga-1 text-caption">
                 <v-icon icon="mdi-account-group-outline" size="14" />
                 {{ tb.capacity }}
+              </div>
+              <div class="text-caption font-weight-medium mt-1">
+                {{ tableStatusLabel(tb.status) }}
               </div>
             </v-card>
           </v-col>
@@ -115,15 +138,12 @@
         <PosOrderOptionsBar
           class="flex-grow-0 pb-2"
           :class="touch ? 'px-2' : 'px-1'"
-          :order-type-options="enabledOrderTypes"
-          :order-type="posStore.orderType"
           :show-customer="showCustomer"
           :customers="customerOptions"
           :customer-id="posStore.customerId"
           :customer-name="posStore.customerName"
           :show-notes="showNotes"
           :note="posStore.note"
-          @update-order-type="posStore.setOrderType"
           @search-customer="onSearchCustomer"
           @update-customer="posStore.setCustomer"
           @update-note="posStore.setNote"
@@ -208,6 +228,7 @@
       <PosReceiptDialog
         v-model="receiptOpen"
         :receipt="receipt"
+        :printer-name="activeBranchPrinterName"
         @close="receiptOpen = false"
       />
 
@@ -257,6 +278,9 @@
   const branchId = computed(() => authStore.activeBranchId)
   const selectedBranchName = computed(
     () => branchStore.branches.find(b => b.id === branchId.value)?.name ?? ''
+  )
+  const activeBranchPrinterName = computed(
+    () => branchStore.branches.find(b => b.id === branchId.value)?.printer_name ?? null
   )
   const productGridRef = ref(null)
   const cartPanelRef = ref(null)
@@ -336,11 +360,30 @@
     tableSheetOpen.value = false
   }
 
+  // Occupied is pickable on purpose — rings up another round for a
+  // customer who's already seated. Reserved/cleaning are not: those tables
+  // aren't in a state where taking an order makes sense yet.
+  const isTablePickable = tb => ['available', 'occupied'].includes(tb.status)
+
+  const tableStatusColor = status =>
+    ({ available: 'success', occupied: 'warning', reserved: 'grey', cleaning: 'grey' })[status] || 'grey'
+
+  const tableStatusLabel = status =>
+    ({
+      available: t('tables.status.available'),
+      occupied: t('tables.status.occupied'),
+      reserved: t('tables.status.reserved'),
+      cleaning: t('tables.status.cleaning')
+    })[status] || status
+
+  // Fetches every table regardless of status — an occupied table must still
+  // be pickable so staff can ring up a second (or third) round for a
+  // customer who's already seated, not just a brand-new table. The sheet
+  // itself disables reserved/cleaning tables rather than hiding them.
   async function loadTables() {
     if (!branchId.value) return
     const { data } = await getAllTablesApi({
       branch_id: branchId.value,
-      status: 'available',
       perPage: -1
     })
     tableOptions.value = data.data
@@ -545,6 +588,10 @@
 <style scoped>
   .table-sheet-card {
     cursor: pointer;
+  }
+  .table-sheet-card--disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
   .pos-page {
     /* Approximate remaining viewport below the app bar + page container

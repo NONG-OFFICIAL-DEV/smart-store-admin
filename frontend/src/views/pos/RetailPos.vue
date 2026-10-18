@@ -73,7 +73,6 @@
       <PosOrderOptionsBar
         class="flex-grow-0 pb-2"
         :class="touch ? 'px-2' : 'px-1'"
-        :order-type-options="[]"
         :show-customer="showCustomer"
         :customers="customerOptions"
         :customer-id="posStore.customerId"
@@ -145,6 +144,7 @@
     <PosReceiptDialog
       v-model="receiptOpen"
       :receipt="receipt"
+      :printer-name="activeBranchPrinterName"
       @close="receiptOpen = false"
     />
   </div>
@@ -199,6 +199,9 @@
   }
   const selectedBranchName = computed(
     () => branchStore.branches.find(b => b.id === branchId.value)?.name ?? ''
+  )
+  const activeBranchPrinterName = computed(
+    () => branchStore.branches.find(b => b.id === branchId.value)?.printer_name ?? null
   )
   const productGridRef = ref(null)
   const cartPanelRef = ref(null)

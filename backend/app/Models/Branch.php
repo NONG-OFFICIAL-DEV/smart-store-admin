@@ -24,6 +24,7 @@ class Branch extends BaseModel
         'tax_rate',
         'service_charge_rate',
         'receipt_footer',
+        'printer_name',
         'is_open',
         'is_active',
         'branch_type_id',

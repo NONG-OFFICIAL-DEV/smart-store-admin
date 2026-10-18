@@ -16,113 +16,35 @@
       </v-btn>
     </template>
 
-    <div v-if="receipt" class="pos-receipt-printable">
-      <div class="text-center mb-3">
-        <div class="text-body-1 font-weight-bold">{{ receipt.branch_name }}</div>
-        <div v-if="receipt.branch_address" class="text-caption text-medium-emphasis">
-          {{ receipt.branch_address }}
-        </div>
-        <div v-if="receipt.branch_phone" class="text-caption text-medium-emphasis">
-          {{ receipt.branch_phone }}
-        </div>
-      </div>
-
-      <v-divider class="mb-2" />
-
-      <div class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.order_number') }}</span>
-        <span class="font-weight-medium">{{ receipt.order_number }}</span>
-      </div>
-      <div v-if="receipt.queue_number_display" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.queue_number') }}</span>
-        <span class="font-weight-medium">{{ receipt.queue_number_display }}</span>
-      </div>
-      <div v-if="receipt.table_number" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.table') }}</span>
-        <span class="font-weight-medium">{{ receipt.table_number }}</span>
-      </div>
-      <div v-if="receipt.customer_name" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.customer') }}</span>
-        <span class="font-weight-medium">{{ receipt.customer_name }}</span>
-      </div>
-      <div class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.cashier') }}</span>
-        <span class="font-weight-medium">{{ receipt.cashier }}</span>
-      </div>
-      <div class="d-flex justify-space-between text-caption mb-2">
-        <span>{{ $t('pos.receipt.date') }}</span>
-        <span class="font-weight-medium">{{ receipt.date }}</span>
-      </div>
-
-      <v-divider class="mb-2" />
-
-      <div v-for="(item, idx) in receipt.items" :key="idx" class="mb-2">
-        <div class="d-flex justify-space-between text-body-2">
-          <span>{{ item.qty }} × {{ item.name }}</span>
-          <span class="font-weight-medium">{{ formatMoney(item.total_price) }}</span>
-        </div>
-        <div v-if="item.unit" class="text-caption text-medium-emphasis">{{ item.unit }}</div>
-        <div v-if="item.note" class="text-caption text-medium-emphasis">{{ item.note }}</div>
-        <div
-          v-for="(c, cIdx) in item.customizations"
-          :key="cIdx"
-          class="text-caption text-medium-emphasis"
-        >
-          {{ c.label ? `${c.label}: ${c.value}` : c.value }}
-        </div>
-      </div>
-
-      <v-divider class="mb-2" />
-
-      <div class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.subtotal') }}</span>
-        <span>{{ formatMoney(receipt.subtotal) }}</span>
-      </div>
-      <div v-if="receipt.discount" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.discount') }}</span>
-        <span>-{{ formatMoney(receipt.discount) }}</span>
-      </div>
-      <div v-if="receipt.tax" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.tax') }}</span>
-        <span>{{ formatMoney(receipt.tax) }}</span>
-      </div>
-      <div v-if="receipt.service_charge" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.service_charge') }}</span>
-        <span>{{ formatMoney(receipt.service_charge) }}</span>
-      </div>
-      <div class="d-flex justify-space-between text-body-1 font-weight-bold mt-2">
-        <span>{{ $t('pos.receipt.total') }}</span>
-        <span>{{ formatMoney(receipt.total) }}</span>
-      </div>
-
-      <v-divider class="my-2" />
-
-      <div class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.payment_method') }}</span>
-        <span class="text-uppercase">{{ receipt.payment_method }}</span>
-      </div>
-      <div v-if="receipt.payment_method === 'cash'" class="d-flex justify-space-between text-caption mb-1">
-        <span>{{ $t('pos.receipt.cash_tendered') }}</span>
-        <span>{{ formatMoney(receipt.cash_tendered) }}</span>
-      </div>
-      <div v-if="receipt.payment_method === 'cash'" class="d-flex justify-space-between text-caption">
-        <span>{{ $t('pos.receipt.change_given') }}</span>
-        <span>{{ formatMoney(receipt.change_given) }}</span>
-      </div>
-    </div>
+    <PosReceiptContent :receipt="receipt" />
   </AppDialog>
+
+  <!-- Print-only copy, teleported out of the dialog's scrollable card —
+       the dialog's `scrollable` v-card-text clips an absolutely-positioned
+       descendant at its own overflow boundary, so printing from inside it
+       cut the receipt off after whatever fit in the on-screen scroll area.
+       A body-level sibling has no such ancestor to be clipped by. -->
+  <Teleport to="body">
+    <div v-if="modelValue && receipt" class="pos-receipt-printable">
+      <PosReceiptContent :receipt="receipt" />
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
   import { watch } from 'vue'
   import { AppDialog } from '@nong-official-dev/core'
-  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useReceipt } from '@/utils/printReceipt'
+  import PosReceiptContent from './PosReceiptContent.vue'
 
-  const { format: formatMoney } = useCurrency()
+  const { print: printThermal } = useReceipt()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
-    receipt: { type: Object, default: null }
+    receipt: { type: Object, default: null },
+    // The branch's registered QZ Tray printer name — when set, printing
+    // goes to the real thermal printer instead of the browser print dialog.
+    printerName: { type: String, default: null }
   })
 
   const emit = defineEmits(['update:modelValue', 'close'])
@@ -137,13 +59,33 @@
     }
   )
 
-  function print() {
+  // Thermal print when the branch has a printer configured; otherwise (or
+  // if the thermal print fails — e.g. QZ Tray not running) fall back to the
+  // browser's print dialog so printing never silently does nothing.
+  async function print() {
+    if (props.printerName) {
+      const ok = await printThermal(props.receipt, props.printerName)
+      if (ok) return
+    }
     window.print()
   }
 </script>
 
 <style>
+  /* Off-screen at all times outside of print — this is a body-level
+     sibling (see the Teleport above), not something the dialog's own
+     v-if hides for us. */
+  .pos-receipt-printable {
+    position: fixed;
+    top: 0;
+    left: -9999px;
+  }
+
   @media print {
+    @page {
+      size: 80mm auto;
+      margin: 0;
+    }
     body * {
       visibility: hidden;
     }
@@ -155,8 +97,9 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      padding: 16px;
+      width: 80mm;
+      padding: 4mm;
+      font-size: 11px;
     }
   }
 </style>

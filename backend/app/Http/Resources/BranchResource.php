@@ -37,6 +37,7 @@ class BranchResource extends JsonResource
             'tax_rate' => $this->tax_rate,
             'service_charge_rate' => $this->service_charge_rate,
             'receipt_footer' => $this->receipt_footer,
+            'printer_name' => $this->printer_name,
             'is_open' => $this->is_open,
             'is_active' => $this->is_active,
             'branch_type_id' => $this->branch_type_id,

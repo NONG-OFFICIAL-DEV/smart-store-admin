@@ -33,6 +33,7 @@ class UpdateBranchRequest extends FormRequest
             'tax_rate' => ['nullable', 'numeric', 'min:0'],
             'service_charge_rate' => ['nullable', 'numeric', 'min:0'],
             'receipt_footer' => ['nullable', 'string'],
+            'printer_name' => ['nullable', 'string', 'max:120'],
             'is_open' => ['boolean'],
             'is_active' => ['boolean'],
             'branch_type_id' => ['nullable', 'uuid', 'exists:branch_types,id'],

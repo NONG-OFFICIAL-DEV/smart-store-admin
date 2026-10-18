@@ -68,6 +68,19 @@
         class="mb-3"
       />
 
+      <v-text-field
+        v-model="form.printer_name"
+        :label="$t('branches.form.printer_name')"
+        variant="outlined"
+        density="comfortable"
+        rounded="lg"
+        prepend-inner-icon="mdi-printer-outline"
+        :placeholder="$t('branches.form.printer_name_placeholder')"
+        :hint="$t('branches.form.printer_name_hint')"
+        persistent-hint
+        class="mb-3"
+      />
+
       <div class="d-flex align-center justify-space-between mb-2">
         <span class="text-body-2">{{ $t('branches.dialog.is_open_label') }}</span>
         <v-switch v-model="form.is_open" color="primary" hide-details density="compact" inset />
@@ -130,6 +143,7 @@
     address: '',
     phone: '',
     email: '',
+    printer_name: '',
     is_open: true,
     is_active: true
   })
@@ -153,6 +167,7 @@
             address: val.address_line1 ?? '',
             phone: val.phone ?? '',
             email: val.email ?? '',
+            printer_name: val.printer_name ?? '',
             is_open: val.is_open ?? true,
             is_active: val.is_active ?? true
           }
@@ -180,6 +195,7 @@
       branch_type_id: form.branch_type_id || undefined,
       phone: form.phone || undefined,
       email: form.email || undefined,
+      printer_name: form.printer_name || undefined,
       address_line1: form.address || undefined,
       is_open: form.is_open,
       is_active: form.is_active

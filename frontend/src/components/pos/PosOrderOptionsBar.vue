@@ -1,29 +1,5 @@
 <template>
   <div v-if="hasAnyControl" class="pos-options-bar d-flex align-center flex-wrap" :class="touch ? 'ga-3' : 'ga-2'">
-    <!-- Order type — only rendered at all when there's an actual choice
-         (2+ enabled); a single enabled type is just implied, no UI needed. -->
-    <v-btn-toggle
-      v-if="orderTypeOptions.length > 1"
-      :model-value="orderType"
-      color="primary"
-      variant="tonal"
-      :density="touch ? 'default' : 'compact'"
-      rounded="lg"
-      mandatory
-      @update:model-value="$emit('update-order-type', $event)"
-    >
-      <v-btn
-        v-for="ot in orderTypeOptions"
-        :key="ot.value"
-        :value="ot.value"
-        :size="touch ? 'default' : 'small'"
-        class="text-none"
-        :class="touch ? 'px-5' : 'px-3'"
-      >
-        {{ ot.label }}
-      </v-btn>
-    </v-btn-toggle>
-
     <v-spacer class="d-none d-sm-block" />
 
     <!-- Customer — compact trigger, opens a small searchable menu. Never
@@ -101,8 +77,6 @@
   const { mdAndDown: touch } = useDisplay()
 
   const props = defineProps({
-    orderTypeOptions: { type: Array, default: () => [] },
-    orderType: { type: String, default: 'takeaway' },
     showCustomer: { type: Boolean, default: false },
     customers: { type: Array, default: () => [] },
     customerId: { type: String, default: null },
@@ -112,18 +86,12 @@
   })
 
   const emit = defineEmits([
-    'update-order-type',
     'search-customer',
     'update-customer',
     'update-note'
   ])
 
-  const hasAnyControl = computed(
-    () =>
-      props.orderTypeOptions.length > 1 ||
-      props.showCustomer ||
-      props.showNotes
-  )
+  const hasAnyControl = computed(() => props.showCustomer || props.showNotes)
 
   const customerOptions = computed(() => {
     const options = props.customers.map(c => ({

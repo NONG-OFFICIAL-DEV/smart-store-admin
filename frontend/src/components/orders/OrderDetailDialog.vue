@@ -6,7 +6,7 @@
     :title="order?.order_number ?? '...'"
   >
     <template v-if="order">
-      <div class="order-detail-printable">
+      <div>
         <!-- ── Info Row ──────────────────────────────────────────────────── -->
         <div class="pa-5 pb-4">
           <v-row dense>
@@ -178,18 +178,39 @@
       </v-btn>
     </template>
   </AppDialog>
+
+  <!-- Print-only copy, teleported to body — same reasoning as
+       PosReceiptDialog.vue: the dialog's scrollable v-card-text clips an
+       absolutely-positioned descendant at its own overflow boundary, so
+       printing from inside it cut the content off. Rendered as an actual
+       receipt layout (not the rich on-screen card view) since that's what
+       belongs on a till printout. -->
+  <Teleport to="body">
+    <div v-if="modelValue && printReceiptData" class="order-print-receipt">
+      <PosReceiptContent :receipt="printReceiptData" />
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useOrderStore } from '@/stores/orderStore'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useBranchStore } from '@/stores/branchStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useDate } from '@/composables/useDate'
   import { useI18n } from 'vue-i18n'
   import { AppDialog } from '@nong-official-dev/core'
+  import { useReceipt } from '@/utils/printReceipt'
+  import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
 
   const { t } = useI18n()
   const store = useOrderStore()
+  const authStore = useAuthStore()
+  const branchStore = useBranchStore()
   const { format } = useCurrency()
+  const { formatDateTime } = useDate()
+  const { print: printThermal } = useReceipt()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -222,7 +243,58 @@
   const close = () => {
     model.value = false
   }
-  const print = () => window.print()
+
+  // This dialog is opened from Table Management, which is always scoped to
+  // the globally active branch — reuse that for the printer name + the
+  // receipt header, since the order itself carries neither.
+  const activeBranch = computed(
+    () => branchStore.branches.find(b => b.id === authStore.activeBranchId) ?? null
+  )
+
+  // Reused for both the thermal print (buildBytes reads this exact shape)
+  // and the browser-print fallback (PosReceiptContent renders this exact
+  // shape) — one mapping, two printers.
+  const printReceiptData = computed(() => {
+    const o = order.value
+    if (!o) return null
+    return {
+      order_number: o.order_number,
+      order_type: o.order_type,
+      table_number: o.table?.number,
+      branch_name: activeBranch.value?.name,
+      branch_address: activeBranch.value?.address_line1,
+      branch_phone: activeBranch.value?.phone,
+      cashier: o.cashier,
+      date: formatDateTime(o.created_at),
+      items: o.items.map(i => ({
+        name: i.product_name,
+        unit: i.unit_name,
+        qty: i.quantity,
+        unit_price: i.unit_price,
+        total_price: i.total_price,
+        note: i.notes
+      })),
+      subtotal: o.subtotal,
+      discount: o.discount_amount,
+      tax: o.tax_amount,
+      service_charge: o.service_charge_amount,
+      total: o.total_amount,
+      payment_method: o.payment?.method,
+      cash_tendered: o.payment?.cash_tendered,
+      change_given: o.payment?.change_given
+    }
+  })
+
+  // Thermal print when the branch has a printer configured; otherwise (or
+  // if it fails) fall back to the browser's print dialog.
+  async function print() {
+    const printerName = activeBranch.value?.printer_name
+    if (printerName && printReceiptData.value) {
+      const ok = await printThermal(printReceiptData.value, printerName)
+      if (ok) return
+    }
+    window.print()
+  }
 
   const statusColor = s =>
     ({
@@ -248,20 +320,31 @@
 </style>
 
 <style>
+  .order-print-receipt {
+    position: fixed;
+    top: 0;
+    left: -9999px;
+  }
+
   @media print {
+    @page {
+      size: 80mm auto;
+      margin: 0;
+    }
     body * {
       visibility: hidden;
     }
-    .order-detail-printable,
-    .order-detail-printable * {
+    .order-print-receipt,
+    .order-print-receipt * {
       visibility: visible;
     }
-    .order-detail-printable {
+    .order-print-receipt {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      padding: 16px;
+      width: 80mm;
+      padding: 4mm;
+      font-size: 11px;
     }
   }
 </style>
