@@ -194,8 +194,25 @@
         >
           {{ t('btn.close') }}
         </v-btn>
+        <v-spacer />
+        <v-btn
+          v-if="detailOrder && !detailOrder.payment"
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-cash-check"
+          @click="settleDialog = true"
+        >
+          {{ t('orders_admin.settle.action') }}
+        </v-btn>
       </template>
     </AppDialog>
+
+    <SettlePaymentDialog
+      v-model="settleDialog"
+      :order="detailOrder"
+      @settled="onSettled"
+    />
   </v-container>
 </template>
 
@@ -211,6 +228,7 @@
   } from '@nong-official-dev/core'
   import { useOrderStore } from '@/stores/orderStore'
   import { getAllOrdersReportApi } from '@/api/orderService'
+  import SettlePaymentDialog from '@/components/orders/SettlePaymentDialog.vue'
   import { useDate } from '@/composables/useDate'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { format } = useCurrency()
@@ -318,6 +336,7 @@
   const detailDialog = ref(false)
   const detailOrder = ref(null)
   const detailLoading = ref(false)
+  const settleDialog = ref(false)
 
   async function viewOrder(item) {
     detailDialog.value = true
@@ -329,6 +348,11 @@
     } finally {
       detailLoading.value = false
     }
+  }
+
+  function onSettled(order) {
+    detailOrder.value = order
+    tableRef.value?.refresh()
   }
 
 </script>

@@ -129,28 +129,36 @@
       <div class="text-caption text-medium-emphasis mb-1">
         {{ $t('pos.checkout.payment_method') }}
       </div>
-      <v-btn-toggle
-        v-model="paymentMethod"
-        color="primary"
+      <!-- 2x2 grid, not a single-row toggle — 4 options (the 4th, longer
+           "Pay Later" label included) never fit on one line in a ~300-360px
+           cart column without clipping down to just "Pay". -->
+      <v-row dense class="mb-3">
+        <v-col v-for="opt in paymentOptions" :key="opt.value" cols="6">
+          <v-btn
+            block
+            :color="paymentMethod === opt.value ? 'primary' : undefined"
+            :variant="paymentMethod === opt.value ? 'flat' : 'tonal'"
+            rounded="lg"
+            class="text-none"
+            :size="touch ? 'large' : 'default'"
+            @click="paymentMethod = opt.value"
+          >
+            <v-icon start :icon="opt.icon" />
+            {{ opt.label }}
+          </v-btn>
+        </v-col>
+      </v-row>
+
+      <v-alert
+        v-if="paymentMethod === 'pay_later'"
+        type="warning"
         variant="tonal"
+        density="compact"
         rounded="lg"
-        mandatory
-        class="w-100 mb-3"
-        :divided="false"
+        class="mb-3 text-caption"
       >
-        <v-btn value="cash" class="flex-grow-1 text-none" :size="touch ? 'large' : 'default'">
-          <v-icon start icon="mdi-cash" />
-          {{ $t('pos.checkout.methods.cash') }}
-        </v-btn>
-        <v-btn value="card" class="flex-grow-1 text-none" :size="touch ? 'large' : 'default'">
-          <v-icon start icon="mdi-credit-card-outline" />
-          {{ $t('pos.checkout.methods.card') }}
-        </v-btn>
-        <v-btn value="qr" class="flex-grow-1 text-none" :size="touch ? 'large' : 'default'">
-          <v-icon start icon="mdi-qrcode" />
-          {{ $t('pos.checkout.methods.qr') }}
-        </v-btn>
-      </v-btn-toggle>
+        {{ $t('pos.checkout.pay_later_hint') }}
+      </v-alert>
 
       <template v-if="paymentMethod === 'cash'">
         <!-- Touch devices get a custom on-screen numpad instead of the
@@ -215,7 +223,7 @@
         @click="onCheckout"
       >
         <v-icon icon="mdi-check-circle-outline" class="me-2" />
-        <span class="flex-grow-1 text-start">{{ $t('pos.cart.checkout') }}</span>
+        <span class="flex-grow-1 text-start">{{ checkoutLabel }}</span>
         <span v-if="items.length" class="font-weight-black">{{ formatMoney(subtotal) }}</span>
       </v-btn>
     </div>
@@ -225,16 +233,19 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
+  import { useI18n } from 'vue-i18n'
   import PosNumpad from './PosNumpad.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
 
   const { format: formatMoney, currencySymbol } = useCurrency()
+  const { t } = useI18n()
 
   const props = defineProps({
     items: { type: Array, default: () => [] },
     subtotal: { type: Number, default: 0 },
     showNotes: { type: Boolean, default: false },
-    loading: { type: Boolean, default: false }
+    loading: { type: Boolean, default: false },
+    payLaterEnabled: { type: Boolean, default: true }
   })
 
   const { mdAndDown: touch } = useDisplay()
@@ -242,6 +253,28 @@
   const emit = defineEmits(['update-qty', 'update-notes', 'remove', 'clear', 'checkout'])
 
   const paymentMethod = ref('cash')
+
+  const paymentOptions = computed(() => {
+    const options = [
+      { value: 'cash', icon: 'mdi-cash', label: t('pos.checkout.methods.cash') },
+      { value: 'card', icon: 'mdi-credit-card-outline', label: t('pos.checkout.methods.card') },
+      { value: 'qr', icon: 'mdi-qrcode', label: t('pos.checkout.methods.qr') }
+    ]
+    if (props.payLaterEnabled) {
+      options.push({ value: 'pay_later', icon: 'mdi-clock-outline', label: t('pos.checkout.methods.pay_later') })
+    }
+    return options
+  })
+
+  // The tenant can turn Pay Later off (Settings > POS) after it was already
+  // selected in this session — fall back to Cash rather than leaving a now
+  // non-existent option selected.
+  watch(
+    () => props.payLaterEnabled,
+    enabled => {
+      if (!enabled && paymentMethod.value === 'pay_later') paymentMethod.value = 'cash'
+    }
+  )
   // null = "hasn't typed a custom amount yet" — the field then always shows
   // (and this stays in sync with) the live subtotal, i.e. exact change.
   const cashTendered = ref(null)
@@ -306,6 +339,12 @@
     const val = cashTendered.value ?? props.subtotal
     return val !== null && val !== '' && val >= 0
   })
+
+  // "Checkout" implies payment is happening right now — misleading once
+  // Pay Later is selected, since no money changes hands at this step.
+  const checkoutLabel = computed(() =>
+    paymentMethod.value === 'pay_later' ? t('pos.cart.place_order') : t('pos.cart.checkout')
+  )
 
   function onCheckout() {
     emit('checkout', {

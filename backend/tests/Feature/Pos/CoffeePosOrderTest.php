@@ -227,4 +227,55 @@ class CoffeePosOrderTest extends TestCase
         $data = $response->getData(true)['data'];
         $this->assertSame(4.5, $data['subtotal']);
     }
+
+    public function test_pay_later_creates_a_pending_order_with_no_payment_and_still_occupies_the_table(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'payment_method' => 'pay_later',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+        ]);
+
+        $data = $response->getData(true)['data'];
+        $this->assertSame('pay_later', $data['payment_method']);
+        $this->assertNull($data['payment_id']);
+        $this->assertNull($data['cash_tendered']);
+
+        $order = Order::firstWhere('order_number', $data['order_number']);
+        $this->assertSame('pending', $order->status);
+        $this->assertNull($order->completed_at);
+        $this->assertCount(0, $order->payments);
+        $this->assertSame(Table::STATUS_OCCUPIED, $table->fresh()->status);
+    }
+
+    public function test_pay_later_receipt_has_no_payment_amount_and_flags_payment_method_as_pay_later(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'payment_method' => 'pay_later',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $receipt = $response->getData(true)['data']['prints']['receipt'];
+        $this->assertSame('pay_later', $receipt['payment_method']);
+        $this->assertNull($receipt['cash_tendered']);
+        $this->assertNull($receipt['change_given']);
+    }
 }

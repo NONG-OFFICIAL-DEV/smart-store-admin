@@ -78,7 +78,13 @@
       <span>{{ formatMoney(receipt.total) }}</span>
     </div>
 
-    <template v-if="receipt.payment_method">
+    <template v-if="receipt.payment_method === 'pay_later'">
+      <v-divider class="my-2" />
+      <v-alert type="warning" variant="tonal" density="compact" rounded="lg">
+        {{ $t('pos.receipt.unpaid') }}
+      </v-alert>
+    </template>
+    <template v-else-if="receipt.payment_method">
       <v-divider class="my-2" />
 
       <div class="d-flex justify-space-between text-caption mb-1">

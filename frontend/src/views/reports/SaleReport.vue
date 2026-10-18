@@ -728,7 +728,7 @@
                 :color="statusColor(item.status)"
               >
                 <v-icon start size="10">{{ statusIcon(item.status) }}</v-icon>
-                {{ item.status }}
+                {{ statusLabel(item.status) }}
               </v-chip>
             </template>
 
@@ -1102,23 +1102,32 @@
   ]
 
   // ── Helpers ────────────────────────────────────────────────────────────────────
+  // Same labels as the Orders admin list (orders_admin.status.*) — one
+  // source of truth for how each Order status reads to staff.
+  const statusLabel = s => t(`orders_admin.status.${s}`)
   const statusColor = s =>
     ({
+      draft: 'grey',
       pending: 'warning',
       confirmed: 'info',
       preparing: 'info',
       ready: 'success',
+      served: 'success',
       completed: 'success',
-      cancelled: 'error'
+      cancelled: 'error',
+      refunded: 'error'
     })[s] ?? 'grey'
   const statusIcon = s =>
     ({
+      draft: 'mdi-file-outline',
       pending: 'mdi-clock-outline',
       confirmed: 'mdi-check',
       preparing: 'mdi-chef-hat',
       ready: 'mdi-bell-outline',
+      served: 'mdi-silverware',
       completed: 'mdi-check-circle-outline',
-      cancelled: 'mdi-close-circle-outline'
+      cancelled: 'mdi-close-circle-outline',
+      refunded: 'mdi-cash-refund'
     })[s] ?? 'mdi-circle-outline'
   const typeColor = v =>
     ({

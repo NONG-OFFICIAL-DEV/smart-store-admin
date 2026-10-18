@@ -145,4 +145,29 @@ class MartPosOrderTest extends TestCase
             ],
         ]);
     }
+
+    public function test_pay_later_creates_a_pending_sale_with_no_payment_but_still_deducts_stock(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'payment_method' => 'pay_later',
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 3],
+            ],
+        ]);
+
+        $data = $response->getData(true)['data'];
+        $this->assertSame('pay_later', $data['payment_method']);
+        $this->assertNull($data['payment_id']);
+
+        $order = Order::firstWhere('order_number', $data['order_number']);
+        $this->assertSame('pending', $order->status);
+        $this->assertCount(0, $order->payments);
+        $this->assertSame(97.0, $product->fresh()->stock_quantity);
+    }
 }

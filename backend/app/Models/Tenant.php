@@ -38,6 +38,7 @@ class Tenant extends BaseModel
         'order_types' => ['dine_in', 'takeaway', 'delivery'],
         'customer_selection' => true,
         'order_notes' => true,
+        'pay_later_enabled' => true,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

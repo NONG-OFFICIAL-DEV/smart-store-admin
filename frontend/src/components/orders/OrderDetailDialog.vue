@@ -39,7 +39,7 @@
                 :color="statusColor(order.status)"
                 variant="tonal"
               >
-                {{ order.status }}
+                {{ statusLabel(order.status) }}
               </v-chip>
             </v-col>
           </v-row>
@@ -169,6 +169,16 @@
       </v-btn>
       <v-spacer />
       <v-btn
+        v-if="order && !order.payment"
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        prepend-icon="mdi-cash-check"
+        @click="settleDialog = true"
+      >
+        {{ t('orders_admin.settle.action') }}
+      </v-btn>
+      <v-btn
         variant="outlined"
         rounded="lg"
         prepend-icon="mdi-printer-outline"
@@ -178,6 +188,12 @@
       </v-btn>
     </template>
   </AppDialog>
+
+  <SettlePaymentDialog
+    v-model="settleDialog"
+    :order="order"
+    @settled="onSettled"
+  />
 
   <!-- Print-only copy, teleported to body — same reasoning as
        PosReceiptDialog.vue: the dialog's scrollable v-card-text clips an
@@ -203,6 +219,7 @@
   import { AppDialog } from '@nong-official-dev/core'
   import { useReceipt } from '@/utils/printReceipt'
   import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
+  import SettlePaymentDialog from '@/components/orders/SettlePaymentDialog.vue'
 
   const { t } = useI18n()
   const store = useOrderStore()
@@ -224,6 +241,11 @@
   })
 
   const order = ref(null)
+  const settleDialog = ref(false)
+
+  function onSettled(updated) {
+    order.value = updated
+  }
 
   const fetchOrder = async () => {
     if (!props.orderId) return
@@ -296,14 +318,21 @@
     window.print()
   }
 
+  // Same labels as the Orders admin list (orders_admin.status.*) — one
+  // source of truth for how each Order status reads to staff.
+  const statusLabel = s => t(`orders_admin.status.${s}`)
+
   const statusColor = s =>
     ({
+      draft: 'grey',
       pending: 'warning',
       confirmed: 'info',
       preparing: 'info',
       ready: 'success',
+      served: 'success',
       completed: 'success',
-      cancelled: 'error'
+      cancelled: 'error',
+      refunded: 'error'
     })[s] ?? 'grey'
 </script>
 

@@ -10,8 +10,10 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemModifier;
 use App\Models\OrderStatusHistory;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Table;
 use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -125,11 +127,13 @@ class OrderController extends Controller
             $serviceChargeAmount = round($subtotal * $serviceChargeRate, 2);
             $totalAmount        = $subtotal + $taxAmount + $serviceChargeAmount;
 
+            $orderType = $request->order_type ?? 'dine_in';
+
             // ── Create order ───────────────────────────────────────────────
             $order = Order::create([
                 'branch_id'              => $branch->id,
                 'table_id'               => $request->table_id,
-                'order_type'             => $request->order_type ?? 'dine_in',
+                'order_type'             => $orderType,
                 'status'                 => 'pending',
                 'source'                 => 'mobile_app',
                 'subtotal'               => $subtotal,
@@ -166,6 +170,16 @@ class OrderController extends Controller
                 'to_status'   => 'pending',
                 'notes'       => 'Order placed from mobile app',
             ]);
+
+            // A customer scanning the QR code at their table and ordering is
+            // seated there regardless of payment status — occupy the table
+            // now rather than leaving it "Available" until someone pays.
+            // Staff frees it manually from the Tables page once the
+            // customer actually leaves (same pattern the POS checkout
+            // controllers already use).
+            if ($orderType === 'dine_in' && $request->table_id) {
+                Table::updateStatus($request->table_id, Table::STATUS_OCCUPIED);
+            }
 
             // Food tenants need a kitchen ticket for every order so it shows
             // up on the Kitchen Display without a staff member manually
@@ -263,6 +277,87 @@ class OrderController extends Controller
         ]);
     }
 
+    // ── PATCH /api/v1/orders/{order}/settle-payment ─────────────────────────
+    // Collects payment on a 'pay later' order rung up with no Payment row
+    // (CoffeePOSorderController/MartPosController's pay_later path) — the
+    // one place a deferred sale actually gets marked paid.
+    public function settlePayment(Request $request, Order $order)
+    {
+        if ($order->payments()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order already has a payment recorded.',
+            ], 422);
+        }
+
+        if (in_array($order->status, ['cancelled', 'refunded'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "A {$order->status} order can't be paid.",
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'payment_method' => 'required|in:cash,card,qr,transfer',
+            'cash_tendered'  => 'nullable|numeric|min:0',
+        ]);
+
+        if (
+            $validated['payment_method'] === 'cash'
+            && isset($validated['cash_tendered'])
+            && (float) $validated['cash_tendered'] < (float) $order->total_amount
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cash tendered is less than the order total.',
+            ], 422);
+        }
+
+        $paymentMethodMap = [
+            'cash'     => 'cash',
+            'card'     => 'card',
+            'qr'       => 'qr_code',
+            'transfer' => 'online',
+        ];
+
+        return DB::transaction(function () use ($validated, $paymentMethodMap, $order) {
+            $staff        = auth()->user()?->staff;
+            $cashTendered = (float) ($validated['cash_tendered'] ?? $order->total_amount);
+            $changeGiven  = $validated['payment_method'] === 'cash'
+                ? max(0, $cashTendered - (float) $order->total_amount)
+                : null;
+
+            $payment = Payment::create([
+                'order_id'       => $order->id,
+                'branch_id'      => $order->branch_id,
+                'staff_id'       => $staff?->id,
+                'payment_method' => $paymentMethodMap[$validated['payment_method']],
+                'amount'         => $order->total_amount,
+                'change_given'   => $changeGiven,
+                'currency'       => $order->branch->tenant->currency ?? 'USD',
+                'status'         => 'completed',
+                'paid_at'        => now(),
+            ]);
+
+            $fromStatus = $order->status;
+            $order->update(['status' => 'completed', 'completed_at' => now()]);
+
+            OrderStatusHistory::create([
+                'order_id'    => $order->id,
+                'from_status' => $fromStatus,
+                'to_status'   => 'completed',
+                'notes'       => 'Payment settled · ' . (auth()->user()?->email ?? 'system'),
+            ]);
+
+            $order->load(['items.product', 'items.variant', 'items.modifiers', 'diningTable', 'statusHistory', 'payments', 'cashier.user']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment recorded.',
+                'data'    => $this->formatOrder($order),
+            ]);
+        });
+    }
 
     private function generateQueueNumber(string $branchId): int
     {

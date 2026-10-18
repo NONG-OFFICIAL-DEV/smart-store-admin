@@ -36,7 +36,8 @@ export const useAuthStore = defineStore('auth', {
     posSettings: {
       order_types: ['dine_in', 'takeaway', 'delivery'],
       customer_selection: true,
-      order_notes: true
+      order_notes: true,
+      pay_later_enabled: true
     },
 
     branch_id:   null,

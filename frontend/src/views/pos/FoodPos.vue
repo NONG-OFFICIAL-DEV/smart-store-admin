@@ -178,6 +178,7 @@
               :items="posStore.items"
               :subtotal="posStore.subtotal"
               :loading="submitting"
+              :pay-later-enabled="authStore.posSettings?.pay_later_enabled ?? true"
               show-notes
               @update-qty="posStore.updateQty"
               @update-notes="posStore.updateNotes"
@@ -216,6 +217,7 @@
           :items="posStore.items"
           :subtotal="posStore.subtotal"
           :loading="submitting"
+          :pay-later-enabled="authStore.posSettings?.pay_later_enabled ?? true"
           show-notes
           @update-qty="posStore.updateQty"
           @update-notes="posStore.updateNotes"

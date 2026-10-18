@@ -144,6 +144,15 @@
             color="primary"
             density="compact"
             hide-details
+            class="mb-3"
+          />
+          <v-switch
+            v-model="form.pos_settings.pay_later_enabled"
+            :label="t('settings_hub.pos_pay_later')"
+            :disabled="!canEdit || saving"
+            color="primary"
+            density="compact"
+            hide-details
           />
 
           <div v-if="canEdit" class="d-flex justify-end mt-5">
@@ -196,7 +205,8 @@
     pos_settings: {
       order_types: ['dine_in', 'takeaway', 'delivery'],
       customer_selection: true,
-      order_notes: true
+      order_notes: true,
+      pay_later_enabled: true
     }
   })
 
@@ -219,6 +229,7 @@
       form.pos_settings.order_types = tenant.pos_settings.order_types ?? form.pos_settings.order_types
       form.pos_settings.customer_selection = tenant.pos_settings.customer_selection ?? true
       form.pos_settings.order_notes = tenant.pos_settings.order_notes ?? true
+      form.pos_settings.pay_later_enabled = tenant.pos_settings.pay_later_enabled ?? true
     }
   })
 

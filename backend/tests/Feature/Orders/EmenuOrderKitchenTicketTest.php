@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\KitchenDisplayTicket;
 use App\Models\Product;
+use App\Models\Table;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -68,14 +69,14 @@ class EmenuOrderKitchenTicketTest extends TestCase
         ]);
     }
 
-    private function placeOrder(Branch $branch, Product $product)
+    private function placeOrder(Branch $branch, Product $product, array $overrides = [])
     {
-        $request = Request::create('/v1/public/orders', 'POST', [
+        $request = Request::create('/v1/public/orders', 'POST', array_merge([
             'branch_id' => $branch->id,
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 2],
             ],
-        ]);
+        ], $overrides));
 
         return $this->app->make(OrderController::class)->store($request);
     }
@@ -108,5 +109,29 @@ class EmenuOrderKitchenTicketTest extends TestCase
             0,
             KitchenDisplayTicket::where('order_id', $orderId)->count()
         );
+    }
+
+    public function test_placing_a_dine_in_order_at_a_table_occupies_that_table(): void
+    {
+        $tenant = $this->makeTenant('RESTAURANT');
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $this->placeOrder($branch, $product, ['table_id' => $table->id]);
+
+        $this->assertSame(Table::STATUS_OCCUPIED, $table->fresh()->status);
+    }
+
+    public function test_placing_a_takeaway_order_with_no_table_does_not_touch_any_table(): void
+    {
+        $tenant = $this->makeTenant('RESTAURANT');
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $this->placeOrder($branch, $product, ['order_type' => 'takeaway']);
+
+        $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
 }

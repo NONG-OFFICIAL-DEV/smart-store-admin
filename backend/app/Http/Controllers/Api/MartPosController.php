@@ -26,7 +26,7 @@ class MartPosController extends Controller
     {
         $request->validate([
             'branch_id'                   => 'required|uuid|exists:branches,id',
-            'payment_method'              => 'required|in:cash,card,qr,transfer',
+            'payment_method'              => 'required|in:cash,card,qr,transfer,pay_later',
             'customer_type'               => 'nullable|in:retail,wholesale,mixed',
             'cash_tendered'               => 'nullable|numeric|min:0',
             'notes'                       => 'nullable|string|max:500',
@@ -167,13 +167,15 @@ class MartPosController extends Controller
                 ], 422));
             }
 
+            $payLater = $request->payment_method === 'pay_later';
+
             // ── Create order ───────────────────────────────────────────────
             $order = Order::create([
                 'branch_id'             => $branch->id,
                 'cashier_id'            => $staff?->id,
                 'order_type'            => 'takeaway',
                 'customer_id'           => $customer?->id,
-                'status'                => 'completed',
+                'status'                => $payLater ? 'pending' : 'completed',
                 'source'                => 'pos',
                 'customer_type'         => $orderCustomerType,
                 'subtotal'              => $subtotal,
@@ -182,7 +184,7 @@ class MartPosController extends Controller
                 'discount_amount'       => $discountAmount,
                 'total_amount'          => $totalAmount,
                 'notes'                 => $request->notes,
-                'completed_at'          => now(),
+                'completed_at'          => $payLater ? null : now(),
             ]);
 
             // ── Create items + deduct stock + log movement ─────────────────
@@ -212,30 +214,40 @@ class MartPosController extends Controller
                 ]);
             }
 
-            // ── Create payment record ──────────────────────────────────────
-            $cashTendered = (float) ($request->cash_tendered ?? $totalAmount);
-            $changeGiven  = $request->payment_method === 'cash'
-                ? max(0, $cashTendered - $totalAmount)
-                : null;
+            // ── Create payment record ── skipped for pay-later: stock still
+            // leaves (item's already handed over), but nothing was actually
+            // collected yet. Settled later via OrderController::settlePayment().
+            $cashTendered = null;
+            $changeGiven  = null;
+            $payment      = null;
 
-            $payment = Payment::create([
-                'order_id'       => $order->id,
-                'branch_id'      => $branch->id,
-                'staff_id'       => $staff?->id,
-                'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
-                'amount'         => $totalAmount,
-                'change_given'   => $changeGiven,
-                'currency' => $branch->tenant->currency ?? 'USD',
-                'status'         => 'completed',
-                'paid_at'        => now(),
-            ]);
+            if (! $payLater) {
+                $cashTendered = (float) ($request->cash_tendered ?? $totalAmount);
+                $changeGiven  = $request->payment_method === 'cash'
+                    ? max(0, $cashTendered - $totalAmount)
+                    : null;
+
+                $payment = Payment::create([
+                    'order_id'       => $order->id,
+                    'branch_id'      => $branch->id,
+                    'staff_id'       => $staff?->id,
+                    'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
+                    'amount'         => $totalAmount,
+                    'change_given'   => $changeGiven,
+                    'currency' => $branch->tenant->currency ?? 'USD',
+                    'status'         => 'completed',
+                    'paid_at'        => now(),
+                ]);
+            }
 
             // ── Order status history ───────────────────────────────────────
             OrderStatusHistory::create([
                 'order_id'    => $order->id,
                 'from_status' => null,
-                'to_status'   => 'completed',
-                'notes'       => "POS sale · {$cashier->email} · {$orderCustomerType}",
+                'to_status'   => $order->status,
+                'notes'       => $payLater
+                    ? "POS sale (pay later) · {$cashier->email} · {$orderCustomerType}"
+                    : "POS sale · {$cashier->email} · {$orderCustomerType}",
             ]);
 
             $order->load('items');
@@ -253,7 +265,7 @@ class MartPosController extends Controller
                     'payment_method' => $request->payment_method,
                     'cash_tendered'  => $cashTendered,
                     'change_given'   => $changeGiven,
-                    'payment_id'     => $payment->id,
+                    'payment_id'     => $payment?->id,
                     'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
                     'items'          => $order->items,
                     'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType, $customer),
@@ -358,7 +370,7 @@ class MartPosController extends Controller
         return response()->json(['success' => true, 'data' => $categories]);
     }
 
-    private function buildReceipt(Order $order, Payment $payment, Branch $branch, string $customerType, ?Customer $customer = null): array
+    private function buildReceipt(Order $order, ?Payment $payment, Branch $branch, string $customerType, ?Customer $customer = null): array
     {
         return [
             'order_number'   => $order->order_number,
@@ -380,9 +392,9 @@ class MartPosController extends Controller
             'discount'        => (float) $order->discount_amount,
             'tax'             => (float) $order->tax_amount,
             'total'           => (float) $order->total_amount,
-            'payment_method'  => $payment->payment_method,
-            'cash_tendered'   => (float) ($payment->amount + ($payment->change_given ?? 0)),
-            'change_given'    => (float) ($payment->change_given ?? 0),
+            'payment_method'  => $payment?->payment_method ?? 'pay_later',
+            'cash_tendered'   => $payment ? (float) ($payment->amount + ($payment->change_given ?? 0)) : null,
+            'change_given'    => $payment ? (float) ($payment->change_given ?? 0) : null,
             'printed_at'      => now()->format('d/m/Y H:i'),
         ];
     }

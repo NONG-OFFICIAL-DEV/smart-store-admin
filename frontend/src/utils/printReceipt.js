@@ -331,9 +331,11 @@ function buildBytes(r, money) {
   b(totalsRowToEscPosImage('Total / សរុបទាំងអស់:', money(total), { bold: true, fontSize: 26, marginTop: 12 }))
   t(dLine())
 
-  // ── PAYMENT ── only when there's an actual payment to report (orders
-  // printed before/without a recorded payment have nothing to show here).
-  if (r.payment_method) {
+  // ── PAYMENT ── pay-later has nothing to report yet; flag it clearly
+  // instead of printing a payment method that was never actually taken.
+  if (r.payment_method === 'pay_later') {
+    b(totalsRowToEscPosImage('UNPAID / មិនទាន់បង់ប្រាក់', '', { bold: true }))
+  } else if (r.payment_method) {
     b(totalsRowToEscPosImage('Payment / បង់:', payLbl))
     if (cash > 0) {
       b(totalsRowToEscPosImage('Cash / ទទួល:', money(cash)))

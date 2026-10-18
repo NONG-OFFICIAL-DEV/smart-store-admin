@@ -1545,7 +1545,8 @@
     "pos_settings_helper": "Choose which order options actually appear on the POS screen. Disabled options are hidden entirely, not just greyed out.",
     "pos_order_types": "Order Types",
     "pos_customer_selection": "Customer Selection",
-    "pos_order_notes": "Order Notes"
+    "pos_order_notes": "Order Notes",
+    "pos_pay_later": "Pay Later"
   },
   "staff": {
     "title": "Staff Management",
@@ -2355,7 +2356,8 @@
       "add_note": "Add note",
       "note_added": "Note added",
       "note_placeholder": "Note for this order (optional)",
-      "view_order": "View Order"
+      "view_order": "View Order",
+      "place_order": "Place Order"
     },
     "checkout": {
       "title": "Checkout",
@@ -2366,8 +2368,10 @@
       "methods": {
         "cash": "Cash",
         "card": "Card",
-        "qr": "QR"
+        "qr": "QR",
+        "pay_later": "Pay Later"
       },
+      "pay_later_hint": "No payment is collected now — this order is recorded as Unpaid until someone settles it from the Orders page.",
       "cash_tendered": "Cash tendered",
       "change": "Change due",
       "submit": "Complete sale",
@@ -2390,6 +2394,7 @@
       "payment_method": "Payment method",
       "cash_tendered": "Cash tendered",
       "change_given": "Change given",
+      "unpaid": "Unpaid — to be settled from the Orders page",
       "print": "Print",
       "new_sale": "New sale"
     }
@@ -2876,12 +2881,12 @@
     },
     "status": {
       "draft": "Draft",
-      "pending": "Pending",
-      "confirmed": "Confirmed",
-      "preparing": "Preparing",
-      "ready": "Ready",
+      "pending": "Unpaid",
+      "confirmed": "Accepted",
+      "preparing": "In Kitchen",
+      "ready": "Ready for Pickup",
       "served": "Served",
-      "completed": "Completed",
+      "completed": "Paid & Closed",
       "cancelled": "Cancelled",
       "refunded": "Refunded"
     },
@@ -2890,6 +2895,14 @@
       "takeaway": "Takeaway",
       "delivery": "Delivery",
       "online": "Online"
+    },
+    "settle": {
+      "action": "Settle Payment",
+      "title": "Settle Payment",
+      "amount_due": "Amount due",
+      "submit": "Record Payment",
+      "success": "Payment recorded.",
+      "failed": "Could not record the payment. Please try again."
     }
   },
   "kitchen": {

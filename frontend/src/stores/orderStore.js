@@ -6,7 +6,8 @@ import {
   updateOrderApi,
   deleteOrderApi,
   exportOrdersApi,
-  getAllOrdersReportApi
+  getAllOrdersReportApi,
+  settleOrderPaymentApi
 } from '../api/orderService'
 
 export const useOrderStore = defineStore('order', {
@@ -55,6 +56,11 @@ export const useOrderStore = defineStore('order', {
     async deleteOrder(id) {
       await deleteOrderApi(id)
       this.orders = this.orders.filter(item => item.id !== id)
+    },
+    async settlePayment(id, data) {
+      const res = await settleOrderPaymentApi(id, data)
+      this.order = res.data.data
+      return res
     },
     async exportOrders(param) {
       const res = await exportOrdersApi(param)

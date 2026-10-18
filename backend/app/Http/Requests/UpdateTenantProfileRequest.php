@@ -59,6 +59,7 @@ class UpdateTenantProfileRequest extends FormRequest
             'pos_settings.order_types.*' => 'in:dine_in,takeaway,delivery',
             'pos_settings.customer_selection' => 'boolean',
             'pos_settings.order_notes' => 'boolean',
+            'pos_settings.pay_later_enabled' => 'boolean',
         ];
     }
 

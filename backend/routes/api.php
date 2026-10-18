@@ -403,6 +403,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
             Route::patch('ready',           [OrderController::class, 'ready']);
             Route::patch('complete',        [OrderController::class, 'complete']);
             Route::patch('cancel',          [OrderController::class, 'cancel']);
+            Route::patch('settle-payment',  [OrderController::class, 'settlePayment']);
 
             Route::get('payments',          [PaymentController::class, 'byOrder']);
             Route::post('payments',         [PaymentController::class, 'store']);
