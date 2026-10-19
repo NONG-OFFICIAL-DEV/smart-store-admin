@@ -89,116 +89,78 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ubuntu
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            set -e
-            mkdir -p ~/smart-store
-            cat > ~/smart-store/docker-compose.yml << 'COMPOSE_EOF'
-            services:
-              backend_service:
-                image: nongdev/smart-store-backend:latest
-                container_name: smart_store_backend
-                restart: always
-                networks:
-                  - web
-                env_file:
-                  - ./backend/.env
-                volumes:
-                  - smart_store_backend_storage:/var/www/html/storage
-                command: >
-                  sh -c "chown -R www-data:www-data storage bootstrap/cache &&
-                        chmod -R 775 storage bootstrap/cache &&
-                        mkdir -p /var/log/supervisor &&
-                        /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          FRONTEND_CHANGED: ${{ needs.changes.outputs.frontend }}
+          WEBSERVER_CHANGED: ${{ needs.changes.outputs.webserver }}
+        run: |
+          echo "$DEPLOY_KEY" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          SSH="ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no ubuntu@$SERVER_HOST"
 
-              frontend:
-                build:
-                  context: ./frontend
-                container_name: smart_store_frontend
-                image: nongdev/smart-store-frontend:latest
-                restart: always
-                networks:
-                  - web
+          # Write docker-compose.yml by piping stdin — no tar, no drone-scp
+          $SSH "mkdir -p ~/smart-store && cat > ~/smart-store/docker-compose.yml" < docker-compose.yml
 
-              webserver:
-                build:
-                  context: ./backend/nginx
-                  dockerfile: Dockerfile
-                image: nongdev/smart-store-webserver:latest
-                container_name: smart_store_webserver
-                restart: unless-stopped
-                tty: true
-                ports:
-                  - "84:84"
-                volumes:
-                  - smart_store_backend_storage:/var/www/html/storage
-                networks:
-                  - web
-                  - internal_project_network
-                depends_on:
-                  - backend_service
+          # Run deploy script; pass runner values as positional args ($1-$4)
+          $SSH bash -s -- "$BACKEND_CHANGED" "$FRONTEND_CHANGED" "$WEBSERVER_CHANGED" "$DOCKERHUB_USERNAME" << 'DEPLOY'
+          BACKEND_CHANGED="$1"
+          FRONTEND_CHANGED="$2"
+          WEBSERVER_CHANGED="$3"
+          DOCKERHUB_USERNAME="$4"
+          set -e
+          cd ~/smart-store
 
-            networks:
-              web:
-                external: true
-              internal_project_network:
-                driver: bridge
+          echo ">>> Pulling images"
+          if [ "$BACKEND_CHANGED" = "true" ]; then
+            docker pull "$DOCKERHUB_USERNAME"/smart-store-backend:latest
+          fi
+          if [ "$FRONTEND_CHANGED" = "true" ]; then
+            docker pull "$DOCKERHUB_USERNAME"/smart-store-frontend:latest
+          fi
+          if [ "$WEBSERVER_CHANGED" = "true" ]; then
+            docker pull "$DOCKERHUB_USERNAME"/smart-store-webserver:latest
+          fi
 
-            volumes:
-              smart_store_backend_storage:
-            COMPOSE_EOF
-            cd ~/smart-store
+          echo ">>> Restarting containers"
+          docker compose down --remove-orphans || true
+          docker rm -f smart_store_backend smart_store_webserver smart_store_frontend 2>/dev/null || true
+          docker compose up -d --remove-orphans
 
-            echo ">>> Pulling images"
-            if [ "${{ needs.changes.outputs.backend }}" = "true" ]; then
-              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-backend:latest
-            fi
-            if [ "${{ needs.changes.outputs.frontend }}" = "true" ]; then
-              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-frontend:latest
-            fi
-            if [ "${{ needs.changes.outputs.webserver }}" = "true" ]; then
-              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/smart-store-webserver:latest
-            fi
+          if ! docker compose ps backend_service | grep -q "Up"; then
+            echo "!!! backend_service failed to start"
+            docker compose logs backend_service --tail=50
+            exit 1
+          fi
 
-            echo ">>> Restarting containers"
-            docker compose down --remove-orphans || true
-            docker rm -f smart_store_backend smart_store_webserver smart_store_frontend 2>/dev/null || true
-            docker compose up -d --remove-orphans
+          echo ">>> Running migrations"
+          docker compose exec -T backend_service php artisan migrate --force
 
-            if ! docker compose ps backend_service | grep -q "Up"; then
-              echo "!!! backend_service failed to start"
-              docker compose logs backend_service --tail=50
-              exit 1
-            fi
+          echo ">>> Rebuilding cache"
+          docker compose exec -T backend_service php artisan optimize:clear
+          docker compose exec -T backend_service php artisan optimize
+          docker compose exec -T backend_service supervisorctl restart php-fpm
+          sleep 10
 
-            echo ">>> Running migrations"
-            docker compose exec -T backend_service php artisan migrate --force
+          echo ">>> Health check"
+          CODE="000"
+          for i in $(seq 1 20); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:84/api/me || echo "000")
+            [ "$CODE" = "401" ] || [ "$CODE" = "200" ] && break
+            sleep 3
+          done
+          if [ "$CODE" != "401" ] && [ "$CODE" != "200" ]; then
+            echo "!!! Health check failed (got $CODE)"
+            docker compose exec -T backend_service php artisan route:list --path=api/me 2>&1 || true
+            docker compose logs backend_service --tail=50
+            exit 1
+          fi
 
-            echo ">>> Rebuilding cache"
-            docker compose exec -T backend_service php artisan optimize:clear
-            docker compose exec -T backend_service php artisan optimize
-            docker compose exec -T backend_service supervisorctl restart php-fpm
-            sleep 10
+          echo ">>> Cleaning up"
+          docker image prune -f
+          echo ">>> Deploy complete"
+          DEPLOY
 
-            echo ">>> Health check"
-            CODE="000"
-            for i in $(seq 1 20); do
-              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:84/api/me || echo "000")
-              [ "$CODE" = "401" ] || [ "$CODE" = "200" ] && break
-              sleep 3
-            done
-            if [ "$CODE" != "401" ] && [ "$CODE" != "200" ]; then
-              echo "!!! Health check failed (got $CODE)"
-              docker compose exec -T backend_service php artisan route:list --path=api/me 2>&1 || true
-              docker compose logs backend_service --tail=50
-              exit 1
-            fi
-
-            echo ">>> Cleaning up"
-            docker image prune -f
-
-            echo ">>> Deploy complete"
+          rm -f /tmp/deploy_key
