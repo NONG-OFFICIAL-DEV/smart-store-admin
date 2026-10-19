@@ -39,7 +39,6 @@
     "shift_assign": "Shift Assignment",
     "tables": "Tables",
     "kitchen": "Kitchen",
-    "cash_register": "Cash Register",
     "menus": "Menus",
     "promotions": "Promotions",
     "menu_management": "Menu",
@@ -2832,25 +2831,6 @@
     },
     "delete_title": "Delete Role?",
     "delete_message": "Delete <strong>{name}.</strong>? <br/> Users with this role will lose their access."
-  },
-  "cash_register_admin": {
-    "title": "Cash Register",
-    "subtitle": "Review cash-drawer sessions across every branch.",
-    "empty": "No cash-drawer sessions found.",
-    "staff_label": "Staff",
-    "filters": {
-      "status": "Status"
-    },
-    "status": {
-      "open": "Open",
-      "closed": "Closed"
-    },
-    "columns": {
-      "branch": "Branch",
-      "staff": "Staff",
-      "status": "Status",
-      "variance": "Variance"
-    }
   },
   "orders_admin": {
     "title": "Orders",

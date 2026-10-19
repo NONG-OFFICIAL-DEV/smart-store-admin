@@ -271,13 +271,6 @@ export const SIDEBAR_MENU = [
         visible: ctx => ctx.isFood,
         path: '/ingredient-inventory-reports',
         permission: 'reports.view'
-      },
-      {
-        key: 'cash-register',
-        titleKey: 'menu.cash_register',
-        icon: 'mdi-cash-register',
-        path: '/cash-register',
-        permission: 'payments.manage'
       }
     ]
   },

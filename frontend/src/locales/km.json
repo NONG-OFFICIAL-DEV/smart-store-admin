@@ -39,7 +39,6 @@
     "shift_assign": "ការចាត់តាំងវេន",
     "tables": "តុ",
     "kitchen": "ផ្ទះបាយ",
-    "cash_register": "ប្រអប់សាច់ប្រាក់",
     "menus": "ឈុតម៉ឺនុយ",
     "promotions": "ការផ្សព្វផ្សាយ",
     "menu_management": "គ្រប់គ្រងម៉ឺនុយ",
@@ -2812,25 +2811,6 @@
     },
     "delete_title": "លុបតួនាទី?",
     "delete_message": "លុប <strong>{name}។</strong>? <br/> អ្នកប្រើប្រាស់ដែលមានតួនាទីនេះនឹងបាត់បង់សិទ្ធិចូលប្រើ។"
-  },
-  "cash_register_admin": {
-    "title": "ប្រអប់សាច់ប្រាក់",
-    "subtitle": "ពិនិត្យមើលសម័យប្រអប់សាច់ប្រាក់នៅគ្រប់សាខា។",
-    "empty": "រកមិនឃើញសម័យប្រអប់សាច់ប្រាក់ទេ។",
-    "staff_label": "បុគ្គលិក",
-    "filters": {
-      "status": "ស្ថានភាព"
-    },
-    "status": {
-      "open": "កំពុងបើក",
-      "closed": "បានបិទ"
-    },
-    "columns": {
-      "branch": "សាខា",
-      "staff": "បុគ្គលិក",
-      "status": "ស្ថានភាព",
-      "variance": "ភាពខុសគ្នា"
-    }
   },
   "orders_admin": {
     "title": "ការបញ្ជាទិញ",

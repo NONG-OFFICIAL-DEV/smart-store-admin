@@ -106,12 +106,6 @@ const routes = [
         component: () => import('@/views/kitchen/KitchenDisplay.vue'),
         meta: { requiresAuth: true, permission: 'kitchen.manage', transition: 'fade' }
       },
-      {
-        path: '/cash-register',
-        name: 'cash-register',
-        component: () => import('@/views/cashRegister/CashRegisterManagement.vue'),
-        meta: { requiresAuth: true, permission: 'payments.manage', transition: 'fade' }
-      },
       // Products/Categories/Modifiers/Menus/Branch-Menus used to be one
       // tabbed hub page (CatalogHub.vue) — Category/Menu/Modifier/Branch-Menu
       // management moved into "manage" dialogs launched from the Products
