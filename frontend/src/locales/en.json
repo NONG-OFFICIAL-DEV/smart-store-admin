@@ -821,10 +821,7 @@
       "phone": "Phone Number",
       "tax_rate": "Tax Rate (%)",
       "name_placeholder": "e.g. Phnom Penh Central",
-      "branch_type": "Branch type",
-      "printer_name": "Receipt Printer Name",
-      "printer_name_placeholder": "e.g. Diamond",
-      "printer_name_hint": "Must match the printer name registered in QZ Tray on this branch's till — leave blank to keep using the browser's print dialog"
+      "branch_type": "Branch type"
     },
     "detail": {
       "title": "Branch Detail",
@@ -1532,7 +1529,8 @@
     "tabs": {
       "company": "Company Info",
       "branch": "Branch",
-      "pos": "POS"
+      "pos": "POS",
+      "printer": "Printer"
     },
     "owner_only": "Only the tenant owner can edit company information.",
     "saved": "Company info updated successfully",
@@ -1547,7 +1545,27 @@
     "pos_customer_selection": "Customer Selection",
     "pos_order_notes": "Order Notes",
     "pos_payment_methods": "Payment Methods",
-    "pos_default_payment_method": "Default Payment Method"
+    "pos_default_payment_method": "Default Payment Method",
+    "printer": {
+      "helper": "Check whether this branch's receipt printer is reachable before relying on it at checkout.",
+      "branch_label": "Branch",
+      "printer_name_label": "Receipt Printer Name",
+      "printer_name_placeholder": "e.g. Diamond",
+      "printer_name_hint": "Must match the printer name registered in QZ Tray on this branch's till — leave blank to keep using the browser's print dialog",
+      "saved": "Printer name saved",
+      "save_failed": "Failed to save printer name",
+      "save_to_enable_checks": "Enter a printer name and save it to enable connection checks and test printing.",
+      "check_connection": "Check Connection",
+      "test_print": "Send Test Print",
+      "test_item": "Test Print",
+      "test_print_sent": "Test print sent successfully.",
+      "test_print_failed": "Test print failed ({reason}).",
+      "status": {
+        "connected": "Connected",
+        "disconnected": "Not Connected",
+        "unknown": "Not Checked Yet"
+      }
+    }
   },
   "staff": {
     "title": "Staff Management",

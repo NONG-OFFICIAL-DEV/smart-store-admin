@@ -9,6 +9,7 @@
       <v-tab value="company">{{ t('settings_hub.tabs.company') }}</v-tab>
       <v-tab value="branch">{{ t('settings_hub.tabs.branch') }}</v-tab>
       <v-tab value="pos">{{ t('settings_hub.tabs.pos') }}</v-tab>
+      <v-tab value="printer">{{ t('settings_hub.tabs.printer') }}</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
@@ -193,6 +194,101 @@
           </div>
         </v-card>
       </v-window-item>
+
+      <!-- ── Printer ──────────────────────────────────────────────────────── -->
+      <v-window-item value="printer">
+        <v-card rounded="lg" elevation="0" border class="pa-6">
+          <div class="text-body-2 text-medium-emphasis mb-5">
+            {{ t('settings_hub.printer.helper') }}
+          </div>
+
+          <v-select
+            v-if="branchStore.branches.length > 1"
+            v-model="selectedBranchId"
+            :items="branchStore.branches"
+            item-title="name"
+            item-value="id"
+            :label="t('settings_hub.printer.branch_label')"
+            variant="outlined"
+            rounded="lg"
+            density="comfortable"
+            prepend-inner-icon="mdi-store-outline"
+            class="mb-5"
+            style="max-width: 320px"
+          />
+
+          <v-text-field
+            v-model="printerNameInput"
+            :label="t('settings_hub.printer.printer_name_label')"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            prepend-inner-icon="mdi-printer-outline"
+            :placeholder="t('settings_hub.printer.printer_name_placeholder')"
+            :hint="t('settings_hub.printer.printer_name_hint')"
+            persistent-hint
+            class="mb-3"
+            style="max-width: 420px"
+          />
+          <div class="d-flex justify-end mb-5" style="max-width: 420px">
+            <v-btn
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              :loading="savingPrinterName"
+              :disabled="printerNameInput === (selectedBranch?.printer_name ?? '')"
+              prepend-icon="mdi-content-save-outline"
+              @click="savePrinterName"
+            >
+              {{ t('btn.save') }}
+            </v-btn>
+          </div>
+
+          <v-alert
+            v-if="!selectedBranch?.printer_name"
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-5"
+          >
+            {{ t('settings_hub.printer.save_to_enable_checks') }}
+          </v-alert>
+
+          <template v-else>
+            <div class="d-flex align-center flex-wrap ga-3 mb-5">
+              <v-chip
+                :color="statusColor"
+                variant="tonal"
+                rounded="lg"
+                :prepend-icon="statusIcon"
+              >
+                {{ statusLabel }}
+              </v-chip>
+              <v-btn
+                variant="tonal"
+                rounded="lg"
+                :loading="checking"
+                prepend-icon="mdi-connection"
+                @click="runCheckConnection"
+              >
+                {{ t('settings_hub.printer.check_connection') }}
+              </v-btn>
+            </div>
+
+            <v-btn
+              color="primary"
+              variant="flat"
+              rounded="lg"
+              :loading="testPrinting"
+              prepend-icon="mdi-printer-check"
+              @click="sendTestPrint"
+            >
+              {{ t('settings_hub.printer.test_print') }}
+            </v-btn>
+          </template>
+        </v-card>
+      </v-window-item>
     </v-window>
   </v-container>
 </template>
@@ -202,7 +298,9 @@
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
   import { useAuthStore } from '@/stores/authStore'
+  import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils } from '@/composables/useAppUtils'
+  import { useReceipt } from '@/utils/printReceipt'
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
   import Branch from '@/views/branches/Branch.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
@@ -211,10 +309,12 @@
   const { t } = useI18n()
   const route = useRoute()
   const authStore = useAuthStore()
+  const branchStore = useBranchStore()
   const { notif } = useAppUtils()
+  const { print: printThermal, checkConnection, error: printError } = useReceipt()
 
   const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
-  const activeTab = ref(requestedTab === 'branch' ? 'branch' : 'company')
+  const activeTab = ref(['branch', 'pos', 'printer'].includes(requestedTab) ? requestedTab : 'company')
 
   const canEdit = computed(() => authStore.isOwner || authStore.isSuperAdmin)
 
@@ -327,4 +427,118 @@
     { value: 'SGD', label: t('tenant_create.currency.sgd') },
     { value: 'MYR', label: t('tenant_create.currency.myr') }
   ]
+
+  // ── Printer tab ──────────────────────────────────────────────────────────
+  const selectedBranchId = ref(authStore.activeBranchId ?? null)
+  const selectedBranch = computed(
+    () =>
+      branchStore.branches.find(b => b.id === selectedBranchId.value) ??
+      branchStore.branches[0] ??
+      null
+  )
+
+  // connectionStatus: null (never checked) | 'connected' | 'disconnected'
+  const connectionStatus = ref(null)
+  const checking = ref(false)
+  const testPrinting = ref(false)
+  const savingPrinterName = ref(false)
+  const printerNameInput = ref('')
+
+  // Reload the input (and drop any stale check result) whenever the
+  // selected branch changes or its printer_name is updated elsewhere.
+  watch(
+    () => selectedBranch.value?.printer_name,
+    val => {
+      printerNameInput.value = val ?? ''
+      connectionStatus.value = null
+    },
+    { immediate: true }
+  )
+
+  async function savePrinterName() {
+    if (!selectedBranch.value) return
+    savingPrinterName.value = true
+    try {
+      await branchStore.updateBranch(selectedBranch.value.id, {
+        // Explicit null, not undefined — undefined gets dropped from the
+        // JSON body entirely, so clearing the field would silently leave
+        // the old value untouched server-side instead of actually clearing it.
+        printer_name: printerNameInput.value || null
+      })
+      await branchStore.fetchBranches({ perPage: -1 })
+      notif(t('settings_hub.printer.saved'), { type: 'success' })
+    } catch (err) {
+      notif(err?.response?.data?.message || t('settings_hub.printer.save_failed'), { type: 'error' })
+    } finally {
+      savingPrinterName.value = false
+    }
+  }
+
+  const statusColor = computed(() =>
+    connectionStatus.value === 'connected' ? 'success' : connectionStatus.value === 'disconnected' ? 'error' : 'grey'
+  )
+  const statusIcon = computed(() =>
+    connectionStatus.value === 'connected'
+      ? 'mdi-check-circle'
+      : connectionStatus.value === 'disconnected'
+        ? 'mdi-close-circle'
+        : 'mdi-help-circle-outline'
+  )
+  const statusLabel = computed(() =>
+    connectionStatus.value === 'connected'
+      ? t('settings_hub.printer.status.connected')
+      : connectionStatus.value === 'disconnected'
+        ? t('settings_hub.printer.status.disconnected')
+        : t('settings_hub.printer.status.unknown')
+  )
+
+  async function runCheckConnection() {
+    checking.value = true
+    try {
+      const result = await checkConnection(selectedBranch.value?.printer_name)
+      connectionStatus.value = result.connected ? 'connected' : 'disconnected'
+    } finally {
+      checking.value = false
+    }
+  }
+
+  function buildTestReceipt() {
+    return {
+      order_number: 'TEST-PRINT',
+      branch_name: selectedBranch.value?.name ?? '-',
+      branch_address: selectedBranch.value?.address_line1 ?? null,
+      branch_phone: selectedBranch.value?.phone ?? null,
+      date: new Date().toLocaleString(),
+      items: [{ name: t('settings_hub.printer.test_item'), unit: null, qty: 1, unit_price: 0, total_price: 0 }],
+      subtotal: 0,
+      discount: 0,
+      tax: 0,
+      service_charge: 0,
+      total: 0,
+      payment_method: null
+    }
+  }
+
+  // Calls the real print path directly (not the POS/Table-modal wrappers,
+  // which silently fall back to the browser print dialog on failure) so a
+  // failure here is an honest signal, not a popup that looks like success.
+  async function sendTestPrint() {
+    testPrinting.value = true
+    try {
+      const ok = await printThermal(buildTestReceipt(), selectedBranch.value?.printer_name)
+      notif(
+        ok
+          ? t('settings_hub.printer.test_print_sent')
+          : t('settings_hub.printer.test_print_failed', { reason: printError.value ?? '' }),
+        { type: ok ? 'success' : 'error' }
+      )
+      connectionStatus.value = ok ? 'connected' : 'disconnected'
+    } finally {
+      testPrinting.value = false
+    }
+  }
+
+  onMounted(() => {
+    if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
+  })
 </script>

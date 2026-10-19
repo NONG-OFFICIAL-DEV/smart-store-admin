@@ -481,6 +481,31 @@ export function useReceipt() {
     return true
   }
 
+  // ── Check connectivity without printing anything ─────────────────────────
+  // Android: is a WebUSB printer already paired (or can we silently
+  // reconnect to one that was)? Desktop: can we reach QZ Tray and does it
+  // actually see a printer registered under this name? Used by the
+  // Settings > Printer tab's status indicator.
+  async function checkConnection(printerName) {
+    if (isAndroid()) {
+      if (usbConnected.value) return { connected: true, method: 'usb' }
+      const reconnected = await autoConnectUsb({ usbDevice, usbConnected, printMethod })
+      return { connected: reconnected, method: 'usb' }
+    }
+    if (!printerName) {
+      return { connected: false, method: 'qz', reason: 'no_printer_configured' }
+    }
+    try {
+      const qz = await getQz()
+      if (!qz) return { connected: false, method: 'qz', reason: 'qz_not_loaded' }
+      if (!qz.websocket.isActive()) await qz.websocket.connect()
+      await qz.printers.find(printerName)
+      return { connected: true, method: 'qz' }
+    } catch (e) {
+      return { connected: false, method: 'qz', reason: e.message }
+    }
+  }
+
   // ── Auto-detect and print ─────────────────────────────────────────────────
   // printerName: the branch's configured printer (branch.printer_name) —
   // required on desktop (QZ Tray needs a printer name to target); ignored on
@@ -519,6 +544,7 @@ export function useReceipt() {
     usbConnected,
     usbSupported,
     print,
+    checkConnection,
     connectUsb,
     disconnectUsb
   }
