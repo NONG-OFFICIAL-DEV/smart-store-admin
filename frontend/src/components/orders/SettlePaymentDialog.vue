@@ -19,20 +19,17 @@
       variant="tonal"
       rounded="lg"
       mandatory
-      class="w-100 mb-3"
+      class="w-100 mb-3 flex-wrap"
       :divided="false"
     >
-      <v-btn value="cash" class="flex-grow-1 text-none">
-        <v-icon start icon="mdi-cash" />
-        {{ t('pos.checkout.methods.cash') }}
-      </v-btn>
-      <v-btn value="card" class="flex-grow-1 text-none">
-        <v-icon start icon="mdi-credit-card-outline" />
-        {{ t('pos.checkout.methods.card') }}
-      </v-btn>
-      <v-btn value="qr" class="flex-grow-1 text-none">
-        <v-icon start icon="mdi-qrcode" />
-        {{ t('pos.checkout.methods.qr') }}
+      <v-btn
+        v-for="opt in paymentOptions"
+        :key="opt.value"
+        :value="opt.value"
+        class="flex-grow-1 text-none"
+      >
+        <v-icon start :icon="opt.icon" />
+        {{ opt.label }}
       </v-btn>
     </v-btn-toggle>
 
@@ -81,6 +78,7 @@
   import { useI18n } from 'vue-i18n'
   import { AppDialog } from '@nong-official-dev/core'
   import { useOrderStore } from '@/stores/orderStore'
+  import { useAuthStore } from '@/stores/authStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useAppUtils } from '@/composables/useAppUtils'
 
@@ -88,6 +86,7 @@
   const { format } = useCurrency()
   const { notif } = useAppUtils()
   const orderStore = useOrderStore()
+  const authStore = useAuthStore()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -100,6 +99,19 @@
     set: v => emit('update:modelValue', v)
   })
 
+  // Same tenant-configured list POS checkout uses (Settings > POS), minus
+  // Pay Later — settling a pay-later order *as* pay-later again makes no
+  // sense, the whole point here is collecting the money it deferred.
+  const ALL_PAYMENT_METHODS = [
+    { value: 'cash', icon: 'mdi-cash', label: t('pos.checkout.methods.cash') },
+    { value: 'card', icon: 'mdi-credit-card-outline', label: t('pos.checkout.methods.card') },
+    { value: 'qr', icon: 'mdi-qrcode', label: t('pos.checkout.methods.qr') }
+  ]
+  const paymentOptions = computed(() => {
+    const enabled = authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr']
+    return ALL_PAYMENT_METHODS.filter(opt => enabled.includes(opt.value))
+  })
+
   const paymentMethod = ref('cash')
   const cashTendered = ref(null)
   const submitting = ref(false)
@@ -108,7 +120,11 @@
     () => props.modelValue,
     open => {
       if (open) {
-        paymentMethod.value = 'cash'
+        const defaultMethod = authStore.posSettings?.default_payment_method
+        const options = paymentOptions.value
+        paymentMethod.value = options.some(o => o.value === defaultMethod)
+          ? defaultMethod
+          : (options[0]?.value ?? 'cash')
         cashTendered.value = null
       }
     }

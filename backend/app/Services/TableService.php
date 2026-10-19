@@ -16,12 +16,35 @@ class TableService extends BaseService
 
     public function list(array $filters): LengthAwarePaginator
     {
-        return $this->repository->paginateServer($filters);
+        $paginator = $this->repository->paginateServer($filters);
+        $this->loadOpenSessionSummaries($paginator->getCollection());
+
+        return $paginator;
     }
 
     public function byBranch(Branch $branch, array $filters): LengthAwarePaginator
     {
         return $this->list(array_merge($filters, ['branch_id' => $branch->id]));
+    }
+
+    // Batch-loads each table's open session (if any) plus just enough of
+    // its orders to compute an order count/total in TableResource, so the
+    // Tables page's occupied/available + "N orders, $X" summary costs one
+    // extra query for the whole page instead of one per table.
+    private function loadOpenSessionSummaries($tables): void
+    {
+        $tables->load(['openSession' => function ($query) {
+            $query->with(['orders' => function ($ordersQuery) {
+                $ordersQuery->whereNotIn('status', ['cancelled', 'refunded'])->with('payments');
+            }]);
+        }]);
+    }
+
+    public function loadOpenSessionSummary(Table $table): Table
+    {
+        $this->loadOpenSessionSummaries(collect([$table]));
+
+        return $table;
     }
 
     public function create(array $data): Table

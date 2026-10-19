@@ -143,4 +143,59 @@ class TableServiceTest extends TestCase
 
         $this->assertTrue($validator->fails());
     }
+
+    public function test_list_includes_is_occupied_and_open_session_summary(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        Auth::login($ownerA);
+
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $session = \App\Models\TableSession::create([
+            'table_id' => $table->id,
+            'branch_id' => $branch->id,
+            'status' => 'open',
+            'opened_at' => now(),
+        ]);
+        \App\Models\Order::create([
+            'branch_id' => $branch->id,
+            'table_id' => $table->id,
+            'table_session_id' => $session->id,
+            'order_type' => 'dine_in',
+            'status' => 'pending',
+            'source' => 'pos',
+            'subtotal' => 5,
+            'tax_amount' => 0,
+            'service_charge_amount' => 0,
+            'discount_amount' => 0,
+            'total_amount' => 5,
+            'queue_number' => 1,
+        ]);
+
+        $service = $this->app->make(TableService::class);
+        $paginator = $service->list(['perPage' => -1]);
+        $resource = new \App\Http\Resources\TableResource($paginator->getCollection()->firstWhere('id', $table->id));
+        $data = $resource->toArray(request());
+
+        $this->assertTrue($data['is_occupied']);
+        $this->assertSame(1, $data['open_session']['order_count']);
+        $this->assertEquals(5.0, $data['open_session']['total']);
+    }
+
+    public function test_list_marks_a_table_with_no_open_session_as_not_occupied(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        Auth::login($ownerA);
+
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $service = $this->app->make(TableService::class);
+        $paginator = $service->list(['perPage' => -1]);
+        $resource = new \App\Http\Resources\TableResource($paginator->getCollection()->firstWhere('id', $table->id));
+        $data = $resource->toArray(request());
+
+        $this->assertFalse($data['is_occupied']);
+        $this->assertNull($data['open_session']);
+    }
 }

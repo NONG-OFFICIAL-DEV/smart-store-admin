@@ -245,34 +245,43 @@
     subtotal: { type: Number, default: 0 },
     showNotes: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
-    payLaterEnabled: { type: Boolean, default: true }
+    // Which methods show at all (Settings > POS), and which one pre-selects.
+    paymentMethods: {
+      type: Array,
+      default: () => ['cash', 'card', 'qr', 'pay_later']
+    },
+    defaultPaymentMethod: { type: String, default: 'cash' }
   })
 
   const { mdAndDown: touch } = useDisplay()
 
   const emit = defineEmits(['update-qty', 'update-notes', 'remove', 'clear', 'checkout'])
 
-  const paymentMethod = ref('cash')
+  const paymentMethod = ref(props.defaultPaymentMethod)
 
-  const paymentOptions = computed(() => {
-    const options = [
-      { value: 'cash', icon: 'mdi-cash', label: t('pos.checkout.methods.cash') },
-      { value: 'card', icon: 'mdi-credit-card-outline', label: t('pos.checkout.methods.card') },
-      { value: 'qr', icon: 'mdi-qrcode', label: t('pos.checkout.methods.qr') }
-    ]
-    if (props.payLaterEnabled) {
-      options.push({ value: 'pay_later', icon: 'mdi-clock-outline', label: t('pos.checkout.methods.pay_later') })
-    }
-    return options
-  })
+  // Fixed display order regardless of how the tenant's list is stored.
+  const ALL_PAYMENT_METHODS = [
+    { value: 'cash', icon: 'mdi-cash', label: t('pos.checkout.methods.cash') },
+    { value: 'card', icon: 'mdi-credit-card-outline', label: t('pos.checkout.methods.card') },
+    { value: 'qr', icon: 'mdi-qrcode', label: t('pos.checkout.methods.qr') },
+    { value: 'pay_later', icon: 'mdi-clock-outline', label: t('pos.checkout.methods.pay_later') }
+  ]
 
-  // The tenant can turn Pay Later off (Settings > POS) after it was already
-  // selected in this session — fall back to Cash rather than leaving a now
-  // non-existent option selected.
+  const paymentOptions = computed(() =>
+    ALL_PAYMENT_METHODS.filter(opt => props.paymentMethods.includes(opt.value))
+  )
+
+  // The tenant can change which methods are enabled (Settings > POS) after
+  // one was already selected in this session — fall back to the default
+  // rather than leaving a now-non-existent option selected.
   watch(
-    () => props.payLaterEnabled,
-    enabled => {
-      if (!enabled && paymentMethod.value === 'pay_later') paymentMethod.value = 'cash'
+    () => props.paymentMethods,
+    methods => {
+      if (!methods.includes(paymentMethod.value)) {
+        paymentMethod.value = methods.includes(props.defaultPaymentMethod)
+          ? props.defaultPaymentMethod
+          : (methods[0] ?? 'cash')
+      }
     }
   )
   // null = "hasn't typed a custom amount yet" — the field then always shows
@@ -286,7 +295,7 @@
     () => props.items.length,
     len => {
       if (len === 0) {
-        paymentMethod.value = 'cash'
+        paymentMethod.value = props.defaultPaymentMethod
         cashTendered.value = null
         cashBuffer.value = ''
       }

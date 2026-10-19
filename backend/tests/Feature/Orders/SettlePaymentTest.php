@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Table;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ProductService;
@@ -130,5 +131,64 @@ class SettlePaymentTest extends TestCase
 
         $this->assertFalse($response->getData(true)['success']);
         $this->assertCount(1, $order->fresh()->payments);
+    }
+
+    private function makeDineInPayLaterOrder(Tenant $tenant, Branch $branch, Table $table): Order
+    {
+        $category = Category::create(['name' => 'Drinks']);
+        $product = $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Iced Latte',
+            'base_price' => 4.5,
+        ], $tenant->id);
+
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'pay_later',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]));
+
+        return Order::where('table_id', $table->id)->where('status', 'pending')->latest()->first();
+    }
+
+    public function test_settling_the_only_open_order_at_a_table_frees_the_table(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $order = $this->makeDineInPayLaterOrder($tenant, $branch, $table);
+
+        $this->assertSame(Table::STATUS_OCCUPIED, $table->fresh()->status);
+
+        $this->settle($order);
+
+        $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
+    }
+
+    // Both orders join the SAME table session (see TableSessionService) —
+    // settling either one now pays the whole session at once via
+    // paySession(), not just the single order requested. This is the fix
+    // for "PAY only pays one order, table stays Occupied."
+    public function test_settling_one_order_pays_every_order_in_the_same_session(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $orderOne = $this->makeDineInPayLaterOrder($tenant, $branch, $table);
+        $orderTwo = $this->makeDineInPayLaterOrder($tenant, $branch, $table);
+
+        $this->settle($orderOne);
+
+        $this->assertSame('completed', $orderOne->fresh()->status);
+        $this->assertSame('completed', $orderTwo->fresh()->status);
+        $this->assertCount(1, $orderOne->fresh()->payments);
+        $this->assertCount(1, $orderTwo->fresh()->payments);
+        $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
 }

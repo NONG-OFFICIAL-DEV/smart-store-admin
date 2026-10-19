@@ -22,6 +22,23 @@ class TableResource extends JsonResource
             'qr_image_url' => $this->qr_image_url,
             'status' => $this->status,
             'is_active' => $this->is_active,
+            // Computed from open table_sessions, not the stored `status`
+            // column — see TableSessionService. `status` still carries
+            // reserved/cleaning/inactive, which have no session behind them.
+            // Not whenLoaded(): that helper treats a loaded-but-null relation
+            // the same as "not loaded" once you pass it a value closure,
+            // which is exactly the case for an unoccupied table.
+            'is_occupied' => $this->relationLoaded('openSession') ? $this->openSession !== null : false,
+            'open_session' => $this->relationLoaded('openSession') && $this->openSession ? (function () {
+                $activeOrders = $this->openSession->orders->filter(fn ($order) => $order->payments->isEmpty());
+
+                return [
+                    'id' => $this->openSession->id,
+                    'opened_at' => $this->openSession->opened_at,
+                    'order_count' => $activeOrders->count(),
+                    'total' => (float) $activeOrders->sum('total_amount'),
+                ];
+            })() : null,
         ];
     }
 }

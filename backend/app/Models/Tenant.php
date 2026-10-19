@@ -38,7 +38,8 @@ class Tenant extends BaseModel
         'order_types' => ['dine_in', 'takeaway', 'delivery'],
         'customer_selection' => true,
         'order_notes' => true,
-        'pay_later_enabled' => true,
+        'payment_methods' => ['cash', 'card', 'qr', 'pay_later'],
+        'default_payment_method' => 'cash',
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

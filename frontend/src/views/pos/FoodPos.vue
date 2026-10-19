@@ -178,7 +178,8 @@
               :items="posStore.items"
               :subtotal="posStore.subtotal"
               :loading="submitting"
-              :pay-later-enabled="authStore.posSettings?.pay_later_enabled ?? true"
+              :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
+              :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
               show-notes
               @update-qty="posStore.updateQty"
               @update-notes="posStore.updateNotes"
@@ -217,7 +218,8 @@
           :items="posStore.items"
           :subtotal="posStore.subtotal"
           :loading="submitting"
-          :pay-later-enabled="authStore.posSettings?.pay_later_enabled ?? true"
+          :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
+          :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
           show-notes
           @update-qty="posStore.updateQty"
           @update-notes="posStore.updateNotes"

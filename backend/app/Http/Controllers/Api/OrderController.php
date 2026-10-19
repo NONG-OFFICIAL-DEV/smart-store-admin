@@ -15,6 +15,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Table;
+use App\Services\TableSessionService;
 use App\Services\TenantResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,8 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     public function __construct(
-        private TenantResolver $tenantResolver
+        private TenantResolver $tenantResolver,
+        private TableSessionService $tableSessions
     ) {}
     /**
      * Display a listing of the resource.
@@ -130,10 +132,20 @@ class OrderController extends Controller
 
             $orderType = $request->order_type ?? 'dine_in';
 
+            // A customer scanning the QR code at their table and ordering
+            // joins that table's running tab (opening one if none is open
+            // yet) — occupies the table as a side effect. Staff frees it
+            // manually from the Tables page once the customer actually
+            // leaves (same pattern the POS checkout controllers use).
+            $session = $orderType === 'dine_in' && $request->table_id
+                ? $this->tableSessions->getOrCreateOpenSession($request->table_id)
+                : null;
+
             // ── Create order ───────────────────────────────────────────────
             $order = Order::create([
                 'branch_id'              => $branch->id,
                 'table_id'               => $request->table_id,
+                'table_session_id'       => $session?->id,
                 'order_type'             => $orderType,
                 'status'                 => 'pending',
                 'source'                 => 'mobile_app',
@@ -171,16 +183,6 @@ class OrderController extends Controller
                 'to_status'   => 'pending',
                 'notes'       => 'Order placed from mobile app',
             ]);
-
-            // A customer scanning the QR code at their table and ordering is
-            // seated there regardless of payment status — occupy the table
-            // now rather than leaving it "Available" until someone pays.
-            // Staff frees it manually from the Tables page once the
-            // customer actually leaves (same pattern the POS checkout
-            // controllers already use).
-            if ($orderType === 'dine_in' && $request->table_id) {
-                Table::updateStatus($request->table_id, Table::STATUS_OCCUPIED);
-            }
 
             // Food tenants need a kitchen ticket for every order so it shows
             // up on the Kitchen Display without a staff member manually
@@ -301,10 +303,47 @@ class OrderController extends Controller
     // CoffeePOSorderController/OrderController::store()). byTable() above
     // only ever surfaces the single latest one, which is what hid earlier
     // tickets from Table Management's "manage order" view entirely. This
-    // returns every still-open order for the table instead.
+    // returns every still-open order for the table instead — see
+    // openOrdersForTable() for exactly what "open" means here.
     public function ordersByTable(string $tableId)
     {
-        $orders = Order::with([
+        $orders = $this->openOrdersForTable($tableId)->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders->map(fn($order) => $this->formatOrder($order))->values(),
+        ]);
+    }
+
+    // ── GET /api/v1/tables/{table}/bill ─────────────────────────────────────
+    // The session-based merged bill for a table's current running tab —
+    // see TableSessionService::getSessionBill(). {session: null} for an
+    // unoccupied table is a normal response, never a 404.
+    public function bill(Table $table)
+    {
+        $session = $this->tableSessions->getOpenSession($table->id);
+        if (!$session) {
+            return response()->json(['success' => true, 'data' => ['session' => null]]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $this->tableSessions->getSessionBill($session->id),
+        ]);
+    }
+
+    // ── Single source of truth: which orders at a table still need paying ──
+    // "Open" = not cancelled/refunded AND not yet paid (no Payment row —
+    // this schema never does partial payments, so any Payment row means
+    // the order is fully settled). Table Management's combined order view
+    // and the Pay/Print Bill actions it drives all go through this one
+    // query so a future call site can't forget the unpaid filter and
+    // re-merge an already-closed order back into a table's total — which
+    // is exactly the bug this method fixes (a paid order was previously
+    // still showing up here, double-counting the table's balance).
+    private function openOrdersForTable(string $tableId)
+    {
+        return Order::with([
             'items.product',
             'items.variant',
             'items.modifiers',
@@ -314,21 +353,41 @@ class OrderController extends Controller
         ])
             ->where('table_id', $tableId)
             ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data'    => $orders->map(fn($order) => $this->formatOrder($order))->values(),
-        ]);
+            ->whereDoesntHave('payments')
+            ->latest();
     }
 
     // ── PATCH /api/v1/orders/{order}/settle-payment ─────────────────────────
     // Collects payment on a 'pay later' order rung up with no Payment row
     // (CoffeePOSorderController/MartPosController's pay_later path) — the
-    // one place a deferred sale actually gets marked paid.
+    // one place a deferred sale actually gets marked paid. A dine-in order
+    // that belongs to an open table session is never paid on its own —
+    // paying it means paying the WHOLE session (every other unpaid order at
+    // that table too), so this delegates to TableSessionService::paySession()
+    // instead. This is what makes the Orders page's Settle Payment button
+    // correct for a dine-in order with session-mates, without needing its
+    // own separate UI yet (that's the Pay dialog consolidation, still to come).
     public function settlePayment(Request $request, Order $order)
     {
+        if ($order->table_session_id) {
+            $validated = $request->validate([
+                'payment_method' => 'required|in:cash,card,qr,transfer',
+                'cash_tendered'  => 'nullable|numeric|min:0',
+            ]);
+
+            try {
+                $receipt = $this->tableSessions->paySession(
+                    $order->table_session_id,
+                    $validated,
+                    auth()->user()?->staff?->id
+                );
+            } catch (\App\Exceptions\PaySessionException $e) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], $e->getCode());
+            }
+
+            return response()->json(['success' => true, 'message' => 'Payment recorded.', 'data' => $receipt]);
+        }
+
         if ($order->payments()->exists()) {
             return response()->json([
                 'success' => false,
@@ -385,15 +444,13 @@ class OrderController extends Controller
                 'paid_at'        => now(),
             ]);
 
-            $fromStatus = $order->status;
-            $order->update(['status' => 'completed', 'completed_at' => now()]);
-
-            OrderStatusHistory::create([
-                'order_id'    => $order->id,
-                'from_status' => $fromStatus,
-                'to_status'   => 'completed',
-                'notes'       => 'Payment settled · ' . (auth()->user()?->email ?? 'system'),
-            ]);
+            Order::updateStatus(
+                $order->id,
+                'completed',
+                $staff?->id,
+                'Payment settled · ' . (auth()->user()?->email ?? 'system')
+            );
+            $order->refresh();
 
             $order->load(['items.product', 'items.variant', 'items.modifiers', 'diningTable', 'statusHistory', 'payments', 'cashier.user']);
 
@@ -423,6 +480,7 @@ class OrderController extends Controller
             'queue_number'           => $order->queue_number,
             'order_type'             => $order->order_type,
             'status'                 => $order->status,
+            'table_session_id'       => $order->table_session_id,
             'table' => $order->relationLoaded('diningTable') && $order->diningTable ? [
                 'id'     => $order->diningTable->id,
                 'number' => $order->diningTable->table_number,
@@ -468,6 +526,7 @@ class OrderController extends Controller
                     'method'         => $payment->payment_method,
                     'cash_tendered'  => (float) $payment->amount + (float) ($payment->change_given ?? 0),
                     'change_given'   => (float) ($payment->change_given ?? 0),
+                    'paid_at'        => $payment->paid_at,
                 ];
             })() : null,
         ];

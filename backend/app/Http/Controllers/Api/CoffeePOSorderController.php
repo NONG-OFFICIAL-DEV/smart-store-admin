@@ -14,11 +14,16 @@ use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Table;
+use App\Services\TableSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CoffeePOSorderController extends Controller
 {
+    public function __construct(private TableSessionService $tableSessions)
+    {
+    }
+
     // ── POST /api/v1/coffee/pos/orders ────────────────────────────────────
     public function coffeeOrders(Request $request)
     {
@@ -160,12 +165,21 @@ class CoffeePOSorderController extends Controller
 
             $payLater = $request->payment_method === 'pay_later';
 
+            // Joins the table's running tab (opening one if none is open
+            // yet) — occupies the table as a side effect. A second round
+            // rung up at the same table before it's paid joins the SAME
+            // session rather than starting a new one.
+            $session = $orderType === 'dine_in' && $table
+                ? $this->tableSessions->getOrCreateOpenSession($table->id)
+                : null;
+
             // ── Create order ───────────────────────────────────────────────
             $order = Order::create([
                 'branch_id'             => $branch->id,
                 'cashier_id'            => $staff?->id,
                 'order_type'            => $orderType,
                 'table_id'              => $table?->id,
+                'table_session_id'      => $session?->id,
                 'customer_id'           => $customer?->id,
                 'status'                => $payLater ? 'pending' : 'completed',
                 'source'                => 'pos',
@@ -178,16 +192,6 @@ class CoffeePOSorderController extends Controller
                 'queue_number'          => $this->generateQueueNumber($branch->id),
                 'completed_at'          => $payLater ? null : now(),
             ]);
-
-            // Sale is recorded as completed immediately (no running-tab
-            // lifecycle), but the physical table is still in use by the
-            // customer — occupy it now; staff frees it manually from the
-            // Tables page once the customer actually leaves (same pattern
-            // Order::updateStatus() already uses to free a table when an
-            // order transitions to completed/cancelled elsewhere).
-            if ($orderType === 'dine_in' && $table) {
-                Table::updateStatus($table->id, Table::STATUS_OCCUPIED);
-            }
 
             // ── Create order items — no modifiers table for coffee POS ─────
             foreach ($itemsData as $itemData) {

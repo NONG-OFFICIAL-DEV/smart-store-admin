@@ -166,31 +166,41 @@
       </div>
     </template>
 
+    <template v-else>
+      <div class="pa-8 text-center text-medium-emphasis">
+        {{ t('tables.order.no_open_bill') }}
+      </div>
+    </template>
+
     <template #actions="{ loading }">
       <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
         {{ t('btn.close') }}
       </v-btn>
       <v-spacer />
-      <v-btn
-        v-if="unpaidOrders.length"
-        color="success"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-cash-check"
-        :loading="paying"
-        @click="payNow(unpaidOrders[0])"
-      >
-        {{ t('btn.pay') }}
-      </v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-printer-outline"
-        @click="print"
-      >
-        {{ t('order.print_bill') }}
-      </v-btn>
+      <template v-if="orders.length">
+        <v-btn
+          v-if="unpaidOrders.length"
+          color="success"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-cash-check"
+          :loading="paying"
+          :disabled="paying"
+          @click="payNow"
+        >
+          {{ t('btn.pay') }}
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-printer-outline"
+          :disabled="paying"
+          @click="print"
+        >
+          {{ t('order.print_bill') }}
+        </v-btn>
+      </template>
     </template>
   </AppDialog>
 
@@ -201,8 +211,8 @@
        receipt layout (not the rich on-screen card view) since that's what
        belongs on a till printout. -->
   <Teleport to="body">
-    <div v-if="modelValue && printReceiptData" class="order-print-receipt">
-      <PosReceiptContent :receipt="printReceiptData" />
+    <div v-if="modelValue && (paidReceiptData || printReceiptData)" class="order-print-receipt">
+      <PosReceiptContent :receipt="paidReceiptData ?? printReceiptData" />
     </div>
   </Teleport>
 </template>
@@ -219,6 +229,7 @@
   import { AppDialog, useAppUtils } from '@nong-official-dev/core'
   import { useReceipt } from '@/utils/printReceipt'
   import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
+  import { paySessionApi } from '@/api/tableService'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
@@ -250,7 +261,7 @@
     // with whichever table happens to be occupied today.
     freeTableOnComplete: { type: Boolean, default: false }
   })
-  const emit = defineEmits(['update:modelValue'])
+  const emit = defineEmits(['update:modelValue', 'paid'])
 
   const model = computed({
     get: () => props.modelValue,
@@ -266,26 +277,101 @@
   const unpaidOrders = computed(() => orders.value.filter(o => !o.payment))
 
   const paying = ref(false)
+  // Set only right after a successful pay — the receipt for what was just
+  // paid, built straight from the pay response (see printReceiptData for
+  // the "still unpaid, Print Bill" shape used the rest of the time).
+  const paidReceiptData = ref(null)
 
-  // One click, no dialog: pay in full by cash right now. Independent of
-  // Print Bill as an action — doesn't trigger a print — but both are ways
-  // staff closes out the table, so paying frees it too (see freeTable()).
-  async function payNow(target) {
+  // One click pays EVERY unpaid order in the table's session at once — not
+  // just one order at a time. The backend does this in a single
+  // transaction (TableSessionService::paySession()); this always sends the
+  // session id, never a single order id, which is exactly what used to be
+  // wrong here (clicking PAY only closed one order, leaving the table
+  // Occupied until a second click). Falls back to paying a single order by
+  // id only if it somehow has no session at all (shouldn't happen for a
+  // dine-in table order post table-sessions, kept as a safety net).
+  async function payNow() {
+    if (!orders.value.length) return
+    const sessionId = orders.value[0]?.table_session_id
+    const table = orders.value[0]?.table
+
     paying.value = true
     try {
-      const res = await store.settlePayment(target.id, {
-        payment_method: 'cash',
-        cash_tendered: target.total_amount
-      })
-      const updated = res.data.data
-      const index = orders.value.findIndex(o => o.id === updated.id)
-      if (index !== -1) orders.value[index] = updated
-      notif(t('orders_admin.settle.success'), { type: 'success' })
-      await freeTable()
-    } catch {
-      notif(t('orders_admin.settle.failed'), { type: 'error' })
+      if (sessionId) {
+        const res = await paySessionApi(sessionId, {
+          payment_method: 'cash',
+          cash_tendered: combinedTotals.value.total
+        })
+        paidReceiptData.value = buildSessionReceiptData(res.data.data)
+        await printReceiptNow(paidReceiptData.value)
+
+        notif(t('tables.messages.table_paid', { number: table?.number }), { type: 'success' })
+        orders.value = []
+        close()
+        await freeTable(table)
+        emit('paid')
+      } else {
+        await payOneOrder(unpaidOrders.value[0], table)
+      }
+    } catch (err) {
+      notif(err?.response?.data?.message || t('orders_admin.settle.failed'), { type: 'error' })
     } finally {
       paying.value = false
+    }
+  }
+
+  async function payOneOrder(target, table) {
+    const res = await store.settlePayment(target.id, {
+      payment_method: 'cash',
+      cash_tendered: target.total_amount
+    })
+    const paidOrder = res.data.data
+
+    // Swap in the fresh, now-completed order (payment method/cash/change
+    // attached) so the receipt reflects what was actually just paid.
+    orders.value = orders.value.map(o => (o.id === target.id ? paidOrder : o))
+    await printReceiptNow()
+    orders.value = orders.value.filter(o => o.id !== target.id)
+
+    if (!orders.value.length) {
+      notif(t('tables.messages.table_paid', { number: table?.number }), { type: 'success' })
+      close()
+      await freeTable(table)
+      emit('paid')
+    } else {
+      notif(t('orders_admin.settle.success'), { type: 'success' })
+    }
+  }
+
+  // Builds the same shape printReceiptData does (see below), from
+  // paySession()'s response — items/totals already merged across every
+  // order in the session server-side.
+  function buildSessionReceiptData(receipt) {
+    return {
+      order_number: dialogTitle.value,
+      order_type: order.value?.order_type,
+      table_number: order.value?.table?.number,
+      branch_name: activeBranch.value?.name,
+      branch_address: activeBranch.value?.address_line1,
+      branch_phone: activeBranch.value?.phone,
+      cashier: order.value?.cashier,
+      date: formatDateTime(new Date()),
+      items: receipt.items.map(i => ({
+        name: i.product_name,
+        unit: null,
+        qty: i.quantity,
+        unit_price: i.unit_price,
+        total_price: i.total_price,
+        note: null
+      })),
+      subtotal: receipt.subtotal,
+      discount: receipt.discount,
+      tax: receipt.tax,
+      service_charge: receipt.service_charge,
+      total: receipt.total,
+      payment_method: receipt.payment?.method,
+      cash_tendered: receipt.payment?.cash_tendered,
+      change_given: receipt.payment?.change_given
     }
   }
 
@@ -304,7 +390,10 @@
     () => [props.modelValue, props.orderId, props.orderIds, props.orders],
     ([isOpen]) => {
       if (isOpen) fetchOrders()
-      else orders.value = []
+      else {
+        orders.value = []
+        paidReceiptData.value = null
+      }
     }
   )
 
@@ -415,13 +504,17 @@
 
   // Thermal print when the branch has a printer configured; otherwise (or
   // if it fails) fall back to the browser's print dialog.
-  async function print() {
+  async function printReceiptNow(data = printReceiptData.value) {
     const printerName = activeBranch.value?.printer_name
-    if (printerName && printReceiptData.value) {
-      await printThermal(printReceiptData.value, printerName)
+    if (printerName && data) {
+      await printThermal(data, printerName)
     } else {
       window.print()
     }
+  }
+
+  async function print() {
+    await printReceiptNow()
     await freeTable()
   }
 
@@ -429,14 +522,16 @@
   // not gated on the print job actually completing (there's no reliable
   // signal for that from either the thermal or browser-print path), same
   // as every other action in this app completing immediately rather than
-  // waiting on the printer.
-  async function freeTable() {
-    const tableId = order.value?.table?.id
+  // waiting on the printer. Accepts an explicit table since payNow() calls
+  // this after already removing the just-paid order from orders.value —
+  // by then order.value (orders.value[0]) may be null or a different order.
+  async function freeTable(table = order.value?.table) {
+    const tableId = table?.id
     if (!props.freeTableOnComplete || !tableId) return
     try {
       await tableStore.updateTableStatus(tableId, 'available')
       notif(t('tables.messages.status_changed', {
-        number: order.value.table.number,
+        number: table.number,
         status: t('tables.status.available')
       }), { type: 'success' })
     } catch {

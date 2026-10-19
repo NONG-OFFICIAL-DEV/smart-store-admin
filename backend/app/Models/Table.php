@@ -75,11 +75,14 @@ class Table extends BaseModel
         return $this->hasMany(Order::class);
     }
 
-    public function activeOrder()
+    public function sessions()
     {
-        return $this->hasOne(Order::class)
-            ->whereNotIn('status', ['completed', 'cancelled', 'refunded'])
-            ->latest();
+        return $this->hasMany(TableSession::class);
+    }
+
+    public function openSession()
+    {
+        return $this->hasOne(TableSession::class)->where('status', TableSession::STATUS_OPEN);
     }
 
     public function reservations()

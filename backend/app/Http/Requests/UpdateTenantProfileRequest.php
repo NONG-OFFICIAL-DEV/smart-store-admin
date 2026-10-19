@@ -59,7 +59,11 @@ class UpdateTenantProfileRequest extends FormRequest
             'pos_settings.order_types.*' => 'in:dine_in,takeaway,delivery',
             'pos_settings.customer_selection' => 'boolean',
             'pos_settings.order_notes' => 'boolean',
-            'pos_settings.pay_later_enabled' => 'boolean',
+            // Which payment methods show on the POS checkout / Settle Payment
+            // screens, and which one pre-selects.
+            'pos_settings.payment_methods' => 'array',
+            'pos_settings.payment_methods.*' => 'in:cash,card,qr,pay_later',
+            'pos_settings.default_payment_method' => 'nullable|in:cash,card,qr,pay_later',
         ];
     }
 

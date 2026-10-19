@@ -129,13 +129,13 @@ class ActiveOrderByTableTest extends TestCase
         $product = $this->makeProduct($tenant->id);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
 
-        // Two separate rounds rung up at the same table — the app deliberately
-        // keeps repeat orders as distinct tickets rather than merging them
-        // into one running tab.
+        // Two separate rounds rung up at the same table, both still unpaid
+        // (pay_later) — the app deliberately keeps repeat orders as distinct
+        // tickets rather than merging them into one running tab.
         foreach (range(1, 2) as $i) {
             $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
                 'branch_id' => $branch->id,
-                'payment_method' => 'cash',
+                'payment_method' => 'pay_later',
                 'order_type' => 'dine_in',
                 'table_id' => $table->id,
                 'items' => [
@@ -148,6 +148,50 @@ class ActiveOrderByTableTest extends TestCase
         $data = $response->getData(true)['data'];
 
         $this->assertCount(2, $data);
+    }
+
+    public function test_orders_by_table_excludes_already_paid_orders(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        // A paid-and-closed order from an earlier sitting...
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'cash',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]));
+        $paidOrder = Order::firstWhere('table_id', $table->id);
+        $this->assertSame('completed', $paidOrder->status);
+
+        // ...and a brand new unpaid order at the same table. The Table
+        // modal must show only the unpaid one — merging the two together
+        // (the original bug) double-counts the table's balance and lets a
+        // customer be charged again for an order they already paid.
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
+            'branch_id' => $branch->id,
+            'payment_method' => 'pay_later',
+            'order_type' => 'dine_in',
+            'table_id' => $table->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+        ]));
+        $unpaidOrder = Order::where('table_id', $table->id)->where('status', 'pending')->first();
+
+        $response = $this->app->make(OrderController::class)->ordersByTable($table->id);
+        $data = $response->getData(true)['data'];
+
+        $this->assertCount(1, $data);
+        $this->assertSame($unpaidOrder->id, $data[0]['id']);
+        $this->assertNull($data[0]['payment']);
     }
 
     public function test_orders_by_table_excludes_cancelled_and_refunded_orders(): void
@@ -190,7 +234,7 @@ class ActiveOrderByTableTest extends TestCase
 
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
-            'payment_method' => 'cash',
+            'payment_method' => 'pay_later',
             'order_type' => 'dine_in',
             'table_id' => $table->id,
             'items' => [

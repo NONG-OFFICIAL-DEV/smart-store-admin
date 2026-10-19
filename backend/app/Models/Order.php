@@ -17,6 +17,7 @@ class Order extends BaseModel
         'order_type',
         'status',
         'table_id',
+        'table_session_id',
         'customer_id',
         'staff_id',
         'cashier_id',
@@ -112,9 +113,11 @@ class Order extends BaseModel
             'notes'               => $notes,
         ]);
 
-        // Free table if order is done
-        if (in_array($newStatus, ['completed', 'cancelled']) && $order->table_id) {
-            Table::updateStatus($order->table_id, Table::STATUS_AVAILABLE);
+        // Closes this order's table session if nothing's left owing on it,
+        // then resyncs the table's stored status to match — see
+        // TableSessionService::syncAfterOrderChange() for the actual rule.
+        if ($order->table_id) {
+            app(\App\Services\TableSessionService::class)->syncAfterOrderChange($order);
         }
 
         return response()->json(['success' => true, 'data' => $order->fresh()], 200);
@@ -184,6 +187,11 @@ class Order extends BaseModel
     public function diningTable()
     {
         return $this->belongsTo(Table::class, 'table_id');
+    }
+
+    public function tableSession()
+    {
+        return $this->belongsTo(TableSession::class);
     }
 
     public function customer()

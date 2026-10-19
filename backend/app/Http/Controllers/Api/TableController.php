@@ -49,7 +49,7 @@ class TableController extends Controller
 
     public function show(Table $table): JsonResponse
     {
-        return $this->success(new TableResource($table));
+        return $this->success(new TableResource($this->tables->loadOpenSessionSummary($table)));
     }
 
     public function update(UpdateTableRequest $request, Table $table): JsonResponse

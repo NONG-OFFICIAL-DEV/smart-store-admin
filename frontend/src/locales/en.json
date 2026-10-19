@@ -1547,7 +1547,8 @@
     "pos_order_types": "Order Types",
     "pos_customer_selection": "Customer Selection",
     "pos_order_notes": "Order Notes",
-    "pos_pay_later": "Pay Later"
+    "pos_payment_methods": "Payment Methods",
+    "pos_default_payment_method": "Default Payment Method"
   },
   "staff": {
     "title": "Staff Management",
@@ -2997,7 +2998,8 @@
       "delete_failed": "Failed to delete",
       "updated": "Table updated",
       "created": "Table created",
-      "save_failed": "Failed to save"
+      "save_failed": "Failed to save",
+      "table_paid": "Table {number} paid"
     },
     "confirm_delete": {
       "title": "Delete Table?",
@@ -3011,7 +3013,8 @@
       "view_order": "Tap to view order",
       "start_order": "Tap to start order",
       "no_active_order": "No active order found for this table.",
-      "load_failed": "Failed to load the order."
+      "load_failed": "Failed to load the order.",
+      "no_open_bill": "No open bill for this table."
     }
   },
   "tenants": {

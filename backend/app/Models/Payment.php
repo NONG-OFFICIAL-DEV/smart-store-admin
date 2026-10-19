@@ -14,7 +14,7 @@ class Payment extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'order_id', 'branch_id', 'staff_id', 'payment_method',
+        'order_id', 'table_session_id', 'branch_id', 'staff_id', 'payment_method',
         'amount', 'change_given', 'currency', 'exchange_rate',
         'status', 'gateway', 'gateway_transaction_id',
         'gateway_response', 'receipt_number', 'paid_at',
@@ -32,6 +32,11 @@ class Payment extends BaseModel
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function tableSession()
+    {
+        return $this->belongsTo(TableSession::class);
     }
 
     public function branch()

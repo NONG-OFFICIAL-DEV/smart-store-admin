@@ -197,6 +197,7 @@
       v-model="orderDialog"
       :orders="orderDialogOrders"
       free-table-on-complete
+      @paid="loadTables"
     />
   </v-container>
 </template>

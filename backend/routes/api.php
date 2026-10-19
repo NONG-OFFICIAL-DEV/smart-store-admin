@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\BranchProductOverrideController;
 // ── Tables & Floor ─────────────────────────────────────────────────────────
 use App\Http\Controllers\Api\FloorPlanController;
 use App\Http\Controllers\Api\TableController;
+use App\Http\Controllers\Api\TableSessionController;
 use App\Http\Controllers\Api\ReservationController;
 
 // ── Orders ─────────────────────────────────────────────────────────────────
@@ -369,6 +370,10 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         // second round on the POS) — this returns every one of them, not
         // just the most recent, for Table Management's "manage order" view.
         Route::get('orders',         [OrderController::class, 'ordersByTable']);
+        // Session-based merged bill — the new single source of truth for
+        // "what does this table currently owe," replacing ordersByTable()
+        // as the frontend adopts table sessions (see TableSessionService).
+        Route::get('bill',           [OrderController::class, 'bill']);
         Route::get('reservations',   [ReservationController::class, 'byTable']);
     });
 
@@ -401,13 +406,6 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
             Route::put('items/{item}',      [OrderItemController::class, 'update']);
             Route::delete('items/{item}',   [OrderItemController::class, 'destroy']);
 
-            Route::get('status-history',    [OrderController::class, 'statusHistory']);
-            Route::patch('status',          [OrderController::class, 'updateStatus']);
-            Route::patch('confirm',         [OrderController::class, 'confirm']);
-            Route::patch('prepare',         [OrderController::class, 'prepare']);
-            Route::patch('ready',           [OrderController::class, 'ready']);
-            Route::patch('complete',        [OrderController::class, 'complete']);
-            Route::patch('cancel',          [OrderController::class, 'cancel']);
             Route::patch('settle-payment',  [OrderController::class, 'settlePayment']);
 
             Route::get('payments',          [PaymentController::class, 'byOrder']);
@@ -416,6 +414,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
             Route::post('apply-coupon',     [CouponController::class, 'apply']);
             Route::get('kitchen-tickets',   [KitchenDisplayTicketController::class, 'byOrder']);
         });
+
+        // Pays off every unpaid order in a table session at once and closes
+        // it — see TableSessionService::paySession(). The Table modal's PAY
+        // button sends the session id here, never a single order id.
+        Route::patch('table-sessions/{tableSession}/pay', [TableSessionController::class, 'pay']);
     });
 
     // ── Kitchen Display ───────────────────────────────────────────────────────

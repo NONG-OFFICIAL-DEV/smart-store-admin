@@ -146,11 +146,35 @@
             hide-details
             class="mb-3"
           />
-          <v-switch
-            v-model="form.pos_settings.pay_later_enabled"
-            :label="t('settings_hub.pos_pay_later')"
+          <v-divider class="mb-5" />
+
+          <div class="mb-3">
+            <div class="text-body-2 font-weight-bold mb-2">
+              {{ t('settings_hub.pos_payment_methods') }}
+            </div>
+            <v-switch
+              v-for="pm in paymentMethodOptions"
+              :key="pm.value"
+              v-model="form.pos_settings.payment_methods"
+              :value="pm.value"
+              :label="pm.label"
+              :disabled="!canEdit || saving"
+              color="primary"
+              density="compact"
+              hide-details
+              class="mb-1"
+            />
+          </div>
+
+          <v-select
+            v-model="form.pos_settings.default_payment_method"
+            :items="enabledPaymentMethodOptions"
+            item-title="label"
+            item-value="value"
+            :label="t('settings_hub.pos_default_payment_method')"
             :disabled="!canEdit || saving"
-            color="primary"
+            variant="outlined"
+            rounded="lg"
             density="compact"
             hide-details
           />
@@ -174,7 +198,7 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
+  import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
   import { useAuthStore } from '@/stores/authStore'
@@ -206,7 +230,8 @@
       order_types: ['dine_in', 'takeaway', 'delivery'],
       customer_selection: true,
       order_notes: true,
-      pay_later_enabled: true
+      payment_methods: ['cash', 'card', 'qr', 'pay_later'],
+      default_payment_method: 'cash'
     }
   })
 
@@ -215,6 +240,33 @@
     { value: 'takeaway', label: t('pos.cart.order_type.takeaway') },
     { value: 'delivery', label: t('pos.cart.order_type.delivery') }
   ]
+
+  const paymentMethodOptions = [
+    { value: 'cash', label: t('pos.checkout.methods.cash') },
+    { value: 'card', label: t('pos.checkout.methods.card') },
+    { value: 'qr', label: t('pos.checkout.methods.qr') },
+    { value: 'pay_later', label: t('pos.checkout.methods.pay_later') }
+  ]
+
+  // The default can only ever be one of the currently-enabled methods —
+  // narrows the select's own options rather than letting the form save a
+  // default that checkout would never actually offer.
+  const enabledPaymentMethodOptions = computed(() =>
+    paymentMethodOptions.filter(pm => form.pos_settings.payment_methods.includes(pm.value))
+  )
+
+  // If the tenant unchecks whichever method is currently the default, fall
+  // back to the first method still enabled instead of saving a default
+  // that's no longer a valid choice.
+  watch(
+    () => form.pos_settings.payment_methods,
+    methods => {
+      if (!methods.includes(form.pos_settings.default_payment_method)) {
+        form.pos_settings.default_payment_method = methods[0] ?? 'cash'
+      }
+    },
+    { deep: true }
+  )
 
   onMounted(async () => {
     if (!authStore.tenant_id) return
@@ -229,7 +281,10 @@
       form.pos_settings.order_types = tenant.pos_settings.order_types ?? form.pos_settings.order_types
       form.pos_settings.customer_selection = tenant.pos_settings.customer_selection ?? true
       form.pos_settings.order_notes = tenant.pos_settings.order_notes ?? true
-      form.pos_settings.pay_later_enabled = tenant.pos_settings.pay_later_enabled ?? true
+      form.pos_settings.payment_methods =
+        tenant.pos_settings.payment_methods ?? form.pos_settings.payment_methods
+      form.pos_settings.default_payment_method =
+        tenant.pos_settings.default_payment_method ?? 'cash'
     }
   })
 
