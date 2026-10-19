@@ -329,8 +329,13 @@
           quantity: i.qty
         }))
       })
-      receipt.value = data.data.receipt
-      receiptOpen.value = true
+      // Pay later collects nothing at checkout — there's no payment to
+      // receipt yet, so there's nothing worth printing until someone
+      // actually settles it from the Orders page.
+      if (payment_method !== 'pay_later') {
+        receipt.value = data.data.receipt
+        receiptOpen.value = true
+      }
       posStore.clear()
       notif(t('pos.checkout.success'), { type: 'success' })
     } catch (err) {

@@ -2374,7 +2374,6 @@
         "qr": "QR",
         "pay_later": "Pay Later"
       },
-      "pay_later_hint": "No payment is collected now — this order is recorded as Unpaid until someone settles it from the Orders page.",
       "cash_tendered": "Cash tendered",
       "change": "Change due",
       "submit": "Complete sale",

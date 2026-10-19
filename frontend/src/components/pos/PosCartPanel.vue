@@ -149,17 +149,6 @@
         </v-col>
       </v-row>
 
-      <v-alert
-        v-if="paymentMethod === 'pay_later'"
-        type="warning"
-        variant="tonal"
-        density="compact"
-        rounded="lg"
-        class="mb-3 text-caption"
-      >
-        {{ $t('pos.checkout.pay_later_hint') }}
-      </v-alert>
-
       <template v-if="paymentMethod === 'cash'">
         <!-- Touch devices get a custom on-screen numpad instead of the
              native OS keyboard (which eats half the screen and has no
