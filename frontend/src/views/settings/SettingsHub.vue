@@ -635,10 +635,18 @@
     try {
       const ok = await connectUsb()
       connectionStatus.value = ok ? 'connected' : 'disconnected'
-      notif(
-        t(ok ? 'settings_hub.printer.usb_connected' : 'settings_hub.printer.usb_connect_failed'),
-        { type: ok ? 'success' : 'error' }
-      )
+      if (ok) {
+        notif(t('settings_hub.printer.usb_connected'), { type: 'success' })
+      } else {
+        // Surface the real browser/USB error (e.g. "Access denied", "Unable
+        // to claim interface", "No device selected") instead of only a
+        // generic message — this is what actually tells you whether it's a
+        // Windows driver conflict, a cancelled picker, or something else.
+        notif(
+          t('settings_hub.printer.usb_connect_failed', { reason: printError.value ?? '—' }),
+          { type: 'error' }
+        )
+      }
     } finally {
       connectingUsb.value = false
     }
