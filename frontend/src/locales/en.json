@@ -1572,6 +1572,7 @@
       "save_to_enable_checks": "Enter a printer name and save it to enable connection checks and test printing.",
       "check_connection": "Check Connection",
       "test_print": "Send Test Print",
+      "test_qz_encoding": "Test QZ Encoding",
       "test_item": "Test Print",
       "test_print_sent": "Test print sent successfully.",
       "test_print_failed": "Test print failed ({reason}).",

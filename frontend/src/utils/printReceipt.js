@@ -362,17 +362,214 @@ function twoCol(l, r, w = CHAR_WIDTH) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// QZ Tray — wraps byte array as base64 data objects
+// QZ Tray — whole-receipt-as-one-image renderer.
+//
+// QZ Tray (desktop print spooler) does NOT pass a mixed stream of raw
+// ESC/POS command bytes + plain-ASCII text bytes + embedded raster-image
+// bytes through to the printer faithfully the way WebUSB does (WebUSB talks
+// straight to the printer's bulk endpoint; QZ's default raw/base64 job gets
+// re-interpreted somewhere in the spooler/driver layer, garbling every
+// byte it touches — not just the Khmer raster data). Rendering the ENTIRE
+// receipt onto one canvas and sending it as a single ESC/POS raster image
+// sidesteps this: there is no text for anything downstream to mis-encode.
+// buildBytes()/printUsb() (WebUSB) is untouched — it already works.
 // ─────────────────────────────────────────────────────────────────────────────
-function uint8ToBase64(bytes) {
-  let bin = ''
-  for (const b of bytes) bin += String.fromCharCode(b)
-  return btoa(bin)
+function wrapLines(ctx, text, fontSize, bold) {
+  ctx.font = `${bold ? 'bold ' : ''}${fontSize}px Hanuman, "Noto Sans Khmer", Arial, sans-serif`
+  const words = (text ?? '').split(' ')
+  const lines = []
+  let cur = ''
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w
+    if (ctx.measureText(test).width > PAPER_WIDTH_PX - 8) {
+      if (cur) lines.push(cur)
+      cur = w
+    } else {
+      cur = test
+    }
+  }
+  if (cur) lines.push(cur)
+  return lines
 }
 
-function buildQzJob(r, money) {
-  const bytes = buildBytes(r, money)
-  return [{ type: 'raw', format: 'base64', data: uint8ToBase64(bytes) }]
+const FONT_STACK = 'Hanuman, "Noto Sans Khmer", Arial, sans-serif'
+
+// Builds one tall canvas top-to-bottom in two passes: first collect "ops"
+// (each knows its own height + how to draw itself), then lay them out once
+// the total height is known — same content/formatting as buildBytes(),
+// just rendered as pixels instead of bytes, so Khmer and ASCII are handled
+// identically (no more hasKhmer() branching needed for this path).
+function buildReceiptPng(r, money) {
+  const { items, subtotal, discount, tax, serviceCharge, total, cash, change, payLbl } = buildTotals(r)
+  const measure = document.createElement('canvas').getContext('2d')
+  const ops = []
+
+  const addCentered = (text, { bold = false, fontSize = 20 } = {}) => {
+    if (!text) return
+    const lines = wrapLines(measure, text, fontSize, bold)
+    const lineH = fontSize + 10
+    ops.push({
+      height: lines.length * lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACK}`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        lines.forEach((ln, i) => ctx.fillText(ln, PAPER_WIDTH_PX / 2, y + i * lineH + 2))
+      }
+    })
+  }
+
+  const addLeft = (text, { fontSize = 20 } = {}) => {
+    if (!text) return
+    const lineH = fontSize + 10
+    ops.push({
+      height: lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${fontSize}px ${FONT_STACK}`
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'top'
+        ctx.fillText(text, 4, y + 2)
+      }
+    })
+  }
+
+  const addRow = (label, value, { bold = false, fontSize = 20, marginTop = 8 } = {}) => {
+    const lineH = fontSize + marginTop + 10
+    ops.push({
+      height: lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACK}`
+        ctx.textBaseline = 'bottom'
+        const drawY = y + lineH - 5
+        ctx.textAlign = 'left'
+        ctx.fillText(label, 4, drawY)
+        ctx.textAlign = 'right'
+        ctx.fillText(value, PAPER_WIDTH_PX - 4, drawY)
+      }
+    })
+  }
+
+  const addTableRow = (cols, { bold = false, fontSize = 20, marginTop = 10 } = {}) => {
+    const lineH = fontSize + marginTop + 10
+    ops.push({
+      height: lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACK}`
+        ctx.textBaseline = 'bottom'
+        const drawY = y + lineH - 5
+        ctx.textAlign = 'left'
+        ctx.fillText(cols[0], 4, drawY)
+        ctx.textAlign = 'left'
+        ctx.fillText(cols[1], PAPER_WIDTH_PX * 0.52, drawY)
+        ctx.textAlign = 'right'
+        ctx.fillText(cols[2], PAPER_WIDTH_PX - 4, drawY)
+      }
+    })
+  }
+
+  const addDivider = (double = false) => {
+    const h = 16
+    ops.push({
+      height: h,
+      draw: (ctx, y) => {
+        ctx.fillStyle = '#000'
+        if (double) {
+          ctx.fillRect(4, y + 5, PAPER_WIDTH_PX - 8, 2)
+          ctx.fillRect(4, y + 9, PAPER_WIDTH_PX - 8, 2)
+        } else {
+          ctx.fillRect(4, y + 7, PAPER_WIDTH_PX - 8, 2)
+        }
+      }
+    })
+  }
+
+  // ── HEADER ──
+  addCentered(r.branch_name ?? 'MY STORE', { bold: true, fontSize: 26 })
+  if (r.branch_address) addCentered(r.branch_address, { fontSize: 18 })
+  if (r.branch_phone) addLeft('Tel: ' + r.branch_phone)
+  addDivider()
+  addRow('Order #:', r.order_number ?? '-')
+  addRow('Date:', r.printed_at ?? r.date ?? new Date().toLocaleString())
+  if (r.cashier) addRow('Cashier:', r.cashier)
+  if (r.order_type) addRow('Type:', ORDER_TYPE_LABEL[r.order_type] ?? r.order_type)
+  if (r.table_number) addRow('Table:', String(r.table_number))
+  if (r.customer_name) addRow('Customer:', r.customer_name)
+  addDivider()
+
+  // ── ITEMS ──
+  addTableRow(['Name/ឈ្មោះ', 'Qty/ចំនួន', 'Total/សរុប'], { bold: true, fontSize: 18 })
+  addDivider()
+  for (const item of items) {
+    const label = (item.name ?? '') + (item.unit ? ` (${item.unit})` : '')
+    const qtyStr = `${item.qty} x ${money(item.unit_price)}`
+    const totalAmt = money(item.total_price ?? item.qty * item.unit_price)
+    addTableRow([label, qtyStr, totalAmt], { fontSize: 24, marginTop: 15 })
+  }
+
+  // ── TOTALS ──
+  addDivider()
+  addRow('Subtotal / សរុបរង:', money(subtotal))
+  if (discount > 0) addRow('Discount / បញ្ចុះ:', '-' + money(discount))
+  if (tax > 0) addRow('Tax / ពន្ធ:', money(tax))
+  if (serviceCharge > 0) addRow('Service / សេវា:', money(serviceCharge))
+  addDivider(true)
+  addRow('Total / សរុបទាំងអស់:', money(total), { bold: true, fontSize: 26, marginTop: 12 })
+  addDivider(true)
+
+  // ── PAYMENT ──
+  if (r.payment_method === 'pay_later') {
+    addRow('UNPAID / មិនទាន់បង់ប្រាក់', '', { bold: true })
+  } else if (r.payment_method) {
+    addRow('Payment / បង់:', payLbl)
+    if (cash > 0) addRow('Cash / ទទួល:', money(cash))
+    if (change > 0) addRow('Change / អាប:', money(change), { bold: true })
+  }
+
+  // ── FOOTER ──
+  addDivider()
+  addCentered('Thank you for your purchase!', { fontSize: 20 })
+  addCentered('អរគុណសម្រាប់ការទិញ!', { fontSize: 20 })
+
+  // ── RENDER ──
+  const PAD = 20
+  const totalHeight = PAD * 2 + ops.reduce((sum, op) => sum + op.height, 0)
+  const canvas = document.createElement('canvas')
+  canvas.width = PAPER_WIDTH_PX
+  canvas.height = Math.max(1, totalHeight)
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#000'
+
+  let y = PAD
+  for (const op of ops) {
+    op.draw(ctx, y)
+    y += op.height
+  }
+
+  return canvas.toDataURL('image/png').split(',')[1]
+}
+
+// A short diagnostic image — one Khmer line, used by the "Test QZ Encoding"
+// button to isolate whether the image path alone renders correctly.
+function buildTestKhmerPng(text) {
+  const measure = document.createElement('canvas').getContext('2d')
+  const fontSize = 28
+  const lines = wrapLines(measure, text, fontSize, false)
+  const lineH = fontSize + 10
+  const PAD = 10
+  const canvas = document.createElement('canvas')
+  canvas.width = PAPER_WIDTH_PX
+  canvas.height = PAD * 2 + lines.length * lineH
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#000'
+  ctx.font = `${fontSize}px ${FONT_STACK}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  lines.forEach((ln, i) => ctx.fillText(ln, PAPER_WIDTH_PX / 2, PAD + i * lineH + 2))
+  return canvas.toDataURL('image/png').split(',')[1]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -471,13 +668,54 @@ export function useReceipt() {
   }
 
   // ── Print via QZ Tray ─────────────────────────────────────────────────────
+  // See buildReceiptPng() for why the whole receipt goes through as one
+  // image instead of QZ's generic raw/base64 byte stream (which the
+  // Windows print spooler mangles, not just the Khmer portions of it).
   async function printQz(receipt, printerName) {
     const qz = await getQz()
     if (!qz) throw new Error('QZ Tray not loaded. Make sure qz-tray is installed.')
     if (!qz.websocket.isActive()) await qz.websocket.connect()
     const printer = await qz.printers.find(printerName)
     const config = qz.configs.create(printer)
-    await qz.print(config, buildQzJob(receipt, money))
+    const png = buildReceiptPng(receipt, money)
+    await qz.print(config, [
+      { type: 'raw', format: 'command', data: '\x1B\x40' }, // ESC @ — reset
+      {
+        type: 'raw',
+        format: 'image',
+        flavor: 'base64',
+        data: png,
+        options: { language: 'ESCPOS', dotDensity: 'double' }
+      },
+      { type: 'raw', format: 'command', data: '\x1B\x64\x05\x1D\x56\x00' } // feed 5 + full cut
+    ])
+    return true
+  }
+
+  // ── Diagnostic: isolate raw-command text vs. image rendering through QZ ──
+  // Prints: reset, plain ASCII "Hello" as raw command text, one Khmer line
+  // as an image, cut. If "Hello" still comes out garbled, the problem is in
+  // QZ/printer/driver configuration, not in how this app builds the job —
+  // useful to know before assuming buildReceiptPng() needs more work.
+  async function testPrintQz(printerName) {
+    const qz = await getQz()
+    if (!qz) throw new Error('QZ Tray not loaded. Make sure qz-tray is installed.')
+    if (!qz.websocket.isActive()) await qz.websocket.connect()
+    const printer = await qz.printers.find(printerName)
+    const config = qz.configs.create(printer)
+    const khmerPng = buildTestKhmerPng('សួស្ដី! តេស្តបោះពុម្ព')
+    await qz.print(config, [
+      { type: 'raw', format: 'command', data: '\x1B\x40' },
+      { type: 'raw', format: 'command', data: 'Hello\n\n' },
+      {
+        type: 'raw',
+        format: 'image',
+        flavor: 'base64',
+        data: khmerPng,
+        options: { language: 'ESCPOS', dotDensity: 'double' }
+      },
+      { type: 'raw', format: 'command', data: '\x1B\x64\x05\x1D\x56\x00' }
+    ])
     return true
   }
 
@@ -565,6 +803,7 @@ export function useReceipt() {
     print,
     checkConnection,
     connectUsb,
-    disconnectUsb
+    disconnectUsb,
+    testPrintQz
   }
 }

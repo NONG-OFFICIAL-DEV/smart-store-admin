@@ -385,16 +385,27 @@
               </v-btn>
             </div>
 
-            <v-btn
-              color="primary"
-              variant="flat"
-              rounded="lg"
-              :loading="testPrinting"
-              prepend-icon="mdi-printer-check"
-              @click="sendTestPrint"
-            >
-              {{ t('settings_hub.printer.test_print') }}
-            </v-btn>
+            <div class="d-flex flex-wrap ga-3">
+              <v-btn
+                color="primary"
+                variant="flat"
+                rounded="lg"
+                :loading="testPrinting"
+                prepend-icon="mdi-printer-check"
+                @click="sendTestPrint"
+              >
+                {{ t('settings_hub.printer.test_print') }}
+              </v-btn>
+              <v-btn
+                variant="tonal"
+                rounded="lg"
+                :loading="testingQzEncoding"
+                prepend-icon="mdi-translate"
+                @click="sendTestPrintQzEncoding"
+              >
+                {{ t('settings_hub.printer.test_qz_encoding') }}
+              </v-btn>
+            </div>
           </template>
         </v-card>
       </v-window-item>
@@ -427,7 +438,8 @@
     connectUsb,
     disconnectUsb,
     usbConnected,
-    usbSupported
+    usbSupported,
+    testPrintQz
   } = useReceipt()
 
   const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
@@ -591,6 +603,7 @@
   const connectionStatus = ref(null)
   const checking = ref(false)
   const testPrinting = ref(false)
+  const testingQzEncoding = ref(false)
   const savingPrinterName = ref(false)
   const printerNameInput = ref('')
 
@@ -718,6 +731,26 @@
       connectionStatus.value = ok ? 'connected' : 'disconnected'
     } finally {
       testPrinting.value = false
+    }
+  }
+
+  // QZ-Tray-only diagnostic — isolates whether plain ASCII raw-command
+  // text and Khmer-as-image both render correctly through QZ specifically
+  // (separate from sendTestPrint()'s full receipt, which already goes
+  // through the real whole-receipt-as-image fix).
+  async function sendTestPrintQzEncoding() {
+    if (!selectedBranch.value?.printer_name) return
+    testingQzEncoding.value = true
+    try {
+      await testPrintQz(selectedBranch.value.printer_name)
+      notif(t('settings_hub.printer.test_print_sent'), { type: 'success' })
+    } catch (err) {
+      notif(
+        t('settings_hub.printer.test_print_failed', { reason: err?.message ?? '' }),
+        { type: 'error' }
+      )
+    } finally {
+      testingQzEncoding.value = false
     }
   }
 
