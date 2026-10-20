@@ -69,7 +69,7 @@
                   {{ item.product_name }}
                 </div>
                 <div class="text-caption text-medium-emphasis">
-                  {{ format(item.unit_price) }} × {{ item.quantity }}
+                  {{ formatBase(item.unit_price) }} × {{ item.quantity }}
                   <span v-if="item.unit_name">({{ item.unit_name }})</span>
                 </div>
                 <div v-if="item.modifiers?.length" class="text-caption text-medium-emphasis">
@@ -81,7 +81,7 @@
               </div>
             </div>
             <div class="text-body-2 font-weight-bold">
-              {{ format(item.total_price) }}
+              {{ formatBase(item.total_price) }}
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@
               {{ t('order.subtotal') }}
             </span>
             <span class="text-body-2">
-              {{ format(combinedTotals.subtotal) }}
+              {{ formatBase(combinedTotals.subtotal) }}
             </span>
           </div>
           <div
@@ -106,7 +106,7 @@
               {{ t('order.discount') }}
             </span>
             <span class="text-body-2 text-error">
-              -{{ format(combinedTotals.discount) }}
+              -{{ formatBase(combinedTotals.discount) }}
             </span>
           </div>
           <div
@@ -117,7 +117,7 @@
               {{ t('order.tax') }}
             </span>
             <span class="text-body-2">
-              {{ format(combinedTotals.tax) }}
+              {{ formatBase(combinedTotals.tax) }}
             </span>
           </div>
           <div
@@ -128,7 +128,7 @@
               {{ t('branches.detail.service_charge') }}
             </span>
             <span class="text-body-2">
-              {{ format(combinedTotals.serviceCharge) }}
+              {{ formatBase(combinedTotals.serviceCharge) }}
             </span>
           </div>
           <v-divider class="my-3" />
@@ -136,9 +136,9 @@
             <span class="text-body-1 font-weight-bold">
               {{ t('order.total') }}
             </span>
-            <span class="text-body-1 font-weight-bold text-primary">
-              {{ format(combinedTotals.total) }}
-            </span>
+            <div class="text-body-1 font-weight-bold text-primary">
+              {{ formatBase(combinedTotals.total) }}
+            </div>
           </div>
           <div
             v-if="order.amount_tendered"
@@ -148,7 +148,7 @@
               {{ t('pos.cash_tendered') }}
             </span>
             <span class="text-body-2">
-              {{ format(order.amount_tendered) }}
+              {{ formatBase(order.amount_tendered) }}
             </span>
           </div>
           <div
@@ -159,7 +159,7 @@
               {{ t('pos.change') }}
             </span>
             <span class="text-body-2 text-success">
-              {{ format(order.change_amount) }}
+              {{ formatBase(order.change_amount) }}
             </span>
           </div>
         </div>
@@ -237,7 +237,7 @@
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const tableStore = useTableStore()
-  const { format } = useCurrency()
+  const { formatBase } = useCurrency()
   const { formatDateTime } = useDate()
   const { print: printThermal } = useReceipt()
 
@@ -371,7 +371,11 @@
       total: receipt.total,
       payment_method: receipt.payment?.method,
       cash_tendered: receipt.payment?.cash_tendered,
-      change_given: receipt.payment?.change_given
+      change_given: receipt.payment?.change_given,
+      // The rate actually used for this payment — PosReceiptContent prints
+      // the KHR total converted at this rate, not today's live setting, so
+      // the receipt stays correct even if the rate changes afterward.
+      exchange_rate: receipt.payment?.exchange_rate
     }
   }
 
@@ -498,7 +502,10 @@
       total: combinedTotals.value.total,
       payment_method: isCombined.value ? null : o.payment?.method,
       cash_tendered: isCombined.value ? null : o.payment?.cash_tendered,
-      change_given: isCombined.value ? null : o.payment?.change_given
+      change_given: isCombined.value ? null : o.payment?.change_given,
+      // Unpaid (Print Bill) has no rate recorded yet — PosReceiptContent
+      // falls back to today's live setting in that case.
+      exchange_rate: isCombined.value ? null : o.payment?.exchange_rate
     }
   })
 

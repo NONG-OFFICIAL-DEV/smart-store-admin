@@ -190,4 +190,106 @@ class PaySessionTest extends TestCase
         $this->assertCount(0, $first->fresh()->payments);
         $this->assertSame(TableSession::STATUS_OPEN, $session->fresh()->status);
     }
+
+    public function test_payment_is_stamped_with_the_tenants_current_exchange_rate(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $tenant->update(['pos_settings' => array_merge($tenant->fresh()->pos_settings, ['khr_exchange_rate' => 4050])]);
+        $branch = $this->makeBranch($tenant);
+        $category = Category::create(['name' => 'Drinks']);
+        $product = $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Coca',
+            'base_price' => 2.5,
+        ], $tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => '5']);
+
+        $first = $this->placeDineInOrder($branch, $product, $table);
+        $session = TableSession::find($first->table_session_id);
+
+        $response = $this->app->make(TableSessionController::class)->pay(
+            Request::create('/x', 'PATCH', ['payment_method' => 'cash']),
+            $session
+        );
+        $data = $response->getData(true)['data'];
+
+        $this->assertEquals(4050.0, $data['payment']['exchange_rate']);
+        $this->assertEquals(4050.0, $first->fresh()->payments->first()->exchange_rate);
+    }
+
+    public function test_payment_falls_back_to_the_default_rate_when_tenant_has_none_set(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $tenant->update(['pos_settings' => \Illuminate\Support\Arr::except($tenant->fresh()->pos_settings, ['khr_exchange_rate'])]);
+        $branch = $this->makeBranch($tenant);
+        $category = Category::create(['name' => 'Drinks']);
+        $product = $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Coca',
+            'base_price' => 2.5,
+        ], $tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => '5']);
+
+        $first = $this->placeDineInOrder($branch, $product, $table);
+        $session = TableSession::find($first->table_session_id);
+
+        $this->app->make(TableSessionController::class)->pay(
+            Request::create('/x', 'PATCH', ['payment_method' => 'cash']),
+            $session
+        );
+
+        $this->assertEquals(4100.0, $first->fresh()->payments->first()->exchange_rate);
+    }
+
+    public function test_payment_stores_an_optional_reference_as_the_gateway_transaction_id(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $category = Category::create(['name' => 'Drinks']);
+        $product = $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Coca',
+            'base_price' => 2.5,
+        ], $tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => '5']);
+
+        $first = $this->placeDineInOrder($branch, $product, $table);
+        $session = TableSession::find($first->table_session_id);
+
+        $response = $this->app->make(TableSessionController::class)->pay(
+            Request::create('/x', 'PATCH', ['payment_method' => 'qr', 'reference' => 'KHQR-REF-123']),
+            $session
+        );
+        $data = $response->getData(true)['data'];
+
+        $this->assertEquals('KHQR-REF-123', $data['payment']['reference']);
+        $this->assertEquals('KHQR-REF-123', $first->fresh()->payments->first()->gateway_transaction_id);
+    }
+
+    public function test_payment_reference_is_null_when_not_provided(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $category = Category::create(['name' => 'Drinks']);
+        $product = $this->app->make(ProductService::class)->create([
+            'category_id' => $category->id,
+            'name' => 'Coca',
+            'base_price' => 2.5,
+        ], $tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => '5']);
+
+        $first = $this->placeDineInOrder($branch, $product, $table);
+        $session = TableSession::find($first->table_session_id);
+
+        $this->app->make(TableSessionController::class)->pay(
+            Request::create('/x', 'PATCH', ['payment_method' => 'cash']),
+            $session
+        );
+
+        $this->assertNull($first->fresh()->payments->first()->gateway_transaction_id);
+    }
 }

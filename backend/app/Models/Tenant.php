@@ -40,6 +40,19 @@ class Tenant extends BaseModel
         'order_notes' => true,
         'payment_methods' => ['cash', 'card', 'qr', 'pay_later'],
         'default_payment_method' => 'cash',
+        // Separate from payment_methods above — this is the Tables → Bill →
+        // Payment flow's own method list (PaymentDialog.vue), independent of
+        // what POS checkout offers. Same vocabulary, defaults to just
+        // cash/card since PaymentDialog.vue doesn't render a QR/Pay Later
+        // flow today, but a tenant can still enable them here.
+        'table_payment_methods' => ['cash', 'card'],
+        'default_table_payment_method' => 'cash',
+        // 1 USD = ? KHR, and the nearest riel increment to round displayed
+        // KHR amounts to — conversion itself happens frontend-side
+        // (useCurrency_v2.js); the backend just stores the setting and
+        // stamps whichever rate was active onto each payment record.
+        'khr_exchange_rate' => 4100,
+        'khr_rounding' => 100,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

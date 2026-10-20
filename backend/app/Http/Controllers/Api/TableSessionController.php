@@ -23,6 +23,10 @@ class TableSessionController extends Controller
         $validated = $request->validate([
             'payment_method' => 'required|in:cash,card,qr,transfer',
             'cash_tendered'  => 'nullable|numeric|min:0',
+            // Optional bank/QR transaction reference or card approval code —
+            // staff-entered, never required. Stored as the payment's
+            // gateway_transaction_id (see TableSessionService::paySession()).
+            'reference'      => 'nullable|string|max:200',
         ]);
 
         try {

@@ -191,4 +191,19 @@ class SettlePaymentTest extends TestCase
         $this->assertCount(1, $orderTwo->fresh()->payments);
         $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
+
+    public function test_settling_a_session_less_order_stamps_the_tenants_current_exchange_rate(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $tenant->update(['pos_settings' => array_merge($tenant->fresh()->pos_settings, ['khr_exchange_rate' => 4050])]);
+        $branch = $this->makeBranch($tenant);
+        $order = $this->makePayLaterOrder($tenant, $branch);
+
+        $response = $this->settle($order, ['payment_method' => 'cash', 'cash_tendered' => 10]);
+        $data = $response->getData(true)['data'];
+
+        $this->assertEquals(4050.0, $data['payment']['exchange_rate']);
+        $this->assertEquals(4050.0, $order->fresh()->payments->first()->exchange_rate);
+    }
 }

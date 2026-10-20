@@ -200,8 +200,18 @@ class TableSessionService
             // actual DB enum (cash/card/qr_code/online/...).
             $paymentMethod = ['cash' => 'cash', 'card' => 'card', 'qr' => 'qr_code', 'transfer' => 'online'][$requestedMethod] ?? 'cash';
             $branchId = $session->branch_id;
+            // Stamped onto every payment row so a receipt reprinted after
+            // the tenant changes their rate still shows the rate that was
+            // actually in effect when this payment was taken.
+            $exchangeRate = (float) ($session->branch->tenant->pos_settings['khr_exchange_rate']
+                ?? \App\Models\Tenant::DEFAULT_POS_SETTINGS['khr_exchange_rate']);
+            // Staff-entered bank/QR transaction reference or card approval
+            // code — optional, never required. No dedicated column exists
+            // for this, so it's stored in the nearest fit, same as a
+            // gateway reference is meant to be used for.
+            $reference = $paymentData['reference'] ?? null;
 
-            $orders->each(function (Order $order, int $index) use ($session, $requestedMethod, $paymentMethod, $changeGiven, $branchId, $staffId, $orders) {
+            $orders->each(function (Order $order, int $index) use ($session, $requestedMethod, $paymentMethod, $changeGiven, $branchId, $staffId, $orders, $exchangeRate, $reference) {
                 Payment::create([
                     'order_id'         => $order->id,
                     'table_session_id' => $session->id,
@@ -212,9 +222,12 @@ class TableSessionService
                     // The customer only hands back/receives one amount of
                     // change for the whole bill — recorded once, on the
                     // last order processed, rather than split/duplicated
-                    // across every row in the session.
+                    // across every row in the session. Same reasoning for
+                    // the reference — one reference for the whole checkout.
                     'change_given'     => $index === $orders->count() - 1 ? $changeGiven : null,
+                    'gateway_transaction_id' => $index === $orders->count() - 1 ? $reference : null,
                     'currency'         => $order->branch->tenant->currency ?? 'USD',
+                    'exchange_rate'    => $exchangeRate,
                     'status'           => 'completed',
                     'paid_at'          => now(),
                 ]);
@@ -241,6 +254,8 @@ class TableSessionService
                     'method'        => $paymentMethod,
                     'cash_tendered' => $cashTendered,
                     'change_given'  => (float) ($changeGiven ?? 0),
+                    'exchange_rate' => $exchangeRate,
+                    'reference'     => $reference,
                     'paid_at'       => now(),
                 ],
             ];

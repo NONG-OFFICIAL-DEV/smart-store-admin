@@ -180,6 +180,79 @@
             hide-details
           />
 
+          <v-divider class="my-5" />
+
+          <div class="mb-3">
+            <div class="text-body-2 font-weight-bold mb-2">
+              {{ t('settings_hub.table_payment_methods') }}
+            </div>
+            <div class="text-caption text-medium-emphasis mb-2">
+              {{ t('settings_hub.table_payment_methods_hint') }}
+            </div>
+            <v-switch
+              v-for="pm in paymentMethodOptions"
+              :key="pm.value"
+              v-model="form.pos_settings.table_payment_methods"
+              :value="pm.value"
+              :label="pm.label"
+              :disabled="!canEdit || saving"
+              color="primary"
+              density="compact"
+              hide-details
+              class="mb-1"
+            />
+          </div>
+
+          <v-select
+            v-model="form.pos_settings.default_table_payment_method"
+            :items="enabledTablePaymentMethodOptions"
+            item-title="label"
+            item-value="value"
+            :label="t('settings_hub.table_default_payment_method')"
+            :disabled="!canEdit || saving"
+            variant="outlined"
+            rounded="lg"
+            density="compact"
+            hide-details
+          />
+
+          <v-divider class="my-5" />
+
+          <div class="text-body-2 font-weight-bold mb-2">
+            {{ t('settings_hub.pos_exchange_rate_section') }}
+          </div>
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model.number="form.pos_settings.khr_exchange_rate"
+                type="number"
+                min="0.01"
+                step="1"
+                :label="t('settings_hub.pos_exchange_rate')"
+                :hint="t('settings_hub.pos_exchange_rate_hint')"
+                persistent-hint
+                :disabled="!canEdit || saving"
+                :rules="[v => Number(v) > 0 || t('validation.required')]"
+                variant="outlined"
+                rounded="lg"
+                density="compact"
+                prepend-inner-icon="mdi-currency-usd"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="form.pos_settings.khr_rounding"
+                :items="khrRoundingOptions"
+                :label="t('settings_hub.pos_khr_rounding')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                rounded="lg"
+                density="compact"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
           <div v-if="canEdit" class="d-flex justify-end mt-5">
             <v-btn
               color="primary"
@@ -331,9 +404,19 @@
       customer_selection: true,
       order_notes: true,
       payment_methods: ['cash', 'card', 'qr', 'pay_later'],
-      default_payment_method: 'cash'
+      default_payment_method: 'cash',
+      table_payment_methods: ['cash', 'card'],
+      default_table_payment_method: 'cash',
+      khr_exchange_rate: 4100,
+      khr_rounding: 100
     }
   })
+
+  const khrRoundingOptions = [
+    { value: 100, title: '100 ៛' },
+    { value: 500, title: '500 ៛' },
+    { value: 1000, title: '1,000 ៛' }
+  ]
 
   const orderTypeOptions = [
     { value: 'dine_in', label: t('pos.cart.order_type.dine_in') },
@@ -354,6 +437,12 @@
   const enabledPaymentMethodOptions = computed(() =>
     paymentMethodOptions.filter(pm => form.pos_settings.payment_methods.includes(pm.value))
   )
+  // Same option list as POS checkout above — a tenant may still want a
+  // different subset/default enabled for settling a table's bill than for
+  // ringing up a walk-in sale, so it's tracked as its own setting.
+  const enabledTablePaymentMethodOptions = computed(() =>
+    paymentMethodOptions.filter(pm => form.pos_settings.table_payment_methods.includes(pm.value))
+  )
 
   // If the tenant unchecks whichever method is currently the default, fall
   // back to the first method still enabled instead of saving a default
@@ -363,6 +452,15 @@
     methods => {
       if (!methods.includes(form.pos_settings.default_payment_method)) {
         form.pos_settings.default_payment_method = methods[0] ?? 'cash'
+      }
+    },
+    { deep: true }
+  )
+  watch(
+    () => form.pos_settings.table_payment_methods,
+    methods => {
+      if (!methods.includes(form.pos_settings.default_table_payment_method)) {
+        form.pos_settings.default_table_payment_method = methods[0] ?? 'cash'
       }
     },
     { deep: true }
@@ -385,6 +483,14 @@
         tenant.pos_settings.payment_methods ?? form.pos_settings.payment_methods
       form.pos_settings.default_payment_method =
         tenant.pos_settings.default_payment_method ?? 'cash'
+      form.pos_settings.table_payment_methods =
+        tenant.pos_settings.table_payment_methods ?? form.pos_settings.table_payment_methods
+      form.pos_settings.default_table_payment_method =
+        tenant.pos_settings.default_table_payment_method ?? 'cash'
+      form.pos_settings.khr_exchange_rate =
+        tenant.pos_settings.khr_exchange_rate ?? 4100
+      form.pos_settings.khr_rounding =
+        tenant.pos_settings.khr_rounding ?? 100
     }
   })
 

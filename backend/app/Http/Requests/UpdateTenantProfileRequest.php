@@ -64,6 +64,17 @@ class UpdateTenantProfileRequest extends FormRequest
             'pos_settings.payment_methods' => 'array',
             'pos_settings.payment_methods.*' => 'in:cash,card,qr,pay_later',
             'pos_settings.default_payment_method' => 'nullable|in:cash,card,qr,pay_later',
+            // Separate list for the Tables → Bill → Payment flow — same
+            // vocabulary as payment_methods above, tracked independently so
+            // a tenant can enable a different set/default for settling a
+            // table's bill than for POS checkout.
+            'pos_settings.table_payment_methods' => 'array',
+            'pos_settings.table_payment_methods.*' => 'in:cash,card,qr,pay_later',
+            'pos_settings.default_table_payment_method' => 'nullable|in:cash,card,qr,pay_later',
+            // 1 USD = ? KHR, and the nearest riel increment to round
+            // displayed KHR amounts to.
+            'pos_settings.khr_exchange_rate' => 'nullable|numeric|min:0.01',
+            'pos_settings.khr_rounding' => 'nullable|in:100,500,1000',
         ];
     }
 

@@ -38,7 +38,42 @@
       </template>
     </AppToolbar>
 
+    <div class="d-flex align-center flex-wrap ga-1 mb-2">
+      <span class="text-body-2">
+        {{ t('tables.summary_count', { count: tableStats.total }) }}
+      </span>
+      <span class="text-body-2 text-medium-emphasis">·</span>
+      <span class="text-body-2 text-warning font-weight-medium">
+        {{ t('tables.summary_occupied', { count: tableStats.occupied }) }}
+      </span>
+      <template v-if="tableStats.occupied">
+        <span class="text-body-2 text-medium-emphasis">·</span>
+        <span class="text-body-2 font-weight-medium">
+          {{ formatBase(tableStats.dueTotal) }} {{ t('tables.summary_due') }}
+        </span>
+      </template>
+    </div>
+
     <div class="d-flex align-center flex-wrap ga-3 mb-4">
+      <v-btn-toggle
+        v-model="statusFilter"
+        color="primary"
+        variant="tonal"
+        density="comfortable"
+        rounded="lg"
+        mandatory
+      >
+        <v-btn value="all" class="text-none">
+          {{ t('tables.filter.all') }} {{ tableStats.total }}
+        </v-btn>
+        <v-btn value="occupied" class="text-none">
+          {{ t('tables.filter.occupied') }} {{ tableStats.occupied }}
+        </v-btn>
+        <v-btn value="free" class="text-none">
+          {{ t('tables.filter.free') }} {{ tableStats.free }}
+        </v-btn>
+      </v-btn-toggle>
+
       <v-text-field
         v-model="search"
         :placeholder="$t('btn.search')"
@@ -80,27 +115,61 @@
       <draggable
         v-model="manageTables"
         tag="div"
-        class="v-row v-row--dense"
+        :class="mode === 'order' ? 'tables-grid' : 'v-row v-row--dense'"
         item-key="id"
         handle=".table-drag-handle"
         :disabled="mode !== 'manage' || !!search || reordering"
         @end="onReorderEnd"
       >
         <template #item="{ element: table }">
-          <div class="v-col v-col-6 v-col-sm-4 v-col-md-3 v-col-lg-2">
+          <div :class="mode === 'order' ? '' : 'v-col v-col-6 v-col-sm-4 v-col-md-3 v-col-lg-2'">
+            <!-- ── Order mode — compact tap tile, one tap target, no extra buttons ── -->
+            <div
+              v-if="mode === 'order'"
+              class="table-tile"
+              :class="tileClass(table)"
+              @click="onCardClick(table)"
+            >
+              <div class="table-tile__top">
+                <span class="table-tile__number">{{ table.table_number }}</span>
+                <span class="table-tile__dot" :class="`table-tile__dot--${tileState(table)}`" />
+                <span class="text-truncate">{{ tileStateLabel(table) }}</span>
+              </div>
+
+              <div class="table-tile__middle">
+                <template v-if="table.is_occupied">
+                  {{ formatBase(table.open_session?.total ?? 0) }}
+                </template>
+                <template v-else-if="table.status === 'available'">
+                  {{ t('tables.order.tap_to_open') }}
+                </template>
+                <template v-else>
+                  {{ statusLabel(table.status) }}
+                </template>
+              </div>
+
+              <div class="table-tile__bottom">
+                <v-icon icon="mdi-account-group-outline" size="14" />
+                <span v-if="table.is_occupied">
+                  {{ t('tables.order.pax_orders', { pax: table.capacity, orders: table.open_session?.order_count ?? 0 }) }}
+                </span>
+                <span v-else>
+                  {{ t('tables.order.seats', { count: table.capacity }) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- ── Manage mode — unchanged: drag handle, status chip, edit/QR/delete ── -->
             <v-card
+              v-else
               rounded="lg"
               elevation="0"
               border
               class="table-card"
-              :class="[
-                `table-card--${table.status}`,
-                { 'table-card--clickable': mode === 'order' }
-              ]"
-              @click="onCardClick(table)"
+              :class="`table-card--${table.status}`"
             >
               <v-icon
-                v-if="mode === 'manage' && !search"
+                v-if="!search"
                 icon="mdi-drag"
                 size="18"
                 class="table-drag-handle"
@@ -132,37 +201,29 @@
                 </v-chip>
               </div>
 
-              <template v-if="mode === 'manage'">
-                <v-divider />
-                <div class="d-flex justify-center pa-1" @click.stop>
-                  <v-btn
-                    icon="mdi-qrcode"
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    @click="openQR(table)"
-                  />
-                  <v-btn
-                    icon="mdi-pencil-outline"
-                    size="small"
-                    variant="text"
-                    @click="openEdit(table)"
-                  />
-                  <v-btn
-                    icon="mdi-delete-outline"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="confirmDelete(table)"
-                  />
-                </div>
-              </template>
-              <template v-else>
-                <v-divider />
-                <div class="pa-2 text-center text-caption text-medium-emphasis">
-                  {{ orderModeHint(table) }}
-                </div>
-              </template>
+              <v-divider />
+              <div class="d-flex justify-center pa-1" @click.stop>
+                <v-btn
+                  icon="mdi-qrcode"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  @click="openQR(table)"
+                />
+                <v-btn
+                  icon="mdi-pencil-outline"
+                  size="small"
+                  variant="text"
+                  @click="openEdit(table)"
+                />
+                <v-btn
+                  icon="mdi-delete-outline"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  @click="confirmDelete(table)"
+                />
+              </div>
             </v-card>
           </div>
         </template>
@@ -211,16 +272,22 @@
       :branch-name="$t('tables.default_branch_name')"
     />
 
-    <!-- Always the same dialog whether the table has one order or several
-         — OrderDetailDialog combines every open order's items into one
-         merged list, so there's nothing to pick between first. Paying or
-         printing the bill is how staff closes out a table here, so either
-         one frees the table once it happens. -->
-    <OrderDetailDialog
+    <!-- Always the same drawer whether the table has one order or several —
+         it shows every open order for the table as its own compact block.
+         Printing the bill is a no-op preview; paying opens PaymentDialog on
+         top of it. -->
+    <BillDrawer
       v-model="orderDialog"
       :orders="orderDialogOrders"
-      free-table-on-complete
-      @paid="loadTables"
+      :table="orderDialogTable"
+      @pay="paymentDialog = true"
+    />
+
+    <PaymentDialog
+      v-model="paymentDialog"
+      :orders="orderDialogOrders"
+      :table="orderDialogTable"
+      @paid="onPaid"
     />
   </v-container>
 </template>
@@ -235,12 +302,15 @@
   import { usePosStore } from '@/stores/posStore'
   import TableFormDialog from '@/components/tables/TableFormDialog.vue'
   import TableQRDialog from '@/components/tables/TableQRDialog.vue'
-  import OrderDetailDialog from '@/components/orders/OrderDetailDialog.vue'
+  import BillDrawer from '@/components/tables/BillDrawer.vue'
+  import PaymentDialog from '@/components/tables/PaymentDialog.vue'
   import { useAppUtils, AppDialog } from '@nong-official-dev/core'
   import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
   const router = useRouter()
+  const { formatBase } = useCurrency()
 
   const qrDialog = ref(false)
   const qrTarget = ref(null)
@@ -259,6 +329,10 @@
   const mode = ref('order')
   const search = ref('')
   const loading = ref(false)
+  // all | occupied | free — "free" means "not occupied" (reserved/cleaning/
+  // inactive tables are lumped in with it too, since this app's table
+  // model only really has two customer-facing states worth filtering on).
+  const statusFilter = ref('all')
 
   const saving = ref(false)
   const dialog = ref(false)
@@ -269,17 +343,61 @@
 
   const orderDialog = ref(false)
   const orderDialogOrders = ref([])
+  const orderDialogTable = ref(null)
+  const paymentDialog = ref(false)
+
+  // Payment succeeded — close both the dialog and the drawer it was opened
+  // on top of (the table is free now, nothing left to show) and refresh the
+  // grid so the just-paid table flips back to Free.
+  function onPaid() {
+    paymentDialog.value = false
+    orderDialog.value = false
+    loadTables()
+  }
 
   // Real floor plans only — used by the create/edit form's picker.
   const floorPlanOptions = computed(() => floorPlanStore.floorPlans)
 
   const filteredTables = computed(() => {
+    let list = tableStore.tables
+    if (statusFilter.value === 'occupied') list = list.filter(table => table.is_occupied)
+    else if (statusFilter.value === 'free') list = list.filter(table => !table.is_occupied)
+
     const q = search.value?.trim().toLowerCase()
-    if (!q) return tableStore.tables
-    return tableStore.tables.filter(table =>
-      String(table.table_number).toLowerCase().includes(q)
-    )
+    if (!q) return list
+    return list.filter(table => String(table.table_number).toLowerCase().includes(q))
   })
+
+  // Header summary line + filter tab counts — always computed off every
+  // loaded table, independent of the current search/status filter.
+  const tableStats = computed(() => {
+    const occupiedTables = tableStore.tables.filter(table => table.is_occupied)
+    return {
+      total: tableStore.tables.length,
+      occupied: occupiedTables.length,
+      free: tableStore.tables.length - occupiedTables.length,
+      dueTotal: occupiedTables.reduce((sum, table) => sum + Number(table.open_session?.total ?? 0), 0)
+    }
+  })
+
+  // Order-mode tile state — distinct from the raw `status` column so a
+  // reserved/cleaning/inactive table doesn't get mislabeled "Free" even
+  // though it's filtered alongside free tables (see filteredTables above).
+  function tileState(table) {
+    if (table.is_occupied) return 'occupied'
+    if (table.status === 'available') return 'free'
+    return 'other'
+  }
+
+  function tileStateLabel(table) {
+    if (table.is_occupied) return t('tables.order.occupied_label')
+    if (table.status === 'available') return t('tables.order.free_label')
+    return statusLabel(table.status)
+  }
+
+  function tileClass(table) {
+    return `table-tile--${tileState(table)}`
+  }
 
   // Draggable needs its own mutable array to reorder into — kept in sync
   // with filteredTables (status changes, pay/paid refreshes, etc.) whenever
@@ -363,15 +481,9 @@
 
   function onCardClick(table) {
     if (mode.value !== 'order') return
-    if (table.status === 'occupied') return viewTableOrder(table)
+    if (table.is_occupied) return viewTableOrder(table)
     if (table.status === 'available') return startOrderAtTable(table)
     openStatusChange(table)
-  }
-
-  function orderModeHint(table) {
-    if (table.status === 'occupied') return t('tables.order.view_order')
-    if (table.status === 'available') return t('tables.order.start_order')
-    return t('tables.change_status')
   }
 
   async function viewTableOrder(table) {
@@ -382,6 +494,7 @@
         return
       }
       orderDialogOrders.value = orders
+      orderDialogTable.value = table
       orderDialog.value = true
     } catch {
       notif(t('tables.order.load_failed'), { type: 'error' })
@@ -555,5 +668,72 @@
   }
   .table-drag-handle:hover {
     opacity: 1;
+  }
+
+  .tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .table-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1.5px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    background: rgb(var(--v-theme-surface));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .table-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .table-tile--occupied {
+    background: rgba(var(--v-theme-warning), 0.08);
+    border-color: rgb(var(--v-theme-warning));
+  }
+  .table-tile__top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .table-tile__number {
+    font-weight: 700;
+  }
+  .table-tile__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: none;
+  }
+  .table-tile__dot--occupied {
+    background: rgb(var(--v-theme-warning));
+  }
+  .table-tile__dot--free {
+    background: rgb(var(--v-theme-success));
+  }
+  .table-tile__dot--other {
+    background: #9e9e9e;
+  }
+  .table-tile__middle {
+    font-size: 13px;
+    color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  }
+  .table-tile--occupied .table-tile__middle {
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(var(--v-theme-on-surface));
+  }
+  .table-tile__bottom {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
   }
 </style>

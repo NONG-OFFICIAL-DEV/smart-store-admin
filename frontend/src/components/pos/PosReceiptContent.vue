@@ -42,7 +42,7 @@
     <div v-for="(item, idx) in receipt.items" :key="idx" class="mb-2">
       <div class="d-flex justify-space-between text-body-2">
         <span>{{ item.qty }} × {{ item.name }}</span>
-        <span class="font-weight-medium">{{ formatMoney(item.total_price) }}</span>
+        <span class="font-weight-medium">{{ formatBase(item.total_price) }}</span>
       </div>
       <div v-if="item.unit" class="text-caption text-medium-emphasis">{{ item.unit }}</div>
       <div v-if="item.note" class="text-caption text-medium-emphasis">{{ item.note }}</div>
@@ -59,23 +59,23 @@
 
     <div class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.subtotal') }}</span>
-      <span>{{ formatMoney(receipt.subtotal) }}</span>
+      <span>{{ formatBase(receipt.subtotal) }}</span>
     </div>
     <div v-if="receipt.discount" class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.discount') }}</span>
-      <span>-{{ formatMoney(receipt.discount) }}</span>
+      <span>-{{ formatBase(receipt.discount) }}</span>
     </div>
     <div v-if="receipt.tax" class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.tax') }}</span>
-      <span>{{ formatMoney(receipt.tax) }}</span>
+      <span>{{ formatBase(receipt.tax) }}</span>
     </div>
     <div v-if="receipt.service_charge" class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.service_charge') }}</span>
-      <span>{{ formatMoney(receipt.service_charge) }}</span>
+      <span>{{ formatBase(receipt.service_charge) }}</span>
     </div>
     <div class="d-flex justify-space-between text-body-1 font-weight-bold mt-2">
       <span>{{ $t('pos.receipt.total') }}</span>
-      <span>{{ formatMoney(receipt.total) }}</span>
+      <span>{{ formatBase(receipt.total) }}</span>
     </div>
 
     <template v-if="receipt.payment_method === 'pay_later'">
@@ -93,11 +93,11 @@
       </div>
       <div v-if="receipt.payment_method === 'cash'" class="d-flex justify-space-between text-caption mb-1">
         <span>{{ $t('pos.receipt.cash_tendered') }}</span>
-        <span>{{ formatMoney(receipt.cash_tendered) }}</span>
+        <span>{{ formatBase(receipt.cash_tendered) }}</span>
       </div>
       <div v-if="receipt.payment_method === 'cash'" class="d-flex justify-space-between text-caption">
         <span>{{ $t('pos.receipt.change_given') }}</span>
-        <span>{{ formatMoney(receipt.change_given) }}</span>
+        <span>{{ formatBase(receipt.change_given) }}</span>
       </div>
     </template>
   </div>
@@ -110,5 +110,5 @@
     receipt: { type: Object, default: null }
   })
 
-  const { format: formatMoney } = useCurrency()
+  const { formatBase } = useCurrency()
 </script>

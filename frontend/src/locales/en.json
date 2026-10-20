@@ -1546,6 +1546,13 @@
     "pos_order_notes": "Order Notes",
     "pos_payment_methods": "Payment Methods",
     "pos_default_payment_method": "Default Payment Method",
+    "table_payment_methods": "Table Payment Methods",
+    "table_payment_methods_hint": "Shown in the Payment dialog when settling a table's bill — separate from the POS checkout methods above.",
+    "table_default_payment_method": "Default Table Payment Method",
+    "pos_exchange_rate_section": "Exchange Rate",
+    "pos_exchange_rate": "Exchange rate (1 USD = ? KHR)",
+    "pos_exchange_rate_hint": "Used to show the riel total alongside USD on bills and receipts.",
+    "pos_khr_rounding": "Round KHR to nearest",
     "printer": {
       "helper": "Check whether this branch's receipt printer is reachable before relying on it at checkout.",
       "branch_label": "Branch",
@@ -2979,6 +2986,14 @@
     "empty": "No tables found",
     "status_dialog_title": "Table {number} — Change Status",
     "default_branch_name": "Your Restaurant",
+    "summary_count": "{count} tables",
+    "summary_occupied": "{count} occupied",
+    "summary_due": "due",
+    "filter": {
+      "all": "All",
+      "occupied": "Occupied",
+      "free": "Free"
+    },
     "reorder": {
       "hint": "Drag the handle on a table to change the order it appears in.",
       "clear_search_hint": "Clear the search to reorder tables.",
@@ -3017,7 +3032,28 @@
       "start_order": "Tap to start order",
       "no_active_order": "No active order found for this table.",
       "load_failed": "Failed to load the order.",
-      "no_open_bill": "No open bill for this table."
+      "no_open_bill": "No open bill for this table.",
+      "occupied_label": "Occupied",
+      "free_label": "Free",
+      "tap_to_open": "Tap to open",
+      "pax_orders": "{pax} pax · {orders} orders",
+      "seats": "{count} seats",
+      "bill_title": "Table {number}",
+      "order_time": "#{number} · {time}",
+      "pay_button": "Pay {amount}"
+    },
+    "payment": {
+      "title": "Payment",
+      "subtitle": "Table {number} · {orders} orders",
+      "received_label": "Received ({symbol})",
+      "quick_exact": "Exact",
+      "quick_clear": "Clear",
+      "received": "Received",
+      "remaining": "Remaining",
+      "charge_card": "Charge {amount} on card",
+      "approval_code_optional": "Approval code (optional)",
+      "confirm": "Confirm payment",
+      "confirm_hint": "Receipt prints and Table {number} becomes free"
     }
   },
   "tenants": {

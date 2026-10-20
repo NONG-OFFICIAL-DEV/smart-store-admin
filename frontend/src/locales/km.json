@@ -1542,6 +1542,13 @@
     "pos_order_notes": "កំណត់ចំណាំកម្មង់",
     "pos_payment_methods": "វិធីបង់ប្រាក់",
     "pos_default_payment_method": "វិធីបង់ប្រាក់លំនាំដើម",
+    "table_payment_methods": "វិធីបង់ប្រាក់សម្រាប់តុ",
+    "table_payment_methods_hint": "បង្ហាញនៅក្នុងប្រអប់ការទូទាត់ពេលទូទាត់វិក្កយបត្រតុ — ដាច់ដោយឡែកពីវិធីបង់ប្រាក់ម៉ាស៊ីនគិតលុយខាងលើ។",
+    "table_default_payment_method": "វិធីបង់ប្រាក់តុលំនាំដើម",
+    "pos_exchange_rate_section": "អត្រាប្តូរប្រាក់",
+    "pos_exchange_rate": "អត្រាប្តូរប្រាក់ (1 ដុល្លារ = ? រៀល)",
+    "pos_exchange_rate_hint": "ប្រើសម្រាប់បង្ហាញចំនួនទឹកប្រាក់ជារៀល ព្រមជាមួយដុល្លារនៅលើវិក្កយបត្រ និងបង្កាន់ដៃ។",
+    "pos_khr_rounding": "បង្គត់ប្រាក់រៀលទៅជិតបំផុត",
     "printer": {
       "helper": "ពិនិត្យមើលថាតើម៉ាស៊ីនបោះពុម្ពវិក្កយបត្រនៃសាខានេះអាចប្រើបានឬអត់ មុននឹងពឹងផ្អែកលើវានៅពេលទូទាត់។",
       "branch_label": "សាខា",
@@ -2959,6 +2966,14 @@
     "empty": "រកមិនឃើញតុទេ",
     "status_dialog_title": "តុ {number} — ប្តូរស្ថានភាព",
     "default_branch_name": "ភោជនីយដ្ឋានរបស់អ្នក",
+    "summary_count": "តុ {count}",
+    "summary_occupied": "កំពុងប្រើ {count}",
+    "summary_due": "ត្រូវបង់",
+    "filter": {
+      "all": "ទាំងអស់",
+      "occupied": "កំពុងប្រើ",
+      "free": "ទំនេរ"
+    },
     "reorder": {
       "hint": "អូសចំណុចទាញនៅលើតុ ដើម្បីផ្លាស់ប្តូរលំដាប់ដែលវាបង្ហាញ។",
       "clear_search_hint": "សូមសម្អាតការស្វែងរក ដើម្បីរៀបចំលំដាប់តុឡើងវិញ។",
@@ -2997,7 +3012,28 @@
       "start_order": "ចុចដើម្បីចាប់ផ្តើមបញ្ជាទិញ",
       "no_active_order": "រកមិនឃើញការបញ្ជាទិញសកម្មសម្រាប់តុនេះទេ។",
       "load_failed": "បរាជ័យក្នុងការផ្ទុកការបញ្ជាទិញ។",
-      "no_open_bill": "មិនមានវិក្កយបត្រកំពុងបើកសម្រាប់តុនេះទេ។"
+      "no_open_bill": "មិនមានវិក្កយបត្រកំពុងបើកសម្រាប់តុនេះទេ។",
+      "occupied_label": "កំពុងប្រើ",
+      "free_label": "ទំនេរ",
+      "tap_to_open": "ចុចដើម្បីបើក",
+      "pax_orders": "{pax} នាក់ · {orders} ការបញ្ជាទិញ",
+      "seats": "{count} កៅអី",
+      "bill_title": "តុ {number}",
+      "order_time": "#{number} · {time}",
+      "pay_button": "បង់ប្រាក់ {amount}"
+    },
+    "payment": {
+      "title": "ការទូទាត់",
+      "subtitle": "តុ {number} · {orders} ការបញ្ជាទិញ",
+      "received_label": "ទទួលបាន ({symbol})",
+      "quick_exact": "ត្រឹមត្រូវ",
+      "quick_clear": "សម្អាត",
+      "received": "ទទួលបាន",
+      "remaining": "នៅសល់",
+      "charge_card": "គិតប្រាក់ {amount} លើកាត",
+      "approval_code_optional": "លេខអនុម័ត (មិនចាំបាច់)",
+      "confirm": "បញ្ជាក់ការទូទាត់",
+      "confirm_hint": "បោះពុម្ពវិក្កយបត្រ ហើយតុ {number} នឹងទំនេរ"
     }
   },
   "tenants": {

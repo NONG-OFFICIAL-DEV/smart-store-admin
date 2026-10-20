@@ -432,6 +432,11 @@ class OrderController extends Controller
                 ? max(0, $cashTendered - (float) $order->total_amount)
                 : null;
 
+            // Stamped so a receipt reprinted after the tenant changes their
+            // rate still shows the rate that was actually in effect here.
+            $exchangeRate = (float) ($order->branch->tenant->pos_settings['khr_exchange_rate']
+                ?? \App\Models\Tenant::DEFAULT_POS_SETTINGS['khr_exchange_rate']);
+
             $payment = Payment::create([
                 'order_id'       => $order->id,
                 'branch_id'      => $order->branch_id,
@@ -440,6 +445,7 @@ class OrderController extends Controller
                 'amount'         => $order->total_amount,
                 'change_given'   => $changeGiven,
                 'currency'       => $order->branch->tenant->currency ?? 'USD',
+                'exchange_rate'  => $exchangeRate,
                 'status'         => 'completed',
                 'paid_at'        => now(),
             ]);
@@ -526,6 +532,7 @@ class OrderController extends Controller
                     'method'         => $payment->payment_method,
                     'cash_tendered'  => (float) $payment->amount + (float) ($payment->change_given ?? 0),
                     'change_given'   => (float) ($payment->change_given ?? 0),
+                    'exchange_rate'  => $payment->exchange_rate !== null ? (float) $payment->exchange_rate : null,
                     'paid_at'        => $payment->paid_at,
                 ];
             })() : null,
