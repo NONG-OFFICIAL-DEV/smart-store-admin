@@ -347,6 +347,16 @@
   .payment-summary-card {
     background: rgba(var(--v-theme-surface-variant), 0.3);
   }
+  .payment-qr-placeholder {
+    width: 160px;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed rgba(var(--v-border-color), var(--v-border-opacity));
+    border-radius: 12px;
+  }
 </style>
 
 <style>

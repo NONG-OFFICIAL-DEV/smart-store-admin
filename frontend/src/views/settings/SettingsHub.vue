@@ -275,6 +275,42 @@
             {{ t('settings_hub.printer.helper') }}
           </div>
 
+          <template v-if="usbSupported">
+            <div class="text-body-2 font-weight-bold mb-2">
+              {{ t('settings_hub.printer.usb_section') }}
+            </div>
+            <div class="text-caption text-medium-emphasis mb-3">
+              {{ t('settings_hub.printer.usb_hint') }}
+            </div>
+            <div v-if="usbConnected" class="d-flex align-center flex-wrap ga-3 mb-5">
+              <v-chip color="success" variant="tonal" rounded="lg" prepend-icon="mdi-check-circle">
+                {{ t('settings_hub.printer.usb_connected') }}
+              </v-chip>
+              <v-btn variant="tonal" rounded="lg" prepend-icon="mdi-usb-port" @click="onDisconnectUsb">
+                {{ t('settings_hub.printer.usb_disconnect') }}
+              </v-btn>
+            </div>
+            <div v-else class="mb-5">
+              <v-btn
+                color="primary"
+                variant="flat"
+                rounded="lg"
+                :loading="connectingUsb"
+                prepend-icon="mdi-usb-port"
+                @click="onConnectUsb"
+              >
+                {{ t('settings_hub.printer.usb_connect') }}
+              </v-btn>
+            </div>
+            <v-divider class="mb-5" />
+            <div class="text-body-2 font-weight-bold mb-2">
+              {{ t('settings_hub.printer.qz_section') }}
+            </div>
+            <div class="text-caption text-medium-emphasis mb-3">
+              {{ t('settings_hub.printer.qz_hint') }}
+            </div>
+          </template>
+
           <v-select
             v-if="branchStore.branches.length > 1"
             v-model="selectedBranchId"
@@ -384,7 +420,15 @@
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const { notif } = useAppUtils()
-  const { print: printThermal, checkConnection, error: printError } = useReceipt()
+  const {
+    print: printThermal,
+    checkConnection,
+    error: printError,
+    connectUsb,
+    disconnectUsb,
+    usbConnected,
+    usbSupported
+  } = useReceipt()
 
   const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
   const activeTab = ref(['branch', 'pos', 'printer'].includes(requestedTab) ? requestedTab : 'company')
@@ -578,6 +622,31 @@
     } finally {
       savingPrinterName.value = false
     }
+  }
+
+  const connectingUsb = ref(false)
+
+  // Opens the browser's own device picker (navigator.usb.requestDevice) —
+  // the only way to grant this origin permission to talk to the printer.
+  // Once granted it's remembered by the browser, so future visits silently
+  // reconnect via checkConnection()/print() without this prompt again.
+  async function onConnectUsb() {
+    connectingUsb.value = true
+    try {
+      const ok = await connectUsb()
+      connectionStatus.value = ok ? 'connected' : 'disconnected'
+      notif(
+        t(ok ? 'settings_hub.printer.usb_connected' : 'settings_hub.printer.usb_connect_failed'),
+        { type: ok ? 'success' : 'error' }
+      )
+    } finally {
+      connectingUsb.value = false
+    }
+  }
+
+  function onDisconnectUsb() {
+    disconnectUsb()
+    connectionStatus.value = null
   }
 
   const statusColor = computed(() =>

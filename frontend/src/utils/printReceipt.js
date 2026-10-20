@@ -406,7 +406,7 @@ export function useReceipt() {
   const usbConnected = ref(false)
   const usbSupported = 'usb' in navigator
 
-  // ── Connect USB (Android) ─────────────────────────────────────────────────
+  // ── Connect USB (desktop Chrome/Edge over a cable, or Android) ───────────
   async function connectUsb() {
     error.value = null
     try {
@@ -482,15 +482,23 @@ export function useReceipt() {
   }
 
   // ── Check connectivity without printing anything ─────────────────────────
-  // Android: is a WebUSB printer already paired (or can we silently
-  // reconnect to one that was)? Desktop: can we reach QZ Tray and does it
-  // actually see a printer registered under this name? Used by the
-  // Settings > Printer tab's status indicator.
+  // USB is checked first wherever the browser supports it at all (desktop
+  // Chrome/Edge with the printer on a cable, or Android) — is a device
+  // already paired, or can we silently reconnect to one that was, with no
+  // permission prompt? Falls back to QZ Tray only on platforms with no
+  // WebUSB (desktop Safari/Firefox) or once a cable isn't actually
+  // connected/paired. Used by the Settings > Printer tab's status
+  // indicator.
   async function checkConnection(printerName) {
-    if (isAndroid()) {
+    if (usbSupported) {
       if (usbConnected.value) return { connected: true, method: 'usb' }
       const reconnected = await autoConnectUsb({ usbDevice, usbConnected, printMethod })
-      return { connected: reconnected, method: 'usb' }
+      if (reconnected) return { connected: true, method: 'usb' }
+    }
+    if (isAndroid()) {
+      // No QZ Tray equivalent on Android — USB is the only path, and it
+      // already failed above.
+      return { connected: false, method: 'usb', reason: 'not_connected' }
     }
     if (!printerName) {
       return { connected: false, method: 'qz', reason: 'no_printer_configured' }
@@ -508,8 +516,12 @@ export function useReceipt() {
 
   // ── Auto-detect and print ─────────────────────────────────────────────────
   // printerName: the branch's configured printer (branch.printer_name) —
-  // required on desktop (QZ Tray needs a printer name to target); ignored on
-  // Android, which prints to whatever USB device is already paired.
+  // only used for the QZ Tray fallback. A directly cabled/paired USB
+  // printer is always tried first wherever the browser supports WebUSB at
+  // all (desktop Chrome/Edge or Android) — printerName is irrelevant then.
+  // QZ Tray only comes into play if no USB device is connected/reconnectable,
+  // which is always true on Android (no QZ Tray equivalent there) and
+  // optional on desktop.
   const print = async (receipt, printerName) => {
     if (!receipt) {
       error.value = 'No receipt data'
@@ -518,9 +530,16 @@ export function useReceipt() {
     printing.value = true
     error.value = null
     try {
-      if (isAndroid()) {
+      if (usbSupported) {
         printMethod.value = 'usb'
-        return await printUsb(receipt)
+        if (await printUsb(receipt)) return true
+        // Clear the USB-attempt's error before falling through to QZ so a
+        // genuine QZ failure isn't masked by the stale "not_connected".
+        error.value = null
+      }
+      if (isAndroid()) {
+        error.value = 'not_connected'
+        return false
       }
       if (!printerName) {
         error.value = 'no_printer_configured'
