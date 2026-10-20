@@ -13,29 +13,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
         $this->call([
-            // RoleSeeder::class,
-            // UserSeeder::class,
-            // PurchaseStatusSeeder::class,
-            // TableSeeder::class,
-            // Add other seeders here,
-            // BusinessTypeSeeder::class,
-            // FeatureSeeder::class,
-            BranchTypeSeeder::class,
-            // BranchTypeFeatureSeeder::class,
-            // PermissionSeeder::class,
+            PermissionSeeder::class,       // global permission catalog
+            BusinessTypeSeeder::class,     // Restaurant, Coffee Shop, Mart
+            BranchTypeSeeder::class,       // branch types per business (depends on BusinessType)
+            FeatureSeeder::class,          // feature catalog (POS, KDS, TABLE_MGMT, etc.)
+            BranchTypeFeatureSeeder::class,// links branch types → features (depends on both above)
+            PlanSeeder::class,             // subscription plans + billing cycles
+            UserSeeder::class,             // super admin account
         ]);
-        // \App\Models\User::firstOrCreate(
-        //     ['email' => 'adminstore@example.com'],
-        //     [
-        //         'first_name' => 'Admin',
-        //         'last_name' => 'Store',
-        //         'password_hash' => bcrypt('admin1234'),
-        //         'is_super_admin' => true,
-        //         'is_admin' => true,
-        //         'is_active'      => true,
-        //     ]
-        // );
     }
 }

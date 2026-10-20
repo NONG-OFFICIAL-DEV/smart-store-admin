@@ -101,16 +101,8 @@ jobs:
           chmod 600 /tmp/deploy_key
           SSH="ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no ubuntu@$SERVER_HOST"
 
-          echo "=== Step 1: Test connection ==="
-          $SSH "echo connected && whoami && id"
-
-          echo "=== Step 2: Test docker ==="
-          $SSH "docker --version && docker compose version"
-
-          echo "=== Step 3: Write docker-compose.yml ==="
-          $SSH "mkdir -p ~/smart-store"
+          $SSH "mkdir -p ~/smart-store/backend"
           $SSH "cat > ~/smart-store/docker-compose.yml" < docker-compose.yml
-          echo "compose written ok"
 
           # Write deploy script with runner values substituted in
           cat > /tmp/deploy.sh << EOF
