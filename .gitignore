@@ -1,2 +1,3 @@
 .npmrc
 node_modules
+smart_store_db_backup_*.sql

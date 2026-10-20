@@ -31,6 +31,7 @@ class Table extends BaseModel
         'qr_image_path',
         'status',
         'is_active',
+        'sort_order',
     ];
 
     protected $casts = [

@@ -13,6 +13,10 @@ export const getActiveOrderByTableApi = id =>
 // e-menu order, or a second POS round) — this returns every one of them.
 export const getOrdersByTableApi = id => http.get(`/v1/tables/${id}/orders`)
 export const deleteTableApi = id => http.delete(`/v1/tables/${id}`)
+// Drag-reorder in TableManagement.vue — assigns sequential sort_order
+// matching the given id order (see TableController::reorder()).
+export const reorderTablesApi = tableIds =>
+  http.post('/v1/tables/reorder', { table_ids: tableIds })
 
 // Pays off every unpaid order in a table session at once and closes it —
 // the Table modal's PAY button always sends a session id here, never a

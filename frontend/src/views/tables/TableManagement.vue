@@ -65,86 +65,109 @@
       {{ $t('tables.empty') }}
     </v-alert>
 
-    <v-row v-else dense>
-      <v-col
-        v-for="table in filteredTables"
-        :key="table.id"
-        cols="6"
-        sm="4"
-        md="3"
-        lg="2"
+    <template v-else>
+      <v-alert
+        v-if="mode === 'manage'"
+        type="info"
+        variant="tonal"
+        density="compact"
+        rounded="lg"
+        class="mb-3"
       >
-        <v-card
-          rounded="lg"
-          elevation="0"
-          border
-          class="table-card"
-          :class="[
-            `table-card--${table.status}`,
-            { 'table-card--clickable': mode === 'order' }
-          ]"
-          @click="onCardClick(table)"
-        >
-          <div class="pa-3 d-flex flex-column align-center text-center">
-            <div
-              class="table-card__icon"
-              :class="`shape-${table.shape || 'square'}`"
-            >
-              {{ table.table_number }}
-            </div>
-            <div class="text-body-2 font-weight-medium mt-2">
-              {{ $t('tables.table_prefix') }} {{ table.table_number }}
-            </div>
-            <div class="text-caption text-grey d-flex align-center ga-1 mb-2">
-              <v-icon icon="mdi-account-group-outline" size="14" />
-              {{ table.capacity }}
-            </div>
-            <v-chip
-              :color="statusColor(table.status)"
-              size="small"
-              variant="tonal"
-              :prepend-icon="statusIcon(table.status)"
-              class="cursor-pointer"
-              @click.stop="openStatusChange(table)"
-            >
-              {{ statusLabel(table.status) }}
-            </v-chip>
-          </div>
+        {{ search ? $t('tables.reorder.clear_search_hint') : $t('tables.reorder.hint') }}
+      </v-alert>
 
-          <template v-if="mode === 'manage'">
-            <v-divider />
-            <div class="d-flex justify-center pa-1" @click.stop>
-              <v-btn
-                icon="mdi-qrcode"
-                size="small"
-                variant="text"
-                color="primary"
-                @click="openQR(table)"
+      <draggable
+        v-model="manageTables"
+        tag="div"
+        class="v-row v-row--dense"
+        item-key="id"
+        handle=".table-drag-handle"
+        :disabled="mode !== 'manage' || !!search || reordering"
+        @end="onReorderEnd"
+      >
+        <template #item="{ element: table }">
+          <div class="v-col v-col-6 v-col-sm-4 v-col-md-3 v-col-lg-2">
+            <v-card
+              rounded="lg"
+              elevation="0"
+              border
+              class="table-card"
+              :class="[
+                `table-card--${table.status}`,
+                { 'table-card--clickable': mode === 'order' }
+              ]"
+              @click="onCardClick(table)"
+            >
+              <v-icon
+                v-if="mode === 'manage' && !search"
+                icon="mdi-drag"
+                size="18"
+                class="table-drag-handle"
               />
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="small"
-                variant="text"
-                @click="openEdit(table)"
-              />
-              <v-btn
-                icon="mdi-delete-outline"
-                size="small"
-                variant="text"
-                color="error"
-                @click="confirmDelete(table)"
-              />
-            </div>
-          </template>
-          <template v-else>
-            <v-divider />
-            <div class="pa-2 text-center text-caption text-medium-emphasis">
-              {{ orderModeHint(table) }}
-            </div>
-          </template>
-        </v-card>
-      </v-col>
-    </v-row>
+
+              <div class="pa-3 d-flex flex-column align-center text-center">
+                <div
+                  class="table-card__icon"
+                  :class="`shape-${table.shape || 'square'}`"
+                >
+                  {{ table.table_number }}
+                </div>
+                <div class="text-body-2 font-weight-medium mt-2">
+                  {{ $t('tables.table_prefix') }} {{ table.table_number }}
+                </div>
+                <div class="text-caption text-grey d-flex align-center ga-1 mb-2">
+                  <v-icon icon="mdi-account-group-outline" size="14" />
+                  {{ table.capacity }}
+                </div>
+                <v-chip
+                  :color="statusColor(table.status)"
+                  size="small"
+                  variant="tonal"
+                  :prepend-icon="statusIcon(table.status)"
+                  class="cursor-pointer"
+                  @click.stop="openStatusChange(table)"
+                >
+                  {{ statusLabel(table.status) }}
+                </v-chip>
+              </div>
+
+              <template v-if="mode === 'manage'">
+                <v-divider />
+                <div class="d-flex justify-center pa-1" @click.stop>
+                  <v-btn
+                    icon="mdi-qrcode"
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="openQR(table)"
+                  />
+                  <v-btn
+                    icon="mdi-pencil-outline"
+                    size="small"
+                    variant="text"
+                    @click="openEdit(table)"
+                  />
+                  <v-btn
+                    icon="mdi-delete-outline"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    @click="confirmDelete(table)"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <v-divider />
+                <div class="pa-2 text-center text-caption text-medium-emphasis">
+                  {{ orderModeHint(table) }}
+                </div>
+              </template>
+            </v-card>
+          </div>
+        </template>
+      </draggable>
+    </template>
 
     <!-- Table Form Dialog -->
     <TableFormDialog
@@ -203,9 +226,10 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
+  import draggable from 'vuedraggable'
   import { useTableStore } from '@/stores/tableStore'
   import { useFloorPlanStore } from '@/stores/floorPlanStore'
   import { usePosStore } from '@/stores/posStore'
@@ -256,6 +280,33 @@
       String(table.table_number).toLowerCase().includes(q)
     )
   })
+
+  // Draggable needs its own mutable array to reorder into — kept in sync
+  // with filteredTables (status changes, pay/paid refreshes, etc.) whenever
+  // it's not actively being dragged.
+  const manageTables = ref([])
+  watch(filteredTables, val => { manageTables.value = [...val] }, { immediate: true })
+
+  const reordering = ref(false)
+
+  // Drag-reorder is only meaningful on the unfiltered list — the backend
+  // would happily resequence a filtered subset, but staff dragging a
+  // search result past tables they can't see would be confusing. The
+  // handle + :disabled in the template already stop drags in that case;
+  // this is just the save step once a drop actually happens.
+  async function onReorderEnd() {
+    if (mode.value !== 'manage' || search.value) return
+    reordering.value = true
+    try {
+      await tableStore.reorderTables(manageTables.value.map(tb => tb.id))
+      notif(t('tables.reorder.saved'), { type: 'success' })
+    } catch {
+      notif(t('tables.reorder.failed'), { type: 'error' })
+      await loadTables() // resync to the server's actual order
+    } finally {
+      reordering.value = false
+    }
+  }
 
   async function loadTables() {
     loading.value = true
@@ -490,5 +541,19 @@
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+  .table-card {
+    position: relative;
+  }
+  .table-drag-handle {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    z-index: 2;
+    cursor: grab;
+    opacity: 0.5;
+  }
+  .table-drag-handle:hover {
+    opacity: 1;
   }
 </style>

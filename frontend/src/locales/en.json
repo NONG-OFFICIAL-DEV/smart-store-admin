@@ -2979,6 +2979,12 @@
     "empty": "No tables found",
     "status_dialog_title": "Table {number} — Change Status",
     "default_branch_name": "Your Restaurant",
+    "reorder": {
+      "hint": "Drag the handle on a table to change the order it appears in.",
+      "clear_search_hint": "Clear the search to reorder tables.",
+      "saved": "Table order saved",
+      "failed": "Could not save the new order — reverted"
+    },
     "stats": {
       "total_tables": "Total Tables"
     },

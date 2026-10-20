@@ -35,7 +35,9 @@ class TableRepository extends BaseRepository implements TableRepositoryInterface
 
     protected function applySort(Builder $query, ?string $sortBy, bool|string $sortDesc = false): void
     {
-        // No timestamp columns at all — table_number is the only sensible default.
-        $query->orderBy($sortBy ?: 'table_number', filter_var($sortDesc, FILTER_VALIDATE_BOOLEAN) ? 'desc' : 'asc');
+        // sort_order is the resource's actual, deliberately-managed display
+        // order (see TableController::reorder()) — table_number is just a
+        // label, not a reliable ordering (e.g. "A1", "A2", "VIP1").
+        $query->orderBy($sortBy ?: 'sort_order', filter_var($sortDesc, FILTER_VALIDATE_BOOLEAN) ? 'desc' : 'asc');
     }
 }

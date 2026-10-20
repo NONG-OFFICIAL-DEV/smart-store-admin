@@ -352,6 +352,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
     // ── Floor Plans & Tables ────────────────────────────────────────────────────
     Route::middleware(['permission:floor_plans.manage', 'feature:TABLE_MGMT'])->group(function () {
         Route::apiResource('floor-plans', FloorPlanController::class);
+        Route::post('tables/reorder', [TableController::class, 'reorder']);
         Route::apiResource('tables', TableController::class);
         Route::get('tables/{table}/qr-code/download', [TableController::class, 'downloadQrCode']);
         Route::post('tables/{table}/qr-code/regenerate', [TableController::class, 'regenerateQrCode']);

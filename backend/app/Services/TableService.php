@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Table;
 use App\Repositories\Contracts\TableRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class TableService extends BaseService
 {
@@ -65,6 +66,20 @@ class TableService extends BaseService
     public function delete(Table $table): bool
     {
         return $this->repository->delete($table);
+    }
+
+    // Assigns sequential sort_order (0..n-1) matching the given id order —
+    // TenantScope on Table filters the query automatically, so an id
+    // belonging to another tenant just isn't in $tables and is skipped.
+    public function reorder(array $orderedIds): void
+    {
+        $tables = Table::whereIn('id', $orderedIds)->get()->keyBy('id');
+
+        DB::transaction(function () use ($orderedIds, $tables) {
+            foreach ($orderedIds as $index => $id) {
+                $tables->get($id)?->update(['sort_order' => $index]);
+            }
+        });
     }
 
     public function qrInfo(Table $table): array

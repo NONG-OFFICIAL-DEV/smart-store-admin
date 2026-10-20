@@ -77,6 +77,22 @@ class TableController extends Controller
         return $this->noContent('Table deleted successfully.');
     }
 
+    // Drag-reorder in TableManagement.vue — just assigns sequential
+    // sort_order in the given order. Any id not belonging to the caller's
+    // tenant is silently skipped (TenantScope-filtered inside the service),
+    // not an error — same pattern as ProductController::reorder().
+    public function reorder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'table_ids' => ['required', 'array', 'min:1'],
+            'table_ids.*' => ['required', 'uuid'],
+        ]);
+
+        $this->tables->reorder($validated['table_ids']);
+
+        return $this->success(null, 'Tables reordered successfully.');
+    }
+
     public function qrCode(Table $table): JsonResponse
     {
         return $this->success($this->tables->qrInfo($table));

@@ -198,4 +198,60 @@ class TableServiceTest extends TestCase
         $this->assertFalse($data['is_occupied']);
         $this->assertNull($data['open_session']);
     }
+
+    public function test_reorder_assigns_sequential_sort_order_matching_the_given_id_order(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        Auth::login($ownerA);
+
+        $a = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $b = Table::create(['branch_id' => $branch->id, 'table_number' => 'A2']);
+        $c = Table::create(['branch_id' => $branch->id, 'table_number' => 'A3']);
+
+        $service = $this->app->make(TableService::class);
+        $service->reorder([$c->id, $a->id, $b->id]);
+
+        $this->assertSame(0, $c->fresh()->sort_order);
+        $this->assertSame(1, $a->fresh()->sort_order);
+        $this->assertSame(2, $b->fresh()->sort_order);
+    }
+
+    public function test_reorder_silently_skips_an_id_belonging_to_another_tenant(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        [$tenantB, $ownerB] = $this->makeTenantWithOwner('TenantB');
+        $service = $this->app->make(TableService::class);
+
+        Auth::login($ownerA);
+        $branchA = $this->makeBranch($tenantA, 'Main A');
+        $a = Table::create(['branch_id' => $branchA->id, 'table_number' => 'A1']);
+
+        Auth::login($ownerB);
+        $branchB = $this->makeBranch($tenantB, 'Main B');
+        $b = Table::create(['branch_id' => $branchB->id, 'table_number' => 'B1']);
+
+        Auth::login($ownerA);
+        $service->reorder([$a->id, $b->id]);
+
+        $this->assertSame(0, $a->fresh()->sort_order);
+        // $b belongs to TenantB — untouched by TenantA's reorder call.
+        $this->assertSame(0, $b->fresh()->sort_order);
+    }
+
+    public function test_list_defaults_to_sort_order(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branch = $this->makeBranch($tenantA, 'Main');
+        Auth::login($ownerA);
+
+        $z = Table::create(['branch_id' => $branch->id, 'table_number' => 'Z', 'sort_order' => 0]);
+        $a = Table::create(['branch_id' => $branch->id, 'table_number' => 'A', 'sort_order' => 1]);
+
+        $service = $this->app->make(TableService::class);
+        $items = $service->list(['perPage' => -1])->getCollection()->values();
+
+        $this->assertSame($z->id, $items[0]->id);
+        $this->assertSame($a->id, $items[1]->id);
+    }
 }

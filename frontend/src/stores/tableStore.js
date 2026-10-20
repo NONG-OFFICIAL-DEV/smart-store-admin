@@ -8,6 +8,7 @@ import {
   getActiveOrderByTableApi,
   getOrdersByTableApi,
   deleteTableApi,
+  reorderTablesApi,
   getQrCode,
   downloadQrCode,
   regenerateQrCode
@@ -60,6 +61,9 @@ export const useTableStore = defineStore('table', {
     async deleteTable(id) {
       await deleteTableApi(id)
       this.tables = this.tables.filter(item => item.id !== id)
+    },
+    async reorderTables(tableIds) {
+      await reorderTablesApi(tableIds)
     },
     // ── Open QR dialog ─────────────────────────────────────────────────────────
     async fetchQrCodeTable(tableId) {
