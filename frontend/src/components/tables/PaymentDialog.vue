@@ -282,7 +282,7 @@
     if (printerName && data) {
       await printThermal(data, printerName)
     } else {
-      window.print()
+      await printReceiptBrowser(data, 'receipt')
     }
   }
 
@@ -299,6 +299,13 @@
     }
   }
 
+  // Order matters here (see the bug this fixed): printing used to happen
+  // BEFORE the dialog closed, so window.print() captured the still-open
+  // AppDialog overlay (and whatever loading spinner was on screen) sitting
+  // on top of the receipt. Now: 1) pay, 2) close the dialog (and the
+  // drawer behind it, via 'paid'), 3) build the receipt from the API
+  // response, 4) print — only after the dialog is gone and only on a
+  // successful payment, never from inside the loading/catch state.
   async function confirmPayment() {
     if (!props.orders.length || saving.value) return
     const sessionId = props.orders[0]?.table_session_id
@@ -308,27 +315,31 @@
     }
 
     saving.value = true
+    let receipt
     try {
       const res = await paySessionApi(sessionId, {
         payment_method: method.value,
         cash_tendered: method.value === 'cash' ? Number(received.value ?? 0) : undefined,
         reference: method.value !== 'cash' ? (reference.value || undefined) : undefined
       })
-      const receipt = res.data.data
-      paidReceiptData.value = buildSessionReceiptData(receipt)
-      await printReceiptNow(paidReceiptData.value)
-
-      notif(t('tables.messages.table_paid', { number: props.table?.table_number }), { type: 'success' })
-      await freeTable()
-      emit('paid')
-      close()
+      receipt = res.data.data
     } catch (err) {
       // Keep the dialog open and change nothing on failure — staff can fix
       // the input (e.g. add more cash) and retry without starting over.
+      // Never builds/prints a receipt for a payment that didn't succeed.
       notif(err?.response?.data?.message || t('orders_admin.settle.failed'), { type: 'error' })
-    } finally {
       saving.value = false
+      return
     }
+
+    notif(t('tables.messages.table_paid', { number: props.table?.table_number }), { type: 'success' })
+    await freeTable()
+    emit('paid')
+    close()
+    saving.value = false
+
+    paidReceiptData.value = buildSessionReceiptData(receipt)
+    await printReceiptNow(paidReceiptData.value)
   }
 </script>
 
@@ -349,16 +360,5 @@
     justify-content: center;
     border: 1.5px dashed rgba(var(--v-border-color), var(--v-border-opacity));
     border-radius: 12px;
-  }
-</style>
-
-<style>
-  /* Off-screen outside of print — the actual print layout for
-     #receipt-print-root is shared across every receipt-printing dialog,
-     see src/style.css. */
-  .payment-print-receipt {
-    position: fixed;
-    top: 0;
-    left: -9999px;
   }
 </style>

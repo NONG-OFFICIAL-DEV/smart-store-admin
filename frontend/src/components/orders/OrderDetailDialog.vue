@@ -203,18 +203,6 @@
       </template>
     </template>
   </AppDialog>
-
-  <!-- Print-only copy, teleported to body — same reasoning as
-       PosReceiptDialog.vue: the dialog's scrollable v-card-text clips an
-       absolutely-positioned descendant at its own overflow boundary, so
-       printing from inside it cut the content off. Rendered as an actual
-       receipt layout (not the rich on-screen card view) since that's what
-       belongs on a till printout. -->
-  <Teleport to="body">
-    <div v-if="modelValue && (paidReceiptData || printReceiptData)" id="receipt-print-root" class="order-print-receipt">
-      <PosReceiptContent :receipt="paidReceiptData ?? printReceiptData" />
-    </div>
-  </Teleport>
 </template>
 
 <script setup>
@@ -227,8 +215,7 @@
   import { useDate } from '@/composables/useDate'
   import { useI18n } from 'vue-i18n'
   import { AppDialog, useAppUtils } from '@nong-official-dev/core'
-  import { useReceipt } from '@/utils/printReceipt'
-  import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
+  import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { paySessionApi } from '@/api/tableService'
 
   const { t } = useI18n()
@@ -302,17 +289,25 @@
           payment_method: 'cash',
           cash_tendered: combinedTotals.value.total
         })
-        paidReceiptData.value = buildSessionReceiptData(res.data.data)
-        await printReceiptNow(paidReceiptData.value)
+        const receiptData = buildSessionReceiptData(res.data.data)
 
+        // Close the dialog (and free the table) BEFORE printing — same
+        // bug as PaymentDialog.vue: printing before the dialog closed let
+        // the still-open AppDialog print on top of the receipt. The
+        // receipt is still built from the API response either way, just
+        // sent to the printer only once nothing else is visible to print.
         notif(t('tables.messages.table_paid', { number: table?.number }), { type: 'success' })
         orders.value = []
         close()
         await freeTable(table)
         emit('paid')
-      } else {
-        await payOneOrder(unpaidOrders.value[0], table)
+        paying.value = false
+
+        paidReceiptData.value = receiptData
+        await printReceiptNow(receiptData, 'receipt')
+        return
       }
+      await payOneOrder(unpaidOrders.value[0], table)
     } catch (err) {
       notif(err?.response?.data?.message || t('orders_admin.settle.failed'), { type: 'error' })
     } finally {
@@ -330,16 +325,22 @@
     // Swap in the fresh, now-completed order (payment method/cash/change
     // attached) so the receipt reflects what was actually just paid.
     orders.value = orders.value.map(o => (o.id === target.id ? paidOrder : o))
-    await printReceiptNow()
+    const receiptData = printReceiptData.value
     orders.value = orders.value.filter(o => o.id !== target.id)
 
     if (!orders.value.length) {
+      // Last unpaid order on this ticket — same close-before-print
+      // ordering as the session-pay branch above.
       notif(t('tables.messages.table_paid', { number: table?.number }), { type: 'success' })
       close()
       await freeTable(table)
       emit('paid')
+      await printReceiptNow(receiptData, 'receipt')
     } else {
+      // Other unpaid orders remain — dialog stays open for staff to keep
+      // settling them, so there's no modal to print on top of here.
       notif(t('orders_admin.settle.success'), { type: 'success' })
+      await printReceiptNow(receiptData, 'receipt')
     }
   }
 
@@ -510,18 +511,20 @@
   })
 
   // Thermal print when the branch has a printer configured; otherwise (or
-  // if it fails) fall back to the browser's print dialog.
-  async function printReceiptNow(data = printReceiptData.value) {
+  // if it fails) fall back to the hidden-iframe browser print (see
+  // printReceiptBrowser() — never window.print() on the main page, which
+  // could capture this dialog's own overlay or app layout on paper).
+  async function printReceiptNow(data = printReceiptData.value, mode = 'bill') {
     const printerName = activeBranch.value?.printer_name
     if (printerName && data) {
       await printThermal(data, printerName)
     } else {
-      window.print()
+      await printReceiptBrowser(data, mode)
     }
   }
 
   async function print() {
-    await printReceiptNow()
+    await printReceiptNow(printReceiptData.value, 'bill')
     await freeTable()
   }
 
@@ -573,16 +576,5 @@
   }
   .gap-3 {
     gap: 12px;
-  }
-</style>
-
-<style>
-  /* Off-screen outside of print — the actual print layout for
-     #receipt-print-root is shared across every receipt-printing dialog,
-     see src/style.css. */
-  .order-print-receipt {
-    position: fixed;
-    top: 0;
-    left: -9999px;
   }
 </style>

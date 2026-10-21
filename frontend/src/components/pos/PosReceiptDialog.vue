@@ -18,23 +18,12 @@
 
     <PosReceiptContent :receipt="receipt" />
   </AppDialog>
-
-  <!-- Print-only copy, teleported out of the dialog's scrollable card —
-       the dialog's `scrollable` v-card-text clips an absolutely-positioned
-       descendant at its own overflow boundary, so printing from inside it
-       cut the receipt off after whatever fit in the on-screen scroll area.
-       A body-level sibling has no such ancestor to be clipped by. -->
-  <Teleport to="body">
-    <div v-if="modelValue && receipt" id="receipt-print-root" class="pos-receipt-printable">
-      <PosReceiptContent :receipt="receipt" />
-    </div>
-  </Teleport>
 </template>
 
 <script setup>
   import { watch } from 'vue'
   import { AppDialog } from '@nong-official-dev/core'
-  import { useReceipt } from '@/utils/printReceipt'
+  import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import PosReceiptContent from './PosReceiptContent.vue'
 
   const { print: printThermal } = useReceipt()
@@ -60,25 +49,16 @@
   )
 
   // Thermal print when the branch has a printer configured; otherwise (or
-  // if the thermal print fails — e.g. QZ Tray not running) fall back to the
-  // browser's print dialog so printing never silently does nothing.
+  // if the thermal print fails — e.g. QZ Tray not running) fall back to a
+  // hidden-iframe browser print (see printReceiptBrowser() — never
+  // window.print() on the main page, which would print this still-open
+  // AppDialog's own overlay along with the receipt). The receipt here is
+  // always already paid (checkout completed before this dialog opens).
   async function print() {
     if (props.printerName) {
       const ok = await printThermal(props.receipt, props.printerName)
       if (ok) return
     }
-    window.print()
+    await printReceiptBrowser(props.receipt, 'receipt')
   }
 </script>
-
-<style>
-  /* Off-screen at all times outside of print — this is a body-level
-     sibling (see the Teleport above), not something the dialog's own
-     v-if hides for us. The actual print layout for #receipt-print-root
-     is shared across every receipt-printing dialog, see src/style.css. */
-  .pos-receipt-printable {
-    position: fixed;
-    top: 0;
-    left: -9999px;
-  }
-</style>
