@@ -350,6 +350,7 @@ class OrderController extends Controller
             'statusHistory',
             'payments',
             'diningTable',
+            'cashier.user',
         ])
             ->where('table_id', $tableId)
             ->whereNotIn('status', ['cancelled', 'refunded'])

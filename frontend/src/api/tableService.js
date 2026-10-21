@@ -12,6 +12,12 @@ export const getActiveOrderByTableApi = id =>
 // A table can carry more than one separate open order per sitting (repeat
 // e-menu order, or a second POS round) — this returns every one of them.
 export const getOrdersByTableApi = id => http.get(`/v1/tables/${id}/orders`)
+// The session-merged bill for a table's current running tab — items merged
+// by product + variant + unit price + modifier set (see
+// TableSessionService::getSessionBill()), so printing it never shows the
+// same product as two separate duplicate lines the way summing raw
+// per-order items would.
+export const getTableBillApi = id => http.get(`/v1/tables/${id}/bill`)
 export const deleteTableApi = id => http.delete(`/v1/tables/${id}`)
 // Drag-reorder in TableManagement.vue — assigns sequential sort_order
 // matching the given id order (see TableController::reorder()).

@@ -130,7 +130,7 @@
        descendant gets clipped by the dialog's own overflow boundary. -->
   <Teleport to="body">
     <div v-if="modelValue && paidReceiptData" class="payment-print-receipt">
-      <PosReceiptContent :receipt="paidReceiptData" />
+      <PosReceiptContent :receipt="paidReceiptData" mode="receipt" />
     </div>
   </Teleport>
 </template>
@@ -254,23 +254,25 @@
     () => branchStore.branches.find(b => b.id === authStore.activeBranchId) ?? null
   )
 
+  // The random suffix of order_number (e.g. "ORD-FOO-261020-AB3D" → "AB3D")
+  // — same short-code convention BillDrawer.vue uses, not the table name.
+  const shortOrderNumber = o => (o.order_number ?? '').split('-').pop() || o.id?.slice(0, 4)
+
   function buildSessionReceiptData(receipt) {
     return {
-      order_number: t('tables.order.bill_title', { number: props.table?.table_number }),
+      order_number: '#' + shortOrderNumber(props.orders[0] ?? {}),
       order_type: props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,
       branch_address: activeBranch.value?.address_line1,
       branch_phone: activeBranch.value?.phone,
       cashier: props.orders[0]?.cashier,
-      date: formatDateTime(new Date()),
+      date: formatDateTime(receipt.payment?.paid_at ?? new Date()),
       items: receipt.items.map(i => ({
         name: i.product_name,
-        unit: null,
         qty: i.quantity,
         unit_price: i.unit_price,
-        total_price: i.total_price,
-        note: null
+        total_price: i.total_price
       })),
       subtotal: receipt.subtotal,
       discount: receipt.discount,
@@ -280,7 +282,8 @@
       payment_method: receipt.payment?.method,
       cash_tendered: receipt.payment?.cash_tendered,
       change_given: receipt.payment?.change_given,
-      exchange_rate: receipt.payment?.exchange_rate
+      exchange_rate: receipt.payment?.exchange_rate,
+      reference: receipt.payment?.reference
     }
   }
 

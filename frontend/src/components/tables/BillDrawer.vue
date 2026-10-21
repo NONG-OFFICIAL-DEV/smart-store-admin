@@ -120,19 +120,20 @@
        boundary, so printing from inside it cut the content off. -->
   <Teleport to="body">
     <div v-if="modelValue && printReceiptData" class="bill-drawer-print-receipt">
-      <PosReceiptContent :receipt="printReceiptData" />
+      <PosReceiptContent :receipt="printReceiptData" mode="bill" />
     </div>
   </Teleport>
 </template>
 
 <script setup>
-  import { computed } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
   import { useReceipt } from '@/utils/printReceipt'
+  import { getTableBillApi } from '@/api/tableService'
   import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
 
   const { t } = useI18n()
@@ -181,6 +182,28 @@
   // the full order number if staff need it.
   const shortOrderNumber = o => (o.order_number ?? '').split('-').pop() || o.id?.slice(0, 4)
 
+  // The session-merged bill (items merged by product+variant+price — see
+  // TableSessionService::getSessionBill()), fetched once whenever the
+  // drawer opens so the printed bill never shows the same product as two
+  // separate duplicate lines the way summing raw per-order items would.
+  // The on-screen footer keeps using `totals` above (synchronous, from
+  // props.orders already in memory) so it never waits on this fetch — the
+  // numbers always agree since both sum the exact same orders.
+  const sessionBill = ref(null)
+  watch(
+    () => props.modelValue,
+    async isOpen => {
+      sessionBill.value = null
+      if (!isOpen || !props.table?.id) return
+      try {
+        const res = await getTableBillApi(props.table.id)
+        sessionBill.value = res.data.data
+      } catch {
+        sessionBill.value = null
+      }
+    }
+  )
+
   // Same labels/colors as the Orders admin list and Kitchen Display
   // (orders_admin.status.*) — one source of truth for how an Order's
   // kitchen-facing status reads to staff.
@@ -207,8 +230,9 @@
   // prints after a successful Confirm.
   const printReceiptData = computed(() => {
     if (!props.orders.length) return null
+    const merged = sessionBill.value
     return {
-      order_number: t('tables.order.bill_title', { number: props.table?.table_number }),
+      order_number: '#' + shortOrderNumber(props.orders[0]),
       order_type: props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,
@@ -216,21 +240,28 @@
       branch_phone: activeBranch.value?.phone,
       cashier: props.orders[0]?.cashier,
       date: formatDateTime(new Date()),
-      items: props.orders.flatMap(o =>
-        (o.items ?? []).map(i => ({
-          name: i.product_name,
-          unit: i.unit_name,
-          qty: i.quantity,
-          unit_price: i.unit_price,
-          total_price: i.total_price,
-          note: i.notes
-        }))
-      ),
-      subtotal: totals.value.subtotal,
-      discount: totals.value.discount,
-      tax: totals.value.tax,
-      service_charge: totals.value.serviceCharge,
-      total: totals.value.total,
+      // Prefer the session-merged items (no duplicate lines) — falls back
+      // to the raw per-order flat-map only for the brief window before the
+      // bill fetch above resolves, so printing is never blank.
+      items: merged
+        ? merged.items.map(i => ({
+            name: i.product_name,
+            qty: i.quantity,
+            unit_price: i.unit_price,
+            total_price: i.total_price
+          }))
+        : props.orders.flatMap(o => (o.items ?? []).map(i => ({
+            name: i.product_name,
+            qty: i.quantity,
+            unit_price: i.unit_price,
+            total_price: i.total_price,
+            note: i.notes
+          }))),
+      subtotal: merged?.subtotal ?? totals.value.subtotal,
+      discount: merged?.discount ?? totals.value.discount,
+      tax: merged?.tax ?? totals.value.tax,
+      service_charge: merged?.service_charge ?? totals.value.serviceCharge,
+      total: merged?.total ?? totals.value.total,
       // Unpaid — no rate recorded yet, PosReceiptContent falls back to
       // today's live setting.
       payment_method: null,

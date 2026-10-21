@@ -209,6 +209,37 @@ function totalsRowToEscPosImage(label, value, { bold = false, fontSize = 20, mar
   return canvasToRaster(canvas)
 }
 
+// Renders the WHOLE header info block (Order #/Date/Cashier/Type/Table/
+// Customer) as ONE image. Mixing raw ESC/POS text rows (printer's built-in
+// Font A, 12x24 dots) with an image row at a different canvas font size is
+// what made "Type:" print visibly smaller than "Order #:"/"Date:"/
+// "Table:" — rendering every row of this block together, same font/size,
+// removes the mismatch structurally instead of trying to hand-match sizes
+// between two completely different rendering paths. fontSize 24 / lineH 30
+// approximates Font A's 12x24-dot glyph height on this 576-dot-wide paper.
+function buildHeaderInfoImage(rows, { fontSize = 24, lineHeight = 30 } = {}) {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = PAPER_WIDTH_PX
+  canvas.height = rows.length * lineHeight
+
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#000'
+  ctx.font = `${fontSize}px Hanuman, "Noto Sans Khmer", Arial, sans-serif`
+  ctx.textBaseline = 'bottom'
+
+  rows.forEach(({ label, value }, i) => {
+    const drawY = (i + 1) * lineHeight - 5
+    ctx.textAlign = 'left'
+    ctx.fillText(label, 4, drawY)
+    ctx.textAlign = 'right'
+    ctx.fillText(value, PAPER_WIDTH_PX - 4, drawY)
+  })
+
+  return canvasToRaster(canvas)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Build receipt totals — `money` is injected so it reflects the tenant's
 // actual currency (USD/KHR), not a hardcoded one.
@@ -270,33 +301,20 @@ function buildBytes(r, money) {
   if (r.branch_phone) t('Tel: ' + r.branch_phone + '\n')
 
   // ── ORDER INFO ──
+  // One image for the whole block (see buildHeaderInfoImage()) — every row
+  // the same font/size regardless of whether its value contains Khmer, so
+  // "Type:" can't print smaller than "Order #:"/"Date:"/"Table:" again.
   b([E, 0x61, 0x00]) // left
   t(line())
-  t(twoCol('Order #:', r.order_number ?? '-') + '\n')
-  t(twoCol('Date:', r.printed_at ?? r.date ?? new Date().toLocaleString()) + '\n')
-
-  if (r.cashier) {
-    if (hasKhmer(r.cashier)) {
-      t('Cashier: ')
-      img(r.cashier, { fontSize: 20 })
-    } else {
-      t(twoCol('Cashier:', r.cashier) + '\n')
-    }
-  }
-  if (r.order_type) {
-    t(twoCol('Type:', ORDER_TYPE_LABEL[r.order_type] ?? r.order_type) + '\n')
-  }
-  if (r.table_number) {
-    t(twoCol('Table:', String(r.table_number)) + '\n')
-  }
-  if (r.customer_name) {
-    if (hasKhmer(r.customer_name)) {
-      t('Customer: ')
-      img(r.customer_name, { fontSize: 20 })
-    } else {
-      t(twoCol('Customer:', r.customer_name) + '\n')
-    }
-  }
+  const infoRows = [
+    { label: 'Order #:', value: r.order_number ?? '-' },
+    { label: 'Date:', value: r.printed_at ?? r.date ?? new Date().toLocaleString() }
+  ]
+  if (r.cashier) infoRows.push({ label: 'Cashier:', value: r.cashier })
+  if (r.order_type) infoRows.push({ label: 'Type:', value: ORDER_TYPE_LABEL[r.order_type] ?? r.order_type })
+  if (r.table_number) infoRows.push({ label: 'Table:', value: String(r.table_number) })
+  if (r.customer_name) infoRows.push({ label: 'Customer:', value: r.customer_name })
+  b(buildHeaderInfoImage(infoRows))
   t(line())
 
   // ── ITEMS TABLE HEADER ──
@@ -354,11 +372,6 @@ function buildBytes(r, money) {
   b([G, 0x56, 0x41, 0x05]) // cut
 
   return new Uint8Array(bytes)
-}
-
-function twoCol(l, r, w = CHAR_WIDTH) {
-  const gap = Math.max(1, w - l.length - r.length)
-  return l + ' '.repeat(gap) + r
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
