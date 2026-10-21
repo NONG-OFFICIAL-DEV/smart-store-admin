@@ -4,59 +4,46 @@
       :title="t('menus.hub.title')"
       :subtitle="t('menus.hub.subtitle')"
     >
-      <template v-if="canManage" #actions>
+      <template #actions>
+        <AppSearch
+          v-model="search"
+          :placeholder="t('menus.list.search_placeholder')"
+        />
         <v-btn
+          v-if="canManage"
           color="primary"
           variant="flat"
           rounded="lg"
           prepend-icon="mdi-plus"
-          @click="openCreate"
+          @click="openCreateMenu"
         >
-          {{ activeTab === 'branch-menus' ? t('menus.assign.assign_menu') : t('menus.list.new') }}
+          {{ t('menus.list.new') }}
         </v-btn>
       </template>
     </AppToolbar>
 
-    <v-tabs v-model="activeTab" color="primary" class="mb-4" show-arrows>
-      <v-tab value="menus">{{ t('menu.menus') }}</v-tab>
-      <v-tab value="branch-menus">{{ t('menu.branch_menus') }}</v-tab>
-    </v-tabs>
-
-    <v-window v-model="activeTab">
-      <v-window-item value="menus">
-        <MenuManagement ref="menuManagementRef" />
-      </v-window-item>
-      <v-window-item value="branch-menus">
-        <BranchMenu ref="branchMenuRef" />
-      </v-window-item>
-    </v-window>
+    <MenuCardList
+      ref="menuCardListRef"
+      :search="search"
+      :can-manage="canManage"
+    />
   </v-container>
 </template>
 
 <script setup>
   import { ref, computed } from 'vue'
-  import { useRoute } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { AppSearch } from '@nong-official-dev/core'
   import { usePermission } from '@/composables/usePermission'
-  import MenuManagement from '@/views/catalogs/MenuManagement.vue'
-  import BranchMenu from '@/views/catalogs/BranchMenu.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
+  import MenuCardList from '@/components/catalogs/MenuCardList.vue'
 
   const { t } = useI18n()
-  const route = useRoute()
   const { can } = usePermission()
 
   const canManage = computed(() => can('menus.manage'))
 
-  const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
-  const activeTab = ref(requestedTab === 'branch-menus' ? 'branch-menus' : 'menus')
-
-  // Each tab owns its own create dialog — this hub just triggers whichever
-  // tab is currently active via its exposed openCreate().
-  const menuManagementRef = ref(null)
-  const branchMenuRef = ref(null)
-  const openCreate = () => {
-    if (activeTab.value === 'branch-menus') branchMenuRef.value?.openCreate()
-    else menuManagementRef.value?.openCreate()
-  }
+  const search = ref('')
+  const menuCardListRef = ref(null)
+  const openCreateMenu = () => menuCardListRef.value?.openCreateMenu()
 </script>

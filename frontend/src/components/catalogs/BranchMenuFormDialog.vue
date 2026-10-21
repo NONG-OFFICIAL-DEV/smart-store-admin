@@ -47,7 +47,7 @@
                 :label="$t('menus.assign.menu')"
                 variant="outlined"
                 :rules="[rules.required]"
-                :disabled="isEdit"
+                :disabled="isEdit || !!props.presetMenuId"
                 prepend-inner-icon="mdi-book-open-outline"
                 :hint="$t('menus.assign.menu_hint')"
                 persistent-hint
@@ -162,6 +162,12 @@
                 persistent-hint
               />
             </v-col>
+
+            <!-- Active toggle -->
+            <v-col cols="12" sm="6" class="d-flex align-center justify-space-between">
+              <span class="text-body-2">{{ $t('status.active') }}</span>
+              <v-switch v-model="form.is_active" color="success" hide-details density="compact" inset />
+            </v-col>
           </v-row>
         </v-form>
 
@@ -195,7 +201,11 @@
     modelValue: { type: Boolean, default: false },
     editItem: { type: Object, default: null },
     branches: { type: Array, default: () => [] },
-    menus: { type: Array, default: () => [] }
+    menus: { type: Array, default: () => [] },
+    // Opened from a menu card's "+ Assign to branch" button — the menu is
+    // already known from context, so lock it instead of making the user
+    // re-pick it from the dropdown.
+    presetMenuId: { type: String, default: null }
   })
 
   const emit = defineEmits(['update:modelValue', 'saved'])
@@ -225,7 +235,8 @@
     available_from: null,
     available_until: null,
     days_of_week: [],
-    sort_order: 0
+    sort_order: 0,
+    is_active: true
   })
 
   const form = ref(defaultForm())
@@ -275,7 +286,8 @@
           available_from: stripSeconds(item.available_from), // ← strip :ss
           available_until: stripSeconds(item.available_until), // ← strip :ss
           days_of_week: item.days_of_week ?? [],
-          sort_order: item.sort_order ?? 0
+          sort_order: item.sort_order ?? 0,
+          is_active: item.is_active ?? true
         }
       } else {
         form.value = defaultForm()
@@ -291,7 +303,11 @@
     open => {
       if (open && !isEdit.value && hasSingleBranch.value) {
         form.value.branch_id = props.branches[0].id
-      } else if (!open) {
+      }
+      if (open && !isEdit.value && props.presetMenuId) {
+        form.value.menu_id = props.presetMenuId
+      }
+      if (!open) {
         formRef.value?.reset()
         form.value = defaultForm()
       }
@@ -339,7 +355,8 @@
       days_of_week: form.value.days_of_week.length
         ? form.value.days_of_week
         : null,
-      sort_order: form.value.sort_order ?? 0
+      sort_order: form.value.sort_order ?? 0,
+      is_active: form.value.is_active
     }
 
     emit('saved', payload)

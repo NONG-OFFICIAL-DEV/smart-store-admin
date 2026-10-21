@@ -24,6 +24,7 @@ class UpdateBranchMenuRequest extends FormRequest
             'days_of_week' => ['nullable', 'array'],
             'days_of_week.*' => ['integer', 'min:0', 'max:6'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
 

@@ -78,8 +78,16 @@ export const useBranchMenuStore = defineStore('branchMenu', {
       try {
         const res = await createBranchMenuApi(data)
         const record = res.data.data
-        // Add to local state without re-fetching
-        this.branchMenus.push(record)
+        // Assigning a single branch returns one record; assigning several
+        // at once (the form's branch picker is multi-select) returns an
+        // array, one per branch — spread it instead of pushing the whole
+        // array as a single malformed entry (which getBranchesByMenu()'s
+        // flat filter would then silently ignore).
+        if (Array.isArray(record)) {
+          this.branchMenus.push(...record)
+        } else {
+          this.branchMenus.push(record)
+        }
         return { success: true, data: record }
       } catch (err) {
         this.error =

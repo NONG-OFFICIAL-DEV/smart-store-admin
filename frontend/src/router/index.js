@@ -220,7 +220,7 @@ const routes = [
       {
         path: '/branch-menus',
         name: 'BranchMenus',
-        redirect: { path: '/menu-management', query: { tab: 'branch-menus' } }
+        redirect: { path: '/menu-management' }
       },
       {
         path: '/products',

@@ -119,7 +119,7 @@
        body clips an absolutely-positioned descendant at its own overflow
        boundary, so printing from inside it cut the content off. -->
   <Teleport to="body">
-    <div v-if="modelValue && printReceiptData" class="bill-drawer-print-receipt">
+    <div v-if="modelValue && printReceiptData" id="receipt-print-root" class="bill-drawer-print-receipt">
       <PosReceiptContent :receipt="printReceiptData" mode="bill" />
     </div>
   </Teleport>
@@ -308,31 +308,12 @@
 </style>
 
 <style>
+  /* Off-screen outside of print — the actual print layout for
+     #receipt-print-root is shared across every receipt-printing dialog,
+     see src/style.css. */
   .bill-drawer-print-receipt {
     position: fixed;
     top: 0;
     left: -9999px;
-  }
-
-  @media print {
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-    body * {
-      visibility: hidden;
-    }
-    .bill-drawer-print-receipt,
-    .bill-drawer-print-receipt * {
-      visibility: visible;
-    }
-    .bill-drawer-print-receipt {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 80mm;
-      padding: 4mm;
-      font-size: 11px;
-    }
   }
 </style>

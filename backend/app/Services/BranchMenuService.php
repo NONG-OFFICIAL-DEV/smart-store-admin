@@ -76,6 +76,7 @@ class BranchMenuService extends BaseService
                 'available_until' => $data['available_until'] ?? null,
                 'days_of_week' => $data['days_of_week'] ?? null,
                 'sort_order' => $data['sort_order'] ?? 0,
+                'is_active' => $data['is_active'] ?? true,
             ]);
 
             $created->push($record->load(['branch', 'menu']));

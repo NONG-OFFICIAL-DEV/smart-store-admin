@@ -129,7 +129,7 @@
        BillDrawer.vue/OrderDetailDialog.vue: an absolutely-positioned
        descendant gets clipped by the dialog's own overflow boundary. -->
   <Teleport to="body">
-    <div v-if="modelValue && paidReceiptData" class="payment-print-receipt">
+    <div v-if="modelValue && paidReceiptData" id="receipt-print-root" class="payment-print-receipt">
       <PosReceiptContent :receipt="paidReceiptData" mode="receipt" />
     </div>
   </Teleport>
@@ -363,31 +363,12 @@
 </style>
 
 <style>
+  /* Off-screen outside of print — the actual print layout for
+     #receipt-print-root is shared across every receipt-printing dialog,
+     see src/style.css. */
   .payment-print-receipt {
     position: fixed;
     top: 0;
     left: -9999px;
-  }
-
-  @media print {
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-    body * {
-      visibility: hidden;
-    }
-    .payment-print-receipt,
-    .payment-print-receipt * {
-      visibility: visible;
-    }
-    .payment-print-receipt {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 80mm;
-      padding: 4mm;
-      font-size: 11px;
-    }
   }
 </style>

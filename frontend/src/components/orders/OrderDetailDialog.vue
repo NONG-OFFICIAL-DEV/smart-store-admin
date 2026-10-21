@@ -211,7 +211,7 @@
        receipt layout (not the rich on-screen card view) since that's what
        belongs on a till printout. -->
   <Teleport to="body">
-    <div v-if="modelValue && (paidReceiptData || printReceiptData)" class="order-print-receipt">
+    <div v-if="modelValue && (paidReceiptData || printReceiptData)" id="receipt-print-root" class="order-print-receipt">
       <PosReceiptContent :receipt="paidReceiptData ?? printReceiptData" />
     </div>
   </Teleport>
@@ -577,31 +577,12 @@
 </style>
 
 <style>
+  /* Off-screen outside of print — the actual print layout for
+     #receipt-print-root is shared across every receipt-printing dialog,
+     see src/style.css. */
   .order-print-receipt {
     position: fixed;
     top: 0;
     left: -9999px;
-  }
-
-  @media print {
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-    body * {
-      visibility: hidden;
-    }
-    .order-print-receipt,
-    .order-print-receipt * {
-      visibility: visible;
-    }
-    .order-print-receipt {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 80mm;
-      padding: 4mm;
-      font-size: 11px;
-    }
   }
 </style>

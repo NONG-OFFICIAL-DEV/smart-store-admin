@@ -3359,7 +3359,7 @@
   "menus": {
     "hub": {
       "title": "Menus",
-      "subtitle": "Manage menus and which branches serve them, and when"
+      "subtitle": "Each menu shows where and when it's served."
     },
     "form": {
       "name": "Menu Name",
@@ -3396,7 +3396,8 @@
       "assign_menu": "Assign Menu"
     },
     "list": {
-      "new": "New Menu",
+      "new": "New menu",
+      "search_placeholder": "Search menus",
       "default_badge": "Default",
       "not_assigned": "Not assigned",
       "branches_count": "{n} branches",
@@ -3406,12 +3407,25 @@
       "empty": "No menus found",
       "confirm_delete": {
         "title": "Confirm Delete",
-        "message": "Are you sure you want to delete \"{name}\"?"
+        "message": "Are you sure you want to delete \"{name}\"?",
+        "message_with_branches": "This menu is served at {n} branches. Delete anyway?"
       },
       "messages": {
         "assignment_updated": "Assignment updated successfully",
         "menu_assigned": "Menu assigned to branch successfully"
       }
+    },
+    "card": {
+      "no_branches": "No branches",
+      "no_branches_warning": "Not served at any branch yet. Customers can't see this menu.",
+      "all_day": "All day",
+      "serving_now": "Serving now",
+      "not_now": "Not now",
+      "off": "Off",
+      "assign_to_branch": "Assign to branch",
+      "remove_from_branch": "Remove from this branch",
+      "remove_title": "Remove assignment",
+      "remove_message": "Remove this menu from the branch? It will no longer be served there."
     }
   },
   "tenant_create": {

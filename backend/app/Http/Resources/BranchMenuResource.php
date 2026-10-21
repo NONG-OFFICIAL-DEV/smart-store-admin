@@ -17,6 +17,7 @@ class BranchMenuResource extends JsonResource
             'available_until' => $this->available_until,
             'days_of_week' => $this->days_of_week,
             'sort_order' => $this->sort_order,
+            'is_active' => $this->is_active,
             'branch' => $this->whenLoaded('branch', fn () => [
                 'id' => $this->branch->id,
                 'name' => $this->branch->name,

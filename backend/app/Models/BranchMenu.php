@@ -26,11 +26,13 @@ class BranchMenu extends BaseModel
         'available_until',
         'days_of_week',
         'sort_order',
+        'is_active',
     ];
 
     protected $casts = [
         'days_of_week' => 'array',   // stored as JSON, returned as PHP array
         'sort_order'   => 'integer',
+        'is_active'    => 'boolean',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────
@@ -49,6 +51,10 @@ class BranchMenu extends BaseModel
     // Check if this menu is available right now
     public function isAvailableNow(): bool
     {
+        if (! $this->is_active) {
+            return false;
+        }
+
         $now     = now();
         $today   = $now->dayOfWeek; // 0 = Sunday, 6 = Saturday
         $nowTime = $now->format('H:i:s');

@@ -25,7 +25,7 @@
        cut the receipt off after whatever fit in the on-screen scroll area.
        A body-level sibling has no such ancestor to be clipped by. -->
   <Teleport to="body">
-    <div v-if="modelValue && receipt" class="pos-receipt-printable">
+    <div v-if="modelValue && receipt" id="receipt-print-root" class="pos-receipt-printable">
       <PosReceiptContent :receipt="receipt" />
     </div>
   </Teleport>
@@ -74,32 +74,11 @@
 <style>
   /* Off-screen at all times outside of print — this is a body-level
      sibling (see the Teleport above), not something the dialog's own
-     v-if hides for us. */
+     v-if hides for us. The actual print layout for #receipt-print-root
+     is shared across every receipt-printing dialog, see src/style.css. */
   .pos-receipt-printable {
     position: fixed;
     top: 0;
     left: -9999px;
-  }
-
-  @media print {
-    @page {
-      size: 80mm auto;
-      margin: 0;
-    }
-    body * {
-      visibility: hidden;
-    }
-    .pos-receipt-printable,
-    .pos-receipt-printable * {
-      visibility: visible;
-    }
-    .pos-receipt-printable {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 80mm;
-      padding: 4mm;
-      font-size: 11px;
-    }
   }
 </style>

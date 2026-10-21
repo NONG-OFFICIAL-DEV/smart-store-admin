@@ -2,7 +2,7 @@
   <AppDialog
     :model-value="modelValue"
     :max-width="480"
-    :title="$t('menus.list.new')"
+    :title="isEdit ? $t('btn.edit') : $t('menus.list.new')"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-form ref="formRef" @submit.prevent="handleSubmit">
@@ -32,28 +32,29 @@
         {{ $t('btn.cancel') }}
       </v-btn>
       <v-btn
-        color="success"
+        :color="isEdit ? 'primary' : 'success'"
         variant="flat"
         rounded="lg"
-        prepend-icon="mdi-plus"
+        :prepend-icon="isEdit ? 'mdi-content-save' : 'mdi-plus'"
         :loading="loading"
         @click="handleSubmit"
       >
-        {{ $t('menus.list.new') }}
+        {{ isEdit ? $t('btn.save_changes') : $t('menus.list.new') }}
       </v-btn>
     </template>
   </AppDialog>
 </template>
 
 <script setup>
-  import { ref, watch } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
   const props = defineProps({
-    modelValue: { type: Boolean, default: false }
+    modelValue: { type: Boolean, default: false },
+    editItem: { type: Object, default: null }
   })
   const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -62,9 +63,21 @@
   const defaultForm = () => ({ name: '', is_active: true, is_default: false })
   const form = ref(defaultForm())
 
+  const isEdit = computed(() => !!props.editItem)
+
   const rules = {
     required: v => !!v?.trim() || t('validation.required')
   }
+
+  watch(
+    () => props.editItem,
+    item => {
+      form.value = item
+        ? { name: item.name ?? '', is_active: item.is_active ?? true, is_default: item.is_default ?? false }
+        : defaultForm()
+    },
+    { immediate: true }
+  )
 
   watch(
     () => props.modelValue,
@@ -81,6 +94,7 @@
     if (!valid) return
 
     emit('saved', {
+      id: props.editItem?.id ?? null,
       name: form.value.name.trim(),
       is_active: form.value.is_active,
       is_default: form.value.is_default
