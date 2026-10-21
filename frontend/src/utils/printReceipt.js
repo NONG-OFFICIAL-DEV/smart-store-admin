@@ -13,6 +13,7 @@
 import { ref } from 'vue'
 import { formatCurrency, formatKHR } from '@nong-official-dev/core'
 import { useAuthStore } from '@/stores/authStore'
+import i18n from '@/plugins/i18n'
 
 // Lazy load qz-tray
 let _qz = null
@@ -599,6 +600,194 @@ function findBulkOutEndpoint(device) {
     }
   }
   return null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Browser print (window.print(), via a hidden iframe)
+//
+// Printing the main page directly used to let Vuetify's dialog overlay
+// (teleported outside #app, so "#app { display:none }" print CSS never
+// touched it) print on top of the receipt, and could pick up whichever
+// OTHER print-only copy happened to still be in the DOM at the same
+// moment (e.g. BillDrawer's "bill" copy printing instead of PaymentDialog's
+// own "receipt" copy, since both shared the id #receipt-print-root). A
+// hidden iframe's document contains ONLY what we explicitly write into it
+// — nothing else the app renders can ever appear on paper, and there is no
+// shared DOM/id to collide on.
+// ─────────────────────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+function rowHtml(label, value, cls = '') {
+  return `<div class="row ${cls}"><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value)}</span></div>`
+}
+
+// width 70mm with asymmetric padding (0 3mm 0 2mm) — the printable area
+// measured slightly narrower on the right than the left on the target
+// printer, so the extra 1mm on the right keeps the price column from
+// clipping without shifting the left edge.
+const PRINT_IFRAME_STYLE = `
+  @page { size: 80mm auto; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 70mm;
+    max-width: 100%;
+    padding: 0 3mm 0 2mm;
+    font-family: 'Hanuman', 'Noto Sans Khmer', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #000;
+  }
+  .center { text-align: center; }
+  .name { font-size: 14px; font-weight: 700; }
+  .muted { font-size: 11px; }
+  .title { font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .subtitle { font-size: 11px; font-weight: 700; }
+  hr { border: none; border-top: 1px dashed #000; margin: 6px 0; width: 100%; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; width: 100%; max-width: 100%; margin-bottom: 3px; }
+  .row .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .row .value { white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+  .row.total .label, .row.total .value { font-weight: 700; font-size: 14px; }
+  .item { width: 100%; max-width: 100%; margin-bottom: 6px; }
+  .item-note { font-size: 10px; margin-top: 1px; }
+`
+
+// Mirrors PosReceiptContent.vue's template 1:1 (same i18n keys, same
+// bilingual payment-method labels, same mode-driven BILL/NOT PAID vs
+// RECEIPT/PAID banner) — built as a plain HTML string instead of Vue DOM
+// since the iframe is a brand-new document with no access to the parent
+// page's component tree.
+function buildReceiptHtml(r, mode) {
+  const authStore = useAuthStore()
+  const money = v => (authStore.currency === 'KHR' ? formatKHR(v) : formatCurrency(v))
+  const t = (key, params) => i18n.global.t(key, params)
+
+  const rate = Number(r.exchange_rate) > 0 ? Number(r.exchange_rate) : Number(authStore.posSettings?.khr_exchange_rate) || 4100
+  const rateDisplay = new Intl.NumberFormat('en-US').format(rate)
+  function otherCurrency(amountBase) {
+    if (authStore.currency === 'KHR') return formatCurrency(Number(amountBase || 0) / rate)
+    const rounding = Number(authStore.posSettings?.khr_rounding) || 100
+    const raw = Number(amountBase || 0) * rate
+    return formatKHR(Math.round(raw / rounding) * rounding)
+  }
+
+  let body = '<div class="center">'
+  if (r.branch_name) body += `<div class="name">${escapeHtml(r.branch_name)}</div>`
+  if (r.branch_address) body += `<div class="muted">${escapeHtml(r.branch_address)}</div>`
+  if (r.branch_phone) body += `<div class="muted">${escapeHtml(r.branch_phone)}</div>`
+  body += '</div>'
+
+  if (mode === 'bill') {
+    body += '<div class="center"><div class="title">BILL / វិក្កយបត្រ</div><div class="subtitle">NOT PAID / មិនទាន់បង់</div></div>'
+  } else if (mode === 'receipt') {
+    body += '<div class="center"><div class="title">RECEIPT / បង្កាន់ដៃ</div><div class="subtitle">PAID / បានបង់</div></div>'
+  }
+
+  body += '<hr>'
+  body += rowHtml(t('pos.receipt.order_number'), r.order_number ?? '-')
+  if (r.queue_number_display) body += rowHtml(t('pos.receipt.queue_number'), r.queue_number_display)
+  if (r.table_number) body += rowHtml(t('pos.receipt.table'), r.table_number)
+  if (r.customer_name) body += rowHtml(t('pos.receipt.customer'), r.customer_name)
+  if (r.cashier) body += rowHtml(t('pos.receipt.cashier'), r.cashier)
+  body += rowHtml(t('pos.receipt.date'), r.date)
+  body += '<hr>'
+
+  for (const item of r.items ?? []) {
+    body += '<div class="item">'
+    body += rowHtml(`${item.qty} × ${item.name}`, money(item.total_price))
+    if (item.note) body += `<div class="item-note muted">${escapeHtml(item.note)}</div>`
+    for (const c of item.customizations ?? []) {
+      body += `<div class="item-note muted">${escapeHtml(c.label ? `${c.label}: ${c.value}` : c.value)}</div>`
+    }
+    body += '</div>'
+  }
+
+  body += '<hr>'
+  body += rowHtml(t('pos.receipt.subtotal'), money(r.subtotal))
+  if (r.discount) body += rowHtml(t('pos.receipt.discount'), `-${money(r.discount)}`)
+  if (r.tax) body += rowHtml(t('pos.receipt.tax'), money(r.tax))
+  if (r.service_charge) body += rowHtml(t('pos.receipt.service_charge'), money(r.service_charge))
+  body += rowHtml(t('pos.receipt.total'), money(r.total), 'total')
+  body += rowHtml('', `${otherCurrency(r.total)} · Rate: 1 USD = ${rateDisplay} ៛`, 'muted')
+
+  if (r.payment_method === 'pay_later') {
+    body += `<hr><div class="muted">${escapeHtml(t('pos.receipt.unpaid'))}</div>`
+  } else if (r.payment_method === 'cash') {
+    body += '<hr>'
+    body += rowHtml('Cash / សាច់ប្រាក់', money(r.total))
+    body += rowHtml(t('pos.receipt.cash_tendered'), money(r.cash_tendered))
+    body += rowHtml(t('pos.receipt.change_given'), money(r.change_given))
+  } else if (r.payment_method === 'qr_code' || r.payment_method === 'qr') {
+    body += '<hr>'
+    body += rowHtml('Paid by QR / បង់តាម QR', money(r.total))
+    if (r.reference) body += rowHtml('Ref / លេខយោង', r.reference)
+  } else if (r.payment_method === 'card') {
+    body += '<hr>'
+    body += rowHtml('Card / កាត', money(r.total))
+    if (r.reference) body += rowHtml('Approval / លេខអនុម័ត', r.reference)
+  } else if (r.payment_method) {
+    body += '<hr>'
+    body += rowHtml(t('pos.receipt.payment_method'), String(r.payment_method).toUpperCase())
+  }
+
+  return `<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&family=Noto+Sans+Khmer:wght@400;500;700&display=swap">
+<style>${PRINT_IFRAME_STYLE}</style>
+</head><body>${body}</body></html>`
+}
+
+// Builds the receipt HTML, injects it into a hidden iframe, waits for
+// fonts/images, prints, then removes the iframe. `mode` is 'bill' or
+// 'receipt' — same meaning as PosReceiptContent.vue's prop.
+export async function printReceiptBrowser(receipt, mode) {
+  if (!receipt) return false
+
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.right = '0'
+  iframe.style.bottom = '0'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = '0'
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentDocument
+  doc.open()
+  doc.write(buildReceiptHtml(receipt, mode))
+  doc.close()
+
+  await new Promise(resolve => {
+    if (doc.readyState === 'complete') resolve()
+    else iframe.addEventListener('load', resolve, { once: true })
+  })
+
+  try {
+    if (doc.fonts?.ready) await doc.fonts.ready
+  } catch (_) {
+    // Font-loading failure shouldn't block printing — worst case the
+    // fallback Arial/sans-serif in PRINT_IFRAME_STYLE renders instead.
+  }
+
+  const images = [...doc.images]
+  if (images.length) {
+    await Promise.all(images.map(img => (img.complete
+      ? Promise.resolve()
+      : new Promise(resolve => {
+        img.addEventListener('load', resolve, { once: true })
+        img.addEventListener('error', resolve, { once: true })
+      }))))
+  }
+
+  iframe.contentWindow.focus()
+  iframe.contentWindow.print()
+
+  // Removed on a delay rather than immediately — some browsers tear down
+  // an iframe's print job if it's detached from the document too soon
+  // after calling print().
+  setTimeout(() => iframe.remove(), 1000)
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

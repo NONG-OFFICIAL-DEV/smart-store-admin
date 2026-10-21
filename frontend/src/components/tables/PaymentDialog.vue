@@ -124,15 +124,6 @@
       </div>
     </template>
   </AppDialog>
-
-  <!-- Print-only copy, teleported to body — same reasoning as
-       BillDrawer.vue/OrderDetailDialog.vue: an absolutely-positioned
-       descendant gets clipped by the dialog's own overflow boundary. -->
-  <Teleport to="body">
-    <div v-if="modelValue && paidReceiptData" id="receipt-print-root" class="payment-print-receipt">
-      <PosReceiptContent :receipt="paidReceiptData" mode="receipt" />
-    </div>
-  </Teleport>
 </template>
 
 <script setup>
@@ -144,9 +135,8 @@
   import { useTableStore } from '@/stores/tableStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
-  import { useReceipt } from '@/utils/printReceipt'
+  import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { paySessionApi } from '@/api/tableService'
-  import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()

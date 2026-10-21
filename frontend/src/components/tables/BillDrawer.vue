@@ -113,16 +113,6 @@
       </div>
     </div>
   </v-navigation-drawer>
-
-  <!-- Print-only copy, teleported to body — same reasoning as
-       OrderDetailDialog.vue/PosReceiptDialog.vue: the drawer's scrollable
-       body clips an absolutely-positioned descendant at its own overflow
-       boundary, so printing from inside it cut the content off. -->
-  <Teleport to="body">
-    <div v-if="modelValue && printReceiptData" id="receipt-print-root" class="bill-drawer-print-receipt">
-      <PosReceiptContent :receipt="printReceiptData" mode="bill" />
-    </div>
-  </Teleport>
 </template>
 
 <script setup>
@@ -132,9 +122,8 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
-  import { useReceipt } from '@/utils/printReceipt'
+  import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { getTableBillApi } from '@/api/tableService'
-  import PosReceiptContent from '@/components/pos/PosReceiptContent.vue'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -274,7 +263,7 @@
     if (printerName && printReceiptData.value) {
       await printThermal(printReceiptData.value, printerName)
     } else {
-      window.print()
+      await printReceiptBrowser(printReceiptData.value, 'bill')
     }
   }
 </script>
@@ -304,16 +293,5 @@
   }
   .table-tile__dot--occupied {
     background: rgb(var(--v-theme-warning));
-  }
-</style>
-
-<style>
-  /* Off-screen outside of print — the actual print layout for
-     #receipt-print-root is shared across every receipt-printing dialog,
-     see src/style.css. */
-  .bill-drawer-print-receipt {
-    position: fixed;
-    top: 0;
-    left: -9999px;
   }
 </style>
