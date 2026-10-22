@@ -2,174 +2,169 @@
   <AppDialog
     :model-value="modelValue"
     :max-width="560"
-    :title="isEdit ? $t('menus.assign.titleEdit') : $t('menus.assign.titleCreate')"
+    :title="
+      isEdit ? $t('menus.assign.titleEdit') : $t('menus.assign.titleCreate')
+    "
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <!-- ── Form ────────────────────────────────────────────────────────────── -->
     <v-form ref="formRef" @submit.prevent="handleSubmit">
-          <v-row dense>
-            <!-- Branch — only one tenant branch exists, nothing to pick. -->
-            <v-col v-if="hasSingleBranch" cols="12">
-              <v-text-field
-                :model-value="branches[0]?.name"
-                :label="$t('form.branch')"
-                variant="outlined"
-                readonly
-                prepend-inner-icon="mdi-store"
-              />
-            </v-col>
-            <v-col v-else cols="12">
-              <v-select
-                v-model="form.branch_id"
-                :items="branches"
-                item-title="name"
-                item-value="id"
-                :label="$t('form.branch')"
-                variant="outlined"
-                :rules="[rules.required]"
-                :disabled="isEdit"
-                prepend-inner-icon="mdi-store"
-                :hint="$t('menus.assign.branch_hint')"
-                persistent-hint
-                multiple
-                chips
-                closable-chips
-              />
-            </v-col>
+      <v-row dense>
+        <!-- Branch — only one tenant branch exists, nothing to pick. -->
+        <v-col v-if="hasSingleBranch" cols="12">
+          <v-text-field
+            :model-value="branches[0]?.name"
+            :label="$t('form.branch')"
+            variant="outlined"
+            readonly
+            prepend-inner-icon="mdi-store"
+          />
+        </v-col>
+        <v-col v-else cols="12">
+          <v-select
+            v-model="form.branch_id"
+            :items="branches"
+            item-title="name"
+            item-value="id"
+            :label="$t('form.branch')"
+            variant="outlined"
+            :rules="[rules.required]"
+            :disabled="isEdit"
+            prepend-inner-icon="mdi-store"
+            :hint="$t('menus.assign.branch_hint')"
+            persistent-hint
+            multiple
+            chips
+            closable-chips
+          />
+        </v-col>
 
-            <!-- Menu -->
-            <v-col cols="12">
-              <v-select
-                v-model="form.menu_id"
-                :items="menus"
-                item-title="name"
-                item-value="id"
-                :label="$t('menus.assign.menu')"
-                variant="outlined"
-                :rules="[rules.required]"
-                :disabled="isEdit || !!props.presetMenuId"
-                prepend-inner-icon="mdi-book-open-outline"
-                :hint="$t('menus.assign.menu_hint')"
-                persistent-hint
-              >
-                <template #item="{ props, item }">
-                  <v-list-item v-bind="props">
-                    <template #prepend>
-                      <v-avatar
-                        color="success"
-                        size="32"
-                        rounded="md"
-                        class="mr-2"
-                      >
-                        <v-icon icon="mdi-book-open-outline" size="16" />
-                      </v-avatar>
-                    </template>
-                    <template #append>
-                      <v-chip
-                        v-if="item.raw?.is_default"
-                        size="x-small"
-                        color="primary"
-                        variant="tonal"
-                      >
-                        {{ $t('products.variant.default') }}
-                      </v-chip>
-                    </template>
-                  </v-list-item>
+        <!-- Menu -->
+        <v-col cols="12">
+          <v-select
+            v-model="form.menu_id"
+            :items="menus"
+            item-title="name"
+            item-value="id"
+            :label="$t('menus.assign.menu')"
+            variant="outlined"
+            :rules="[rules.required]"
+            :disabled="isEdit || !!props.presetMenuId"
+            prepend-inner-icon="mdi-book-open-outline"
+            :hint="$t('menus.assign.menu_hint')"
+            persistent-hint
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-avatar color="success" size="32" rounded="md" class="mr-2">
+                    <v-icon icon="mdi-book-open-outline" size="16" />
+                  </v-avatar>
                 </template>
-              </v-select>
-            </v-col>
+                <template #append>
+                  <v-chip
+                    v-if="item.raw?.is_default"
+                    size="x-small"
+                    color="primary"
+                    variant="tonal"
+                  >
+                    {{ $t('products.variant.default') }}
+                  </v-chip>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </v-col>
 
-            <!-- Divider -->
-            <v-col cols="12">
-              <v-divider class="my-1" />
-              <p class="text-caption text-medium-emphasis mt-2 mb-1">
-                <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
-                {{ $t('menus.assign.time_window_hint') }}
-              </p>
-            </v-col>
+        <!-- Divider -->
+        <v-col cols="12">
+          <v-divider class="my-1" />
+          <p class="text-caption text-medium-emphasis mt-2 mb-1">
+            <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
+            {{ $t('menus.assign.time_window_hint') }}
+          </p>
+        </v-col>
 
-            <!-- Available From -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                ref="availableFromRef"
-                v-model="form.available_from"
-                :label="$t('menus.assign.available_from')"
-                variant="outlined"
-                type="time"
-                prepend-inner-icon="mdi-clock-start"
-                clearable
-                :hint="$t('menus.assign.available_from_hint')"
-                persistent-hint
-                :rules="[rules.timeBefore]"
-              />
-            </v-col>
+        <!-- Available From -->
+        <v-col cols="12" sm="6">
+          <AppTimePicker
+            v-model="form.available_from"
+            :label="$t('menus.assign.available_from')"
+            clearable
+            :error-messages="fromError"
+            :hint="$t('menus.assign.available_from_hint')"
+            persistent-hint
+          />
+        </v-col>
 
-            <!-- Available Until -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                ref="availableUntilRef"
-                v-model="form.available_until"
-                :label="$t('menus.assign.available_until')"
-                variant="outlined"
-                type="time"
-                prepend-inner-icon="mdi-clock-end"
-                clearable
-                :hint="$t('menus.assign.available_until_hint')"
-                persistent-hint
-                :rules="[rules.timeAfter]"
-              />
-            </v-col>
+        <!-- Available Until -->
+        <v-col cols="12" sm="6">
+          <AppTimePicker
+            v-model="form.available_until"
+            :label="$t('menus.assign.available_until')"
+            clearable
+            :error-messages="untilError"
+            :hint="$t('menus.assign.available_until_hint')"
+            persistent-hint
+          />
+        </v-col>
 
-            <!-- Days of Week -->
-            <v-col cols="12">
-              <div class="text-caption text-medium-emphasis mb-2">
-                <v-icon icon="mdi-calendar-week" size="14" class="mr-1" />
-                {{ $t('menus.assign.available_days_hint') }}
-              </div>
-              <div class="d-flex gap-2 flex-wrap">
-                <v-btn
-                  v-for="(label, index) in DAY_LABELS"
-                  :key="index"
-                  :color="
-                    form.days_of_week.includes(index) ? 'primary' : 'default'
-                  "
-                  :variant="
-                    form.days_of_week.includes(index) ? 'flat' : 'tonal'
-                  "
-                  size="small"
-                  rounded="lg"
-                  min-width="48"
-                  @click="toggleDay(index)"
-                >
-                  {{ $t(label) }}
-                </v-btn>
-              </div>
-              <p class="text-caption text-medium-emphasis mt-2">
-                {{ $t('menus.assign.selected_days', { days: selectedDaysLabel }) }}
-              </p>
-            </v-col>
+        <!-- Days of Week -->
+        <v-col cols="12">
+          <div class="text-caption text-medium-emphasis mb-2">
+            <v-icon icon="mdi-calendar-week" size="14" class="mr-1" />
+            {{ $t('menus.assign.available_days_hint') }}
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <v-btn
+              v-for="(label, index) in DAY_LABELS"
+              :key="index"
+              :color="form.days_of_week.includes(index) ? 'primary' : 'default'"
+              :variant="form.days_of_week.includes(index) ? 'flat' : 'tonal'"
+              size="small"
+              rounded="lg"
+              min-width="48"
+              @click="toggleDay(index)"
+            >
+              {{ $t(label) }}
+            </v-btn>
+          </div>
+          <p class="text-caption text-medium-emphasis mt-2">
+            {{ $t('menus.assign.selected_days', { days: selectedDaysLabel }) }}
+          </p>
+        </v-col>
 
-            <!-- Sort Order -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.sort_order"
-                :label="$t('categories.form.sort_order')"
-                variant="outlined"
-                type="number"
-                min="0"
-                prepend-inner-icon="mdi-sort"
-                :hint="$t('menus.assign.sort_order_hint')"
-                persistent-hint
-              />
-            </v-col>
+        <!-- Sort Order -->
+        <v-col cols="12" sm="6">
+          <v-text-field
+            v-model.number="form.sort_order"
+            :label="$t('categories.form.sort_order')"
+            variant="outlined"
+            type="number"
+            min="0"
+            prepend-inner-icon="mdi-sort"
+            :hint="$t('menus.assign.sort_order_hint')"
+            persistent-hint
+          />
+        </v-col>
 
-            <!-- Active toggle -->
-            <v-col cols="12" sm="6" class="d-flex align-center justify-space-between">
-              <span class="text-body-2">{{ $t('status.active') }}</span>
-              <v-switch v-model="form.is_active" color="success" hide-details density="compact" inset />
-            </v-col>
-          </v-row>
-        </v-form>
+        <!-- Active toggle -->
+        <v-col
+          cols="12"
+          sm="6"
+          class="d-flex align-center justify-space-between"
+        >
+          <span class="text-body-2">{{ $t('status.active') }}</span>
+          <v-switch
+            v-model="form.is_active"
+            color="success"
+            hide-details
+            density="compact"
+            inset
+          />
+        </v-col>
+      </v-row>
+    </v-form>
 
     <template #actions="{ loading }">
       <v-btn variant="tonal" rounded="lg" :disabled="loading" @click="close">
@@ -192,7 +187,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppDialog } from '@nong-official-dev/core'
+  import { AppDialog, AppTimePicker } from '@nong-official-dev/core'
 
   const { t } = useI18n()
 
@@ -212,9 +207,6 @@
 
   // ── Store ─────────────────────────────────────────────────────────────────────
   const formRef = ref(null)
-  // ── Store ─────────────────────────────────────────────────────────────────────
-  const availableFromRef = ref(null) // ← add
-  const availableUntilRef = ref(null) // ← add
 
   // ── Constants ─────────────────────────────────────────────────────────────────
   const DAY_LABELS = [
@@ -261,18 +253,28 @@
     required: v => !!v || t('validation.required'),
     timeBefore: v => {
       if (!v || !form.value.available_until) return true
-      return (
-        v < form.value.available_until ||
-        t('menus.validation.time_before')
-      )
+      return v < form.value.available_until || t('menus.validation.time_before')
     },
     timeAfter: v => {
       if (!v || !form.value.available_from) return true
-      return (
-        v > form.value.available_from || t('menus.validation.time_after')
-      )
+      return v > form.value.available_from || t('menus.validation.time_after')
     }
   }
+
+  // AppTimePicker has no `rules`/`.validate()` of its own (unlike
+  // v-text-field), so these two fields' cross-validation is surfaced as
+  // plain computed error-messages instead of v-form rules. Each computed
+  // reads both available_from and available_until inside rules.timeBefore/
+  // timeAfter, so Vue's reactivity re-evaluates both whenever either field
+  // changes — no manual re-validate-the-other-field wiring needed.
+  const fromError = computed(() => {
+    const result = rules.timeBefore(form.value.available_from)
+    return result === true ? [] : [result]
+  })
+  const untilError = computed(() => {
+    const result = rules.timeAfter(form.value.available_until)
+    return result === true ? [] : [result]
+  })
 
   // ── Watch editItem — populate form when editing ───────────────────────────────
   watch(
@@ -314,21 +316,6 @@
     }
   )
 
-  // When user changes From → re-validate Until field automatically
-  watch(
-    () => form.value.available_from,
-    () => {
-      availableUntilRef.value?.validate()
-    }
-  )
-
-  // When user changes Until → re-validate From field automatically
-  watch(
-    () => form.value.available_until,
-    () => {
-      availableFromRef.value?.validate()
-    }
-  )
   const stripSeconds = timeStr => (timeStr ? timeStr.slice(0, 5) : null)
 
   // ── Toggle day selection ──────────────────────────────────────────────────────
@@ -344,7 +331,7 @@
   // ── Submit ────────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     const { valid } = await formRef.value.validate()
-    if (!valid) return
+    if (!valid || fromError.value.length || untilError.value.length) return
 
     const payload = {
       id: form.value.id ?? null,

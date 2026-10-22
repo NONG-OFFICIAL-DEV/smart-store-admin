@@ -47,15 +47,10 @@
 
             <!-- Start Time -->
             <v-col cols="12" sm="6">
-              <v-text-field
-                ref="startTimeRef"
+              <AppTimePicker
                 v-model="form.start_time"
-                type="time"
                 :label="$t('shifts.form.fields.startTime.label')"
-                variant="outlined"
-                rounded="lg"
-                :rules="[r.required]"
-                prepend-inner-icon="mdi-clock-start"
+                :error-messages="startTimeErrors"
                 :hint="$t('shifts.form.fields.startTime.hint')"
                 persistent-hint
               />
@@ -63,15 +58,10 @@
 
             <!-- End Time -->
             <v-col cols="12" sm="6">
-              <v-text-field
-                ref="endTimeRef"
+              <AppTimePicker
                 v-model="form.end_time"
-                type="time"
                 :label="$t('shifts.form.fields.endTime.label')"
-                variant="outlined"
-                rounded="lg"
-                :rules="[r.required]"
-                prepend-inner-icon="mdi-clock-end"
+                :error-messages="endTimeErrors"
                 :hint="$t('shifts.form.fields.endTime.hint')"
                 persistent-hint
               />
@@ -155,7 +145,7 @@
 <script setup>
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppDialog } from '@nong-official-dev/core'
+  import { AppDialog, AppTimePicker } from '@nong-official-dev/core'
   const { t } = useI18n()
 
   const props = defineProps({
@@ -166,8 +156,6 @@
   const emit = defineEmits(['update:modelValue', 'save'])
 
   const formRef = ref(null)
-  const startTimeRef = ref(null)
-  const endTimeRef = ref(null)
 
   const shiftTypes = computed(() => [
     { value: 'morning', label: t('shifts.form.shiftTypes.morning') },
@@ -190,6 +178,8 @@
     if (!val) {
       formRef.value?.reset()
       Object.assign(form, defaultForm())
+      startTimeErrors.value = []
+      endTimeErrors.value = []
     }
   })
 
@@ -203,6 +193,15 @@
   })
 
   const form = reactive(defaultForm())
+
+  // AppTimePicker has no `rules` prop (only `errorMessages`), so it never
+  // registers with the surrounding v-form's validate() — the required
+  // check is driven manually instead, same pattern as AppDatePicker
+  // elsewhere in this app.
+  const startTimeErrors = ref([])
+  const endTimeErrors = ref([])
+  watch(() => form.start_time, () => { startTimeErrors.value = [] })
+  watch(() => form.end_time, () => { endTimeErrors.value = [] })
 
   watch(
     () => props.item,
@@ -244,7 +243,9 @@
 
   const submit = async () => {
     const { valid } = await formRef.value.validate()
-    if (!valid) return
+    startTimeErrors.value = form.start_time ? [] : [t('shifts.form.rules.required')]
+    endTimeErrors.value = form.end_time ? [] : [t('shifts.form.rules.required')]
+    if (!valid || startTimeErrors.value.length || endTimeErrors.value.length) return
     emit('save', { ...form })
   }
 

@@ -176,12 +176,6 @@
               />
 
               <div class="pa-3 d-flex flex-column align-center text-center">
-                <div
-                  class="table-card__icon"
-                  :class="`shape-${table.shape || 'square'}`"
-                >
-                  {{ table.table_number }}
-                </div>
                 <div class="text-body-2 font-weight-medium mt-2">
                   {{ $t('tables.table_prefix') }} {{ table.table_number }}
                 </div>

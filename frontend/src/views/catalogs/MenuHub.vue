@@ -5,10 +5,6 @@
       :subtitle="t('menus.hub.subtitle')"
     >
       <template #actions>
-        <AppSearch
-          v-model="search"
-          :placeholder="t('menus.list.search_placeholder')"
-        />
         <v-btn
           v-if="canManage"
           color="primary"
@@ -33,7 +29,6 @@
 <script setup>
   import { ref, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppSearch } from '@nong-official-dev/core'
   import { usePermission } from '@/composables/usePermission'
   import AppToolbar from '@/components/common/AppToolbar.vue'
   import MenuCardList from '@/components/catalogs/MenuCardList.vue'

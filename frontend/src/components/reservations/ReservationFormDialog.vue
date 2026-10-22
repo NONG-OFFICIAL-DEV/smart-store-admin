@@ -151,13 +151,10 @@
             </v-col>
 
             <v-col cols="12" sm="3">
-              <v-text-field
+              <AppTimePicker
                 v-model="form.reserved_time"
-                type="time"
                 :label="$t('reservations.field.reserved_time')"
-                variant="outlined"
-                rounded="lg"
-                :rules="[r.required, r.notPastTime]"
+                :error-messages="timeErrors"
               />
             </v-col>
 
@@ -313,7 +310,7 @@
   import { useI18n } from 'vue-i18n'
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
-  import { AppDialog, AppDatePicker } from '@nong-official-dev/core'
+  import { AppDialog, AppDatePicker, AppTimePicker } from '@nong-official-dev/core'
 
   const { formatTime, formatShortDateTime } = useDate()
 
@@ -373,12 +370,14 @@
 
   const form = reactive(defaultForm())
 
-  // AppDatePicker has no `rules` prop (only `errorMessages`), so it never
-  // registers with the surrounding v-form's validate() — a required check
-  // has to be driven manually, same as any other field that skips the
-  // dialog entirely on an empty date.
+  // AppDatePicker/AppTimePicker have no `rules` prop (only `errorMessages`),
+  // so neither registers with the surrounding v-form's validate() — the
+  // required/not-past-time checks are driven manually instead, same as any
+  // other field that skips the dialog entirely on an empty value.
   const dateErrors = ref([])
   watch(() => form.reserved_date, () => { dateErrors.value = [] })
+  const timeErrors = ref([])
+  watch(() => form.reserved_time, () => { timeErrors.value = [] })
 
   // ── Local date/time helpers ──────────────────────────────────────────────
   // Built from local getters (not toISOString(), which is UTC-based and can
@@ -486,10 +485,16 @@
   // unfilled later step can never block progress on an earlier one.
   const nextStep = async () => {
     const { valid } = await stepRefs[currentStep.value - 1].value.validate()
-    if (currentStep.value === 2 && !form.reserved_date) {
-      dateErrors.value = [t('validation.required')]
+    if (currentStep.value === 2) {
+      dateErrors.value = form.reserved_date ? [] : [t('validation.required')]
+      if (!form.reserved_time) {
+        timeErrors.value = [t('validation.required')]
+      } else {
+        const notPast = r.notPastTime(form.reserved_time)
+        timeErrors.value = notPast === true ? [] : [notPast]
+      }
     }
-    if (!valid || dateErrors.value.length) return
+    if (!valid || dateErrors.value.length || timeErrors.value.length) return
     if (currentStep.value < steps.value.length) currentStep.value++
   }
 

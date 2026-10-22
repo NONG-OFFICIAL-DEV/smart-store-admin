@@ -10,20 +10,37 @@
         :class="{ 'menu-card--inactive': !item.is_active }"
       >
         <!-- ── Header ─────────────────────────────────────────────────── -->
-        <div class="d-flex align-center flex-wrap ga-3 pa-4">
+        <div class="d-flex align-center flex-wrap ga-3 pa-3">
           <v-avatar color="primary" variant="tonal" size="36" rounded="md">
             <v-icon icon="mdi-book-open-page-variant-outline" size="18" />
           </v-avatar>
           <div class="flex-grow-1" style="min-width: 180px">
             <div class="d-flex align-center flex-wrap ga-2">
-              <span class="text-subtitle-1 font-weight-bold">{{ item.name }}</span>
-              <v-chip v-if="item.is_default" size="x-small" color="primary" variant="flat" prepend-icon="mdi-star">
+              <span class="text-subtitle-1 font-weight-bold">
+                {{ item.name }}
+              </span>
+              <v-chip
+                v-if="item.is_default"
+                size="x-small"
+                color="primary"
+                variant="flat"
+                prepend-icon="mdi-star"
+              >
                 {{ t('menus.list.default_badge') }}
               </v-chip>
-              <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
-            </div>
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ branchCountFor(item.id) ? t('menus.list.branches_count', { n: branchCountFor(item.id) }) : t('menus.card.no_branches') }}
+              <div class="text-caption text-medium-emphasis mt-1">
+                {{
+                  branchCountFor(item.id)
+                    ? t('menus.list.branches_count', {
+                        n: branchCountFor(item.id)
+                      })
+                    : t('menus.card.no_branches')
+                }}
+              </div>
+              <AppStatusChip
+                :status="item.is_active ? 'active' : 'inactive'"
+                size="x-small"
+              />
             </div>
           </div>
           <div class="d-flex align-center ga-1">
@@ -49,7 +66,7 @@
         <v-divider />
 
         <!-- ── Branch assignments ─────────────────────────────────────── -->
-        <div class="pa-4 d-flex flex-column ga-3">
+        <div class="px-4 d-flex flex-column">
           <template v-if="assignmentsFor(item.id).length">
             <div
               v-for="a in assignmentsFor(item.id)"
@@ -57,17 +74,32 @@
               class="branch-row d-flex align-center flex-wrap ga-4"
             >
               <div class="d-flex align-center ga-2 branch-row__col">
-                <v-icon icon="mdi-store-outline" size="16" class="text-medium-emphasis" />
+                <v-icon
+                  icon="mdi-store-outline"
+                  size="16"
+                  class="text-medium-emphasis"
+                />
                 <span class="text-body-2">{{ a.branch?.name ?? '—' }}</span>
               </div>
               <div class="d-flex align-center ga-1 branch-row__col">
-                <v-icon icon="mdi-clock-outline" size="14" class="text-medium-emphasis" />
+                <v-icon
+                  icon="mdi-clock-outline"
+                  size="14"
+                  class="text-medium-emphasis"
+                />
                 <span class="text-body-2">{{ timeLabel(a) }}</span>
               </div>
-              <div class="text-body-2 branch-row__col">{{ daysLabel(a.days_of_week) }}</div>
+              <div class="text-body-2 branch-row__col">
+                {{ daysLabel(a.days_of_week) }}
+              </div>
               <div class="d-flex align-center ga-2 branch-row__col">
-                <span class="status-dot" :class="`status-dot--${liveStatus(a).state}`" />
-                <span class="text-body-2 text-medium-emphasis">{{ liveStatus(a).label }}</span>
+                <span
+                  class="status-dot"
+                  :class="`status-dot--${liveStatus(a).state}`"
+                />
+                <span class="text-body-2 text-medium-emphasis">
+                  {{ liveStatus(a).label }}
+                </span>
               </div>
               <v-spacer />
               <v-btn
@@ -90,9 +122,14 @@
             </div>
           </template>
 
-          <div v-else class="d-flex align-center ga-2 no-branches-warning pa-3 rounded-lg">
+          <div
+            v-else
+            class="d-flex align-center ga-2 no-branches-warning pa-3 rounded-lg"
+          >
             <v-icon icon="mdi-alert-outline" color="warning" size="18" />
-            <span class="text-body-2">{{ t('menus.card.no_branches_warning') }}</span>
+            <span class="text-body-2">
+              {{ t('menus.card.no_branches_warning') }}
+            </span>
           </div>
         </div>
 
@@ -116,12 +153,18 @@
     <v-card v-else rounded="lg" elevation="0" border>
       <div class="text-center py-10">
         <v-icon icon="mdi-book-open-variant" size="40" color="grey-lighten-1" />
-        <p class="text-medium-emphasis mt-2 mb-0">{{ t('menus.list.empty') }}</p>
+        <p class="text-medium-emphasis mt-2 mb-0">
+          {{ t('menus.list.empty') }}
+        </p>
       </div>
     </v-card>
 
     <!-- Create / edit menu -->
-    <MenuFormDialog v-model="menuDialog" :edit-item="editMenuItem" @saved="submitMenu" />
+    <MenuFormDialog
+      v-model="menuDialog"
+      :edit-item="editMenuItem"
+      @saved="submitMenu"
+    />
 
     <!-- Assign to branch / edit assignment -->
     <BranchMenuFormDialog
@@ -170,7 +213,11 @@
   onMounted(load)
 
   function errorMessage(err) {
-    return err?.response?.data?.message ?? err?.response?.data?.errors?.[0] ?? t('common.error')
+    return (
+      err?.response?.data?.message ??
+      err?.response?.data?.errors?.[0] ??
+      t('common.error')
+    )
   }
 
   const filteredMenus = computed(() => {
@@ -196,7 +243,8 @@
     'menus.assign.day_fri',
     'menus.assign.day_sat'
   ]
-  const sameDaySet = (a, b) => a.length === b.length && a.every(v => b.includes(v))
+  const sameDaySet = (a, b) =>
+    a.length === b.length && a.every(v => b.includes(v))
 
   function daysLabel(days) {
     if (!days?.length || days.length === 7) return t('menus.assign.every_day')
@@ -223,7 +271,15 @@
   // this also fixes the prior "available now" check using naive browser-
   // local time instead of any real timezone. ────────────────────────────────
   const PHNOM_PENH_TZ = 'Asia/Phnom_Penh'
-  const WEEKDAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const WEEKDAY_INDEX = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6
+  }
 
   function nowInPhnomPenh() {
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -239,7 +295,8 @@
   }
 
   function liveStatus(a) {
-    if (a.is_active === false) return { state: 'off', label: t('menus.card.off') }
+    if (a.is_active === false)
+      return { state: 'off', label: t('menus.card.off') }
     const { day, time } = nowInPhnomPenh()
     const daysOk = !a.days_of_week?.length || a.days_of_week.includes(day)
     const fromOk = !a.available_from || time >= a.available_from.slice(0, 5)
@@ -284,7 +341,10 @@
     confirm({
       title: t('menus.list.confirm_delete.title'),
       message: branchCount
-        ? t('menus.list.confirm_delete.message_with_branches', { name: menu.name, n: branchCount })
+        ? t('menus.list.confirm_delete.message_with_branches', {
+            name: menu.name,
+            n: branchCount
+          })
         : t('menus.list.confirm_delete.message', { name: menu.name }),
       options: { type: 'warning', color: 'warning', width: 420 },
       agree: async () => {
