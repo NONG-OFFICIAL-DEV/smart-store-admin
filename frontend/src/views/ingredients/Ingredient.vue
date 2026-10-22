@@ -290,39 +290,6 @@
   })
   const hasActiveFilters = computed(() => activeFilterCount.value > 0)
 
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  const statCards = computed(() => {
-    const items = ingredientStore.ingredients
-    return [
-      {
-        label: t('common.total'),
-        value: ingredientStore.pagination?.total ?? 0,
-        color: 'primary',
-        icon: 'mdi-flask-outline'
-      },
-      {
-        label: t('status.active'),
-        value: items.filter(i => i.is_active).length,
-        color: 'success',
-        icon: 'mdi-check-circle-outline'
-      },
-      {
-        label: t('status.inactive'),
-        value: items.filter(i => !i.is_active).length,
-        color: 'grey',
-        icon: 'mdi-close-circle-outline'
-      },
-      {
-        label: t('inventory.low_stock'),
-        value: items.filter(
-          i => i.reorder_point && i.stock_quantity <= i.reorder_point
-        ).length,
-        color: 'warning',
-        icon: 'mdi-alert-outline'
-      }
-    ]
-  })
-
   // ── Headers ───────────────────────────────────────────────────────────────────
   const headers = computed(() => [
     { title: t('form.name'), key: 'name', sortable: true },

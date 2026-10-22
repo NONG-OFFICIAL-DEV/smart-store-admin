@@ -220,7 +220,7 @@
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, onMounted } from 'vue'
+  import { ref, reactive, computed, watch } from 'vue'
   import { useProductUnitStore } from '@/stores/productUnitStore'
   import { useI18n } from 'vue-i18n'
   import { useCurrency } from '@/composables/useCurrency_v2.js'

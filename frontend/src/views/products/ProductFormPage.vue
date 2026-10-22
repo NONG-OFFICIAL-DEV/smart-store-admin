@@ -923,7 +923,6 @@
   import { BUSINESS_TYPES } from '@/constants/businessTypes'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
-  import BusinessTypeChip from '@/components/products/BusinessTypeChip.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   // ── Router ─────────────────────────────────────────────────────────────────────
   const route = useRoute()

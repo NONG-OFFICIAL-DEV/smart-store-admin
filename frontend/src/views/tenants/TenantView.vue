@@ -332,7 +332,6 @@
   const planFilter = ref([])
   const businessFiter = ref([])
   const activeFilter = ref('')
-  const showFilters = ref(true)
 
   const plans = computed(() => planStore.plans)
 
@@ -353,26 +352,6 @@
     return { items: data.data, total: data.meta.total }
   }
 
-  const activeFilterCount = computed(() => {
-    let count = 0
-    if (planFilter.value?.length > 0) count++
-    if (businessFiter.value?.length > 0) count++
-    if (activeFilter.value !== '') count++
-    return count
-  })
-
-  const hasActiveFilters = computed(
-    () =>
-      planFilter.value?.length > 0 ||
-      businessFiter.value?.length > 0 ||
-      activeFilter.value !== ''
-  )
-
-  const resetFilters = () => {
-    planFilter.value = []
-    businessFiter.value = []
-    activeFilter.value = ''
-  }
 
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [

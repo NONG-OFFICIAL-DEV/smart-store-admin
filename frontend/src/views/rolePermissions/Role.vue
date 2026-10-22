@@ -125,14 +125,12 @@
   import { usePermissionStore } from '@/stores/permissionStore'
   import { useRoleStore } from '@/stores/roleStore'
   import { getAllRolesApi } from '@/api/roleService'
-  import { usePermission } from '@/composables/usePermission'
   import RoleFormDialog from '@/components/rolePermissions/RoleFormDialog.vue'
   import RolePermissionsDialog from '@/components/rolePermissions/RolePermissionsDialog.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useAppUtils, AppTable } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
-  const { isSuperAdmin } = usePermission()
 
   const roleStore = useRoleStore()
   const permStore = usePermissionStore()

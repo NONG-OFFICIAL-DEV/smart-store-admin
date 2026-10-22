@@ -2,9 +2,6 @@
   <div>
     <AppToolbar :title="t('pos.food.title')">
       <template #actions>
-        <!-- Order type — only rendered at all when there's an actual
-             choice (2+ enabled); a single enabled type is just implied,
-             no UI needed. -->
         <v-btn-toggle
           v-if="enabledOrderTypes.length > 1"
           :model-value="posStore.orderType"
@@ -37,14 +34,6 @@
         >
           {{ tableButtonLabel }}
         </v-btn>
-        <!-- <v-chip
-          :size="touch ? 'default' : 'small'"
-          variant="tonal"
-          rounded="lg"
-          prepend-icon="mdi-store-outline"
-        >
-          {{ selectedBranchName || t('pos.select_branch') }}
-        </v-chip> -->
       </template>
     </AppToolbar>
 
@@ -280,9 +269,7 @@
   // The active branch is chosen globally via the sidebar branch switcher
   // (or fixed to the staff's own branch) — see authStore.activeBranchId.
   const branchId = computed(() => authStore.activeBranchId)
-  const selectedBranchName = computed(
-    () => branchStore.branches.find(b => b.id === branchId.value)?.name ?? ''
-  )
+
   const activeBranchPrinterName = computed(
     () => branchStore.branches.find(b => b.id === branchId.value)?.printer_name ?? null
   )

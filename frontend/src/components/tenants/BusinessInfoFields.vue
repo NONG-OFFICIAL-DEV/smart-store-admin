@@ -61,17 +61,6 @@
       >
         <template #item="{ props: p, item }">
           <v-list-item v-bind="p">
-            <template #prepend>
-              <v-avatar
-                :color="item.raw.color"
-                variant="tonal"
-                size="28"
-                rounded="md"
-                class="mr-2"
-              >
-                <v-icon :icon="item.raw.icon" size="15" />
-              </v-avatar>
-            </template>
             <template #append>
               <span class="text-caption text-medium-emphasis">{{ item.raw.code }}</span>
             </template>
@@ -79,9 +68,6 @@
         </template>
         <template #selection="{ item }">
           <div class="d-flex align-center ga-2">
-            <v-avatar :color="item.raw.color" variant="tonal" size="22" rounded="sm">
-              <v-icon :icon="item.raw.icon" size="13" />
-            </v-avatar>
             <span class="text-body-2">{{ item.raw.name }}</span>
           </div>
         </template>

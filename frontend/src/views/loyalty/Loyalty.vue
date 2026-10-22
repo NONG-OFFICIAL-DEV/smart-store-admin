@@ -281,13 +281,6 @@
   const usagePercent = (count, limit) =>
     limit ? Math.min(Math.round((count / limit) * 100), 100) : null
 
-  // ── Stats ─────────────────────────────────────────────────────────────────────
-  const stats = computed(() => ({
-    activePromos: promotionStore.promotions.filter(p => p.is_active).length,
-    totalPromos: promotionStore.promotions.length,
-    activeCoupons: couponStore.coupons.filter(c => c.is_active).length,
-    totalCoupons: couponStore.pagination?.total || 0
-  }))
 </script>
 
 <template>
