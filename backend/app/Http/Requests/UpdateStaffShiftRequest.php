@@ -19,6 +19,7 @@ class UpdateStaffShiftRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'shift_id' => ['sometimes', 'uuid', 'exists:shifts,id'],
             'branch_id' => ['sometimes', 'uuid', 'exists:branches,id'],
             'shift_date' => ['sometimes', 'date', 'date_format:Y-m-d'],
             'actual_start' => ['nullable', 'date'],

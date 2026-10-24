@@ -80,6 +80,22 @@ class BranchMenuController extends Controller
         return $this->noContent('Menu removed from branch.');
     }
 
+    // Drag-reorder in MenuCardList.vue — assigns sequential sort_order
+    // matching the given id order. Any id not belonging to the caller's
+    // tenant is silently skipped (TenantScope-filtered), same pattern as
+    // TableController::reorder().
+    public function reorder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'branch_menu_ids' => ['required', 'array', 'min:1'],
+            'branch_menu_ids.*' => ['required', 'uuid'],
+        ]);
+
+        $this->branchMenus->reorder($validated['branch_menu_ids']);
+
+        return $this->success(null, 'Branch menus reordered successfully.');
+    }
+
     public function availableNow(string $branchId): JsonResponse
     {
         $available = $this->branchMenus->availableNow($branchId);

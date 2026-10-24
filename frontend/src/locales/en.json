@@ -140,9 +140,7 @@
     "view_all": "View All",
     "take_photo": "Take Photo",
     "assign": "Assign Staff",
-    "create_coupon": "Create Coupons",
     "loyalty": "Loyalty Program",
-    "promotions": "Create Promotions",
     "create_promotion": "Create Promotion",
     "manage": "Manage"
   },
@@ -1584,9 +1582,60 @@
     }
   },
   "staff": {
-    "title": "Staff Management",
-    "subtitle": "Manage your team members and their access",
+    "title": "Staff",
+    "subtitle": "Who works when, and who showed up.",
     "create_employee": "Create Employee",
+    "page": {
+      "add_staff": "Add staff",
+      "schedule_tab": "Schedule",
+      "team_tab": "Team",
+      "summary": {
+        "on_shift_now": "On shift now",
+        "scheduled_today": "Scheduled today",
+        "absent_this_week": "Absent this week",
+        "active_staff": "Active staff"
+      }
+    },
+    "schedule": {
+      "prev_week": "Previous week",
+      "next_week": "Next week",
+      "today": "Today",
+      "copy_last_week": "Copy last week",
+      "by_staff": "By staff",
+      "calendar": "Calendar",
+      "manage_shifts": "Manage shifts",
+      "hours_this_week": "{hours}h this week",
+      "filter_staff": "Filter by staff",
+      "badge": {
+        "present": "Present",
+        "late": "Late {m}m",
+        "absent": "Absent",
+        "on_shift": "On shift",
+        "scheduled": "Scheduled"
+      },
+      "menu": {
+        "choose_shift": "Shift",
+        "staff": "Staff",
+        "date": "Date",
+        "repeat_week": "Repeat for the week",
+        "repeat_result": "{created} created, {skipped} skipped",
+        "mark_attendance": "Attendance",
+        "none": "—",
+        "present": "Present",
+        "late": "Late",
+        "absent": "Absent",
+        "assign": "Assign",
+        "remove_title": "Remove assignment",
+        "remove_message": "Remove this shift assignment?",
+        "pick_shift_first": "Choose a shift first",
+        "pick_staff_date_first": "Choose a staff member and date first"
+      },
+      "copy": {
+        "title": "Copy last week's schedule",
+        "message": "This copies last week's shift assignments to this week for active staff. Existing assignments for this week are left as-is.",
+        "result": "{copied} copied, {skipped} skipped"
+      }
+    },
     "table": {
       "name": "Name",
       "code": "Code",
@@ -1594,6 +1643,7 @@
       "role": "Role",
       "branch": "Branch",
       "compensation": "Compensation",
+      "this_week": "This week",
       "status": "Status",
       "joined": "Join Date",
       "actions": "Actions"
@@ -1629,17 +1679,14 @@
     "section": {
       "employment": "Employment",
       "account_info": "Account Info",
-      "employment_details": "Employment Details",
-      "review_confirm": "Review & Confirm"
+      "employment_details": "Employment Details"
     },
     "field": {
       "role_required": "Role *",
       "hire_date": "Hire Date",
       "hourly_rate": "Hourly Rate ($)",
       "salary": "Monthly Salary ($)",
-      "pin": "POS PIN (4–6 digits)",
       "employee_code": "Employee Code",
-      "allow_login": "Allow login",
       "first_name_required": "First Name *",
       "last_name_required": "Last Name *",
       "email_required": "Email *",
@@ -1649,20 +1696,6 @@
     "reset_password": "Reset Password",
     "reset_password_confirm": "This will set a new temporary password and require the staff member to change it on next login.",
     "reset_password_failed": "Failed to reset password",
-    "review": {
-      "hourly_rate": "Hourly Rate",
-      "salary": "Monthly Salary"
-    },
-    "login_account_notice": "A login account will be created and the staff member will be assigned to the selected branch.",
-    "step_of": "Step {step} of {total}",
-    "step": {
-      "account": "Account",
-      "employment": "Employment",
-      "review": "Review"
-    },
-    "validation": {
-      "pin": "PIN must be 4–6 digits"
-    },
     "list": {
       "subtitle": "Employees · Roles · Access",
       "view_shifts": "View Shifts",
@@ -1683,8 +1716,8 @@
       }
     },
     "filter": {
-      "all_branches": "All Branches",
-      "all_roles": "All Roles"
+      "all_roles": "All Roles",
+      "search": "Search name, code, phone…"
     }
   },
   "shifts": {
@@ -1718,6 +1751,9 @@
         "type": {
           "label": "Type"
         },
+        "color": {
+          "label": "Color"
+        },
         "timeWindow": "Time Window",
         "startTime": {
           "label": "Start Time",
@@ -1746,6 +1782,7 @@
       },
       "rules": {
         "required": "Required",
+        "zeroDuration": "End time must differ from start time",
         "breakNegative": "Cannot be negative",
         "breakMax": "Max 480 minutes"
       }
@@ -2437,43 +2474,30 @@
   "promotions": {
     "title": "Promotions, Loyalty & Discounts",
     "subtitle": "Manage your promotional campaigns and discounts",
-    "stats": {
-      "active_promotions": "Active Promotions",
-      "total_promotions": "Total Promotions",
-      "active_coupons": "Active Coupons",
-      "total_coupons": "Total Coupons"
-    },
     "dialog": {
       "edit_title": "Edit Promotion",
-      "new_title": "New Promotion",
-      "step_progress": "Step {current} of {total} — {subtitle}"
-    },
-    "table": {
-      "code": "Promote Code",
-      "promotion": "Promotion",
-      "usage": "Usage",
-      "expires": "Expires",
-      "status": "Status",
-      "type": "Type",
-      "discount": "Discount",
-      "duration": "Duration"
+      "new_title": "New Promotion"
     },
     "delete_title": "Delete Promotion",
     "delete_message": "Are you sure you want to delete this promotion?",
+    "delete_message_with_coupons": "This promotion has {n} coupons. Delete anyway?",
+    "list": {
+      "new": "New Promotion",
+      "search_placeholder": "Search promotions"
+    },
+    "card": {
+      "usage_label": "{usage} used",
+      "no_coupons": "No coupons",
+      "coupons_count": "{n} coupons",
+      "no_coupons_warning": "No coupon codes linked to this promotion yet.",
+      "add_coupon": "Add coupon",
+      "no_end_date": "No end date",
+      "expired": "Expired",
+      "remove_title": "Remove coupon",
+      "remove_message": "Delete this coupon code? It will no longer be redeemable."
+    },
     "empty": "No promotions found",
-    "empty_coupon": "No coupons found",
-    "empty_coupon_sub": "Create your first coupon to start offering discounts",
-    "empty_sub": "Create your first promotion to start offering discounts",
-    "filter": {
-      "search_placeholder": "Search code or status..."
-    },
     "unlimited_usage": "Unlimited usage",
-    "used_count": "{count} used",
-    "usage": "Used",
-    "tabs": {
-      "promotions": "Promotions",
-      "coupons": "Coupons"
-    },
     "step": {
       "details": "Details",
       "conditions": "Conditions",
@@ -2522,14 +2546,7 @@
       "fixed": "Fixed Amount Off",
       "buy_x_get_y": "Buy 1 Get 1 Free",
       "free_item": "Free Item",
-      "free_shipping": "Free Shipping",
-      "loyalty_points": "Loyalty Points",
-      "custom": "Custom",
-      "coupon": "Coupon Code",
       "combo": "Combo Deal",
-      "n_for_m": "N for M",
-      "tiered": "Tiered Discount",
-      "flash_sale": "Flash Sale",
       "happy_hour": "Happy Hour"
     },
     "hints": {
@@ -3392,7 +3409,6 @@
       "day_sat": "Sat",
       "every_day": "Every day",
       "selected_days": "Selected: {days}",
-      "sort_order_hint": "Display order (0 = first)",
       "assign_menu": "Assign Menu"
     },
     "list": {

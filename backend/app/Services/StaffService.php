@@ -11,7 +11,6 @@ use App\Repositories\Contracts\StaffRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class StaffService extends BaseService
@@ -65,11 +64,6 @@ class StaffService extends BaseService
                 'is_active' => $data['is_active'] ?? true,
             ];
 
-            if (! empty($data['pin_code'])) {
-                $this->assertPinUnique($data['pin_code'], $data['branch_id']);
-                $staffData['pin_code'] = Hash::make($data['pin_code']);
-            }
-
             $staffData['employee_code'] = Staff::generateEmployeeCode($tenantId);
 
             $staff = $this->repository->create($staffData);
@@ -82,14 +76,6 @@ class StaffService extends BaseService
     {
         if (array_key_exists('role_id', $validated)) {
             $this->assertRoleAssignable($validated['role_id'], $staff->tenant_id);
-        }
-
-        if (array_key_exists('pin_code', $validated)) {
-            if (! is_null($validated['pin_code'])) {
-                $branchId = $validated['branch_id'] ?? $staff->branch_id;
-                $this->assertPinUnique($validated['pin_code'], $branchId, $staff->id);
-                $validated['pin_code'] = Hash::make($validated['pin_code']);
-            }
         }
 
         $staff = $this->repository->update($staff, $validated);
@@ -107,11 +93,6 @@ class StaffService extends BaseService
     {
         // Soft-disable only — staff have orders/shifts/payments linked, never hard delete.
         return $this->repository->update($staff, ['is_active' => false]);
-    }
-
-    public function removePin(Staff $staff): Staff
-    {
-        return $this->repository->update($staff, ['pin_code' => null]);
     }
 
     // Admin generates (or the caller can supply) a new temporary password
@@ -186,23 +167,4 @@ class StaffService extends BaseService
         }
     }
 
-    private function assertPinUnique(string $plainPin, string $branchId, ?string $excludeStaffId = null): void
-    {
-        $query = Staff::withoutGlobalScopes()
-            ->where('branch_id', $branchId)
-            ->where('is_active', true)
-            ->whereNotNull('pin_code');
-
-        if ($excludeStaffId) {
-            $query->where('id', '!=', $excludeStaffId);
-        }
-
-        foreach ($query->cursor() as $existing) {
-            if (Hash::check($plainPin, $existing->pin_code)) {
-                throw ValidationException::withMessages([
-                    'pin_code' => 'This PIN is already in use by another staff member in this branch.',
-                ]);
-            }
-        }
-    }
 }

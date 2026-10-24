@@ -8,6 +8,7 @@ use App\Models\Menu;
 use App\Repositories\Contracts\BranchMenuRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\DB;
 
 class BranchMenuService extends BaseService
 {
@@ -95,6 +96,21 @@ class BranchMenuService extends BaseService
     public function delete(BranchMenu $branchMenu): bool
     {
         return $this->repository->delete($branchMenu);
+    }
+
+    // Drag-reorder in MenuCardList.vue — assigns sequential sort_order
+    // within the given order, same pattern as TableService::reorder(). The
+    // list is scoped to one menu's branch-assignment rows, so this only
+    // ever reorders assignments that already belong to the same menu_id.
+    public function reorder(array $orderedIds): void
+    {
+        $assignments = BranchMenu::whereIn('id', $orderedIds)->get()->keyBy('id');
+
+        DB::transaction(function () use ($orderedIds, $assignments) {
+            foreach ($orderedIds as $index => $id) {
+                $assignments->get($id)?->update(['sort_order' => $index]);
+            }
+        });
     }
 
     public function unassign(string $branchId, string $menuId): void

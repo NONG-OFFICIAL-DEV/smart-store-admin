@@ -14,6 +14,7 @@ class ShiftResource extends JsonResource
             'tenant_id' => $this->tenant_id,
             'name' => $this->name,
             'shift_type' => $this->shift_type,
+            'color' => $this->color,
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'break_minutes' => $this->break_minutes,

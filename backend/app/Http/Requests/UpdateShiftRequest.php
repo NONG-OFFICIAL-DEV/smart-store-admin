@@ -21,6 +21,7 @@ class UpdateShiftRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:60'],
             'shift_type' => ['nullable', 'in:morning,afternoon,evening,full_day,split'],
+            'color' => ['nullable', 'in:primary,secondary,success,warning,error,info,purple,teal,indigo,brown'],
             'start_time' => ['sometimes', 'required', 'date_format:H:i,H:i:s'],
             'end_time' => ['sometimes', 'required', 'date_format:H:i,H:i:s'],
             'break_minutes' => ['nullable', 'integer', 'min:0'],

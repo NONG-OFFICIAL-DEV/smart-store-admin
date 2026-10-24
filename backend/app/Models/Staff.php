@@ -14,14 +14,11 @@ class Staff extends BaseModel
         'user_id',
         'role_id',
         'employee_code',
-        'pin_code',
         'hire_date',
         'hourly_rate',
         'is_active',
         'salary'
     ];
-
-    protected $hidden = ['pin_code'];
 
     protected $casts = [
         'hire_date'    => 'date',

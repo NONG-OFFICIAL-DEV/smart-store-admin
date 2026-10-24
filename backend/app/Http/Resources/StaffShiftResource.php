@@ -24,8 +24,10 @@ class StaffShiftResource extends JsonResource
                 'id' => $this->shift->id,
                 'name' => $this->shift->name,
                 'shift_type' => $this->shift->shift_type,
+                'color' => $this->shift->color,
                 'start_time' => $this->shift->start_time,
                 'end_time' => $this->shift->end_time,
+                'break_minutes' => $this->shift->break_minutes,
             ]),
             'staff' => $this->whenLoaded('staff', fn () => [
                 'id' => $this->staff->id,

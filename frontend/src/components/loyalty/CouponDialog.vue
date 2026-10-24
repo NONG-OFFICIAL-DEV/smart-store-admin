@@ -8,7 +8,11 @@
   const props = defineProps({
     modelValue: Boolean,
     editing: { type: Object, default: null },
-    promotions: { type: Array, default: () => [] }
+    promotions: { type: Array, default: () => [] },
+    // Opened from a promotion card's "+ Add coupon" button — the promotion
+    // is already known from context, so lock it instead of making the user
+    // re-pick it from the dropdown.
+    presetPromotionId: { type: String, default: null }
   })
 
   const emit = defineEmits(['update:modelValue', 'save'])
@@ -25,10 +29,25 @@
 
   const form = ref(defaultForm())
 
+  // Populate (edit) or reset+preset (create) in ONE watcher, triggered only
+  // when the dialog actually opens — both pieces of logic read `editing`/
+  // `presetPromotionId` from the same synchronous callback, so there's no
+  // dependency on two separate watchers firing in a particular relative
+  // order. Splitting this across two watchers (one for `editing`, one for
+  // `modelValue`) was the previous bug: after an edit cycle left `editing`
+  // stale, the next "+ Add coupon" open could resolve the two watchers in
+  // an order where the preset never got applied, leaving Linked Promotion
+  // blank.
   watch(
-    () => props.editing,
-    val => {
-      form.value = val ? { ...val } : defaultForm()
+    () => props.modelValue,
+    open => {
+      if (!open) return
+      if (props.editing) {
+        form.value = { ...props.editing }
+      } else {
+        form.value = defaultForm()
+        if (props.presetPromotionId) form.value.promotion_id = props.presetPromotionId
+      }
     },
     { immediate: true }
   )
@@ -64,6 +83,7 @@
               :label="t('coupons.dialog.linked_promotion')"
               variant="outlined"
               rounded="lg"
+              :disabled="!!editing || !!presetPromotionId"
             />
           </v-col>
 

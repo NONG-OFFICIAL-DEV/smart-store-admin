@@ -456,29 +456,6 @@ class AuthController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // SET PIN — lets a staff member set/change their own PIN after normal login
-    // PUT /api/auth/set-pin
-    // Body: { "pin_code": "1122" }
-    // ─────────────────────────────────────────────────────────────────────────────
-    public function setPin(Request $request)
-    {
-        $request->validate([
-            'pin_code' => 'required|string|min:4|max:6|regex:/^\d+$/',
-        ]);
-
-        $user  = JWTAuth::parseToken()->authenticate();
-        $staff = $user->staff()->withoutGlobalScopes()->first();
-
-        if (!$staff) {
-            return response()->json(['status' => 'error', 'message' => 'No staff record found.'], 404);
-        }
-
-        $staff->update(['pin_code' => Hash::make($request->pin_code)]);
-
-        return response()->json(['status' => 'success', 'message' => 'PIN updated successfully.']);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
     // CHANGE PASSWORD — self-service, requires the current password.
     // PUT /api/v1/auth/password
     // Body: { "current_password": "...", "new_password": "...", "new_password_confirmation": "..." }

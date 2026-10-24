@@ -258,30 +258,6 @@ class StaffServiceTest extends TestCase
         $this->assertTrue($staff->user->must_change_password);
     }
 
-    public function test_duplicate_pin_in_the_same_branch_is_rejected(): void
-    {
-        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
-        $branch = $this->makeBranch($tenantA, 'Main');
-        $role = $this->makeRole($tenantA, 'Cashier');
-
-        Auth::login($ownerA);
-        $service = $this->app->make(StaffService::class);
-
-        $service->create([
-            'first_name' => 'Jane', 'last_name' => 'Doe', 'email' => 'jane2@example.test',
-            'password' => 'secret123', 'branch_id' => $branch->id, 'role_id' => $role->id,
-            'pin_code' => '1234',
-        ], new Request());
-
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
-
-        $service->create([
-            'first_name' => 'John', 'last_name' => 'Roe', 'email' => 'john2@example.test',
-            'password' => 'secret123', 'branch_id' => $branch->id, 'role_id' => $role->id,
-            'pin_code' => '1234',
-        ], new Request());
-    }
-
     public function test_destroy_soft_disables_instead_of_deleting(): void
     {
         [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');

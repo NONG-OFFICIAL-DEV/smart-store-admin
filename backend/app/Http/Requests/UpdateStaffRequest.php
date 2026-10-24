@@ -24,7 +24,6 @@ class UpdateStaffRequest extends FormRequest
             'hire_date' => ['nullable', 'date'],
             'hourly_rate' => ['nullable', 'numeric', 'min:0'],
             'salary' => ['nullable', 'numeric', 'min:0'],
-            'pin_code' => ['nullable', 'digits_between:4,6'],
             'is_active' => ['boolean'],
             'employee_code' => ['nullable', 'string', 'max:30'],
         ];

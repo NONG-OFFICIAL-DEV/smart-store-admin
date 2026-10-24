@@ -111,7 +111,6 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
     Route::post('/logout',  [AuthController::class, 'logout']);
-    Route::put('/set-pin', [AuthController::class, 'setPin']);
 
     Route::prefix('two-factor')->group(function () {
         Route::post('setup',   [TwoFactorAuthController::class, 'setup']);
@@ -559,6 +558,7 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
 
 
     Route::middleware('permission:menus.manage')->group(function () {
+        Route::post('branch-menus/reorder', [BranchMenuController::class, 'reorder']);
         Route::apiResource('branch-menus', BranchMenuController::class);
         Route::delete('branch-menus/unassign', [BranchMenuController::class, 'unassign']);
     });

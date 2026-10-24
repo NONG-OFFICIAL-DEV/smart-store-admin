@@ -74,13 +74,6 @@ class StaffController extends Controller
         return $this->success(null, 'Staff member deactivated successfully.', 200, [], 'STAFF_DEACTIVATED');
     }
 
-    public function removePin(Staff $staff): JsonResponse
-    {
-        $this->staff->removePin($staff);
-
-        return $this->success(null, 'PIN removed successfully.', 200, [], 'PIN_REMOVED');
-    }
-
     public function resetPassword(Staff $staff): JsonResponse
     {
         try {

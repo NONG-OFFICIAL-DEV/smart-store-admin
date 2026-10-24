@@ -133,36 +133,6 @@
             {{ $t('menus.assign.selected_days', { days: selectedDaysLabel }) }}
           </p>
         </v-col>
-
-        <!-- Sort Order -->
-        <v-col cols="12" sm="6">
-          <v-text-field
-            v-model.number="form.sort_order"
-            :label="$t('categories.form.sort_order')"
-            variant="outlined"
-            type="number"
-            min="0"
-            prepend-inner-icon="mdi-sort"
-            :hint="$t('menus.assign.sort_order_hint')"
-            persistent-hint
-          />
-        </v-col>
-
-        <!-- Active toggle -->
-        <v-col
-          cols="12"
-          sm="6"
-          class="d-flex align-center justify-space-between"
-        >
-          <span class="text-body-2">{{ $t('status.active') }}</span>
-          <v-switch
-            v-model="form.is_active"
-            color="success"
-            hide-details
-            density="compact"
-            inset
-          />
-        </v-col>
       </v-row>
     </v-form>
 
@@ -226,9 +196,7 @@
     menu_id: null,
     available_from: null,
     available_until: null,
-    days_of_week: [],
-    sort_order: 0,
-    is_active: true
+    days_of_week: []
   })
 
   const form = ref(defaultForm())
@@ -287,9 +255,7 @@
           menu_id: item.menu_id,
           available_from: stripSeconds(item.available_from), // ← strip :ss
           available_until: stripSeconds(item.available_until), // ← strip :ss
-          days_of_week: item.days_of_week ?? [],
-          sort_order: item.sort_order ?? 0,
-          is_active: item.is_active ?? true
+          days_of_week: item.days_of_week ?? []
         }
       } else {
         form.value = defaultForm()
@@ -341,9 +307,7 @@
       available_until: stripSeconds(form.value.available_until), // ← strip :ss
       days_of_week: form.value.days_of_week.length
         ? form.value.days_of_week
-        : null,
-      sort_order: form.value.sort_order ?? 0,
-      is_active: form.value.is_active
+        : null
     }
 
     emit('saved', payload)

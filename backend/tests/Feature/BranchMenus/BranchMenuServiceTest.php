@@ -139,4 +139,25 @@ class BranchMenuServiceTest extends TestCase
         $service->unassign($branch->id, $menu->id);
         $this->assertNull(BranchMenu::find($assignment->id));
     }
+
+    public function test_reorder_assigns_sequential_sort_order_matching_the_given_id_order(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        $branchA = $this->makeBranch($tenantA, 'Branch A');
+        $branchB = $this->makeBranch($tenantA, 'Branch B');
+        $branchC = $this->makeBranch($tenantA, 'Branch C');
+        $menu = Menu::create(['tenant_id' => $tenantA->id, 'name' => 'Lunch Menu']);
+
+        Auth::login($ownerA);
+        $a = BranchMenu::create(['branch_id' => $branchA->id, 'menu_id' => $menu->id]);
+        $b = BranchMenu::create(['branch_id' => $branchB->id, 'menu_id' => $menu->id]);
+        $c = BranchMenu::create(['branch_id' => $branchC->id, 'menu_id' => $menu->id]);
+
+        $service = $this->app->make(BranchMenuService::class);
+        $service->reorder([$c->id, $a->id, $b->id]);
+
+        $this->assertSame(0, $c->fresh()->sort_order);
+        $this->assertSame(1, $a->fresh()->sort_order);
+        $this->assertSame(2, $b->fresh()->sort_order);
+    }
 }

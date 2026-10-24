@@ -15,6 +15,7 @@ class Shift extends BaseModel
         'branch_id',
         'name',
         'shift_type',
+        'color',
         'start_time',
         'end_time',
         'break_minutes',

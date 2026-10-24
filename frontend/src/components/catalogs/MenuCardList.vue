@@ -68,58 +68,77 @@
         <!-- ── Branch assignments ─────────────────────────────────────── -->
         <div class="px-4 d-flex flex-column">
           <template v-if="assignmentsFor(item.id).length">
-            <div
-              v-for="a in assignmentsFor(item.id)"
-              :key="a.id"
-              class="branch-row d-flex align-center flex-wrap ga-4"
+            <draggable
+              v-model="localAssignments[item.id]"
+              tag="div"
+              item-key="id"
+              handle=".branch-drag-handle"
+              @end="onReorderEnd(item.id)"
             >
-              <div class="d-flex align-center ga-2 branch-row__col">
-                <v-icon
-                  icon="mdi-store-outline"
-                  size="16"
-                  class="text-medium-emphasis"
-                />
-                <span class="text-body-2">{{ a.branch?.name ?? '—' }}</span>
-              </div>
-              <div class="d-flex align-center ga-1 branch-row__col">
-                <v-icon
-                  icon="mdi-clock-outline"
-                  size="14"
-                  class="text-medium-emphasis"
-                />
-                <span class="text-body-2">{{ timeLabel(a) }}</span>
-              </div>
-              <div class="text-body-2 branch-row__col">
-                {{ daysLabel(a.days_of_week) }}
-              </div>
-              <div class="d-flex align-center ga-2 branch-row__col">
-                <span
-                  class="status-dot"
-                  :class="`status-dot--${liveStatus(a).state}`"
-                />
-                <span class="text-body-2 text-medium-emphasis">
-                  {{ liveStatus(a).label }}
-                </span>
-              </div>
-              <v-spacer />
-              <v-btn
-                size="small"
-                variant="tonal"
-                rounded="lg"
-                :aria-label="t('btn.edit')"
-                @click="openEditAssignment(item, a)"
-              >
-                {{ t('btn.edit') }}
-              </v-btn>
-              <v-btn
-                icon="mdi-close-circle-outline"
-                size="36"
-                variant="text"
-                color="error"
-                :aria-label="t('menus.card.remove_from_branch')"
-                @click="confirmRemoveAssignment(a.id)"
-              />
-            </div>
+              <template #item="{ element: a }">
+                <div class="branch-row d-flex align-center flex-wrap ga-4">
+                  <v-icon
+                    icon="mdi-drag"
+                    size="18"
+                    class="branch-drag-handle text-medium-emphasis"
+                  />
+                  <div class="d-flex align-center ga-2 branch-row__col">
+                    <v-icon
+                      icon="mdi-store-outline"
+                      size="16"
+                      class="text-medium-emphasis"
+                    />
+                    <span class="text-body-2">{{ a.branch?.name ?? '—' }}</span>
+                  </div>
+                  <div class="d-flex align-center ga-1 branch-row__col">
+                    <v-icon
+                      icon="mdi-clock-outline"
+                      size="14"
+                      class="text-medium-emphasis"
+                    />
+                    <span class="text-body-2">{{ timeLabel(a) }}</span>
+                  </div>
+                  <div class="text-body-2 branch-row__col">
+                    {{ daysLabel(a.days_of_week) }}
+                  </div>
+                  <div class="d-flex align-center ga-2 branch-row__col">
+                    <span
+                      class="status-dot"
+                      :class="`status-dot--${liveStatus(a).state}`"
+                    />
+                    <span class="text-body-2 text-medium-emphasis">
+                      {{ liveStatus(a).label }}
+                    </span>
+                  </div>
+                  <v-switch
+                    :model-value="a.is_active"
+                    color="success"
+                    density="compact"
+                    hide-details
+                    :label="a.is_active ? t('status.active') : t('status.inactive')"
+                    @update:model-value="toggleAssignmentActive(a, $event)"
+                  />
+                  <v-spacer />
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    rounded="lg"
+                    :aria-label="t('btn.edit')"
+                    @click="openEditAssignment(item, a)"
+                  >
+                    {{ t('btn.edit') }}
+                  </v-btn>
+                  <v-btn
+                    icon="mdi-close-circle-outline"
+                    size="36"
+                    variant="text"
+                    color="error"
+                    :aria-label="t('menus.card.remove_from_branch')"
+                    @click="confirmRemoveAssignment(a.id)"
+                  />
+                </div>
+              </template>
+            </draggable>
           </template>
 
           <div
@@ -137,10 +156,9 @@
 
         <div class="pa-3">
           <v-btn
-            block
             variant="outlined"
             rounded="lg"
-            class="assign-branch-btn"
+            class="border-dashed"
             prepend-icon="mdi-plus"
             @click="openAssignForMenu(item)"
           >
@@ -179,9 +197,10 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
+  import draggable from 'vuedraggable'
   import { useMenuStore } from '@/stores/menuStore'
   import { useBranchMenuStore } from '@/stores/branchMenuStore'
   import { useBranchStore } from '@/stores/branchStore'
@@ -232,6 +251,41 @@
   // client-side instead of adding a new endpoint / causing N+1 requests).
   const assignmentsFor = menuId => branchMenuStore.getBranchesByMenu(menuId)
   const branchCountFor = menuId => assignmentsFor(menuId).length
+
+  // ── Drag-reorder ──────────────────────────────────────────────────────────
+  // vuedraggable needs its own mutable array per menu card to reorder into —
+  // assignmentsFor() is derived (sorted by sort_order), so dragging it
+  // directly wouldn't hold the in-progress order. Kept in sync with the
+  // store whenever menus/assignments change, same pattern as
+  // TableManagement.vue's single `manageTables` ref, just keyed per menu.
+  const localAssignments = reactive({})
+  watch(
+    () => [menuStore.menus, branchMenuStore.branchMenus],
+    () => {
+      for (const menu of menuStore.menus) {
+        localAssignments[menu.id] = [...assignmentsFor(menu.id)]
+      }
+    },
+    { immediate: true, deep: true }
+  )
+
+  async function onReorderEnd(menuId) {
+    const ids = localAssignments[menuId].map(a => a.id)
+    try {
+      await branchMenuStore.reorder(ids)
+      notif(t('messages.saved_success'), { type: 'success' })
+    } catch {
+      notif(t('common.error'), { type: 'error' })
+      localAssignments[menuId] = [...assignmentsFor(menuId)]
+    }
+  }
+
+  async function toggleAssignmentActive(assignment, value) {
+    const res = await branchMenuStore.update(assignment.id, { is_active: value })
+    if (!res.success) {
+      notif(res.error ?? t('common.error'), { type: 'error' })
+    }
+  }
 
   // ── Days-of-week shorthand ───────────────────────────────────────────────
   const DAY_LABEL_KEYS = [
@@ -378,7 +432,7 @@
     try {
       if (payload.id) {
         await branchMenuStore.update(payload.id, payload)
-        notif(t('menus.list.messages.assignment_updated'), { type: 'success' })
+        notif(t('menus.list.messages.assignment_updated'), { type: 'success'})
       } else {
         await branchMenuStore.create(payload)
         notif(t('menus.list.messages.menu_assigned'), { type: 'success' })
@@ -434,9 +488,6 @@
   }
   .no-branches-warning {
     background: rgba(var(--v-theme-warning), 0.12);
-  }
-  .assign-branch-btn {
-    border-style: dashed !important;
   }
   .status-dot {
     width: 8px;

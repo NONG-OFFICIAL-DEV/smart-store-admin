@@ -36,6 +36,30 @@
               />
             </v-col>
 
+            <!-- Color -->
+            <v-col cols="12">
+              <v-select
+                v-model="form.color"
+                :items="SHIFT_COLORS"
+                item-title="label"
+                item-value="value"
+                :label="$t('shifts.form.fields.color.label')"
+                variant="outlined"
+                rounded="lg"
+              >
+                <template #prepend-inner>
+                  <v-icon icon="mdi-circle" :color="form.color" />
+                </template>
+                <template #item="{ props: itemProps, item: opt }">
+                  <v-list-item v-bind="itemProps">
+                    <template #prepend>
+                      <v-icon icon="mdi-circle" :color="opt.raw.value" />
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-select>
+            </v-col>
+
             <!-- Time Window divider -->
             <v-col cols="12">
               <v-divider class="my-1" />
@@ -146,6 +170,7 @@
   import { ref, reactive, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { AppDialog, AppTimePicker } from '@nong-official-dev/core'
+  import { SHIFT_COLORS, DEFAULT_SHIFT_COLOR } from '@/utils/shiftColors'
   const { t } = useI18n()
 
   const props = defineProps({
@@ -186,6 +211,7 @@
   const defaultForm = () => ({
     name: '',
     shift_type: null,
+    color: DEFAULT_SHIFT_COLOR,
     start_time: null,
     end_time: null,
     break_minutes: 0,
@@ -195,9 +221,9 @@
   const form = reactive(defaultForm())
 
   // AppTimePicker has no `rules` prop (only `errorMessages`), so it never
-  // registers with the surrounding v-form's validate() — the required
-  // check is driven manually instead, same pattern as AppDatePicker
-  // elsewhere in this app.
+  // registers with the surrounding v-form's validate() — required + zero-
+  // duration checks are driven manually instead, same pattern as
+  // AppDatePicker elsewhere in this app.
   const startTimeErrors = ref([])
   const endTimeErrors = ref([])
   watch(() => form.start_time, () => { startTimeErrors.value = [] })
@@ -241,10 +267,17 @@
     }
   }
 
+  // Overnight shifts (end < start) are valid by design — only an exact
+  // start === end is rejected, since that's a zero-duration shift rather
+  // than a genuine 24h one.
   const submit = async () => {
     const { valid } = await formRef.value.validate()
     startTimeErrors.value = form.start_time ? [] : [t('shifts.form.rules.required')]
-    endTimeErrors.value = form.end_time ? [] : [t('shifts.form.rules.required')]
+    endTimeErrors.value = !form.end_time
+      ? [t('shifts.form.rules.required')]
+      : form.end_time === form.start_time
+        ? [t('shifts.form.rules.zeroDuration')]
+        : []
     if (!valid || startTimeErrors.value.length || endTimeErrors.value.length) return
     emit('save', { ...form })
   }
@@ -252,6 +285,8 @@
   const close = () => {
     formRef.value?.reset()
     Object.assign(form, defaultForm())
+    startTimeErrors.value = []
+    endTimeErrors.value = []
     model.value = false
   }
 </script>

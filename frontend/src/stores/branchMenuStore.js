@@ -6,7 +6,8 @@ import {
   updateBranchMenuApi,
   deleteBranchMenuApi,
   unassignBranchMenuApi,
-  getAvailableMenusNowApi
+  getAvailableMenusNowApi,
+  reorderBranchMenusApi
 } from '@/api/menuBranchService'
 
 export const useBranchMenuStore = defineStore('branchMenu', {
@@ -29,9 +30,14 @@ export const useBranchMenuStore = defineStore('branchMenu', {
       return state.branchMenus.filter(m => m.branch_id === branchId)
     },
 
-    // Get all branches that have a specific menu
+    // Get all branches that have a specific menu, in display order — sorted
+    // by sort_order rather than relying on insertion/fetch order, so a
+    // drag-reorder (which only patches sort_order in place, not array
+    // position) is reflected immediately.
     getBranchesByMenu: state => menuId => {
-      return state.branchMenus.filter(m => m.menu_id === menuId)
+      return state.branchMenus
+        .filter(m => m.menu_id === menuId)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     },
 
     isLoading: state => state.loading,
@@ -153,6 +159,17 @@ export const useBranchMenuStore = defineStore('branchMenu', {
       } finally {
         this.loading = false
       }
+    },
+
+    // ── REORDER (drag-and-drop) ────────────────────────────────────────────
+    async reorder(branchMenuIds) {
+      await reorderBranchMenusApi(branchMenuIds)
+      // Keep local state's sort_order in sync so a subsequent render from
+      // `branchMenus` (not just the dragged array itself) stays correct.
+      branchMenuIds.forEach((id, index) => {
+        const item = this.branchMenus.find(m => m.id === id)
+        if (item) item.sort_order = index
+      })
     },
 
     // ── GET AVAILABLE MENUS RIGHT NOW ─────────────────────────────────────
