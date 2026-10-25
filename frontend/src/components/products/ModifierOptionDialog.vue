@@ -23,7 +23,7 @@
                 :error-messages="serverErrors.name"
                 maxlength="100"
                 counter
-                autofocus
+                :autofocus="!isTouch"
               />
             </div>
 
@@ -111,8 +111,10 @@
 import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppDialog } from '@nong-official-dev/core'
+import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
 const { t } = useI18n()
+const { isTouch } = useTouchDevice()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

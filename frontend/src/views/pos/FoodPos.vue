@@ -608,7 +608,9 @@
     /* Approximate remaining viewport below the app bar + page container
        padding — the workspace below scrolls internally instead of the
        whole page, so a few px of slack here is harmless. */
-    height: calc(94vh - 97px);
+    /* dvh (not vh) so the on-screen keyboard shrinking the visual viewport
+       doesn't just get the page clipped by a stale 94vh. */
+    height: calc(94dvh - 97px);
     min-height: 0;
     overflow: hidden;
   }
@@ -619,7 +621,7 @@
      assumes there's a product grid + cart filling the rest of the page. */
   .pos-page--no-branch {
     height: auto;
-    min-height: calc(94vh - 96px);
+    min-height: calc(94dvh - 96px);
     overflow: visible;
   }
   /* Vuetify's own .v-alert base rule sets `overflow: hidden` and

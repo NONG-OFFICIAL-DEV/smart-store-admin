@@ -391,7 +391,9 @@
 
 <style scoped>
   .pos-page {
-    height: calc(100vh - 96px);
+    /* dvh (not vh) so the on-screen keyboard shrinking the visual viewport
+       doesn't just get the page clipped by a stale 100vh. */
+    height: calc(100dvh - 96px);
     min-height: 0;
     overflow: hidden;
   }
@@ -402,7 +404,7 @@
      assumes there's a product grid + cart filling the rest of the page. */
   .pos-page--no-branch {
     height: auto;
-    min-height: calc(100vh - 96px);
+    min-height: calc(100dvh - 96px);
     overflow: visible;
   }
   /* Vuetify's own .v-alert base rule sets `overflow: hidden` and

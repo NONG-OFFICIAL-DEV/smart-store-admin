@@ -52,7 +52,7 @@
                 :rules="[r.required]"
                 prepend-inner-icon="mdi-account-outline"
                 maxlength="150"
-                autofocus
+                :autofocus="!isTouch"
               />
             </v-col>
 
@@ -311,10 +311,12 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useDate } from '@/composables/useDate'
   import { AppDialog, AppDatePicker, AppTimePicker } from '@nong-official-dev/core'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
   const { formatTime, formatShortDateTime } = useDate()
 
   const { t } = useI18n()
+  const { isTouch } = useTouchDevice()
 
   const props = defineProps({
     modelValue: Boolean,

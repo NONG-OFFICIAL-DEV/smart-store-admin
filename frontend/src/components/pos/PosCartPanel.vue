@@ -78,7 +78,8 @@
                 rows="2"
                 auto-grow
                 hide-details
-                autofocus
+                :autofocus="!isTouch"
+                enterkeyhint="done"
                 @update:model-value="$emit('update-notes', item.key, $event)"
               />
             </v-card>
@@ -181,9 +182,11 @@
   import { useI18n } from 'vue-i18n'
   import PosCashPaymentDialog from './PosCashPaymentDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
   const { format: formatMoney } = useCurrency()
   const { t } = useI18n()
+  const { isTouch } = useTouchDevice()
 
   const props = defineProps({
     items: { type: Array, default: () => [] },

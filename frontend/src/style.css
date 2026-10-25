@@ -35,8 +35,10 @@ body {
       font-family: 'Google Sans', serif;
 }
 
+/* Any input under 16px triggers iOS Safari's auto-zoom on focus. */
 .v-field input,
-.v-field textarea {
+.v-field textarea,
+select {
   font-size: 16px !important;
 }
 

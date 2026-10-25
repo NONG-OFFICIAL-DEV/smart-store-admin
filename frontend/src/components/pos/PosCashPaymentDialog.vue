@@ -1,88 +1,133 @@
 <template>
-  <AppDialog
+  <v-dialog
     v-model="model"
-    :title="$t('pos.checkout.cash_dialog_title')"
     :max-width="400"
+    :fullscreen="smAndDown"
+    :location="smAndDown ? undefined : 'top'"
+    scrollable
   >
-    <div class="text-center mb-5">
-      <div class="text-caption text-medium-emphasis mb-1">{{ $t('order.total') }}</div>
-      <div class="text-h4 font-weight-bold">{{ formatMoney(total) }}</div>
-    </div>
+    <v-card rounded="lg" class="d-flex flex-column" :style="{ maxHeight: `${availableHeight - 16}px` }">
+      <v-card-title class="d-flex align-center justify-space-between pa-4 flex-grow-0">
+        <span class="text-h6">{{ $t('pos.checkout.cash_dialog_title') }}</span>
+        <v-btn icon="mdi-close" variant="text" density="comfortable" @click="model = false" />
+      </v-card-title>
+      <v-divider />
 
-    <v-text-field
-      v-model.number="received"
-      type="number"
-      min="0"
-      :step="currency === 'KHR' ? 100 : 0.01"
-      :label="$t('tables.payment.received_label', { symbol: currencySymbol() })"
-      variant="outlined"
-      density="compact"
-      rounded="lg"
-      class="mb-3"
-      hide-details
-    />
-
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <v-chip
-        v-for="btn in quickButtons"
-        :key="btn.key"
-        size="small"
-        variant="tonal"
-        rounded="lg"
-        class="px-3"
-        style="min-height: 32px"
-        @click="applyQuickButton(btn)"
-      >
-        {{ btn.label }}
-      </v-chip>
-    </div>
-
-    <v-card flat rounded="lg" class="pa-3 mb-2 pos-cash-dialog__summary">
-      <div class="d-flex justify-space-between text-body-2 mb-2">
-        <span class="text-medium-emphasis">{{ $t('tables.payment.received') }}</span>
-        <span class="font-weight-medium">{{ formatMoney(received ?? 0) }}</span>
-      </div>
-      <v-divider class="mb-2" />
-      <div class="d-flex justify-space-between align-center">
-        <span
-          class="text-body-2 font-weight-bold"
-          :class="diff >= 0 ? 'text-success' : 'text-warning'"
-        >
-          {{ diff >= 0 ? $t('pos.checkout.change') : $t('tables.payment.remaining') }}
-        </span>
-        <div
-          class="text-h6 font-weight-bold"
-          :class="diff >= 0 ? 'text-success' : 'text-warning'"
-        >
-          {{ formatMoney(Math.abs(diff)) }}
+      <v-card-text class="py-4 flex-grow-1" style="overflow-y: auto">
+        <div class="text-center mb-5">
+          <div class="text-caption text-medium-emphasis mb-1">{{ $t('order.total') }}</div>
+          <div class="text-h4 font-weight-bold">{{ formatMoney(total) }}</div>
         </div>
-      </div>
-    </v-card>
 
-    <template #actions>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        height="44"
-        block
-        :disabled="!canConfirm"
-        @click="onConfirm"
-      >
-        {{ $t('pos.checkout.cash_dialog_confirm') }}
-      </v-btn>
-    </template>
-  </AppDialog>
+        <!-- Touch: readonly + inputmode="none" so the system keyboard never
+             opens — tapping the field opens the NumPad instead. Desktop
+             keeps normal typing with a decimal-friendly inputmode. -->
+        <v-menu v-if="isTouch" v-model="numpadOpen" :close-on-content-click="false" location="bottom">
+          <template #activator="{ props: menuProps }">
+            <v-text-field
+              v-bind="menuProps"
+              :model-value="received"
+              :label="$t('tables.payment.received_label', { symbol: currencySymbol() })"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              class="mb-3"
+              hide-details
+              readonly
+              inputmode="none"
+            />
+          </template>
+          <v-card rounded="lg" width="280" class="pa-3">
+            <NumPad v-model="received" decimal :suffix="currencySymbol()" />
+          </v-card>
+        </v-menu>
+        <v-text-field
+          v-else
+          v-model.number="received"
+          type="number"
+          min="0"
+          :step="currency === 'KHR' ? 100 : 0.01"
+          inputmode="decimal"
+          :label="$t('tables.payment.received_label', { symbol: currencySymbol() })"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          class="mb-3"
+          hide-details
+          @focus="keepVisible($event.target)"
+          @keydown.enter="$event.target.blur()"
+        />
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <v-chip
+            v-for="btn in quickButtons"
+            :key="btn.key"
+            size="small"
+            variant="tonal"
+            rounded="lg"
+            class="px-3"
+            style="min-height: 32px"
+            @click="applyQuickButton(btn)"
+          >
+            {{ btn.label }}
+          </v-chip>
+        </div>
+
+        <v-card flat rounded="lg" class="pa-3 mb-2 pos-cash-dialog__summary">
+          <div class="d-flex justify-space-between text-body-2 mb-2">
+            <span class="text-medium-emphasis">{{ $t('tables.payment.received') }}</span>
+            <span class="font-weight-medium">{{ formatMoney(received ?? 0) }}</span>
+          </div>
+          <v-divider class="mb-2" />
+          <div class="d-flex justify-space-between align-center">
+            <span
+              class="text-body-2 font-weight-bold"
+              :class="diff >= 0 ? 'text-success' : 'text-warning'"
+            >
+              {{ diff >= 0 ? $t('pos.checkout.change') : $t('tables.payment.remaining') }}
+            </span>
+            <div
+              class="text-h6 font-weight-bold"
+              :class="diff >= 0 ? 'text-success' : 'text-warning'"
+            >
+              {{ formatMoney(Math.abs(diff)) }}
+            </div>
+          </div>
+        </v-card>
+      </v-card-text>
+
+      <v-divider />
+      <v-card-actions class="pa-4 flex-grow-0">
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          height="44"
+          block
+          :disabled="!canConfirm"
+          @click="onConfirm"
+        >
+          {{ $t('pos.checkout.cash_dialog_confirm') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppDialog } from '@nong-official-dev/core'
+  import { useDisplay } from 'vuetify'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
+  import { useKeyboardSafeArea } from '@/composables/useKeyboardSafeArea.js'
+  import NumPad from '@/components/shared/NumPad.vue'
 
   const { t } = useI18n()
+  const { smAndDown } = useDisplay()
   const { format: formatMoney, currency, currencySymbol } = useCurrency()
+  const { isTouch } = useTouchDevice()
+  const { availableHeight, keepVisible } = useKeyboardSafeArea()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -96,6 +141,7 @@
   })
 
   const received = ref(null)
+  const numpadOpen = ref(false)
 
   // Defaults to the exact amount due every time the dialog opens — same
   // reasoning as the table-session Payment dialog: staff pays exact far
@@ -104,6 +150,7 @@
     () => props.modelValue,
     isOpen => {
       if (isOpen) received.value = props.total || null
+      else numpadOpen.value = false
     }
   )
 

@@ -14,7 +14,7 @@
         rounded="lg"
         :rules="[rules.required]"
         maxlength="80"
-        autofocus
+        :autofocus="!isTouch"
         class="mb-4"
       />
       <div class="d-flex align-center justify-space-between mb-3">
@@ -49,8 +49,10 @@
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { AppDialog } from '@nong-official-dev/core'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
   const { t } = useI18n()
+  const { isTouch } = useTouchDevice()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },

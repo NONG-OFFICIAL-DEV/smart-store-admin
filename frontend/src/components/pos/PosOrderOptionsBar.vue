@@ -30,7 +30,7 @@
           rounded="lg"
           hide-details
           clearable
-          autofocus
+          :autofocus="!isTouch"
           prepend-inner-icon="mdi-magnify"
           @update:search="$emit('search-customer', $event)"
           @update:model-value="onCustomerSelect"
@@ -62,7 +62,8 @@
           rows="2"
           auto-grow
           hide-details
-          autofocus
+          :autofocus="!isTouch"
+          enterkeyhint="done"
           @update:model-value="$emit('update-note', $event)"
         />
       </v-card>
@@ -73,8 +74,10 @@
 <script setup>
   import { computed } from 'vue'
   import { useDisplay } from 'vuetify'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
   const { mdAndDown: touch } = useDisplay()
+  const { isTouch } = useTouchDevice()
 
   const props = defineProps({
     showCustomer: { type: Boolean, default: false },

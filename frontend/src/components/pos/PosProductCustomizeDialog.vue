@@ -2,11 +2,17 @@
   <v-dialog
     :model-value="modelValue"
     :max-width="480"
-    :fullscreen="xs"
+    :fullscreen="smAndDown"
+    :location="smAndDown ? undefined : 'top'"
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <v-card v-if="product" rounded="lg" class="pos-customize d-flex flex-column">
+    <v-card
+      v-if="product"
+      rounded="lg"
+      class="pos-customize d-flex flex-column"
+      :style="{ maxHeight: `${availableHeight - 16}px` }"
+    >
       <!-- Image + close button + name/price — always visible, never scrolls. -->
       <div class="pos-customize__media">
         <v-img
@@ -129,7 +135,9 @@
           rows="2"
           auto-grow
           hide-details
-          autofocus
+          enterkeyhint="done"
+          :autofocus="!isTouch"
+          @focus="keepVisible($event.target)"
           class="mb-1"
         />
       </div>
@@ -172,9 +180,13 @@
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
+  import { useKeyboardSafeArea } from '@/composables/useKeyboardSafeArea.js'
 
-  const { xs } = useDisplay()
+  const { smAndDown } = useDisplay()
   const { format: formatMoney } = useCurrency()
+  const { isTouch } = useTouchDevice()
+  const { availableHeight, keepVisible } = useKeyboardSafeArea()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -306,9 +318,6 @@
 </script>
 
 <style scoped>
-  .pos-customize {
-    max-height: 90vh;
-  }
   .pos-customize__media {
     position: relative;
     flex-shrink: 0;

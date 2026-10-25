@@ -2,8 +2,10 @@
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { AppDatePicker, AppDialog } from '@nong-official-dev/core'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
   const { t } = useI18n()
+  const { isTouch } = useTouchDevice()
 
   const props = defineProps({
     modelValue: Boolean,
@@ -274,7 +276,7 @@
               placeholder="e.g. Weekend Special 20% Off"
               variant="outlined"
               rounded="lg"
-              autofocus
+              :autofocus="!isTouch"
               :rules="[v => !!v?.trim() || t('promotions.form.required')]"
             />
           </v-col>

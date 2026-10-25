@@ -85,7 +85,7 @@ const submit = async () => {
             <v-text-field v-model="form.email" :label="$t('form.email')" type="email" variant="outlined" rounded="lg" :rules="[rules.email]" maxlength="255" />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="form.phone" :label="$t('form.phone')" variant="outlined" rounded="lg" :rules="[rules.phone]" maxlength="30" />
+            <v-text-field v-model="form.phone" :label="$t('form.phone')" type="tel" inputmode="tel" variant="outlined" rounded="lg" :rules="[rules.phone]" maxlength="30" />
           </v-col>
         </v-row>
 

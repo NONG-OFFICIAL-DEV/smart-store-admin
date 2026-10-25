@@ -10,8 +10,14 @@
       rounded="lg"
       hide-details
       clearable
+      type="search"
+      enterkeyhint="search"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
       class="flex-grow-0 flex-shrink-0 mb-2"
       @update:model-value="$emit('update:search', $event ?? '')"
+      @keydown.enter="$event.target.blur()"
     >
       <template #append-inner>
         <kbd v-if="!touch" class="search-shortcut-hint">⌘K</kbd>

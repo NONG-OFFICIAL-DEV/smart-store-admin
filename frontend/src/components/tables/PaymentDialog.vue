@@ -1,10 +1,20 @@
 <template>
-  <AppDialog
+  <v-dialog
     v-model="model"
-    :title="t('tables.payment.title')"
     :max-width="440"
+    :fullscreen="smAndDown"
+    :location="smAndDown ? undefined : 'top'"
     :persistent="saving"
+    scrollable
   >
+    <v-card rounded="lg" class="d-flex flex-column" :style="{ maxHeight: `${availableHeight - 16}px` }">
+      <v-card-title class="d-flex align-center justify-space-between pa-4 flex-grow-0">
+        <span class="text-h6">{{ t('tables.payment.title') }}</span>
+        <v-btn icon="mdi-close" variant="text" density="comfortable" :disabled="saving" @click="close" />
+      </v-card-title>
+      <v-divider />
+
+      <v-card-text class="py-4 flex-grow-1" style="overflow-y: auto">
     <div class="text-center text-caption text-medium-emphasis mb-4">
       {{ t('tables.payment.subtitle', { number: table?.table_number, orders: orders.length }) }}
     </div>
@@ -38,17 +48,42 @@
 
     <!-- ── Cash ───────────────────────────────────────────────────────── -->
     <template v-if="method === 'cash'">
+      <!-- Touch: readonly + inputmode="none" so the system keyboard never
+           opens — tapping the field opens the NumPad instead. -->
+      <v-menu v-if="isTouch" v-model="numpadOpen" :close-on-content-click="false" location="bottom">
+        <template #activator="{ props: menuProps }">
+          <v-text-field
+            v-bind="menuProps"
+            :model-value="received"
+            :label="t('tables.payment.received_label', { symbol: currencySymbol() })"
+            variant="outlined"
+            density="compact"
+            rounded="lg"
+            class="mb-3"
+            hide-details
+            readonly
+            inputmode="none"
+          />
+        </template>
+        <v-card rounded="lg" width="280" class="pa-3">
+          <NumPad v-model="received" decimal :suffix="currencySymbol()" />
+        </v-card>
+      </v-menu>
       <v-text-field
+        v-else
         v-model.number="received"
         type="number"
         min="0"
         :step="currency === 'KHR' ? 100 : 0.01"
+        inputmode="decimal"
         :label="t('tables.payment.received_label', { symbol: currencySymbol() })"
         variant="outlined"
         density="compact"
         rounded="lg"
         class="mb-3"
         hide-details
+        @focus="keepVisible($event.target)"
+        @keydown.enter="$event.target.blur()"
       />
 
       <div class="d-flex flex-wrap gap-2 mb-4">
@@ -101,11 +136,18 @@
         density="compact"
         rounded="lg"
         hide-details
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        enterkeyhint="done"
+        @focus="keepVisible($event.target)"
+        @keydown.enter="$event.target.blur()"
       />
     </template>
+      </v-card-text>
 
-    <template #actions>
-      <div class="w-100">
+      <v-divider />
+      <v-card-actions class="pa-4 flex-grow-0 d-block">
         <v-btn
           color="warning"
           variant="flat"
@@ -121,30 +163,37 @@
         <div class="text-center text-caption text-medium-emphasis mt-2">
           {{ t('tables.payment.confirm_hint', { number: table?.table_number }) }}
         </div>
-      </div>
-    </template>
-  </AppDialog>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppDialog, useAppUtils } from '@nong-official-dev/core'
+  import { useDisplay } from 'vuetify'
+  import { useAppUtils } from '@nong-official-dev/core'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useTableStore } from '@/stores/tableStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
+  import { useTouchDevice } from '@/composables/useTouchDevice.js'
+  import { useKeyboardSafeArea } from '@/composables/useKeyboardSafeArea.js'
   import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { paySessionApi } from '@/api/tableService'
+  import NumPad from '@/components/shared/NumPad.vue'
 
   const { t } = useI18n()
+  const { smAndDown } = useDisplay()
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const tableStore = useTableStore()
   const { formatBase, currency, currencySymbol } = useCurrency()
   const { formatDateTime } = useDate()
+  const { isTouch } = useTouchDevice()
+  const { availableHeight, keepVisible } = useKeyboardSafeArea()
   const { print: printThermal } = useReceipt()
 
   const props = defineProps({
@@ -185,11 +234,15 @@
   const reference = ref('')
   const saving = ref(false)
   const paidReceiptData = ref(null)
+  const numpadOpen = ref(false)
 
   watch(
     () => props.modelValue,
     isOpen => {
-      if (!isOpen) return
+      if (!isOpen) {
+        numpadOpen.value = false
+        return
+      }
       const defaultMethod = authStore.posSettings?.default_table_payment_method
       const options = paymentOptions.value
       method.value = options.some(o => o.value === defaultMethod) ? defaultMethod : (options[0]?.value ?? 'cash')
