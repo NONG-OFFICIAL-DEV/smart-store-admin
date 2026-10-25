@@ -149,58 +149,6 @@
         </v-col>
       </v-row>
 
-      <template v-if="paymentMethod === 'cash'">
-        <!-- Touch devices get a custom on-screen numpad instead of the
-             native OS keyboard (which eats half the screen and has no
-             numeric layout worth trusting across devices). -->
-        <v-menu v-if="touch" v-model="numpadOpen" :close-on-content-click="false" location="bottom">
-          <template #activator="{ props: menuProps }">
-            <v-text-field
-              v-bind="menuProps"
-              :model-value="numpadDisplay"
-              :label="$t('pos.checkout.cash_tendered')"
-              variant="outlined"
-              density="comfortable"
-              rounded="lg"
-              readonly
-              class="mb-2"
-              @click="openNumpad"
-            />
-          </template>
-          <v-card rounded="lg" width="260" class="pa-3">
-            <div class="text-h5 font-weight-black text-center mb-3">{{ numpadDisplay }}</div>
-            <PosNumpad @digit="onNumpadDigit" @decimal="onNumpadDecimal" @backspace="onNumpadBackspace" />
-            <div class="d-flex ga-2 mt-2">
-              <v-btn variant="tonal" rounded="lg" class="flex-grow-1" @click="clearNumpad">
-                {{ $t('btn.clear') }}
-              </v-btn>
-              <v-btn color="primary" variant="flat" rounded="lg" class="flex-grow-1" @click="numpadOpen = false">
-                {{ $t('btn.done') }}
-              </v-btn>
-            </div>
-          </v-card>
-        </v-menu>
-        <v-text-field
-          v-else
-          :model-value="cashTendered ?? subtotal"
-          type="number"
-          min="0"
-          step="0.01"
-          :label="$t('pos.checkout.cash_tendered')"
-          variant="outlined"
-          density="compact"
-          rounded="lg"
-          class="mb-2"
-          @update:model-value="cashTendered = $event === '' ? null : Number($event)"
-        />
-        <div class="d-flex justify-space-between text-body-2 mb-3">
-          <span class="text-medium-emphasis">{{ $t('pos.checkout.change') }}</span>
-          <span class="font-weight-bold" :class="changeDue < 0 ? 'text-error' : 'text-success'">
-            {{ formatMoney(changeDue) }}
-          </span>
-        </div>
-      </template>
-
       <v-btn
         color="primary"
         variant="flat"
@@ -216,6 +164,14 @@
         <span v-if="items.length" class="font-weight-black">{{ formatMoney(subtotal) }}</span>
       </v-btn>
     </div>
+
+    <!-- Cash entry happens in its own dialog, same pattern as the
+         table-session Payment dialog, instead of inline in the cart. -->
+    <PosCashPaymentDialog
+      v-model="cashDialogOpen"
+      :total="subtotal"
+      @confirm="onCashConfirm"
+    />
   </v-card>
 </template>
 
@@ -223,10 +179,10 @@
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
   import { useI18n } from 'vue-i18n'
-  import PosNumpad from './PosNumpad.vue'
+  import PosCashPaymentDialog from './PosCashPaymentDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
 
-  const { format: formatMoney, currencySymbol } = useCurrency()
+  const { format: formatMoney } = useCurrency()
   const { t } = useI18n()
 
   const props = defineProps({
@@ -273,10 +229,6 @@
       }
     }
   )
-  // null = "hasn't typed a custom amount yet" — the field then always shows
-  // (and this stays in sync with) the live subtotal, i.e. exact change.
-  const cashTendered = ref(null)
-
   // Reset for the next customer once the cart empties (order submitted or
   // manually cleared) — this component owns payment state locally, so it
   // has to clear it itself rather than relying on posStore.clear().
@@ -285,58 +237,18 @@
     len => {
       if (len === 0) {
         paymentMethod.value = props.defaultPaymentMethod
-        cashTendered.value = null
-        cashBuffer.value = ''
+        cashDialogOpen.value = false
       }
     }
   )
 
-  // Custom on-screen numpad for the cash-tendered field on touch devices —
-  // avoids popping the native OS keyboard. `cashBuffer` is the raw string
-  // being typed; empty means "not editing yet, show the default amount".
-  const numpadOpen = ref(false)
-  const cashBuffer = ref('')
+  // Cash amount entry happens in its own dialog (PosCashPaymentDialog),
+  // same pattern as the table-session Payment dialog — Received field +
+  // quick denomination chips + a live Change due summary, rather than an
+  // inline field in the cart column.
+  const cashDialogOpen = ref(false)
 
-  const numpadDisplay = computed(() =>
-    cashBuffer.value !== ''
-      ? `${currencySymbol()}${cashBuffer.value}`
-      : formatMoney(cashTendered.value ?? props.subtotal)
-  )
-
-  function openNumpad() {
-    cashBuffer.value = ''
-  }
-
-  function onNumpadDigit(digit) {
-    if (cashBuffer.value.length >= 8) return
-    cashBuffer.value += digit
-    cashTendered.value = Number(cashBuffer.value)
-  }
-
-  function onNumpadDecimal() {
-    if (cashBuffer.value.includes('.')) return
-    cashBuffer.value = `${cashBuffer.value || '0'}.`
-    cashTendered.value = Number(cashBuffer.value)
-  }
-
-  function onNumpadBackspace() {
-    cashBuffer.value = cashBuffer.value.slice(0, -1)
-    cashTendered.value = cashBuffer.value === '' ? null : Number(cashBuffer.value)
-  }
-
-  function clearNumpad() {
-    cashBuffer.value = ''
-    cashTendered.value = null
-  }
-
-  const changeDue = computed(() => (cashTendered.value ?? props.subtotal) - props.subtotal)
-
-  const canCheckout = computed(() => {
-    if (!props.items.length) return false
-    if (paymentMethod.value !== 'cash') return true
-    const val = cashTendered.value ?? props.subtotal
-    return val !== null && val !== '' && val >= 0
-  })
+  const canCheckout = computed(() => props.items.length > 0)
 
   // "Checkout" implies payment is happening right now — misleading once
   // Pay Later is selected, since no money changes hands at this step.
@@ -345,10 +257,15 @@
   )
 
   function onCheckout() {
-    emit('checkout', {
-      payment_method: paymentMethod.value,
-      cash_tendered: paymentMethod.value === 'cash' ? (cashTendered.value ?? props.subtotal) : undefined
-    })
+    if (paymentMethod.value === 'cash') {
+      cashDialogOpen.value = true
+      return
+    }
+    emit('checkout', { payment_method: paymentMethod.value, cash_tendered: undefined })
+  }
+
+  function onCashConfirm(cashTendered) {
+    emit('checkout', { payment_method: 'cash', cash_tendered: cashTendered })
   }
 
   defineExpose({ submitCheckout: onCheckout })

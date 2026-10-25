@@ -357,7 +357,7 @@ class CoffeePOSorderController extends Controller
             'queue_number_display' => '#' . $order->queue_number,
             'order_type'           => $order->order_type,
             'table_number'         => $table?->table_number,
-            'cashier'              => $cashier->email,
+            'cashier'              => $cashier->full_name,
             'time'                 => now()->format('h:i A'),
             'date'                 => now()->format('d/m/Y'),
             'notes'                => $order->notes,
@@ -406,7 +406,7 @@ class CoffeePOSorderController extends Controller
             'branch_name'          => $branch->name,
             'branch_address'       => $branch->address ?? null,
             'branch_phone'         => $branch->phone   ?? null,
-            'cashier'              => $cashier->email,
+            'cashier'              => $cashier->full_name,
             'date'                 => now()->toDateTimeString(),
             'items'                => collect($itemsData)->map(fn($i) => [
                 'name'           => $i['product_name'],

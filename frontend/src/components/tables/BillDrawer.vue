@@ -171,6 +171,16 @@
   // the full order number if staff need it.
   const shortOrderNumber = o => (o.order_number ?? '').split('-').pop() || o.id?.slice(0, 4)
 
+  // order_number resets per branch per day (see Order::generateOrderNumber()),
+  // so a table with several separate orders can mix short new-format numbers
+  // with longer legacy ones — listing every one of them on the printed bill
+  // got long and inconsistent. The Table row already identifies which bill
+  // this is, so a combined bill's Order # row just needs a count.
+  const combinedOrderNumber = orders =>
+    orders.length > 1
+      ? t('tables.bill.order_count', { count: orders.length })
+      : '#' + shortOrderNumber(orders[0] ?? {})
+
   // The session-merged bill (items merged by product+variant+price — see
   // TableSessionService::getSessionBill()), fetched once whenever the
   // drawer opens so the printed bill never shows the same product as two
@@ -221,7 +231,7 @@
     if (!props.orders.length) return null
     const merged = sessionBill.value
     return {
-      order_number: '#' + shortOrderNumber(props.orders[0]),
+      order_number: combinedOrderNumber(props.orders),
       order_type: props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,

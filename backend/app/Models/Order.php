@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use App\Models\Scopes\TenantScope;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 #[ScopedBy(TenantScope::class)]
 class Order extends BaseModel
@@ -14,6 +13,7 @@ class Order extends BaseModel
     protected $fillable = [
         'branch_id',
         'order_number',
+        'order_date',
         'order_type',
         'status',
         'table_id',
@@ -41,6 +41,7 @@ class Order extends BaseModel
     ];
 
     protected $casts = [
+        'order_date'             => 'date',
         'subtotal'               => 'decimal:2',
         'discount_amount'        => 'decimal:2',
         'tax_amount'             => 'decimal:2',
@@ -73,7 +74,8 @@ class Order extends BaseModel
             : $request;
 
         if (!$id) {
-            $data['order_number'] = static::generateOrderNumber($data['branch_id'] ?? '');
+            $data['order_date']   = now()->toDateString();
+            $data['order_number'] = static::generateOrderNumber($data['branch_id'] ?? '', $data['order_date']);
             $data['status']       = 'pending';
             $data['subtotal']     = 0;
             $data['total_amount'] = 0;
@@ -233,21 +235,38 @@ class Order extends BaseModel
     protected static function booted(): void
     {
         static::creating(function (Order $order) {
+            // Computed once and reused for both fields — order_date has a
+            // `date` cast, so reading $order->order_date back here would
+            // hand generateOrderNumber() a Carbon instance instead of the
+            // plain "Y-m-d" string it expects.
+            $orderDate = now()->toDateString();
+
+            if (empty($order->order_date)) {
+                $order->order_date = $orderDate;
+            }
             if (empty($order->order_number)) {
-                $order->order_number = static::generateOrderNumber($order->branch_id);
+                $order->order_number = static::generateOrderNumber($order->branch_id, $orderDate);
             }
         });
     }
 
-    public static function generateOrderNumber(string $branchId): string
+    // Resets to ORD-0001 per branch every day — short and easy to say back
+    // ("order seven"), instead of a globally-unique random code. Uniqueness
+    // is enforced at the DB level per (branch_id, order_number, order_date)
+    // — see the orders_branch_number_date_unique migration — so the
+    // exists() check below is scoped to match, not a flat global lookup.
+    public static function generateOrderNumber(string $branchId, string $orderDate): string
     {
-        // Get short branch tag (first 3 chars, uppercase, letters only)
-        $branch = \App\Models\Branch::find($branchId);
-        $tag    = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $branch?->name ?? 'BR'), 0, 3));
-
         do {
-            $number = 'ORD-' . $tag . '-' . now()->format('ymd') . '-' . strtoupper(Str::random(4));
-        } while (static::where('order_number', $number)->exists());
+            $count = static::where('branch_id', $branchId)
+                ->where('order_date', $orderDate)
+                ->count();
+
+            $number = 'ORD-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+        } while (static::where('branch_id', $branchId)
+            ->where('order_date', $orderDate)
+            ->where('order_number', $number)
+            ->exists());
 
         return $number;
     }

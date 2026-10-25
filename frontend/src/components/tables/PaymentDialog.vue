@@ -193,7 +193,10 @@
       const defaultMethod = authStore.posSettings?.default_table_payment_method
       const options = paymentOptions.value
       method.value = options.some(o => o.value === defaultMethod) ? defaultMethod : (options[0]?.value ?? 'cash')
-      received.value = null
+      // Defaults to the exact amount due — staff pays exact change far more
+      // often than not, so this saves a tap on the Exact chip every time;
+      // they can still clear/edit it for a round-number cash payment.
+      received.value = total.value || null
       reference.value = ''
       paidReceiptData.value = null
     }
@@ -248,9 +251,15 @@
   // — same short-code convention BillDrawer.vue uses, not the table name.
   const shortOrderNumber = o => (o.order_number ?? '').split('-').pop() || o.id?.slice(0, 4)
 
+  // Same combined-bill handling as BillDrawer.vue's combinedOrderNumber.
+  const combinedOrderNumber = orders =>
+    orders.length > 1
+      ? t('tables.bill.order_count', { count: orders.length })
+      : '#' + shortOrderNumber(orders[0] ?? {})
+
   function buildSessionReceiptData(receipt) {
     return {
-      order_number: '#' + shortOrderNumber(props.orders[0] ?? {}),
+      order_number: combinedOrderNumber(props.orders),
       order_type: props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,

@@ -377,7 +377,7 @@ class MartPosController extends Controller
             'branch_name'    => $branch->name,
             'branch_address' => $branch->address ?? null,
             'branch_phone'   => $branch->phone   ?? null,
-            'cashier'        => auth()->user()?->email,
+            'cashier'        => auth()->user()?->full_name,
             'customer_type'  => $customerType,
             'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
             'date'           => now()->toDateTimeString(),

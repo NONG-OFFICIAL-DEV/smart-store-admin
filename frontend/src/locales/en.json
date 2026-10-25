@@ -25,7 +25,7 @@
     "purchase_order": "Purchase Orders",
     "low_stock": "Low Stock Alerts",
     "sales": "Sales",
-    "orders": "Orders",
+    "orders": "Orders History",
     "reports": "Reports",
     "settings": "Settings",
     "users": "Users",
@@ -2371,6 +2371,7 @@
       "action": "Create Branch"
     },
     "load_failed": "Couldn't load products right now. Please try again.",
+    "change": "Change due",
     "settings": {
       "title": "POS Settings"
     },
@@ -2446,6 +2447,8 @@
       },
       "cash_tendered": "Cash tendered",
       "change": "Change due",
+      "cash_dialog_title": "Cash payment",
+      "cash_dialog_confirm": "Confirm & complete sale",
       "submit": "Complete sale",
       "success": "Sale completed.",
       "failed": "Could not complete the sale. Please try again."
@@ -2884,7 +2887,7 @@
     "delete_message": "Delete <strong>{name}.</strong>? <br/> Users with this role will lose their access."
   },
   "orders_admin": {
-    "title": "Orders",
+    "title": "Orders History",
     "subtitle": "Browse and filter every order placed through the POS.",
     "stats": {
       "total_orders": "Total Orders",
@@ -3067,6 +3070,9 @@
       "bill_title": "Table {number}",
       "order_time": "#{number} · {time}",
       "pay_button": "Pay {amount}"
+    },
+    "bill": {
+      "order_count": "{count} orders"
     },
     "payment": {
       "title": "Payment",

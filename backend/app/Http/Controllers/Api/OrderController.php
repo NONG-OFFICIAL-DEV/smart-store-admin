@@ -241,6 +241,11 @@ class OrderController extends Controller
                 $q->where('order_number', $identifier)
                     ->orWhere('id', $identifier);
             })
+            // order_number resets per branch per day now (see
+            // Order::generateOrderNumber()), so a lookup by number alone can
+            // match more than one order across different days — the most
+            // recent one is what a receipt/support lookup almost always means.
+            ->orderByDesc('created_at')
             ->firstOrFail();
 
         return response()->json([
