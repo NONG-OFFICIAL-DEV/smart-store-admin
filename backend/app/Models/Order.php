@@ -115,12 +115,12 @@ class Order extends BaseModel
             'notes'               => $notes,
         ]);
 
-        // Closes this order's table session if nothing's left owing on it,
-        // then resyncs the table's stored status to match — see
-        // TableSessionService::syncAfterOrderChange() for the actual rule.
-        if ($order->table_id) {
-            app(\App\Services\TableSessionService::class)->syncAfterOrderChange($order);
-        }
+        // Table occupancy is deliberately NOT tied to payment/refund status —
+        // a customer can be fully paid and still sitting at the table, so
+        // freeing it automatically here would risk double-seating an
+        // occupied table. Staff always frees a table explicitly via
+        // TableService::updateStatus() (the status chip) once the party
+        // actually leaves.
 
         return response()->json(['success' => true, 'data' => $order->fresh()], 200);
     }

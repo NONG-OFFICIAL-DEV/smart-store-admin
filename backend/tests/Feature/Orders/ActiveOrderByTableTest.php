@@ -150,7 +150,11 @@ class ActiveOrderByTableTest extends TestCase
         $this->assertCount(2, $data);
     }
 
-    public function test_orders_by_table_excludes_already_paid_orders(): void
+    // Table occupancy no longer closes on payment, so a round paid in full
+    // and a brand new unpaid round can coexist in the same open session —
+    // staff need to see both (the paid one for history/reference, the
+    // unpaid one to collect), not have the paid one silently hidden.
+    public function test_orders_by_table_includes_already_paid_orders_in_the_same_sitting(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
         Auth::login($owner);
@@ -158,7 +162,6 @@ class ActiveOrderByTableTest extends TestCase
         $product = $this->makeProduct($tenant->id);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
 
-        // A paid-and-closed order from an earlier sitting...
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
             'payment_method' => 'cash',
@@ -171,10 +174,8 @@ class ActiveOrderByTableTest extends TestCase
         $paidOrder = Order::firstWhere('table_id', $table->id);
         $this->assertSame('completed', $paidOrder->status);
 
-        // ...and a brand new unpaid order at the same table. The Table
-        // modal must show only the unpaid one — merging the two together
-        // (the original bug) double-counts the table's balance and lets a
-        // customer be charged again for an order they already paid.
+        // A second round rung up at the same table before it's been freed
+        // joins the same still-open session.
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
             'payment_method' => 'pay_later',
@@ -187,11 +188,11 @@ class ActiveOrderByTableTest extends TestCase
         $unpaidOrder = Order::where('table_id', $table->id)->where('status', 'pending')->first();
 
         $response = $this->app->make(OrderController::class)->ordersByTable($table->id);
-        $data = $response->getData(true)['data'];
+        $data = collect($response->getData(true)['data'])->keyBy('id');
 
-        $this->assertCount(1, $data);
-        $this->assertSame($unpaidOrder->id, $data[0]['id']);
-        $this->assertNull($data[0]['payment']);
+        $this->assertCount(2, $data);
+        $this->assertNotNull($data[$paidOrder->id]['payment']);
+        $this->assertNull($data[$unpaidOrder->id]['payment']);
     }
 
     public function test_orders_by_table_excludes_cancelled_and_refunded_orders(): void
@@ -200,11 +201,13 @@ class ActiveOrderByTableTest extends TestCase
         Auth::login($owner);
         $branch = $this->makeBranch($tenant);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $session = $this->app->make(\App\Services\TableSessionService::class)->getOrCreateOpenSession($table->id);
 
         foreach (['cancelled', 'refunded', 'pending'] as $status) {
             Order::create([
                 'branch_id' => $branch->id,
                 'table_id' => $table->id,
+                'table_session_id' => $session->id,
                 'order_type' => 'dine_in',
                 'status' => $status,
                 'source' => 'pos',

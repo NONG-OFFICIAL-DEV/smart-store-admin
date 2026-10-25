@@ -46,9 +46,14 @@
               <span class="text-body-2 font-weight-bold">
                 {{ t('tables.order.order_time', { number: shortOrderNumber(o), time: formatTime(o.created_at) }) }}
               </span>
-              <v-chip size="x-small" rounded="lg" :color="statusColor(o.status)" variant="tonal">
-                {{ statusLabel(o.status) }}
-              </v-chip>
+              <div class="d-flex ga-1">
+                <v-chip v-if="o.payment" size="x-small" rounded="lg" color="success" variant="flat">
+                  {{ t('tables.order.paid_label') }}
+                </v-chip>
+                <v-chip size="x-small" rounded="lg" :color="statusColor(o.status)" variant="tonal">
+                  {{ statusLabel(o.status) }}
+                </v-chip>
+              </div>
             </div>
             <div
               v-for="item in o.items"
@@ -68,6 +73,31 @@
 
       <!-- ── Footer ─────────────────────────────────────────────────────── -->
       <div v-if="orders.length" class="pa-4 border-t flex-grow-0 flex-shrink-0">
+        <!-- Every order shown here is already paid — nothing left to
+             collect, so there's no total/Pay button to show. -->
+        <template v-if="!unpaidOrders.length">
+          <v-alert
+            type="success"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-3"
+          >
+            {{ t('tables.order.fully_paid') }}
+          </v-alert>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            height="44"
+            block
+            :loading="freeing"
+            @click="freeTable"
+          >
+            {{ t('tables.order.mark_available') }}
+          </v-btn>
+        </template>
+        <template v-else>
         <div class="d-flex justify-space-between mb-1">
           <span class="text-body-2 text-medium-emphasis">{{ t('order.subtotal') }}</span>
           <span class="text-body-2">{{ formatBase(totals.subtotal) }}</span>
@@ -110,6 +140,7 @@
             {{ t('tables.order.pay_button', { amount: formatBase(totals.total) }) }}
           </v-btn>
         </div>
+        </template>
       </div>
     </div>
   </v-navigation-drawer>
@@ -118,16 +149,20 @@
 <script setup>
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useAppUtils } from '@nong-official-dev/core'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
+  import { useTableStore } from '@/stores/tableStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
   import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { getTableBillApi } from '@/api/tableService'
 
   const { t } = useI18n()
+  const { notif } = useAppUtils()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
+  const tableStore = useTableStore()
   const { formatBase } = useCurrency()
   const { formatDateTime, formatTime } = useDate()
   const { print: printThermal } = useReceipt()
@@ -146,17 +181,45 @@
   // 'pay' — staff tapped the Pay button; TableManagement owns opening the
   // actual Payment dialog since it already holds orders/table in scope for
   // both this drawer and that dialog.
-  const emit = defineEmits(['update:modelValue', 'pay'])
+  // 'freed' — staff marked the table available right from here once
+  // everything was paid; TableManagement reacts the same way it does to
+  // 'paid' (close this drawer, refresh the table grid).
+  const emit = defineEmits(['update:modelValue', 'pay', 'freed'])
 
   const close = () => emit('update:modelValue', false)
+
+  const freeing = ref(false)
+  async function freeTable() {
+    if (!props.table?.id) return
+    freeing.value = true
+    try {
+      await tableStore.updateTableStatus(props.table.id, 'available')
+      notif(t('tables.messages.status_changed', {
+        number: props.table.table_number,
+        status: t('tables.status.available')
+      }), { type: 'success' })
+      emit('freed')
+      close()
+    } catch {
+      notif(t('tables.messages.status_update_failed'), { type: 'error' })
+    } finally {
+      freeing.value = false
+    }
+  }
 
   // Local aliases so the template can read `table`/`orders` directly
   // instead of `props.table`/`props.orders` everywhere.
   const table = computed(() => props.table)
   const orders = computed(() => props.orders)
 
+  // props.orders now includes already-paid orders too (so staff can see a
+  // round settled earlier this sitting) — but the bill total and the Pay
+  // button must only ever reflect what's still unpaid, or staff would
+  // recharge an order that was already paid for.
+  const unpaidOrders = computed(() => props.orders.filter(o => !o.payment))
+
   const totals = computed(() => {
-    const sum = key => props.orders.reduce((total, o) => total + Number(o[key] ?? 0), 0)
+    const sum = key => unpaidOrders.value.reduce((total, o) => total + Number(o[key] ?? 0), 0)
     return {
       subtotal: sum('subtotal'),
       discount: sum('discount_amount'),
@@ -231,13 +294,13 @@
     if (!props.orders.length) return null
     const merged = sessionBill.value
     return {
-      order_number: combinedOrderNumber(props.orders),
-      order_type: props.orders[0]?.order_type,
+      order_number: combinedOrderNumber(unpaidOrders.value),
+      order_type: unpaidOrders.value[0]?.order_type ?? props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,
       branch_address: activeBranch.value?.address_line1,
       branch_phone: activeBranch.value?.phone,
-      cashier: props.orders[0]?.cashier,
+      cashier: unpaidOrders.value[0]?.cashier ?? props.orders[0]?.cashier,
       date: formatDateTime(new Date()),
       // Prefer the session-merged items (no duplicate lines) — falls back
       // to the raw per-order flat-map only for the brief window before the
@@ -249,7 +312,7 @@
             unit_price: i.unit_price,
             total_price: i.total_price
           }))
-        : props.orders.flatMap(o => (o.items ?? []).map(i => ({
+        : unpaidOrders.value.flatMap(o => (o.items ?? []).map(i => ({
             name: i.product_name,
             qty: i.quantity,
             unit_price: i.unit_price,

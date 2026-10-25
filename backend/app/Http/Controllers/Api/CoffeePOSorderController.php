@@ -250,6 +250,12 @@ class CoffeePOSorderController extends Controller
                     : "Coffee POS sale · {$cashier->email}",
             ]);
 
+            // Table occupancy is deliberately NOT tied to payment — a
+            // customer paying in full here can still be sitting at the
+            // table. The session (and the table) only frees up when staff
+            // explicitly marks the table available, not as a side effect
+            // of this payment.
+
             $order->load('items');
 
             return response()->json([

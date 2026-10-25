@@ -149,6 +149,8 @@ class TableSessionServiceTest extends TestCase
         $this->assertCount(0, $bill['items']);
     }
 
+    // Settling via the Pay flow (delegates to paySession()) IS staff
+    // explicitly closing out the table's tab, so this frees the table.
     public function test_paying_the_only_order_closes_the_session_and_frees_the_table(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
@@ -164,6 +166,7 @@ class TableSessionServiceTest extends TestCase
             $order
         );
 
+        $this->assertSame('completed', $order->fresh()->status);
         $this->assertSame(TableSession::STATUS_CLOSED, TableSession::find($order->table_session_id)->status);
         $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
@@ -195,7 +198,10 @@ class TableSessionServiceTest extends TestCase
         $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
 
-    public function test_a_new_order_after_the_session_closes_starts_a_fresh_session(): void
+    // Paying via the Pay flow closes the session and frees the table, so a
+    // new round rung up afterward starts a genuinely new session rather
+    // than joining the (now closed) one.
+    public function test_a_new_order_after_the_session_closes_via_payment_starts_a_fresh_session(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
         Auth::login($owner);
@@ -208,6 +214,30 @@ class TableSessionServiceTest extends TestCase
             Request::create("/orders/{$first->id}/settle-payment", 'PATCH', ['payment_method' => 'cash']),
             $first
         );
+
+        $second = $this->placeDineInOrder($branch, $product, $table);
+
+        $this->assertNotSame($first->table_session_id, $second->table_session_id);
+        $this->assertSame(2, TableSession::where('table_id', $table->id)->count());
+    }
+
+    // Only once staff explicitly frees the table does a later order start a
+    // genuinely new session.
+    public function test_a_new_order_after_staff_frees_the_table_starts_a_fresh_session(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+        $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+
+        $first = $this->placeDineInOrder($branch, $product, $table);
+        $this->app->make(OrderController::class)->settlePayment(
+            Request::create("/orders/{$first->id}/settle-payment", 'PATCH', ['payment_method' => 'cash']),
+            $first
+        );
+
+        $this->app->make(\App\Services\TableService::class)->updateStatus($table, Table::STATUS_AVAILABLE);
 
         $second = $this->placeDineInOrder($branch, $product, $table);
 

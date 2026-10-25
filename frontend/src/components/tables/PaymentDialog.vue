@@ -175,7 +175,6 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
-  import { useTableStore } from '@/stores/tableStore'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useDate } from '@/composables/useDate'
   import { useTouchDevice } from '@/composables/useTouchDevice.js'
@@ -189,7 +188,6 @@
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
-  const tableStore = useTableStore()
   const { formatBase, currency, currencySymbol } = useCurrency()
   const { formatDateTime } = useDate()
   const { isTouch } = useTouchDevice()
@@ -255,8 +253,14 @@
     }
   )
 
+  // props.orders can now include already-paid orders (BillDrawer shows the
+  // table's whole sitting, not just what's owed) — the amount actually
+  // charged here must only ever sum what's still unpaid, or staff would
+  // recollect money on an order that's already settled.
+  const unpaidOrders = computed(() => props.orders.filter(o => !o.payment))
+
   const totals = computed(() => {
-    const sum = key => props.orders.reduce((sum2, o) => sum2 + Number(o[key] ?? 0), 0)
+    const sum = key => unpaidOrders.value.reduce((sum2, o) => sum2 + Number(o[key] ?? 0), 0)
     return {
       subtotal: sum('subtotal'),
       discount: sum('discount_amount'),
@@ -312,8 +316,8 @@
 
   function buildSessionReceiptData(receipt) {
     return {
-      order_number: combinedOrderNumber(props.orders),
-      order_type: props.orders[0]?.order_type,
+      order_number: combinedOrderNumber(unpaidOrders.value),
+      order_type: unpaidOrders.value[0]?.order_type ?? props.orders[0]?.order_type,
       table_number: props.table?.table_number,
       branch_name: activeBranch.value?.name,
       branch_address: activeBranch.value?.address_line1,
@@ -348,18 +352,6 @@
     }
   }
 
-  // The backend already frees the table as part of paySession() — this is
-  // a defensive resync kept for parity with the previous pay flow, harmless
-  // if the table is already marked available.
-  async function freeTable() {
-    const tableId = props.table?.id
-    if (!tableId) return
-    try {
-      await tableStore.updateTableStatus(tableId, 'available')
-    } catch {
-      // Non-fatal — the backend's own resync already covers this.
-    }
-  }
 
   // Order matters here (see the bug this fixed): printing used to happen
   // BEFORE the dialog closed, so window.print() captured the still-open
@@ -395,7 +387,6 @@
     }
 
     notif(t('tables.messages.table_paid', { number: props.table?.table_number }), { type: 'success' })
-    await freeTable()
     emit('paid')
     close()
     saving.value = false

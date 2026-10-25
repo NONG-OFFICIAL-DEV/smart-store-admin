@@ -93,6 +93,8 @@ class PaySessionTest extends TestCase
         $data = $response->getData(true)['data'];
 
         $this->assertTrue($response->getData(true)['success']);
+        // Paying via the dedicated session-pay endpoint IS staff explicitly
+        // closing out the table — the one payment path that frees it.
         $this->assertSame('closed', $data['session']['status']);
         $this->assertSame(2, $data['order_count']);
         $this->assertEquals(5.0, $data['total']);

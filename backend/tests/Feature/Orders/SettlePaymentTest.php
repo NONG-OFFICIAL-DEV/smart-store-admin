@@ -155,6 +155,10 @@ class SettlePaymentTest extends TestCase
         return Order::where('table_id', $table->id)->where('status', 'pending')->latest()->first();
     }
 
+    // Settling via the Pay flow (delegates to paySession() since this order
+    // belongs to a table session) IS staff explicitly closing out the
+    // table's tab, so this is the one payment path that frees the table —
+    // unlike an order paid in full at Quick Sale checkout, which doesn't.
     public function test_settling_the_only_open_order_at_a_table_frees_the_table(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
@@ -167,6 +171,7 @@ class SettlePaymentTest extends TestCase
 
         $this->settle($order);
 
+        $this->assertSame('completed', $order->fresh()->status);
         $this->assertSame(Table::STATUS_AVAILABLE, $table->fresh()->status);
     }
 

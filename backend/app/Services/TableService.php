@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class TableService extends BaseService
 {
-    public function __construct(TableRepositoryInterface $repository)
-    {
+    public function __construct(
+        TableRepositoryInterface $repository,
+        private TableSessionService $tableSessions
+    ) {
         parent::__construct($repository);
     }
 
@@ -58,9 +60,28 @@ class TableService extends BaseService
         return $this->repository->update($table, $data);
     }
 
+    // Staff setting the status to anything other than "occupied" is a
+    // deliberate "this table is done" signal — close out any lingering open
+    // session so is_occupied (session-based) agrees with the status column
+    // staff just set (was previously its own independent thing: marking a
+    // table Available left any open session untouched, so the next fetch
+    // could still show is_occupied: true on an "Available" table).
+    // Only auto-closes when the session has no unpaid orders left —
+    // closeSessionIfEmpty() already enforces that — so an order a customer
+    // hasn't paid yet never silently loses its ability to be settled via
+    // the session-pay endpoint.
     public function updateStatus(Table $table, string $status): Table
     {
-        return $this->repository->update($table, ['status' => $status]);
+        $table = $this->repository->update($table, ['status' => $status]);
+
+        if ($status !== Table::STATUS_OCCUPIED) {
+            $session = $this->tableSessions->getOpenSession($table->id);
+            if ($session) {
+                $this->tableSessions->closeSessionIfEmpty($session->id);
+            }
+        }
+
+        return $table->fresh();
     }
 
     public function delete(Table $table): bool

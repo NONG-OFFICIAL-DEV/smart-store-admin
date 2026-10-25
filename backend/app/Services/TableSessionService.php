@@ -13,12 +13,20 @@ use Illuminate\Support\Facades\DB;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Single shared place for everything table-session related: opening/reusing
-// a table's running tab, building its merged bill, and keeping both the
-// session and the table's status in sync once orders are paid/cancelled.
-// Every dine-in order-creation path (OrderController::store(), Coffee/Mart
-// POS controllers) and every order status transition (Order::updateStatus())
-// goes through this service rather than touching `table_sessions`/`tables`
-// directly, so there's exactly one place that can get the rules wrong.
+// a table's running tab and building its merged bill. Every dine-in
+// order-creation path (OrderController::store(), Coffee/Mart POS
+// controllers) goes through this service rather than touching
+// `table_sessions`/`tables` directly.
+//
+// Table occupancy is staff-controlled, not a blanket side effect of order
+// status changes — a paid order doesn't necessarily mean the customer has
+// left. Two things close a session/free a table:
+//   1. An explicit staff status change (TableService::updateStatus()).
+//   2. paySession() itself — tapping Pay on a table IS staff explicitly
+//      closing out its whole tab, so that one payment path does free the
+//      table on full payment. An order paid in full at Quick Sale
+//      checkout does NOT (see CoffeePOSorderController::coffeeOrders()) —
+//      ringing up a round there doesn't mean the party is leaving.
 // ─────────────────────────────────────────────────────────────────────────────
 class TableSessionService
 {
@@ -93,8 +101,13 @@ class TableSessionService
             return ['session' => null];
         }
 
+        // Unpaid only — a session can now carry already-settled orders
+        // alongside new ones (sessions no longer close on payment), and
+        // this bill represents what's still owed, not the table's full
+        // order history.
         $orders = Order::where('table_session_id', $sessionId)
             ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->whereDoesntHave('payments')
             ->with(['items.modifiers'])
             ->get();
 
@@ -233,12 +246,17 @@ class TableSessionService
                 ]);
 
                 // Reuses the exact same transition Order::updateStatus()
-                // already does for a single order — history log, and
-                // (via TableSessionService::syncAfterOrderChange()) closes
-                // the session and frees the table once this was the last
-                // unpaid order in it.
+                // already does for a single order — history log, status,
+                // completed_at.
                 Order::updateStatus($order->id, 'completed', $staffId, 'Session payment');
             });
+
+            // Tapping Pay here is staff explicitly closing out the table's
+            // whole tab (unlike an order paid in full at Quick Sale
+            // checkout, which never does this — see
+            // CoffeePOSorderController::coffeeOrders()) — so this is the
+            // one payment path that does free the table on full payment.
+            $this->closeSessionIfEmpty($session->id);
 
             $session->refresh();
 
@@ -262,10 +280,12 @@ class TableSessionService
         });
     }
 
-    // Cancelling an order (or it getting fully paid) can leave a session
-    // with nothing left owing — close it so the table frees up and the next
-    // customer seated there starts a brand new session rather than joining
-    // a stale one.
+    // Staff explicitly marking a table anything other than "occupied"
+    // (TableService::updateStatus()) is the one thing that closes an open
+    // session — not payment, not an order being cancelled/refunded. Guards
+    // on hasActiveOrder() so a table with a still-unpaid order never loses
+    // its session (and with it, the ability to pay via paySession()) out
+    // from under a staff member's status change.
     public function closeSessionIfEmpty(string $sessionId): void
     {
         $session = TableSession::find($sessionId);
@@ -279,21 +299,6 @@ class TableSessionService
 
         $session->update(['status' => TableSession::STATUS_CLOSED, 'closed_at' => now()]);
         $this->syncTableStatus($session->table_id);
-    }
-
-    // Call after anything that can change an order's session/paid/cancelled
-    // state. Closes the order's session if it's now empty, then resyncs the
-    // table's stored status to match — but only between available/occupied;
-    // reserved/cleaning/inactive are staff-set states with no order behind
-    // them and must never be clobbered by this.
-    public function syncAfterOrderChange(Order $order): void
-    {
-        if ($order->table_session_id) {
-            $this->closeSessionIfEmpty($order->table_session_id);
-        }
-        if ($order->table_id) {
-            $this->syncTableStatus($order->table_id);
-        }
     }
 
     public function syncTableStatus(string $tableId): void

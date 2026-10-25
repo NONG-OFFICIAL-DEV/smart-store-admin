@@ -275,6 +275,7 @@
       :orders="orderDialogOrders"
       :table="orderDialogTable"
       @pay="paymentDialog = true"
+      @freed="onPaid"
     />
 
     <PaymentDialog
@@ -291,6 +292,7 @@
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import draggable from 'vuedraggable'
+  import { useAuthStore } from '@/stores/authStore'
   import { useTableStore } from '@/stores/tableStore'
   import { useFloorPlanStore } from '@/stores/floorPlanStore'
   import { usePosStore } from '@/stores/posStore'
@@ -313,9 +315,16 @@
     qrDialog.value = true
   }
 
+  const authStore = useAuthStore()
   const tableStore = useTableStore()
   const floorPlanStore = useFloorPlanStore()
   const posStore = usePosStore()
+
+  // Same pattern as OrdersManagement.vue/KitchenDisplay.vue/StaffManagement.vue
+  // — tables are branch-scoped data (one branch_id per table), so this page
+  // must follow the sidebar's active branch like everything else, not load
+  // every branch's tables merged together.
+  const branchId = computed(() => authStore.activeBranchId || authStore.branch_id)
 
   // Order mode — tap a table to either view its active order (occupied) or
   // jump into Food POS with the table preselected (available). Manage mode
@@ -353,7 +362,13 @@
   const floorPlanOptions = computed(() => floorPlanStore.floorPlans)
 
   const filteredTables = computed(() => {
-    let list = tableStore.tables
+    // Always a fresh array, even with no filter active — the "all" branch
+    // used to return tableStore.tables itself unchanged, so updating one
+    // table's status (which replaces that one array index, not the array
+    // reference) never produced a referentially-different value for the
+    // watch() below to notice, and the Manage tab's chip silently never
+    // re-rendered despite the store having the correct new status.
+    let list = [...tableStore.tables]
     if (statusFilter.value === 'occupied') list = list.filter(table => table.is_occupied)
     else if (statusFilter.value === 'free') list = list.filter(table => !table.is_occupied)
 
@@ -421,9 +436,10 @@
   }
 
   async function loadTables() {
+    if (!branchId.value) return
     loading.value = true
     try {
-      await tableStore.fetchTables({ perPage: -1 })
+      await tableStore.fetchTables({ perPage: -1, branch_id: branchId.value })
     } finally {
       loading.value = false
     }
@@ -612,6 +628,10 @@
     floorPlanStore.fetchFloorPlans()
     loadTables()
   })
+
+  // Switching the sidebar's active branch must refresh this grid the same
+  // way it already does on every other branch-scoped page.
+  watch(branchId, loadTables)
 </script>
 
 <style scoped>

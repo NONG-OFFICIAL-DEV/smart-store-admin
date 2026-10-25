@@ -114,6 +114,10 @@ class CoffeePosOrderTest extends TestCase
         $this->assertSame('dine_in', $order->order_type);
         $this->assertSame($table->id, $order->table_id);
         $this->assertSame($customer->id, $order->customer_id);
+        // Occupied even though this order was paid in full (default
+        // payment_method: cash) at checkout — table occupancy tracks
+        // whether staff has freed the table, not payment status, since a
+        // paid customer can still be sitting there.
         $this->assertSame(Table::STATUS_OCCUPIED, $table->fresh()->status);
     }
 

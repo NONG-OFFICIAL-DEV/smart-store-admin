@@ -310,9 +310,32 @@ class OrderController extends Controller
     // tickets from Table Management's "manage order" view entirely. This
     // returns every still-open order for the table instead — see
     // openOrdersForTable() for exactly what "open" means here.
+    // Returns every order in the table's current sitting — paid and unpaid
+    // alike — not just what's still owing (that's openOrdersForTable(),
+    // used for the actual Pay amount). Staff need to see a round that was
+    // already paid (e.g. settled immediately at Quick Sale checkout) just
+    // as much as one that isn't, since the table can stay occupied with a
+    // mix of both until it's explicitly freed.
     public function ordersByTable(string $tableId)
     {
-        $orders = $this->openOrdersForTable($tableId)->get();
+        $session = $this->tableSessions->getOpenSession($tableId);
+        if (!$session) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $orders = Order::with([
+            'items.product',
+            'items.variant',
+            'items.modifiers',
+            'statusHistory',
+            'payments',
+            'diningTable',
+            'cashier.user',
+        ])
+            ->where('table_session_id', $session->id)
+            ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->latest()
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -335,32 +358,6 @@ class OrderController extends Controller
             'success' => true,
             'data'    => $this->tableSessions->getSessionBill($session->id),
         ]);
-    }
-
-    // ── Single source of truth: which orders at a table still need paying ──
-    // "Open" = not cancelled/refunded AND not yet paid (no Payment row —
-    // this schema never does partial payments, so any Payment row means
-    // the order is fully settled). Table Management's combined order view
-    // and the Pay/Print Bill actions it drives all go through this one
-    // query so a future call site can't forget the unpaid filter and
-    // re-merge an already-closed order back into a table's total — which
-    // is exactly the bug this method fixes (a paid order was previously
-    // still showing up here, double-counting the table's balance).
-    private function openOrdersForTable(string $tableId)
-    {
-        return Order::with([
-            'items.product',
-            'items.variant',
-            'items.modifiers',
-            'statusHistory',
-            'payments',
-            'diningTable',
-            'cashier.user',
-        ])
-            ->where('table_id', $tableId)
-            ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->whereDoesntHave('payments')
-            ->latest();
     }
 
     // ── PATCH /api/v1/orders/{order}/settle-payment ─────────────────────────
