@@ -330,6 +330,18 @@ function buildBytes(r, money) {
     const totalAmt = money(item.total_price ?? item.qty * item.unit_price)
 
     b(tableRowToEscPosImage([label, qtyStr, totalAmt], { fontSize: 24, marginTop: 15 }))
+
+    const optionsLine = (item.customizations ?? [])
+      .map(c => (c.price ? `${c.value} +${money(c.price)}` : c.value))
+      .join(' · ')
+    if (optionsLine) {
+      if (hasKhmer(optionsLine)) img('  ' + optionsLine, { fontSize: 18 })
+      else t('  ' + optionsLine + '\n')
+    }
+    if (item.note) {
+      if (hasKhmer(item.note)) img('  ' + item.note, { fontSize: 18 })
+      else t('  ' + item.note + '\n')
+    }
   }
 
   // ── TOTALS ──
@@ -518,6 +530,12 @@ function buildReceiptPng(r, money) {
     const qtyStr = `${item.qty} x ${money(item.unit_price)}`
     const totalAmt = money(item.total_price ?? item.qty * item.unit_price)
     addTableRow([label, qtyStr, totalAmt], { fontSize: 24, marginTop: 15 })
+
+    const optionsLine = (item.customizations ?? [])
+      .map(c => (c.price ? `${c.value} +${money(c.price)}` : c.value))
+      .join(' · ')
+    if (optionsLine) addLeft('  ' + optionsLine, { fontSize: 18 })
+    if (item.note) addLeft('  ' + item.note, { fontSize: 18 })
   }
 
   // ── TOTALS ──
@@ -699,7 +717,9 @@ function buildReceiptHtml(r, mode) {
     body += rowHtml(`${item.qty} × ${item.name}`, money(item.total_price))
     if (item.note) body += `<div class="item-note muted">${escapeHtml(item.note)}</div>`
     for (const c of item.customizations ?? []) {
-      body += `<div class="item-note muted">${escapeHtml(c.label ? `${c.label}: ${c.value}` : c.value)}</div>`
+      const text = c.label ? `${c.label}: ${c.value}` : c.value
+      const withPrice = c.price ? `${text} +${money(c.price)}` : text
+      body += `<div class="item-note muted">${escapeHtml(withPrice)}</div>`
     }
     body += '</div>'
   }

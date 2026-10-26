@@ -31,6 +31,14 @@ export const attachModifierGroupsApi = (productId, modifierGroupIds) =>
     modifier_group_ids: modifierGroupIds
   })
 
+export const detachModifierGroupApi = (productId, modifierGroupId) =>
+  http.delete(`/v1/products/${productId}/modifier-groups/${modifierGroupId}`)
+
+export const reorderProductModifierGroupsApi = (productId, modifierGroupIds) =>
+  http.post(`/v1/products/${productId}/modifier-groups/reorder`, {
+    modifier_group_ids: modifierGroupIds
+  })
+
 
 export const getProductForEditApi = id => http.get(`/v1/products/${id}`)
 

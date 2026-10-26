@@ -25,12 +25,14 @@ class ModifierOption extends BaseModel
         'name',
         'price_adjustment',
         'is_available',
+        'is_default',
         'sort_order',
     ];
 
     protected $casts = [
         'price_adjustment' => 'decimal:2',
         'is_available'     => 'boolean',
+        'is_default'       => 'boolean',
         'sort_order'       => 'integer',
     ];
 

@@ -55,14 +55,15 @@
                 </v-chip>
               </div>
             </div>
-            <div
-              v-for="item in o.items"
-              :key="item.id"
-              class="bill-item-row"
-            >
-              <span class="text-body-2 text-truncate">{{ item.product_name }}</span>
-              <span class="text-body-2 text-medium-emphasis text-right">×{{ item.quantity }}</span>
-              <span class="text-body-2 font-weight-medium text-right">{{ formatBase(item.total_price) }}</span>
+            <div v-for="item in o.items" :key="item.id" class="mb-1">
+              <div class="bill-item-row">
+                <span class="text-body-2 text-truncate">{{ item.product_name }}</span>
+                <span class="text-body-2 text-medium-emphasis text-right">×{{ item.quantity }}</span>
+                <span class="text-body-2 font-weight-medium text-right">{{ formatBase(item.total_price) }}</span>
+              </div>
+              <div v-if="itemOptionsLine(item)" class="text-caption text-medium-emphasis bill-item-options">
+                {{ itemOptionsLine(item) }}
+              </div>
             </div>
           </div>
         </template>
@@ -166,6 +167,17 @@
   const { formatBase } = useCurrency()
   const { formatDateTime, formatTime } = useDate()
   const { print: printThermal } = useReceipt()
+
+  // "M · Sugar 80% · Pearl +$0.50" — size first, then every chosen option,
+  // showing a price only for ones that actually add to the bill.
+  function itemOptionsLine(item) {
+    const parts = []
+    if (item.variant_name) parts.push(item.variant_name)
+    for (const m of item.modifiers ?? []) {
+      parts.push(m.price ? `${m.name} +${formatBase(m.price)}` : m.name)
+    }
+    return parts.join(' · ')
+  }
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -356,6 +368,9 @@
     grid-template-columns: 1fr auto auto;
     gap: 8px;
     padding: 4px 0;
+  }
+  .bill-item-options {
+    padding-bottom: 2px;
   }
   .table-tile__dot {
     width: 8px;

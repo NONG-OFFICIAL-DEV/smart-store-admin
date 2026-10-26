@@ -101,6 +101,17 @@
                     />
                   </v-col>
                   <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="form.name_km"
+                      :label="t('products.field.productNameKm')"
+                      variant="outlined"
+                      rounded="lg"
+                      hide-details="auto"
+                      prepend-inner-icon="mdi-package-variant"
+                      maxlength="200"
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="6">
                     <v-select
                       v-model="form.category_id"
                       :items="categories"
@@ -984,6 +995,7 @@
     sku: null,
     barcode: '',
     name: '',
+    name_km: '',
     description: null,
     image_url: null,
     sort_order: 0,

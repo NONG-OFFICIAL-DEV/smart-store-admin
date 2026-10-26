@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\KitchenDisplayTicket;
+use App\Models\ModifierGroup;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderItemModifier;
 use App\Models\ModifierOption;
 use App\Models\ProductVariant;
 use App\Models\OrderStatusHistory;
@@ -46,6 +48,11 @@ class CoffeePOSorderController extends Controller
             'items.*.customizations' => 'nullable',   // accept any shape — object or array
             'items.*.modifier_option_ids'   => 'nullable|array',
             'items.*.modifier_option_ids.*' => 'uuid|exists:modifier_options,id',
+            // A free-typed value for a group with allow_custom_value — no
+            // modifier_options row to point at, e.g. {group_id, value: "80"}.
+            'items.*.custom_modifier_values'              => 'nullable|array',
+            'items.*.custom_modifier_values.*.group_id'    => 'required|uuid|exists:modifier_groups,id',
+            'items.*.custom_modifier_values.*.value'       => 'required|string|max:50',
         ]);
 
         $branch  = Branch::with('tenant.businessType')->findOrFail($request->branch_id);
@@ -101,6 +108,17 @@ class CoffeePOSorderController extends Controller
                     ? ModifierOption::whereIn('id', $item['modifier_option_ids'])->get()
                     : collect();
 
+                // A free-typed value for a group with allow_custom_value (e.g.
+                // "Sugar: 80%") — no modifier_options row to resolve, always
+                // priced at 0 (the custom input has no price of its own).
+                $customModifierValues = collect($item['custom_modifier_values'] ?? [])
+                    ->map(function ($c) {
+                        $group = ModifierGroup::find($c['group_id']);
+                        return $group ? ['group' => $group, 'value' => $c['value']] : null;
+                    })
+                    ->filter()
+                    ->values();
+
                 // Base price + variant adjustment + modifier deltas — always
                 // derived server-side. Client-submitted `items.*.price` is never
                 // trusted for billing (it would let any POS caller sell an item
@@ -123,6 +141,13 @@ class CoffeePOSorderController extends Controller
                     ]);
                 }
 
+                foreach ($customModifierValues as $c) {
+                    $customizationsSnapshot[] = [
+                        'label' => $c['group']->name,
+                        'value' => $c['value'] . ($c['group']->custom_suffix ?? ''),
+                    ];
+                }
+
                 $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal  += $totalPrice;
 
@@ -139,6 +164,12 @@ class CoffeePOSorderController extends Controller
                     'notes'           => $item['note'] ?? null,
                     'status'          => 'served',
                     '_customizations' => $customizationsSnapshot,
+                    // In-memory only — stripped before OrderItem::create(),
+                    // used right after to persist OrderItemModifier rows so
+                    // the kitchen display, bill, and any later reprint have
+                    // real data instead of just this request's response.
+                    '_modifierOptions' => $modifierOptions,
+                    '_customModifierValues' => $customModifierValues,
                 ];
             }
 
@@ -193,13 +224,35 @@ class CoffeePOSorderController extends Controller
                 'completed_at'          => $payLater ? null : now(),
             ]);
 
-            // ── Create order items — no modifiers table for coffee POS ─────
+            // ── Create order items + their modifiers ────────────────────────
             foreach ($itemsData as $itemData) {
-                unset($itemData['_customizations']); // never persisted
-                OrderItem::create([
+                $modifierOptions = $itemData['_modifierOptions'];
+                $customModifierValues = $itemData['_customModifierValues'];
+                unset($itemData['_customizations'], $itemData['_modifierOptions'], $itemData['_customModifierValues']);
+
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     ...$itemData,
                 ]);
+
+                foreach ($modifierOptions as $option) {
+                    OrderItemModifier::create([
+                        'order_item_id'      => $orderItem->id,
+                        'modifier_option_id' => $option->id,
+                        'option_name'        => $option->name,
+                        'price_adjustment'   => $option->price_adjustment,
+                    ]);
+                }
+
+                foreach ($customModifierValues as $c) {
+                    OrderItemModifier::create([
+                        'order_item_id'      => $orderItem->id,
+                        'modifier_option_id' => null,
+                        'option_name'        => $c['group']->name,
+                        'custom_value'       => $c['value'] . ($c['group']->custom_suffix ?? ''),
+                        'price_adjustment'   => 0,
+                    ]);
+                }
             }
 
             // ── Payment record ── skipped entirely for pay-later: nothing was

@@ -19,21 +19,36 @@ class Category extends BaseModel
     protected $fillable = [
         'parent_id',
         'name',
+        'name_km',
         'description',
         'image_url',
         'icon',
         'color',
         'sort_order',
         'is_active',
+        'show_on_pos',
+        'show_on_emenu',
         'is_lid_exchange',
         'is_system'
     ];
 
     protected $casts = [
         'is_active'  => 'boolean',
+        'show_on_pos' => 'boolean',
+        'show_on_emenu' => 'boolean',
         'is_lid_exchange' => 'boolean',
         'is_system'  => 'boolean',
         'sort_order' => 'integer',
+    ];
+
+    // Matches the DB column defaults so a freshly-created in-memory
+    // instance reflects them immediately, without needing a ->fresh() —
+    // Eloquent only sends columns present in $fillable data to the
+    // INSERT, so attributes left unset never get back-filled from the
+    // DB's own default unless mirrored here too.
+    protected $attributes = [
+        'show_on_pos' => true,
+        'show_on_emenu' => true,
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────

@@ -26,7 +26,9 @@ class HospitalityPosController extends Controller
             'variants',
             'category:id,name',
             'modifierGroups' => fn($q) => $q->orderBy('product_modifier_groups.sort_order'),
-            'modifierGroups.options' => fn($q) => $q->where('is_available', true)->orderBy('sort_order'),
+            // Unavailable choices are still sent — the POS dialog shows them
+            // disabled with "Sold out" rather than hiding them outright.
+            'modifierGroups.options' => fn($q) => $q->orderBy('sort_order'),
         ])
 
             ->where('tenant_id', $branch->tenant_id)

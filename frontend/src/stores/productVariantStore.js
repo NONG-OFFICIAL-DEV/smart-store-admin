@@ -4,7 +4,8 @@ import {
   getProductVariantByIdApi,
   createProductVariantApi,
   updateProductVariantApi,
-  deleteProductVariantApi
+  deleteProductVariantApi,
+  reorderProductVariantsApi
 } from '../api/productVariantService'
 
 export const useProductVariantStore = defineStore('productVariant', {
@@ -35,6 +36,9 @@ export const useProductVariantStore = defineStore('productVariant', {
     async deleteProductVariant(id) {
       await deleteProductVariantApi(id)
       await this.fetchProductVariants()
+    },
+    async reorderProductVariants(productId, variantIds) {
+      await reorderProductVariantsApi(productId, variantIds)
     }
   }
 })

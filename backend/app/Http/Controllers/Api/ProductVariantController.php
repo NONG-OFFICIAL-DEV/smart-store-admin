@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
@@ -64,6 +65,31 @@ class ProductVariantController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Product Variant deleted',
+        ]);
+    }
+
+    /**
+     * Drag-reorder a single product's sizes. Scoped by product_id so an id
+     * belonging to a different (even cross-tenant, via TenantScope) product
+     * can never be reordered through this product's own endpoint.
+     */
+    public function reorder(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'variant_ids' => ['required', 'array', 'min:1'],
+            'variant_ids.*' => ['required', 'uuid'],
+        ]);
+
+        foreach ($validated['variant_ids'] as $index => $id) {
+            ProductVariant::where('id', $id)
+                ->where('product_id', $product->id)
+                ->update(['sort_order' => $index]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sizes reordered successfully.',
+            'data' => $product->variants()->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 }

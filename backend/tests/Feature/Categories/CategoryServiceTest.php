@@ -261,4 +261,70 @@ class CategoryServiceTest extends TestCase
         $service->delete($category);
         $this->assertNull(Category::find($category->id));
     }
+
+    public function test_show_on_pos_and_show_on_emenu_default_to_true(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $service = $this->app->make(CategoryService::class);
+
+        $category = $service->create(['name' => 'Drinks'], [$tenantA->id]);
+
+        $this->assertTrue($category->show_on_pos);
+        $this->assertTrue($category->show_on_emenu);
+    }
+
+    public function test_reorder_rewrites_sort_order_to_match_the_given_sequence(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $service = $this->app->make(CategoryService::class);
+
+        $a = $service->create(['name' => 'A'], [$tenantA->id]);
+        $b = $service->create(['name' => 'B'], [$tenantA->id]);
+        $c = $service->create(['name' => 'C'], [$tenantA->id]);
+
+        $service->reorder([$c->id, $a->id, $b->id]);
+
+        $this->assertSame(0, $c->fresh()->sort_order);
+        $this->assertSame(1, $a->fresh()->sort_order);
+        $this->assertSame(2, $b->fresh()->sort_order);
+    }
+
+    public function test_delete_with_reassignment_moves_products_before_deleting(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $service = $this->app->make(CategoryService::class);
+
+        $drinks = $service->create(['name' => 'Drinks'], [$tenantA->id]);
+        $food = $service->create(['name' => 'Food'], [$tenantA->id]);
+
+        $product = \App\Models\Product::create([
+            'tenant_id' => $tenantA->id,
+            'category_id' => $drinks->id,
+            'name' => 'Iced Tea',
+            'base_price' => 2.5,
+        ]);
+
+        $service->deleteWithReassignment($drinks, $food->id);
+
+        $this->assertNull(Category::find($drinks->id));
+        $this->assertSame($food->id, $product->fresh()->category_id);
+    }
+
+    public function test_delete_with_reassignment_rejects_reassigning_to_itself(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $service = $this->app->make(CategoryService::class);
+        $drinks = $service->create(['name' => 'Drinks'], [$tenantA->id]);
+
+        try {
+            $service->deleteWithReassignment($drinks, $drinks->id);
+            $this->fail('Expected a 422 when reassigning a category to itself.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+        }
+    }
 }

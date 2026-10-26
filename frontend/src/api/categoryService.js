@@ -7,3 +7,7 @@ export const createCategoryApi = data => http.post('/v1/categories', data)
 export const updateCategoryApi = (id, data) =>
   http.put(`/v1/categories/${id}`, data)
 export const deleteCategoryApi = id => http.delete(`/v1/categories/${id}`)
+export const reorderCategoriesApi = orderedIds =>
+  http.post('/v1/categories/reorder', { ordered_ids: orderedIds })
+export const deleteCategoryWithReassignmentApi = (id, reassignTo) =>
+  http.post(`/v1/categories/${id}/delete-with-reassignment`, { reassign_to: reassignTo })

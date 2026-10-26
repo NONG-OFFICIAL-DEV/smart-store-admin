@@ -8,8 +8,11 @@ export const usePosStore = defineStore('pos', {
     items: [],
     // each item: { key, product_id, product_unit_id, variant_id, name,
     //   variant_name, unit_label, unit_price, qty, notes, customizations,
-    //   modifier_option_ids } — the last two are food/coffee POS only, set
-    //   by PosProductCustomizeDialog when the item has modifier selections.
+    //   modifier_option_ids, custom_modifier_values } — the last three are
+    //   food/coffee POS only, set by PosProductCustomizeDialog when the item
+    //   has modifier selections. `key` already encodes size + every
+    //   option/custom value + the note, so addItem()'s merge-by-key below
+    //   only ever combines genuinely identical lines.
 
     // Food tenants only — dine_in/takeaway/delivery, table only applies to
     // dine_in. Customer is optional for either business type (walk-in sales

@@ -318,7 +318,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
     });
 
     // ── Categories ────────────────────────────────────────────────────────────
-    Route::apiResource('categories', CategoryController::class)->middleware('permission:categories.manage');
+    Route::middleware('permission:categories.manage')->group(function () {
+        Route::post('categories/reorder', [CategoryController::class, 'reorder']);
+        Route::apiResource('categories', CategoryController::class);
+        Route::post('categories/{category}/delete-with-reassignment', [CategoryController::class, 'destroyWithReassignment']);
+    });
     Route::prefix('categories/{category}')->group(function () {
         Route::get('products', [ProductController::class, 'byCategory']);
     });
@@ -329,8 +333,11 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product-variants', ProductVariantController::class);
         Route::prefix('products/{product}')->group(function () {
+            Route::post('variants/reorder',        [ProductVariantController::class, 'reorder']);
             Route::apiResource('variants',         ProductVariantController::class)->shallow();
             Route::post('modifier-groups/sync',    [ProductController::class, 'attachModifierGroups']);
+            Route::post('modifier-groups/reorder', [ProductController::class, 'reorderModifierGroups']);
+            Route::delete('modifier-groups/{modifierGroup}', [ProductController::class, 'detachModifierGroup']);
             Route::post('recipe',                  [ProductRecipeController::class, 'store']);
             Route::put('recipe/{recipe}',          [ProductRecipeController::class, 'update']);
             Route::delete('recipe/{recipe}',       [ProductRecipeController::class, 'destroy']);

@@ -10,3 +10,5 @@ export const updateProductVariantApi = (id, data) =>
   http.put(`/v1/product-variants/${id}`, data)
 export const deleteProductVariantApi = id =>
   http.delete(`/v1/product-variants/${id}`)
+export const reorderProductVariantsApi = (productId, variantIds) =>
+  http.post(`/v1/products/${productId}/variants/reorder`, { variant_ids: variantIds })

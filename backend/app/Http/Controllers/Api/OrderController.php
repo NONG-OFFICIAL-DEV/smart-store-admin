@@ -508,6 +508,7 @@ class OrderController extends Controller
             'items'                  => $order->items->map(fn($item) => [
                 'id'           => $item->id,
                 'product_name' => $item->product_name,
+                'variant_name' => $item->variant_name,
                 'image_url' => $item->product?->image_url,
                 'quantity'     => $item->quantity,
                 'unit_price'   => (float) $item->unit_price,
@@ -516,8 +517,9 @@ class OrderController extends Controller
                 'status'       => $item->status,
                 'notes'        => $item->notes,
                 'modifiers'    => $item->modifiers->map(fn($m) => [
-                    'name'  => $m->option_name,
-                    'price' => (float) $m->price_adjustment,
+                    'name'         => $m->custom_value ? "{$m->option_name} {$m->custom_value}" : $m->option_name,
+                    'price'        => (float) $m->price_adjustment,
+                    'custom_value' => $m->custom_value,
                 ]),
             ]),
             'status_history' => $order->statusHistory->map(fn($h) => [

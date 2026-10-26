@@ -15,6 +15,15 @@ class ModifierGroupRepository extends BaseRepository implements ModifierGroupRep
         parent::__construct($model);
     }
 
+    // Every list consumer (the new Options tab) needs each group's choices
+    // as chips and how many products use it, so both are eager-loaded here
+    // rather than per-call — a group list is never large enough for this to
+    // be a meaningful N+1 concern.
+    public function query(): Builder
+    {
+        return parent::query()->with('options')->withCount('products');
+    }
+
     protected function applySort(Builder $query, ?string $sortBy, bool|string $sortDesc = false): void
     {
         // No timestamp columns at all — name is the only sensible default.

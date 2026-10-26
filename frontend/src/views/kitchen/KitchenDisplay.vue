@@ -69,8 +69,8 @@
                 <div class="d-flex justify-space-between">
                   <span class="font-weight-medium">{{ item.quantity }}× {{ item.product_name }}</span>
                 </div>
-                <div v-if="item.modifiers?.length" class="text-medium-emphasis pl-3">
-                  {{ item.modifiers.map(m => m.name).join(', ') }}
+                <div v-if="item.variant_name || item.modifiers?.length" class="text-medium-emphasis pl-3">
+                  {{ [item.variant_name, ...(item.modifiers ?? []).map(m => m.name)].filter(Boolean).join(', ') }}
                 </div>
                 <div v-if="item.notes" class="text-medium-emphasis pl-3 font-italic">
                   {{ item.notes }}

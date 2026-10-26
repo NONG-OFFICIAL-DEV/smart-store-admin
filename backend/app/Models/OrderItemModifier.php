@@ -10,7 +10,7 @@ class OrderItemModifier extends BaseModel
 
     protected $fillable = [
         'order_item_id', 'modifier_option_id',
-        'option_name', 'price_adjustment', 'quantity',
+        'option_name', 'custom_value', 'price_adjustment', 'quantity',
     ];
 
     protected $casts = [
@@ -23,7 +23,7 @@ class OrderItemModifier extends BaseModel
         $data = $request instanceof Request
             ? $request->only([
                 'order_item_id', 'modifier_option_id',
-                'option_name', 'price_adjustment', 'quantity',
+                'option_name', 'custom_value', 'price_adjustment', 'quantity',
             ])
             : $request;
 

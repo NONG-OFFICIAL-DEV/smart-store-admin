@@ -201,6 +201,53 @@ class CoffeePosOrderTest extends TestCase
         $data = $response->getData(true)['data'];
         // base_price 4.5 + 0.5 + 0.75 = 5.75 per unit, x2 quantity = 11.5
         $this->assertSame(11.5, $data['subtotal']);
+
+        // Coffee POS used to discard modifier selections entirely after the
+        // print response ("no modifiers table for coffee POS") — the
+        // kitchen display, bill, and any later reprint had nothing to show.
+        $order = Order::findOrFail($data['id']);
+        $modifierNames = $order->items->first()->modifiers->pluck('option_name')->sort()->values()->all();
+        $this->assertSame(['Extra Shot', 'Oat Milk'], $modifierNames);
+    }
+
+    public function test_a_custom_modifier_value_persists_with_no_price_of_its_own(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $group = ModifierGroup::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Sugar',
+            'selection_type' => 'single',
+            'allow_custom_value' => true,
+            'custom_suffix' => '%',
+        ]);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'items' => [
+                [
+                    'product_id' => $product->id,
+                    'quantity' => 1,
+                    'custom_modifier_values' => [
+                        ['group_id' => $group->id, 'value' => '80'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $data = $response->getData(true)['data'];
+        // The custom input has no price of its own — only the base price.
+        $this->assertSame(4.5, $data['subtotal']);
+
+        $order = Order::findOrFail($data['id']);
+        $modifier = $order->items->first()->modifiers->first();
+        $this->assertNull($modifier->modifier_option_id);
+        $this->assertSame('80%', $modifier->custom_value);
+        $this->assertSame('Sugar', $modifier->option_name);
+        $this->assertSame(0.0, (float) $modifier->price_adjustment);
     }
 
     public function test_a_modifier_option_belonging_to_another_tenant_contributes_no_price(): void

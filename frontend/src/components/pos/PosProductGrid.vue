@@ -77,6 +77,7 @@
             border
             elevation="0"
             class="pos-product-card h-100 d-flex flex-column"
+            :class="{ 'pos-product-card--unavailable': blockingRequiredGroup(product) }"
             @click="handleCardClick(product)"
           >
             <v-img
@@ -84,7 +85,7 @@
               :src="product.image_url"
               :height="touch ? 110 : 90"
               cover
-              class="bg-grey-lighten-4"
+              class="bg-surface-light"
             />
             <div v-else class="pos-product-card__placeholder" :style="touch ? 'height: 110px' : ''">
               <v-icon icon="mdi-image-off-outline" size="28" color="grey" />
@@ -108,7 +109,25 @@
 
               <div class="flex-grow-1" />
 
-              <template v-if="customizable && needsCustomize(product)">
+              <template v-if="blockingRequiredGroup(product)">
+                <v-tooltip
+                  :text="$t('pos.grid.unavailable_reason', { name: blockingRequiredGroup(product).name })"
+                  location="bottom"
+                >
+                  <template #activator="{ props: tip }">
+                    <v-chip
+                      v-bind="tip"
+                      :size="touch ? 'default' : 'small'"
+                      color="error"
+                      variant="tonal"
+                      class="mt-1 pos-product-card__unavailable-chip"
+                    >
+                      {{ $t('pos.grid.unavailable') }}
+                    </v-chip>
+                  </template>
+                </v-tooltip>
+              </template>
+              <template v-else-if="customizable && needsCustomize(product)">
                 <v-btn
                   :size="touch ? 'default' : 'small'"
                   color="primary"
@@ -190,7 +209,19 @@
     return Math.min(...product.options.map(o => o.price))
   }
 
+  // A required group with zero available choices can never be satisfied —
+  // opening the dialog would just present a permanently-disabled "Add to
+  // order" with no way out. `.every()` on an empty options array is
+  // vacuously true, so this also catches a required group saved with no
+  // choices at all, not just one that's since sold out entirely.
+  function blockingRequiredGroup(product) {
+    return (product.modifier_groups ?? []).find(
+      g => g.is_required && g.options.every(o => o.is_available === false)
+    ) ?? null
+  }
+
   function handleCardClick(product) {
+    if (blockingRequiredGroup(product)) return
     if (props.customizable && needsCustomize(product)) {
       emit('customize', product)
     } else if (product.options.length === 1) {
@@ -231,6 +262,18 @@
      @click handler above. */
   .pos-product-grid--touch .pos-product-card {
     cursor: pointer;
+  }
+  /* Dimmed, not pointer-events:none — the "Unavailable" chip still needs
+     hover for its tooltip. handleCardClick() itself is what actually
+     blocks opening the dialog. */
+  .pos-product-card--unavailable,
+  .pos-product-grid--touch .pos-product-card--unavailable {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .pos-product-card__unavailable-chip {
+    width: 100%;
+    justify-content: center;
   }
   .pos-product-card__placeholder {
     height: 90px;

@@ -15,16 +15,20 @@ class ModifierGroup extends BaseModel
     protected $fillable = [
         'tenant_id',
         'name',
+        'name_km',
         'selection_type',
         'min_selections',
         'max_selections',
         'is_required',
+        'allow_custom_value',
+        'custom_suffix',
     ];
 
     protected $casts = [
-        'is_required'     => 'boolean',
-        'min_selections'  => 'integer',
-        'max_selections'  => 'integer',
+        'is_required'        => 'boolean',
+        'min_selections'     => 'integer',
+        'max_selections'     => 'integer',
+        'allow_custom_value' => 'boolean',
     ];
 
     public function tenant()

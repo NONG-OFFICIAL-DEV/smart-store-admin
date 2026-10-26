@@ -89,6 +89,25 @@ class ProductController extends Controller
         return $this->success($product, 'Modifier groups linked successfully.');
     }
 
+    public function detachModifierGroup(Product $product, string $modifierGroup): JsonResponse
+    {
+        $product = $this->products->detachModifierGroup($product, $modifierGroup);
+
+        return $this->success($product, 'Option group removed from this product.');
+    }
+
+    public function reorderModifierGroups(Request $request, Product $product): JsonResponse
+    {
+        $validated = $request->validate([
+            'modifier_group_ids' => ['required', 'array', 'min:1'],
+            'modifier_group_ids.*' => ['required', 'uuid'],
+        ]);
+
+        $product = $this->products->reorderModifierGroups($product, $validated['modifier_group_ids']);
+
+        return $this->success($product, 'Option groups reordered successfully.');
+    }
+
     // Drag-reorder in ProductManagement.vue — only enabled there when a
     // single category is selected, but this itself doesn't care which
     // category the ids belong to, it just assigns sequential sort_order

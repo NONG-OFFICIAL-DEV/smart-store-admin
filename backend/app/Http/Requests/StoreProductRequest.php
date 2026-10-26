@@ -61,8 +61,10 @@ class StoreProductRequest extends FormRequest
         return [
             'category_id' => ['required', 'uuid', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:200'],
+            'name_km' => ['nullable', 'string', 'max:200'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:2048'],
+            'image_fit' => ['nullable', 'in:cover,contain'],
             'sku' => ['nullable', 'string', 'max:60'],
             'barcode' => ['nullable', 'string', 'max:60'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

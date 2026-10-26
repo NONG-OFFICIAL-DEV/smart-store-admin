@@ -12,7 +12,7 @@ class OrderItem extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'order_id', 'product_id', 'variant_id', 'product_name',
+        'order_id', 'product_id', 'variant_id', 'product_name', 'variant_name',
         'quantity', 'unit_price', 'discount_amount', 'total_price',
         'status', 'notes', 'course',
         'unit_name',   

@@ -34,6 +34,7 @@ class ProductService extends BaseService
             'category:id,name,icon,color',
             'variants' => fn($q) => $q->orderBy('sort_order')->orderBy('name'),
             'modifierGroups' => fn($q) => $q->orderBy('product_modifier_groups.sort_order')
+                ->withCount('products')
                 ->with(['options' => fn($q) => $q->orderBy('sort_order')->orderBy('name')]),
             'units' => fn($q) => $q->orderBy('is_base_unit', 'desc')->orderBy('qty_per_base'),
             'tenant' => fn($q) => $q->select('id', 'name', 'logo_url', 'currency', 'business_type_id')
@@ -146,7 +147,30 @@ class ProductService extends BaseService
         // syncWithoutDetaching keeps existing links, only adds new ones.
         $product->modifierGroups()->syncWithoutDetaching($modifierGroupIds);
 
-        return $product->load('modifierGroups.options');
+        return $product->load(['modifierGroups' => fn ($q) => $q->withCount('products')->with('options')]);
+    }
+
+    // Unlinks one group from this product only — the group itself (and its
+    // links to every other product) is untouched. Never deletes the group.
+    public function detachModifierGroup(Product $product, string $modifierGroupId): Product
+    {
+        $product->modifierGroups()->detach($modifierGroupId);
+
+        return $product->load(['modifierGroups' => fn ($q) => $q->withCount('products')->with('options')]);
+    }
+
+    // Reorders this product's own linked groups (pivot sort_order) — does
+    // not touch any other product's link to the same group.
+    public function reorderModifierGroups(Product $product, array $orderedGroupIds): Product
+    {
+        foreach ($orderedGroupIds as $index => $groupId) {
+            $product->modifierGroups()->updateExistingPivot($groupId, ['sort_order' => $index]);
+        }
+
+        return $product->load(['modifierGroups' => fn ($q) => $q->orderBy('product_modifier_groups.sort_order')
+            ->withCount('products')
+            ->with(['options' => fn ($q) => $q->orderBy('sort_order')->orderBy('name')]),
+        ]);
     }
 
     public function findByBarcode(string $barcode): Product
@@ -193,8 +217,8 @@ class ProductService extends BaseService
     {
         $fields = [];
         foreach ([
-            'category_id', 'name', 'description', 'sku', 'barcode', 'sort_order',
-            'is_available', 'is_featured',
+            'category_id', 'name', 'name_km', 'description', 'sku', 'barcode', 'sort_order',
+            'is_available', 'is_featured', 'image_fit',
             'base_price', 'cost_price', 'preparation_time',
             'cup_sizes', 'temperature_options', 'shelf_life_hours',
             'stock_quantity', 'reorder_level', 'track_stock', 'expiry_date', 'supplier_code',

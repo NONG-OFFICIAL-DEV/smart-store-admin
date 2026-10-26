@@ -46,11 +46,8 @@
                 class="ml-1"
               />
             </div>
-            <div v-if="item.variant_name || item.unit_label" class="text-caption text-medium-emphasis">
-              {{ item.variant_name || item.unit_label }}
-            </div>
-            <div v-if="item.customizations?.length" class="text-caption text-medium-emphasis">
-              {{ item.customizations.map(c => c.value).join(' · ') }}
+            <div v-if="optionsLine(item)" class="text-caption text-medium-emphasis">
+              {{ optionsLine(item) }}
             </div>
             <div class="text-caption text-medium-emphasis">
               {{ formatMoney(item.unit_price) }}
@@ -187,6 +184,19 @@
   const { format: formatMoney } = useCurrency()
   const { t } = useI18n()
   const { isTouch } = useTouchDevice()
+
+  // "M · Sugar 80% · Pearl +$0.50" — size first (falling back to the mart
+  // unit label for retail items with no variant), then every chosen option,
+  // showing a price only for ones that actually add to the total.
+  function optionsLine(item) {
+    const parts = []
+    if (item.variant_name) parts.push(item.variant_name)
+    else if (item.unit_label) parts.push(item.unit_label)
+    for (const c of item.customizations ?? []) {
+      parts.push(c.price ? `${c.value} +${formatMoney(c.price)}` : c.value)
+    }
+    return parts.join(' · ')
+  }
 
   const props = defineProps({
     items: { type: Array, default: () => [] },

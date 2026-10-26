@@ -20,11 +20,61 @@ class StoreModifierGroupRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'selection_type' => ['nullable', 'in:single,multiple'],
-            'min_selections' => ['nullable', 'integer', 'min:0'],
-            'max_selections' => ['nullable', 'integer', 'min:0'],
+            'name_km' => ['nullable', 'string', 'max:100'],
+            'selection_type' => ['required', 'in:single,multiple'],
+            // max_selections only means anything for "multiple" — for
+            // "single" the service always forces it to 1. min_selections
+            // isn't client-settable at all; the service derives it from
+            // is_required (1/0), see ModifierGroupService.
+            'max_selections' => ['nullable', 'integer', 'min:2', 'max:10'],
             'is_required' => ['boolean'],
+            'allow_custom_value' => ['boolean'],
+            'custom_suffix' => ['nullable', 'string', 'max:10'],
+
+            'options' => ['required', 'array', 'min:1'],
+            'options.*.id' => ['nullable', 'uuid'],
+            'options.*.name' => ['required', 'string', 'max:100'],
+            'options.*.price_adjustment' => ['nullable', 'numeric'],
+            'options.*.is_available' => ['boolean'],
+            'options.*.is_default' => ['boolean'],
+            'options.*.sort_order' => ['nullable', 'integer'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $options = collect($this->input('options', []));
+
+            $names = $options->pluck('name')->filter()->map(fn ($n) => mb_strtolower(trim($n)));
+            if ($names->count() !== $names->unique()->count()) {
+                $validator->errors()->add('options', 'Choice names must be unique within the group.');
+            }
+
+            if ($this->input('selection_type') === 'single') {
+                $defaults = $options->filter(fn ($o) => ! empty($o['is_default']))->count();
+                if ($defaults > 1) {
+                    $validator->errors()->add('options', 'Only one choice can be the default for "Pick one".');
+                }
+            }
+
+            if ($this->input('selection_type') === 'multiple') {
+                $max = (int) $this->input('max_selections', 0);
+                if ($max > 0 && $max > $options->count()) {
+                    $validator->errors()->add('max_selections', 'Max can\'t be more than the number of choices.');
+                }
+            }
+
+            if ($this->boolean('is_required') && $options->isNotEmpty()) {
+                $hasAvailableChoice = $options->contains(fn ($o) => ($o['is_available'] ?? true) !== false);
+                if (! $hasAvailableChoice) {
+                    $validator->errors()->add(
+                        'options',
+                        "This group is required. Products using it can't be ordered until a choice is available."
+                    );
+                }
+            }
+        });
     }
 
     protected function failedValidation(Validator $validator)

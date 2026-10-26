@@ -52,7 +52,7 @@ class CategoryController extends Controller
 
     public function show(Category $category): JsonResponse
     {
-        return $this->success(new CategoryResource($category->load(['tenants', 'businessTypes'])));
+        return $this->success(new CategoryResource($category->load(['tenants', 'businessTypes'])->loadCount('products')));
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
@@ -72,6 +72,29 @@ class CategoryController extends Controller
         $this->categories->delete($category);
 
         return $this->noContent('Category deleted successfully.');
+    }
+
+    public function reorder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ordered_ids' => ['required', 'array', 'min:1'],
+            'ordered_ids.*' => ['uuid'],
+        ]);
+
+        $this->categories->reorder($validated['ordered_ids']);
+
+        return $this->success(null, 'Categories reordered successfully.');
+    }
+
+    public function destroyWithReassignment(Request $request, Category $category): JsonResponse
+    {
+        $validated = $request->validate([
+            'reassign_to' => ['required', 'uuid', 'exists:categories,id'],
+        ]);
+
+        $this->categories->deleteWithReassignment($category, $validated['reassign_to']);
+
+        return $this->noContent('Category deleted and products reassigned successfully.');
     }
 
     /**

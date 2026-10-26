@@ -11,14 +11,20 @@ export const useModifierGroupStore = defineStore('modifierGroup', {
   state: () => ({
     modifierGroups: [],
     modifierGroup: null,
-    pagination: {}
+    pagination: {},
+    loading: false
   }),
 
   actions: {
     async fetchModifierGroups(filters) {
-      const res = await getAllModifierGroupsApi(filters)
-      this.modifierGroups = res.data.data
-      this.pagination = res.data.meta
+      this.loading = true
+      try {
+        const res = await getAllModifierGroupsApi(filters)
+        this.modifierGroups = res.data.data
+        this.pagination = res.data.meta
+      } finally {
+        this.loading = false
+      }
     },
     async fetchModifierGroupById(id) {
       const res = await getModifierGroupByIdApi(id)
@@ -27,11 +33,13 @@ export const useModifierGroupStore = defineStore('modifierGroup', {
     async createModifierGroup(data) {
       const res = await createModifierGroupApi(data)
       this.modifierGroups.unshift(res.data.data)
+      return res.data.data
     },
     async updateModifierGroup(id, data) {
       const res = await updateModifierGroupApi(id, data)
       const index = this.modifierGroups.findIndex(item => item.id === id)
       if (index !== -1) this.modifierGroups[index] = res.data.data
+      return res.data.data
     },
     async deleteModifierGroup(id) {
       await deleteModifierGroupApi(id)

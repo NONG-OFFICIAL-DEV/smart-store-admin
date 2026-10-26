@@ -1,25 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <AppToolbar :title="t('products.title')" :subtitle="t('products.subtitle')">
-      <template #actions>
-        <v-btn
-          variant="outlined"
-          rounded="lg"
-          prepend-icon="mdi-shape-outline"
-          @click="categoryManagerOpen = true"
-        >
-          {{ t('menu.categories') }}
-        </v-btn>
-        <template v-if="authStore.isFood">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            prepend-icon="mdi-tune-variant"
-            @click="modifierManagerOpen = true"
-          >
-            {{ t('menu.modifiers') }}
-          </v-btn>
-        </template>
+      <template v-if="tab === 'products'" #actions>
         <v-btn
           color="primary"
           variant="flat"
@@ -32,225 +14,248 @@
       </template>
     </AppToolbar>
 
-    <CategoryManagerDialog v-model="categoryManagerOpen" />
-    <ModifierManagerDialog v-model="modifierManagerOpen" />
+    <v-tabs v-model="tab" class="mb-4">
+      <v-tab value="products">{{ t('products.title') }}</v-tab>
+      <v-tab value="categories">{{ t('menu.categories') }}</v-tab>
+      <v-tab v-if="authStore.isFood" value="options">
+        {{ t('modifiers.options_tab.tab_label') }}
+      </v-tab>
+    </v-tabs>
 
-    <!-- ── Filters ────────────────────────────────────────────────────────── -->
-    <v-row dense align="center" class="mb-2">
-      <v-col cols="12" sm="3">
-        <custom-select
-          v-model="filterCategories"
-          :items="categories"
-          item-title="name"
-          item-value="id"
-          :label="t('categories.title')"
-          :multiple="true"
-          :chips="true"
-          :max-visible-chips="2"
-        />
-      </v-col>
-      <v-col cols="12" sm="3">
-        <v-select
-          v-model="filterAvailable"
-          :items="availabilityOptions"
-          :label="t('products.filter.availability')"
-          variant="outlined"
-          clearable
-          rounded="lg"
-          hide-details
-        />
-      </v-col>
-      <v-col cols="auto">
-        <v-btn
-          :color="reorderMode ? 'primary' : 'default'"
-          :variant="reorderMode ? 'flat' : 'outlined'"
-          rounded="lg"
-          :prepend-icon="reorderMode ? 'mdi-check' : 'mdi-sort'"
-          @click="toggleReorderMode"
-        >
-          {{
-            reorderMode
-              ? t('products.reorder.done')
-              : t('products.reorder.toggle')
-          }}
-        </v-btn>
-      </v-col>
-    </v-row>
+    <v-window v-model="tab">
+      <v-window-item value="products">
+        <!-- ── Filters ────────────────────────────────────────────────────────── -->
+        <v-row dense align="center" class="mb-2 py-2">
+          <v-col cols="12" sm="3">
+            <custom-select
+              v-model="filterCategories"
+              :items="categories"
+              item-title="name"
+              item-value="id"
+              :label="t('categories.title')"
+              :multiple="true"
+              :chips="true"
+              :max-visible-chips="2"
+            />
+          </v-col>
+          <v-col cols="12" sm="3">
+            <v-select
+              v-model="filterAvailable"
+              :items="availabilityOptions"
+              :label="t('products.filter.availability')"
+              variant="outlined"
+              clearable
+              rounded="lg"
+              hide-details
+            />
+          </v-col>
+          <v-col cols="auto">
+            <v-btn
+              :color="reorderMode ? 'primary' : 'default'"
+              :variant="reorderMode ? 'flat' : 'outlined'"
+              rounded="lg"
+              :prepend-icon="reorderMode ? 'mdi-check' : 'mdi-sort'"
+              @click="toggleReorderMode"
+            >
+              {{
+                reorderMode
+                  ? t('products.reorder.done')
+                  : t('products.reorder.toggle')
+              }}
+            </v-btn>
+          </v-col>
+        </v-row>
 
-    <!-- ── Reorder view — toggled explicitly via the button above. Scoped by
+        <!-- ── Reorder view — toggled explicitly via the button above. Scoped by
          whatever category/availability filters are currently set (all
          products if none). ── -->
-    <v-card v-if="reorderMode" rounded="lg" elevation="0" border class="pa-4">
-      <v-alert
-        type="info"
-        variant="tonal"
-        density="compact"
-        rounded="lg"
-        class="mb-3"
-      >
-        {{ t('products.reorder.hint') }}
-      </v-alert>
+        <v-card
+          v-if="reorderMode"
+          rounded="lg"
+          elevation="0"
+          border
+          class="pa-4"
+        >
+          <v-alert
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-3"
+          >
+            {{ t('products.reorder.hint') }}
+          </v-alert>
 
-      <v-progress-linear v-if="reorderLoading" indeterminate class="mb-3" />
+          <v-progress-linear v-if="reorderLoading" indeterminate class="mb-3" />
 
-      <draggable
-        v-model="reorderItems"
-        item-key="id"
-        handle=".drag-handle"
-        :disabled="reorderLoading || reorderSaving"
-        @end="onReorderEnd"
-      >
-        <template #item="{ element: item }">
-          <div class="reorder-row d-flex align-center ga-3 py-2 px-2">
-            <v-icon
-              icon="mdi-drag-vertical"
-              class="drag-handle"
-              style="cursor: grab"
-            />
-            <v-avatar size="35" rounded="lg" color="grey-lighten-2">
-              <v-img v-if="item.image_url" :src="item.image_url" cover />
-              <v-icon v-else icon="mdi-food" size="20" color="grey" />
-            </v-avatar>
-            <div class="flex-grow-1">
-              <div class="font-weight-medium">{{ item.name }}</div>
-              <div class="text-caption text-medium-emphasis">
-                {{ formatMoney(item.base_price) }}
+          <draggable
+            v-model="reorderItems"
+            item-key="id"
+            handle=".drag-handle"
+            :disabled="reorderLoading || reorderSaving"
+            @end="onReorderEnd"
+          >
+            <template #item="{ element: item }">
+              <div class="reorder-row d-flex align-center ga-3 py-2 px-2">
+                <v-icon
+                  icon="mdi-drag-vertical"
+                  class="drag-handle"
+                  style="cursor: grab"
+                />
+                <v-avatar size="35" rounded="lg" color="grey-lighten-2">
+                  <v-img v-if="item.image_url" :src="item.image_url" cover />
+                  <v-icon v-else icon="mdi-food" size="20" color="grey" />
+                </v-avatar>
+                <div class="flex-grow-1">
+                  <div class="font-weight-medium">{{ item.name }}</div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ formatMoney(item.base_price) }}
+                  </div>
+                </div>
+                <AppStatusChip
+                  :status="item.is_available ? 'active' : 'inactive'"
+                  size="x-small"
+                />
+                <v-btn
+                  icon="mdi-pencil-outline"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  @click="openEdit(item)"
+                />
               </div>
-            </div>
-            <AppStatusChip
-              :status="item.is_available ? 'active' : 'inactive'"
-              size="x-small"
-            />
-            <v-btn
-              icon="mdi-pencil-outline"
-              size="small"
-              variant="text"
-              color="primary"
-              @click="openEdit(item)"
-            />
+            </template>
+          </draggable>
+
+          <div
+            v-if="!reorderLoading && !reorderItems.length"
+            class="text-center py-10"
+          >
+            <p class="text-medium-emphasis">{{ t('products.empty') }}</p>
           </div>
-        </template>
-      </draggable>
+        </v-card>
 
-      <div
-        v-if="!reorderLoading && !reorderItems.length"
-        class="text-center py-10"
-      >
-        <p class="text-medium-emphasis">{{ t('products.empty') }}</p>
-      </div>
-    </v-card>
+        <!-- ── Table View ─────────────────────────────────────────────────────── -->
+        <v-card v-else rounded="lg" elevation="0" border class="pa-4">
+          <AppTable
+            ref="tableRef"
+            :headers="headers"
+            :fetch-fn="fetchProductsForTable"
+            :filters="filters"
+            :show-search="true"
+            :item-label="t('products.title')"
+          >
+            <!-- Image + Name -->
+            <template #item.name="{ item }">
+              <div class="d-flex align-center gap-3 py-2">
+                <v-avatar
+                  size="35"
+                  rounded="lg"
+                  color="grey-lighten-2"
+                  class="me-2"
+                >
+                  <v-img v-if="item.image_url" :src="item.image_url" cover />
+                  <v-icon v-else icon="mdi-food" size="20" color="grey" />
+                </v-avatar>
+                <div>
+                  <div class="font-weight-medium">{{ item.name }}</div>
+                </div>
+              </div>
+            </template>
 
-    <!-- ── Table View ─────────────────────────────────────────────────────── -->
-    <v-card v-else rounded="lg" elevation="0" border class="pa-4">
-      <AppTable
-        ref="tableRef"
-        :headers="headers"
-        :fetch-fn="fetchProductsForTable"
-        :filters="filters"
-        :show-search="true"
-        :item-label="t('products.title')"
-      >
-        <!-- Image + Name -->
-        <template #item.name="{ item }">
-          <div class="d-flex align-center gap-3 py-2">
-            <v-avatar
-              size="35"
-              rounded="lg"
-              color="grey-lighten-2"
-              class="me-2"
-            >
-              <v-img v-if="item.image_url" :src="item.image_url" cover />
-              <v-icon v-else icon="mdi-food" size="20" color="grey" />
-            </v-avatar>
-            <div>
-              <div class="font-weight-medium">{{ item.name }}</div>
-            </div>
-          </div>
-        </template>
+            <!-- Price -->
+            <template #item.base_price="{ item }">
+              <span class="text-body-2 font-weight-medium">
+                {{ formatMoney(item.base_price) }}
+              </span>
+            </template>
 
-        <!-- Price -->
-        <template #item.base_price="{ item }">
-          <span class="text-body-2 font-weight-medium">
-            {{ formatMoney(item.base_price) }}
-          </span>
-        </template>
+            <!-- Stock -->
+            <template #item.stock_quantity="{ item }">
+              <span v-if="item.track_stock" class="text-body-2">
+                {{ item.stock_quantity }}
+              </span>
+              <span v-else class="text-body-2 text-medium-emphasis">—</span>
+            </template>
 
-        <!-- Stock -->
-        <template #item.stock_quantity="{ item }">
-          <span v-if="item.track_stock" class="text-body-2">
-            {{ item.stock_quantity }}
-          </span>
-          <span v-else class="text-body-2 text-medium-emphasis">—</span>
-        </template>
+            <!-- Stock status -->
+            <template #item.stock_status="{ item }">
+              <AppStatusChip
+                v-if="stockStatus(item)"
+                :status="stockStatus(item)"
+                :map="stockStatusMap"
+                size="small"
+              />
+              <span v-else class="text-body-2 text-medium-emphasis">—</span>
+            </template>
 
-        <!-- Stock status -->
-        <template #item.stock_status="{ item }">
-          <AppStatusChip
-            v-if="stockStatus(item)"
-            :status="stockStatus(item)"
-            :map="stockStatusMap"
-            size="small"
-          />
-          <span v-else class="text-body-2 text-medium-emphasis">—</span>
-        </template>
+            <!-- Available -->
+            <template #item.is_available="{ item }">
+              <v-switch
+                v-model="item.is_available"
+                color="success"
+                hide-details
+                @change="toggleAvailability(item)"
+              />
+            </template>
 
-        <!-- Available -->
-        <template #item.is_available="{ item }">
-          <v-switch
-            v-model="item.is_available"
-            color="success"
-            hide-details
-            @change="toggleAvailability(item)"
-          />
-        </template>
+            <!-- Actions -->
+            <template #item.actions="{ item }">
+              <div class="d-flex gap-1">
+                <v-btn
+                  icon="mdi-arrow-top-right"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  :to="`/product-details/${item.id}`"
+                />
+                <v-btn
+                  icon="mdi-pencil-outline"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  @click="openEdit(item)"
+                />
+                <v-btn
+                  icon="mdi-delete-outline"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  @click="doDelete(item)"
+                />
+              </div>
+            </template>
 
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <div class="d-flex gap-1">
-            <v-btn
-              icon="mdi-arrow-top-right"
-              size="small"
-              variant="text"
-              color="primary"
-              :to="`/product-details/${item.id}`"
-            />
-            <v-btn
-              icon="mdi-pencil-outline"
-              size="small"
-              variant="text"
-              color="primary"
-              @click="openEdit(item)"
-            />
-            <v-btn
-              icon="mdi-delete-outline"
-              size="small"
-              variant="text"
-              color="error"
-              @click="doDelete(item)"
-            />
-          </div>
-        </template>
-
-        <template #no-data>
-          <div class="text-center py-10">
-            <v-icon
-              icon="mdi-package-variant-closed"
-              size="48"
-              color="grey-lighten-1"
-            />
-            <p class="text-medium-emphasis mt-3">{{ $t('products.empty') }}</p>
-            <v-btn
-              color="primary"
-              variant="tonal"
-              class="mt-3"
-              @click="openCreate"
-            >
-              {{ t('btn.add_product') }}
-            </v-btn>
-          </div>
-        </template>
-      </AppTable>
-    </v-card>
+            <template #no-data>
+              <div class="text-center py-10">
+                <v-icon
+                  icon="mdi-package-variant-closed"
+                  size="48"
+                  color="grey-lighten-1"
+                />
+                <p class="text-medium-emphasis mt-3">
+                  {{ $t('products.empty') }}
+                </p>
+                <v-btn
+                  color="primary"
+                  variant="tonal"
+                  class="mt-3"
+                  @click="openCreate"
+                >
+                  {{ t('btn.add_product') }}
+                </v-btn>
+              </div>
+            </template>
+          </AppTable>
+        </v-card>
+      </v-window-item>
+      <v-window-item value="categories">
+        <CategoriesTab @view-products="viewProductsByCategory" />
+      </v-window-item>
+      <v-window-item v-if="authStore.isFood" value="options">
+        <OptionGroupsList />
+      </v-window-item>
+    </v-window>
   </v-container>
 </template>
 <script setup>
@@ -263,8 +268,8 @@
   import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
-  import CategoryManagerDialog from '@/components/catalogs/CategoryManagerDialog.vue'
-  import ModifierManagerDialog from '@/components/catalogs/ModifierManagerDialog.vue'
+  import CategoriesTab from '@/views/products/CategoriesTab.vue'
+  import OptionGroupsList from '@/views/products/OptionGroupsList.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
   import draggable from 'vuedraggable'
 
@@ -280,11 +285,11 @@
 
   const tableRef = ref(null)
 
-  // ── "Manage X" dialogs — Category/Modifier are managed from here via a
-  // modal, not their own sidebar page (see sidebarMenu.js's Products
-  // group). Menus/Branch Menus moved to their own page (MenuHub.vue).
-  const categoryManagerOpen = ref(false)
-  const modifierManagerOpen = ref(false)
+  // Products · Categories · Options — Category/Options management used to
+  // be "Manage X" dialogs opened from here; now plain tabs on the same page
+  // instead of a popup (Options used to be a popup stacking its own
+  // group/option dialogs inside it — see OptionGroupsList.vue).
+  const tab = ref('products')
 
   // ── Filters — deep-watched by AppTable, auto-refetches on change (free-text
   // search is AppTable's own built-in field). ───────────────────────────────────
@@ -352,12 +357,19 @@
     await categoryStore.fetchCategories({ perPage: -1 })
   })
 
-  // Category filter/table both read from categoryStore — refresh it once the
-  // manager dialog closes so anything added/edited/deleted there shows up
-  // immediately, without a full page reload.
-  watch(categoryManagerOpen, open => {
-    if (!open) categoryStore.fetchCategories({ perPage: -1 })
+  // The product list's own category filter reads from categoryStore too —
+  // refresh it on leaving the Categories tab so anything added/edited/
+  // deleted there shows up immediately, without a full page reload.
+  watch(tab, (next, prev) => {
+    if (prev === 'categories') categoryStore.fetchCategories({ perPage: -1 })
   })
+
+  // "N products" link on a category row — jump to the Products tab
+  // pre-filtered to just that category.
+  function viewProductsByCategory(categoryId) {
+    filterCategories.value = [categoryId]
+    tab.value = 'products'
+  }
 
   // ── Static options ────────────────────────────────────────────────────────────
   const availabilityOptions = [

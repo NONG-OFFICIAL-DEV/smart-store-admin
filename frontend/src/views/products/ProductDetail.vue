@@ -5,29 +5,32 @@
       <AppPageHeader
         :title="product.name"
         show-back
-        :breadcrumbs="[
-          { title: t('products.title'), to: '/products' },
-          { title: product.name }
-        ]"
+        :breadcrumbs="breadcrumbItems"
       >
+        <template #title-after>
+          <span v-if="product.name_km" class="text-body-2 text-medium-emphasis">
+            · {{ product.name_km }}
+          </span>
+        </template>
         <template #right>
           <div class="d-flex gap-2">
             <v-btn
               variant="outlined"
-              prepend-icon="mdi-pencil-outline"
-              rounded="lg"
-              @click="openEditProduct"
-            >
-              {{ t('btn.edit') }}
-            </v-btn>
-            <v-btn
               color="error"
-              variant="tonal"
               prepend-icon="mdi-delete-outline"
               rounded="lg"
               @click="handleDeleteProduct"
             >
               {{ t('btn.delete') }}
+            </v-btn>
+            <v-btn
+              color="primary"
+              variant="flat"
+              prepend-icon="mdi-pencil-outline"
+              rounded="lg"
+              @click="openEditProduct"
+            >
+              {{ t('products.detail.edit_details') }}
             </v-btn>
           </div>
         </template>
@@ -39,30 +42,23 @@
              LEFT COLUMN — Image + Core Info
         ═══════════════════════════════════════════════════════════════════════ -->
           <v-col cols="12" lg="4">
-            <!-- Image + badges -->
-            <v-card
-              rounded="xl"
-              border
-              elevation="0"
-              class="mb-4 overflow-hidden"
-            >
-              <div class="d-flex align-center justify-center px-5 pt-5">
-                <v-avatar size="250" v-if="product.image_url" rounded="xl">
-                  <v-img :src="product.image_url" cover />
-                </v-avatar>
-                <div
-                  v-else
-                  class="product-image-placeholder d-flex align-center justify-center"
-                >
-                <v-avatar size="200" rounded="xl">
-                  <v-icon
-                    :icon="buConfig?.icon ?? 'mdi-package-variant'"
-                    size="72"
-                    color="grey-lighten-2"
-                  />
-                </v-avatar>
-                </div>
-              </div>
+            <v-card rounded="lg" class="mb-4 overflow-hidden">
+              <v-img
+                :src="product.image_url"
+                :aspect-ratio="4 / 3"
+                :cover="product.image_fit !== 'contain'"
+                class="bg-surface-light"
+              >
+                <template v-if="!product.image_url" #placeholder>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <v-icon
+                      :icon="buConfig?.icon ?? 'mdi-package-variant'"
+                      size="56"
+                      color="grey"
+                    />
+                  </div>
+                </template>
+              </v-img>
 
               <v-card-text class="pa-5">
                 <!-- Status badges -->
@@ -77,7 +73,11 @@
                         : 'mdi-close-circle-outline'
                     "
                   >
-                    {{ product.is_available ? 'Available' : 'Unavailable' }}
+                    {{
+                      product.is_available
+                        ? t('products.detail.available')
+                        : t('products.detail.unavailable')
+                    }}
                   </v-chip>
                   <v-chip
                     v-if="product.is_featured"
@@ -86,9 +86,8 @@
                     variant="tonal"
                     prepend-icon="mdi-star"
                   >
-                    Featured
+                    {{ t('products.detail.featured') }}
                   </v-chip>
-                  <!-- Business type badge -->
                   <v-chip
                     v-if="buConfig"
                     :color="buConfig.color"
@@ -100,45 +99,51 @@
                   </v-chip>
                 </div>
 
-                <!-- Description -->
-                <div v-if="product.description" class="mb-4">
-                  <p class="text-caption text-grey mb-1">Description</p>
-                  <p class="text-body-2">{{ product.description }}</p>
-                </div>
-
-                <!-- Meta rows -->
-                <div class="d-flex flex-column" style="gap: 8px">
+                <div class="d-flex flex-column" style="gap: 10px">
                   <div v-if="product.category?.name" class="meta-row">
-                    <span class="text-caption text-grey">Category</span>
+                    <span class="text-caption text-medium-emphasis">
+                      {{ t('products.field.category') }}
+                    </span>
                     <v-chip size="x-small" variant="tonal" color="primary">
                       {{ product.category.name }}
                     </v-chip>
                   </div>
-                  <div v-if="product.sku" class="meta-row">
-                    <span class="text-caption text-grey">SKU</span>
-                    <v-chip size="x-small" variant="outlined">
-                      {{ product.sku }}
-                    </v-chip>
-                  </div>
-                  <div v-if="product.barcode" class="meta-row">
-                    <span class="text-caption text-grey">Barcode</span>
-                    <span class="text-caption font-weight-medium">
-                      {{ product.barcode }}
+                  <div class="meta-row">
+                    <span class="text-caption text-medium-emphasis">
+                      {{ t('products.detail.image_fit') }}
                     </span>
+                    <v-btn-toggle
+                      :model-value="imageFit"
+                      density="compact"
+                      rounded="lg"
+                      mandatory
+                      color="primary"
+                      @update:model-value="onImageFitChange"
+                    >
+                      <v-btn value="cover" size="x-small" class="text-none">
+                        {{ t('products.detail.image_fit_cover') }}
+                      </v-btn>
+                      <v-btn value="contain" size="x-small" class="text-none">
+                        {{ t('products.detail.image_fit_contain') }}
+                      </v-btn>
+                    </v-btn-toggle>
                   </div>
-                  <div v-if="product.sort_order != null" class="meta-row">
-                    <span class="text-caption text-grey">Sort Order</span>
-                    <span class="text-caption font-weight-medium">
-                      {{ product.sort_order }}
+                  <v-divider class="my-1" />
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-caption text-medium-emphasis">
+                      {{ t('products.detail.price') }}
+                    </span>
+                    <span class="text-h6 font-weight-bold text-primary">
+                      {{ priceDisplay }}
                     </span>
                   </div>
                 </div>
               </v-card-text>
             </v-card>
 
-            <!-- ── FOOD: Pricing card ──────────────────────────────────────── -->
+            <!-- ── FOOD: cost/margin (base price now shown above) ──────────── -->
             <v-card
-              v-if="isFoodProduct"
+              v-if="isFoodProduct && product.cost_price"
               rounded="xl"
               border
               elevation="0"
@@ -147,31 +152,21 @@
               <v-card-text class="pa-5">
                 <div class="section-label mb-4">
                   <v-icon icon="mdi-cash" size="12" class="mr-1" />
-                  Pricing
+                  {{ t('products.detail.cost_margin') }}
                 </div>
-
                 <div class="d-flex flex-column" style="gap: 10px">
                   <div class="d-flex justify-space-between align-center">
-                    <span class="text-caption text-grey">Base Price</span>
-                    <span class="text-h6 font-weight-bold text-primary">
-                      {{ format(product.base_price) }}
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.cost_price') }}
                     </span>
-                  </div>
-                  <v-divider v-if="product.cost_price" />
-                  <div
-                    v-if="product.cost_price"
-                    class="d-flex justify-space-between align-center"
-                  >
-                    <span class="text-caption text-grey">Cost Price</span>
                     <span class="text-body-2">
                       {{ format(product.cost_price) }}
                     </span>
                   </div>
-                  <div
-                    v-if="product.cost_price"
-                    class="d-flex justify-space-between align-center"
-                  >
-                    <span class="text-caption text-grey">Margin</span>
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.margin') }}
+                    </span>
                     <v-chip
                       :color="
                         margin >= 30
@@ -194,8 +189,7 @@
             <v-card
               v-if="
                 isFoodProduct &&
-                (product.preparation_time ||
-                  product.shelf_life_hours != null)
+                (product.preparation_time || product.shelf_life_hours != null)
               "
               rounded="xl"
               border
@@ -209,11 +203,13 @@
                     size="12"
                     class="mr-1"
                   />
-                  Kitchen Details
+                  {{ t('products.detail.kitchen_details') }}
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
                   <div v-if="product.preparation_time" class="meta-row">
-                    <span class="text-caption text-grey">Prep Time</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.prep_time') }}
+                    </span>
                     <v-chip
                       size="x-small"
                       variant="tonal"
@@ -224,7 +220,9 @@
                     </v-chip>
                   </div>
                   <div v-if="product.shelf_life_hours" class="meta-row">
-                    <span class="text-caption text-grey">Shelf Life</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.shelf_life') }}
+                    </span>
                     <v-chip
                       size="x-small"
                       variant="tonal"
@@ -234,13 +232,8 @@
                       {{ product.shelf_life_hours }}h
                     </v-chip>
                   </div>
-                  <div v-if="product.made_to_order" class="meta-row">
-                    <span class="text-caption text-grey">Made to Order</span>
-                    <v-icon icon="mdi-check-circle" color="success" size="16" />
-                  </div>
                 </div>
 
-                <!-- Cup sizes & temp options (Coffee shop) -->
                 <template
                   v-if="
                     product.cup_sizes?.length ||
@@ -249,7 +242,9 @@
                 >
                   <v-divider class="my-3" />
                   <div v-if="product.cup_sizes?.length" class="mb-2">
-                    <p class="text-caption text-grey mb-2">Sizes</p>
+                    <p class="text-caption text-grey mb-2">
+                      {{ t('products.detail.cup_sizes') }}
+                    </p>
                     <div class="d-flex flex-wrap gap-1">
                       <v-chip
                         v-for="s in product.cup_sizes"
@@ -263,7 +258,9 @@
                     </div>
                   </div>
                   <div v-if="product.temperature_options?.length">
-                    <p class="text-caption text-grey mb-2">Temperature</p>
+                    <p class="text-caption text-grey mb-2">
+                      {{ t('products.detail.temperature') }}
+                    </p>
                     <div class="d-flex flex-wrap gap-1">
                       <v-chip
                         v-for="temp in product.temperature_options"
@@ -291,11 +288,13 @@
               <v-card-text class="pa-5">
                 <div class="section-label mb-4">
                   <v-icon icon="mdi-warehouse" size="12" class="mr-1" />
-                  Inventory & Stock
+                  {{ t('products.detail.inventory_stock') }}
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
                   <div class="meta-row">
-                    <span class="text-caption text-grey">Stock</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.stock') }}
+                    </span>
                     <v-chip
                       :color="stockColor"
                       size="x-small"
@@ -307,13 +306,17 @@
                     </v-chip>
                   </div>
                   <div v-if="product.reorder_level" class="meta-row">
-                    <span class="text-caption text-grey">Reorder At</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.reorder_at') }}
+                    </span>
                     <span class="text-caption font-weight-medium">
                       {{ product.reorder_level }}
                     </span>
                   </div>
                   <div class="meta-row">
-                    <span class="text-caption text-grey">Track Stock</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.track_stock') }}
+                    </span>
                     <v-icon
                       :icon="
                         product.track_stock
@@ -325,7 +328,9 @@
                     />
                   </div>
                   <div v-if="product.expiry_date" class="meta-row">
-                    <span class="text-caption text-grey">Expiry</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.expiry') }}
+                    </span>
                     <v-chip
                       size="x-small"
                       variant="tonal"
@@ -336,7 +341,9 @@
                     </v-chip>
                   </div>
                   <div v-if="product.supplier_code" class="meta-row">
-                    <span class="text-caption text-grey">Supplier Code</span>
+                    <span class="text-caption text-grey">
+                      {{ t('products.detail.supplier_code') }}
+                    </span>
                     <v-chip size="x-small" variant="outlined">
                       {{ product.supplier_code }}
                     </v-chip>
@@ -347,220 +354,218 @@
           </v-col>
 
           <!-- ══════════════════════════════════════════════════════════════════
-             RIGHT COLUMN — varies by bu type
+             RIGHT COLUMN
         ═══════════════════════════════════════════════════════════════════════ -->
           <v-col cols="12" lg="8">
-            <!-- ── FOOD: Variants ─────────────────────────────────────────── -->
-            <v-card
-              v-if="isFoodProduct"
-              rounded="xl"
-              border
-              elevation="0"
-              class="mb-4"
-            >
-              <div
-                class="d-flex align-center justify-space-between px-5 pt-5 pb-3"
-              >
+            <!-- ── FOOD: Sizes (was Variants) ──────────────────────────────── -->
+            <v-card v-if="isFoodProduct" border rounded="lg" class="mb-4">
+              <div class="d-flex align-center justify-space-between pa-2 pb-3">
                 <div>
-                  <p class="text-body-1 font-weight-semibold mb-0">
-                    {{ t('products.variant.title') }}
-                  </p>
-                  <p class="text-caption text-grey mb-0">
-                    {{ t('products.variant.subtitle') }}
-                  </p>
+                  <div class="text-body-1 font-weight-bold">
+                    {{ t('products.detail.sizes_title') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ t('products.detail.sizes_subtitle') }}
+                  </div>
                 </div>
                 <v-btn
                   size="small"
                   color="primary"
                   variant="tonal"
+                  rounded="lg"
                   prepend-icon="mdi-plus"
-                  rounded="lg"
-                  @click="openCreateVariant"
+                  @click="openCreateSize"
                 >
-                  {{ t('products.variant.addTitle') }}
+                  {{ t('products.detail.add_size') }}
                 </v-btn>
               </div>
               <v-divider />
 
-              <v-list class="pa-0">
-                <div v-if="variantLoading" class="pa-4">
-                  <v-skeleton-loader
-                    v-for="n in 3"
-                    :key="n"
-                    type="list-item-two-line"
-                    class="mb-1"
-                  />
-                </div>
-
-                <template v-else-if="product.variants?.length">
-                  <template
-                    v-for="(variant, idx) in product.variants"
-                    :key="variant.id"
-                  >
-                    <v-list-item class="px-5 py-3">
-                      <template #prepend>
-                        <v-avatar
-                          color="primary"
-                          variant="tonal"
-                          rounded="md"
-                          size="36"
-                        >
-                          <v-icon icon="mdi-layers-outline" size="18" />
-                        </v-avatar>
-                      </template>
-                      <v-list-item-title class="font-weight-medium">
-                        {{ variant.name }}
-                        <v-chip
-                          v-if="variant.is_default"
-                          size="x-small"
-                          color="primary"
-                          variant="tonal"
-                          class="ml-2"
-                        >
-                          Default
-                        </v-chip>
-                      </v-list-item-title>
-                      <v-list-item-subtitle class="text-caption">
-                        Price adj:
-                        <span
-                          :class="
-                            variant.price_adjustment >= 0
-                              ? 'text-success'
-                              : 'text-error'
-                          "
-                        >
-                          {{ variant.price_adjustment >= 0 ? '+' : ''
-                          }}{{ format(variant.price_adjustment) }}
-                        </span>
-                        <span v-if="variant.sku_suffix">
-                          · SKU: {{ variant.sku_suffix }}
-                        </span>
-                      </v-list-item-subtitle>
-                      <template #append>
-                        <div class="d-flex gap-1">
-                          <v-btn
-                            icon="mdi-pencil-outline"
-                            size="x-small"
-                            variant="text"
-                            @click="openEditVariant(variant)"
-                          />
-                          <v-btn
-                            icon="mdi-delete-outline"
-                            size="x-small"
-                            variant="text"
-                            color="error"
-                            @click="handleDeleteVariant(variant)"
-                          />
-                        </div>
-                      </template>
-                    </v-list-item>
-                    <v-divider v-if="idx < product.variants.length - 1" />
-                  </template>
-                </template>
-
-                <div v-else class="text-center py-8">
-                  <v-icon
-                    icon="mdi-layers-off-outline"
-                    size="40"
-                    color="grey-lighten-2"
-                    class="mb-2"
-                  />
-                  <p class="text-body-2 text-medium-emphasis">
-                    {{ $t('products.variant.noVariantsYet') }}
-                  </p>
-                </div>
-              </v-list>
-            </v-card>
-
-            <!-- ── FOOD: Modifier Groups ───────────────────────────────────── -->
-            <v-card
-              v-if="isFoodProduct"
-              rounded="xl"
-              border
-              elevation="0"
-              class="mb-4"
-            >
-              <div
-                class="d-flex align-center justify-space-between px-5 pt-5 pb-3"
-              >
-                <div>
-                  <p class="text-body-1 font-weight-semibold mb-0">
-                    Modifier Groups
-                  </p>
-                  <p class="text-caption text-grey mb-0">
-                    Add-ons, extras and customizations
-                  </p>
-                </div>
-                <v-btn
-                  size="small"
-                  color="secondary"
-                  variant="tonal"
-                  prepend-icon="mdi-link-variant"
-                  rounded="lg"
-                  @click="modifierLinkDialog = true"
+              <v-table v-if="localSizes.length" density="comfortable">
+                <thead>
+                  <tr>
+                    <th style="width: 40px"></th>
+                    <th>{{ t('products.variant.name') }}</th>
+                    <th>{{ t('products.detail.price') }}</th>
+                    <th class="text-center">
+                      {{ t('products.detail.default') }}
+                    </th>
+                    <th class="text-end">{{ t('products.detail.edit') }}</th>
+                  </tr>
+                </thead>
+                <draggable
+                  v-model="localSizes"
+                  item-key="id"
+                  handle=".size-drag"
+                  tag="tbody"
+                  @end="onSizesReordered"
                 >
-                  Link Group
-                </v-btn>
-              </div>
-              <v-divider />
-
-              <v-list class="pa-0">
-                <template v-if="product.modifier_groups?.length">
-                  <template
-                    v-for="(group, idx) in product.modifier_groups"
-                    :key="group.id"
-                  >
-                    <v-list-item class="px-5 py-3">
-                      <template #prepend>
-                        <v-avatar
-                          color="secondary"
-                          variant="tonal"
-                          rounded="md"
-                          size="36"
-                        >
-                          <v-icon icon="mdi-format-list-checks" size="18" />
-                        </v-avatar>
-                      </template>
-                      <v-list-item-title class="font-weight-medium">
-                        {{ group.name }}
-                      </v-list-item-title>
-                      <v-list-item-subtitle class="text-caption">
-                        {{ group.selection_type }} ·
-                        {{ group.is_required ? 'Required' : 'Optional' }}
-                        <span v-if="group.min_selections">
-                          · Min: {{ group.min_selections }}
-                        </span>
-                        <span v-if="group.max_selections">
-                          · Max: {{ group.max_selections }}
-                        </span>
-                      </v-list-item-subtitle>
-                      <template #append>
+                  <template #item="{ element: v }">
+                    <tr>
+                      <td>
+                        <v-icon
+                          icon="mdi-drag-vertical"
+                          class="size-drag"
+                          style="cursor: grab"
+                        />
+                      </td>
+                      <td>{{ v.name }}</td>
+                      <td>{{ format(sizePrice(v)) }}</td>
+                      <td class="text-center">
+                        <v-radio
+                          :model-value="v.is_default"
+                          :value="true"
+                          color="primary"
+                          density="compact"
+                          hide-details
+                          @click="setDefaultSize(v)"
+                        />
+                      </td>
+                      <td class="text-end">
                         <v-btn
-                          icon="mdi-link-off"
-                          size="x-small"
+                          icon="mdi-pencil-outline"
+                          size="small"
+                          variant="text"
+                          @click="openEditSize(v)"
+                        />
+                        <v-btn
+                          icon="mdi-delete-outline"
+                          size="small"
                           variant="text"
                           color="error"
-                          @click="unlinkModifierGroup(group)"
+                          @click="confirmDeleteSize(v)"
                         />
-                      </template>
-                    </v-list-item>
-                    <v-divider
-                      v-if="idx < product.modifier_groups.length - 1"
-                    />
+                      </td>
+                    </tr>
                   </template>
-                </template>
-                <div v-else class="text-center py-8">
-                  <v-icon
-                    icon="mdi-format-list-checks"
-                    size="40"
-                    color="grey-lighten-2"
-                    class="mb-2"
-                  />
-                  <p class="text-body-2 text-medium-emphasis">
-                    No modifier groups linked
-                  </p>
+                </draggable>
+              </v-table>
+
+              <div v-else class="pa-8 text-center text-medium-emphasis">
+                {{ t('products.detail.no_sizes') }}
+              </div>
+            </v-card>
+
+            <!-- ── FOOD: Options (was Modifier Groups) ─────────────────────── -->
+            <v-card v-if="isFoodProduct" border rounded="lg" class="mb-4">
+              <div class="d-flex align-center justify-space-between pa-2 pb-3">
+                <div>
+                  <div class="text-body-1 font-weight-bold">
+                    {{ t('modifiers.options_tab.tab_label') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ t('products.detail.options_subtitle') }}
+                  </div>
                 </div>
-              </v-list>
+                <v-menu>
+                  <template #activator="{ props: menuProps }">
+                    <v-btn
+                      v-bind="menuProps"
+                      size="small"
+                      color="primary"
+                      variant="tonal"
+                      rounded="lg"
+                      prepend-icon="mdi-plus"
+                    >
+                      {{ t('products.detail.add_option_group') }}
+                    </v-btn>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item
+                      prepend-icon="mdi-link-variant"
+                      @click="linkDialog = true"
+                    >
+                      <v-list-item-title>
+                        {{ t('products.detail.link_existing_group') }}
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item
+                      prepend-icon="mdi-plus-circle-outline"
+                      @click="openCreateGroup"
+                    >
+                      <v-list-item-title>
+                        {{ t('products.detail.create_new_group') }}
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+              <v-divider />
+
+              <draggable
+                v-if="localGroups.length"
+                v-model="localGroups"
+                item-key="id"
+                handle=".group-drag"
+                tag="div"
+                @end="onGroupsReordered"
+              >
+                <template #item="{ element: group }">
+                  <div class="d-flex align-start ga-3 pa-4 group-row">
+                    <v-icon
+                      icon="mdi-drag-vertical"
+                      class="group-drag mt-1"
+                      style="cursor: grab"
+                    />
+                    <div class="flex-grow-1 min-width-0">
+                      <div class="d-flex align-center ga-2 flex-wrap mb-1">
+                        <span class="font-weight-medium">{{ group.name }}</span>
+                        <v-chip size="x-small" variant="tonal" color="primary">
+                          {{ ruleText(group) }}
+                        </v-chip>
+                        <v-chip
+                          v-if="group.is_required"
+                          size="x-small"
+                          variant="tonal"
+                          color="error"
+                        >
+                          {{ t('modifiers.group.required_toggle') }}
+                        </v-chip>
+                      </div>
+                      <div class="d-flex flex-wrap ga-1 mb-1">
+                        <v-chip
+                          v-for="opt in group.options"
+                          :key="opt.id"
+                          size="x-small"
+                          :variant="opt.is_default ? 'flat' : 'tonal'"
+                          :color="opt.is_default ? 'primary' : undefined"
+                        >
+                          {{ opt.name }}
+                        </v-chip>
+                      </div>
+                      <span
+                        v-if="alsoUsedBy(group) > 0"
+                        class="text-caption text-medium-emphasis"
+                      >
+                        {{
+                          t('products.detail.also_used_by', alsoUsedBy(group), {
+                            n: alsoUsedBy(group)
+                          })
+                        }}
+                      </span>
+                    </div>
+                    <div class="d-flex ga-1">
+                      <v-btn
+                        icon="mdi-pencil-outline"
+                        size="small"
+                        variant="text"
+                        @click="openEditGroup(group)"
+                      />
+                      <v-btn
+                        icon="mdi-link-off"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        @click="confirmUnlink(group)"
+                      />
+                    </div>
+                  </div>
+                </template>
+              </draggable>
+
+              <div v-else class="pa-8 text-center text-medium-emphasis">
+                {{ t('products.detail.no_options_linked') }}
+              </div>
             </v-card>
 
             <!-- ── MART: Units / Pricing table ───────────────────────────── -->
@@ -573,37 +578,51 @@
       </div>
     </v-container>
 
-    <!-- ── Dialogs ──────────────────────────────────────────────────────────── -->
-    <ProductVariantDialog
+    <!-- ── Dialogs / drawer ─────────────────────────────────────────────────── -->
+    <ProductSizeDialog
       v-if="isFoodProduct"
-      v-model="variantDialog"
-      :variant="selectedVariant"
+      v-model="sizeDialog"
+      :size="selectedSize"
       :base-price="product?.base_price"
-      :product-id="product?.id"
-      @saved="handleVariantSaved"
+      :loading="savingSize"
+      @saved="handleSizeSaved"
     />
 
     <ModifierLinkDialog
       v-if="isFoodProduct"
-      v-model="modifierLinkDialog"
+      v-model="linkDialog"
       :product-id="product?.id"
-      :linked-group-ids="product?.modifier_groups?.map(g => g.id) ?? []"
+      :linked-group-ids="linkedGroupIds"
+      :loading="linking"
       @linked="handleModifierLinked"
+    />
+
+    <!-- Rendered at this component's root, not nested in the grid, so the
+         drawer overlay always covers the full screen. -->
+    <OptionGroupDrawer
+      v-if="isFoodProduct"
+      v-model="groupDrawer"
+      :group="selectedGroup"
+      :loading="groupSaving"
+      @saved="handleGroupDrawerSaved"
     />
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { storeToRefs } from 'pinia'
   import { useRoute, useRouter } from 'vue-router'
+  import draggable from 'vuedraggable'
   import { useProductStore } from '@/stores/productStore'
   import { useProductVariantStore } from '@/stores/productVariantStore'
+  import { useModifierGroupStore } from '@/stores/modifierGroupStore'
   import { useAuthStore } from '@/stores/authStore'
   import { BUSINESS_TYPES } from '@/constants/businessTypes'
   import AppPageHeader from '@/components/customs/AppPageHeader.vue'
-  import ProductVariantDialog from '@/components/products/ProductVariantDialog.vue'
+  import ProductSizeDialog from '@/components/products/ProductSizeDialog.vue'
   import ModifierLinkDialog from '@/components/products/ModifierLinkDialog.vue'
+  import OptionGroupDrawer from '@/components/products/OptionGroupDrawer.vue'
   import ProductUnitsCard from '@/components/products/ProductUnitsCard.vue'
   import { useAppUtils } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
@@ -619,38 +638,38 @@
 
   const productStore = useProductStore()
   const variantStore = useProductVariantStore()
+  const groupStore = useModifierGroupStore()
   const authStore = useAuthStore()
 
   const { product } = storeToRefs(productStore)
-  const { loading: variantLoading } = storeToRefs(variantStore)
 
-  const variantDialog = ref(false)
-  const modifierLinkDialog = ref(false)
-  const selectedVariant = ref(null)
+  const sizeDialog = ref(false)
+  const selectedSize = ref(null)
+  const savingSize = ref(false)
+
+  const linkDialog = ref(false)
+  const linking = ref(false)
+
+  const groupDrawer = ref(false)
+  const selectedGroup = ref(null)
+  const groupSaving = ref(false)
 
   // ── Business type resolution ──────────────────────────────────────────────────
-  // Product carries tenant.business_type.code from the API response
   const buCode = computed(
     () =>
       product.value?.tenant?.business_type?.code?.toUpperCase() ??
       authStore.bu_type?.toUpperCase() ??
       null
   )
-
   const buConfig = computed(() =>
     buCode.value ? (BUSINESS_TYPES[buCode.value] ?? null) : null
   )
-
   const buLabel = computed(
     () =>
       product.value?.tenant?.business_type?.name ??
       buCode.value?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ??
       '—'
   )
-
-  // Dynamic (backend business_types.category), not the static icon/color
-  // registry — a product's own tenant may differ from the viewer's (super
-  // admin browsing another tenant's product), so prefer that when present.
   const productNature = computed(
     () =>
       product.value?.tenant?.business_type?.category ??
@@ -659,6 +678,14 @@
   )
   const isFoodProduct = computed(() => productNature.value === 'food')
   const isMartProduct = computed(() => productNature.value === 'mart')
+
+  // ── Breadcrumb: Products › category ──────────────────────────────────────────
+  const breadcrumbItems = computed(() => {
+    const items = [{ title: t('products.title'), to: '/products' }]
+    if (product.value?.category?.name)
+      items.push({ title: product.value.category.name })
+    return items
+  })
 
   // ── Computed ──────────────────────────────────────────────────────────────────
   const margin = computed(() => {
@@ -676,16 +703,51 @@
     return 'success'
   })
 
+  function sizePrice(variant) {
+    return (
+      Number(product.value?.base_price ?? 0) +
+      Number(variant.price_adjustment ?? 0)
+    )
+  }
+
+  const priceDisplay = computed(() => {
+    if (!product.value) return ''
+    if (product.value.variants?.length) {
+      const prices = product.value.variants.map(v => sizePrice(v))
+      return t('products.detail.from_price', {
+        price: format(Math.min(...prices))
+      })
+    }
+    return format(product.value.base_price)
+  })
+
+  // ── Image fit — a quick, instantly-saving toggle (like the Available
+  // switch elsewhere) rather than requiring a trip to the full edit form
+  // for one setting. ────────────────────────────────────────────────────────
+  const imageFit = ref('cover')
+  watch(
+    () => product.value?.image_fit,
+    val => {
+      imageFit.value = val || 'cover'
+    },
+    { immediate: true }
+  )
+  async function onImageFitChange(val) {
+    if (!val || val === imageFit.value) return
+    imageFit.value = val
+    await productStore.updateProduct(product.value.id, { image_fit: val })
+    product.value.image_fit = val
+  }
 
   // ── Product actions ───────────────────────────────────────────────────────────
-  const openEditProduct = () => {
-    router.push(`/products/${route.params.id}/edit`)
-  }
+  const openEditProduct = () => router.push(`/products/${route.params.id}/edit`)
 
   const handleDeleteProduct = () => {
     confirm({
-      title: 'Delete product?',
-      message: `Are you sure you want to delete "${product.value.name}"?`,
+      title: t('products.detail.delete_product_title'),
+      message: t('products.detail.delete_product_message', {
+        name: product.value.name
+      }),
       options: { type: 'warning', color: 'warning', width: 400 },
       agree: async () => {
         await productStore.deleteProduct(product.value.id)
@@ -695,21 +757,60 @@
     })
   }
 
-  // ── Variant actions (food only) ───────────────────────────────────────────────
-  const openCreateVariant = () => {
-    selectedVariant.value = null
-    variantDialog.value = true
+  // ── Sizes (variants) actions — food only ──────────────────────────────────────
+  const localSizes = ref([])
+  watch(
+    () => product.value?.variants,
+    val => {
+      localSizes.value = val ? [...val] : []
+    },
+    { immediate: true }
+  )
+
+  async function onSizesReordered() {
+    await variantStore.reorderProductVariants(
+      product.value.id,
+      localSizes.value.map(v => v.id)
+    )
   }
 
-  const openEditVariant = v => {
-    selectedVariant.value = { ...v }
-    variantDialog.value = true
+  const openCreateSize = () => {
+    selectedSize.value = null
+    sizeDialog.value = true
+  }
+  const openEditSize = v => {
+    selectedSize.value = { ...v }
+    sizeDialog.value = true
   }
 
-  const handleVariantSaved = async (payload, callbacks) => {
+  const confirmDeleteSize = v => {
+    confirm({
+      title: t('products.detail.delete_size_title'),
+      message: t('products.detail.delete_size_message', { name: v.name }),
+      options: { type: 'warning', color: 'warning', width: 400 },
+      agree: async () => {
+        try {
+          await variantStore.deleteProductVariant(v.id)
+          await productStore.fetchProductById(route.params.id)
+          notif(t('messages.deleted_success'), { type: 'success' })
+        } catch {
+          notif(t('products.detail.delete_size_failed'), { type: 'error' })
+        }
+      }
+    })
+  }
+
+  const handleSizeSaved = async payload => {
+    savingSize.value = true
     try {
       if (payload.id) {
-        await variantStore.updateProductVariant(payload.id, payload)
+        // product_id included so the model's "only one default variant per
+        // product" exclusivity query actually has something to match
+        // against — omitting it silently no-ops that logic (it did before).
+        await variantStore.updateProductVariant(payload.id, {
+          ...payload,
+          product_id: product.value.id
+        })
       } else {
         await variantStore.createProductVariant({
           ...payload,
@@ -717,42 +818,125 @@
         })
       }
       await productStore.fetchProductById(route.params.id)
-      notif(payload.id ? 'Variant updated' : 'Variant added', {
-        type: 'success'
-      })
-      callbacks?.resolve?.()
+      sizeDialog.value = false
+      notif(
+        payload.id
+          ? t('products.detail.size_updated')
+          : t('products.detail.size_added'),
+        { type: 'success' }
+      )
     } catch (err) {
-      callbacks?.reject?.(err)
       if (err?.response?.status !== 422)
-        notif('Failed to save variant', { type: 'error' })
+        notif(t('products.detail.size_save_failed'), { type: 'error' })
+    } finally {
+      savingSize.value = false
     }
   }
 
-  const handleDeleteVariant = variant => {
+  const setDefaultSize = async variant => {
+    if (variant.is_default) return
+    await variantStore.updateProductVariant(variant.id, {
+      product_id: product.value.id,
+      name: variant.name,
+      price_adjustment: variant.price_adjustment,
+      is_default: true,
+      sort_order: variant.sort_order
+    })
+    await productStore.fetchProductById(route.params.id)
+  }
+
+  // ── Options (modifier groups) actions — food only ─────────────────────────────
+  const linkedGroupIds = computed(
+    () => product.value?.modifier_groups?.map(g => g.id) ?? []
+  )
+
+  const localGroups = ref([])
+  watch(
+    () => product.value?.modifier_groups,
+    val => {
+      localGroups.value = val ? [...val] : []
+    },
+    { immediate: true }
+  )
+
+  function ruleText(group) {
+    if (group.selection_type === 'single')
+      return t('modifiers.options_tab.rule_pick_one')
+    return group.max_selections
+      ? t('modifiers.options_tab.rule_pick_up_to', { n: group.max_selections })
+      : t('modifiers.options_tab.rule_pick_several')
+  }
+
+  // "Also" used by — excludes this product itself from the count.
+  function alsoUsedBy(group) {
+    return Math.max(0, (group.products_count ?? 1) - 1)
+  }
+
+  async function onGroupsReordered() {
+    await productStore.reorderProductModifierGroups(
+      product.value.id,
+      localGroups.value.map(g => g.id)
+    )
+  }
+
+  const handleModifierLinked = async (payload, { resolve, reject }) => {
+    linking.value = true
+    try {
+      await productStore.attachModifierGroups(payload)
+      resolve()
+    } catch (err) {
+      reject(err)
+    } finally {
+      linking.value = false
+    }
+  }
+
+  const confirmUnlink = group => {
     confirm({
-      title: 'Delete variant?',
-      message: `Are you sure you want to delete "${variant.name}"?`,
-      options: { type: 'warning', color: 'warning', width: 400 },
+      title: t('products.detail.unlink_confirm_title'),
+      message: t('products.detail.unlink_confirm_message', {
+        name: group.name
+      }),
+      options: { type: 'warning', color: 'warning', width: 420 },
       agree: async () => {
-        await variantStore.deleteProductVariant(variant.id)
-        await productStore.fetchProductById(route.params.id)
-        notif(t('messages.deleted_success'), { type: 'success' })
+        await productStore.detachModifierGroup(product.value.id, group.id)
+        notif(t('products.detail.unlinked'), { type: 'success' })
       }
     })
   }
 
-  // ── Modifier actions (food only) ──────────────────────────────────────────────
-  const unlinkModifierGroup = group => {
-    notif(`Unlinked "${group.name}"`, { type: 'success' })
+  const openCreateGroup = () => {
+    selectedGroup.value = null
+    groupDrawer.value = true
+  }
+  const openEditGroup = group => {
+    selectedGroup.value = { ...group }
+    groupDrawer.value = true
   }
 
-  const handleModifierLinked = async (payload, { resolve, reject }) => {
+  const handleGroupDrawerSaved = async (payload, callbacks) => {
+    groupSaving.value = true
     try {
-      await productStore.attachModifierGroups(payload)
-      await productStore.fetchProductById(route.params.id)
-      resolve()
+      if (payload.id) {
+        await groupStore.updateModifierGroup(payload.id, payload)
+        await productStore.fetchProductById(route.params.id)
+        notif(t('modifiers.messages.group_updated'), { type: 'success' })
+      } else {
+        const created = await groupStore.createModifierGroup(payload)
+        await productStore.attachModifierGroups({
+          product_id: product.value.id,
+          modifier_group_ids: [created.id]
+        })
+        notif(t('modifiers.messages.group_created'), { type: 'success' })
+      }
+      callbacks?.resolve?.()
     } catch (err) {
-      reject(err)
+      callbacks?.reject?.(err)
+      if (err?.response?.status !== 422) {
+        notif(t('modifiers.messages.group_save_failed'), { type: 'error' })
+      }
+    } finally {
+      groupSaving.value = false
     }
   }
 
@@ -779,5 +963,11 @@
   }
   .gap-2 {
     gap: 8px;
+  }
+  .group-row + .group-row {
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+  .min-width-0 {
+    min-width: 0;
   }
 </style>

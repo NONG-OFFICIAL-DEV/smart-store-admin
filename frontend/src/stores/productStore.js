@@ -6,6 +6,8 @@ import {
   updateProductApi,
   deleteProductApi,
   attachModifierGroupsApi,
+  detachModifierGroupApi,
+  reorderProductModifierGroupsApi,
   getProductForEditApi,
   updateProductApiV2,
   reorderProductsApi
@@ -51,6 +53,16 @@ export const useProductStore = defineStore('product', {
 
       // Refresh the product so modifier_groups relation is up to date
       await this.fetchProductById(product_id)
+    },
+    // Unlinks one group from this product only — never deletes the group
+    // itself or its links to any other product.
+    async detachModifierGroup(productId, modifierGroupId) {
+      const res = await detachModifierGroupApi(productId, modifierGroupId)
+      this.product = res.data.data
+    },
+    async reorderProductModifierGroups(productId, modifierGroupIds) {
+      const res = await reorderProductModifierGroupsApi(productId, modifierGroupIds)
+      this.product = res.data.data
     },
     async fetchProductForEdit(id) {
       const res = await getProductForEditApi(id)

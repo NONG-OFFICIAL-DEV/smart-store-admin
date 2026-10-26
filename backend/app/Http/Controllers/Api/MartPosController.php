@@ -364,8 +364,9 @@ class MartPosController extends Controller
                 );
         })
             ->where('is_active', true)
+            ->where('show_on_pos', true)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'icon', 'color', 'image_url', 'sort_order']);
+            ->get(['id', 'name', 'name_km', 'icon', 'color', 'image_url', 'sort_order']);
 
         return response()->json(['success' => true, 'data' => $categories]);
     }

@@ -49,7 +49,7 @@ class CategoryService extends BaseService
             $category->tenants()->sync($tenantIds);
             $category->businessTypes()->sync($businessTypeIds);
 
-            return $category->load(['tenants', 'businessTypes']);
+            return $category->load(['tenants', 'businessTypes'])->loadCount('products');
         });
     }
 
@@ -74,7 +74,7 @@ class CategoryService extends BaseService
             $category->tenants()->sync($tenantIds);
             $category->businessTypes()->sync($businessTypeIds);
 
-            return $category->load(['tenants', 'businessTypes']);
+            return $category->load(['tenants', 'businessTypes'])->loadCount('products');
         });
     }
 
@@ -85,6 +85,46 @@ class CategoryService extends BaseService
         }
 
         return $this->repository->delete($category);
+    }
+
+    /**
+     * Bulk "drag the whole list" reorder — distinct from
+     * resolveInsertOrder()/resolveUpdateOrder() above, which only ever
+     * shuffle siblings around a single category's own create/update.
+     * Every id must belong to the same parent (siblings); mixing parents
+     * in one call isn't meaningful since sort_order is scoped per parent.
+     */
+    public function reorder(array $orderedIds): void
+    {
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $index => $id) {
+                Category::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+    }
+
+    /**
+     * products.category_id is restrictOnDelete() — a category with
+     * products can never be hard-deleted without first moving them
+     * somewhere else. One transaction: reassign, then delete.
+     */
+    public function deleteWithReassignment(Category $category, string $reassignToId): bool
+    {
+        if ($category->is_system && !auth()->user()->is_super_admin) {
+            abort(403, 'Only a super admin can delete a system category.');
+        }
+
+        if ($reassignToId === $category->id) {
+            abort(422, 'Cannot reassign a category\'s products to itself.');
+        }
+
+        $target = Category::findOrFail($reassignToId);
+
+        return DB::transaction(function () use ($category, $target) {
+            $category->products()->update(['category_id' => $target->id]);
+
+            return $this->repository->delete($category);
+        });
     }
 
     private function currentTenantId($user): ?string

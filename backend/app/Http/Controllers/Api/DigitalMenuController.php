@@ -104,6 +104,7 @@ class DigitalMenuController extends Controller
 
         $categories = Category::whereIn('id', $categoryIds)
             ->where('is_active', true)
+            ->where('show_on_emenu', true)
             ->orderBy('sort_order')
             ->get()
             ->map(fn($category) => [

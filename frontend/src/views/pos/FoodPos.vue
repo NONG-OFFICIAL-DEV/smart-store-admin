@@ -144,7 +144,7 @@
               ref="productGridRef"
               customizable
               :products="normalizedProducts"
-              :categories="categories"
+              :categories="posCategories"
               :category-id="categoryId"
               :search="search"
               :loading="loading"
@@ -254,7 +254,7 @@
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import AppToolbar from '@/components/common/AppToolbar.vue'
 
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { format: formatMoney } = useCurrency()
   const { xs, sm, mdAndDown: touch } = useDisplay()
   // Tablet portrait (~600-960px) gets a narrower cart column so the
@@ -288,9 +288,17 @@
     customizeOpen.value = true
   }
   function onAddFromDialog(payload) {
+    // Merge identity: same product + size + every selected option + any
+    // custom values + the note, all identical — anything that differs
+    // (including the note) must stay its own cart line.
     const modifierKey = payload.modifier_option_ids.slice().sort().join(',')
+    const customKey = (payload.custom_modifier_values ?? [])
+      .map(c => `${c.group_id}=${c.value}`)
+      .sort()
+      .join(',')
+    const noteKey = (payload.notes ?? '').trim().toLowerCase()
     posStore.addItem({
-      key: `${payload.product.id}:${payload.variant_id ?? 'base'}:${modifierKey}`,
+      key: `${payload.product.id}:${payload.variant_id ?? 'base'}:${modifierKey}:${customKey}:${noteKey}`,
       product_id: payload.product.id,
       variant_id: payload.variant_id,
       name: payload.product.name,
@@ -299,7 +307,8 @@
       qty: payload.quantity,
       notes: payload.notes,
       customizations: payload.customizations,
-      modifier_option_ids: payload.modifier_option_ids
+      modifier_option_ids: payload.modifier_option_ids,
+      custom_modifier_values: payload.custom_modifier_values
     })
   }
 
@@ -416,6 +425,7 @@
         const modifierGroups = (p.modifier_groups ?? []).map(g => ({
           id: g.id,
           name: g.name,
+          name_km: g.name_km,
           selection_type: g.selection_type,
           is_required: g.is_required,
           min_selections: g.min_selections,
@@ -431,6 +441,7 @@
         return {
           id: p.id,
           name: p.name,
+          name_km: p.name_km,
           image_url: p.image_url,
           base_price: Number(p.base_price ?? 0),
           options,
@@ -443,6 +454,27 @@
     const { data } = await getAllCategoriesApi({ perPage: -1 })
     categories.value = data.data
   }
+
+  // Quick Sale chips: only categories flagged for POS, sorted by sort_order,
+  // Khmer name shown when the active locale is Khmer (falling back to the
+  // English name if no translation was set), and hidden entirely once every
+  // product in it has sold out or gone unavailable — rawProducts only ever
+  // contains available products (see getFoodPosProductsApi's is_available
+  // filter), so a category absent from that count has nothing left to sell.
+  const posCategories = computed(() => {
+    const availableCounts = rawProducts.value.reduce((acc, p) => {
+      acc[p.category_id] = (acc[p.category_id] ?? 0) + 1
+      return acc
+    }, {})
+
+    return categories.value
+      .filter(c => c.show_on_pos !== false && availableCounts[c.id] > 0)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map(c => ({
+        ...c,
+        name: locale.value === 'km' && c.name_km ? c.name_km : c.name
+      }))
+  })
 
   async function loadProducts() {
     if (!branchId.value) return
@@ -510,6 +542,9 @@
             : undefined,
           modifier_option_ids: i.modifier_option_ids?.length
             ? i.modifier_option_ids
+            : undefined,
+          custom_modifier_values: i.custom_modifier_values?.length
+            ? i.custom_modifier_values
             : undefined
         }))
       })

@@ -16,8 +16,10 @@ class Product extends BaseModel
         'sku',
         'barcode',
         'name',
+        'name_km',
         'description',
         'image_url',
+        'image_fit',
         'base_price',
         'cost_price',
         'preparation_time',
@@ -46,6 +48,7 @@ class Product extends BaseModel
         'sort_order'    => 0,
         'base_price'    => 0.00,      // ← Default
         'cost_price'    => 0.00,      // ← Default
+        'image_fit'     => 'cover',
     ];
     // ── 2. Add to $casts ──────────────────────────────────────────────────────────
     protected $casts = [

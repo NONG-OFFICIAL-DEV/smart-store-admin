@@ -89,7 +89,7 @@
         <PosProductGrid
           ref="productGridRef"
           :products="normalizedProducts"
-          :categories="categories"
+          :categories="posCategories"
           :category-id="categoryId"
           :search="search"
           :loading="loading"
@@ -175,7 +175,7 @@
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
 
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { format: formatMoney } = useCurrency()
   const { xs, sm, mdAndDown: touch } = useDisplay()
   // Tablet portrait (~600-960px) gets a narrower cart column so the
@@ -284,6 +284,16 @@
       notif(t('pos.load_failed'), { type: 'error' })
     }
   }
+
+  // Server already limits this to show_on_pos categories with at least one
+  // available product, sorted by sort_order — only the Khmer-name-fallback
+  // display mapping happens client-side.
+  const posCategories = computed(() =>
+    categories.value.map(c => ({
+      ...c,
+      name: locale.value === 'km' && c.name_km ? c.name_km : c.name
+    }))
+  )
 
   async function loadProducts() {
     if (!branchId.value) return

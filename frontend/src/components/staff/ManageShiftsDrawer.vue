@@ -1,49 +1,43 @@
 <template>
-  <v-navigation-drawer v-model="model" location="right" width="420" temporary>
-    <div class="d-flex align-center justify-space-between pa-4">
-      <span class="text-h6 font-weight-bold">{{ t('staff.schedule.manage_shifts') }}</span>
-      <v-btn icon="mdi-close" variant="text" @click="model = false" />
-    </div>
-    <v-divider />
+  <AppDrawer :model-value="model" width="420" @update:model-value="model = $event">
+    <template #title>{{ t('staff.schedule.manage_shifts') }}</template>
 
-    <div class="pa-4">
-      <v-btn
-        block
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        class="mb-4"
-        @click="openCreate"
-      >
-        {{ t('btn.create') }}
-      </v-btn>
+    <v-btn
+      block
+      color="primary"
+      variant="flat"
+      rounded="lg"
+      prepend-icon="mdi-plus"
+      class="mb-4"
+      @click="openCreate"
+    >
+      {{ t('btn.create') }}
+    </v-btn>
 
-      <v-list v-if="shiftStore.shiftList.length" lines="two">
-        <template v-for="s in shiftStore.shiftList" :key="s.id">
-          <v-list-item :class="{ 'opacity-60': !s.is_active }">
-            <template #prepend>
-              <v-icon icon="mdi-circle" size="14" :color="s.color" />
-            </template>
-            <v-list-item-title class="font-weight-bold">{{ s.name }}</v-list-item-title>
-            <v-list-item-subtitle>
-              {{ s.start_time?.slice(0, 5) }} – {{ s.end_time?.slice(0, 5) }} · {{ s.duration }}
-            </v-list-item-subtitle>
-            <template #append>
-              <v-btn icon="mdi-pencil-outline" size="small" variant="text" @click="openEdit(s)" />
-              <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(s)" />
-            </template>
-          </v-list-item>
-          <v-divider />
-        </template>
-      </v-list>
-      <div v-else class="text-center text-medium-emphasis py-8">
-        {{ t('shifts.empty') }}
-      </div>
+    <v-list v-if="shiftStore.shiftList.length" lines="two">
+      <template v-for="s in shiftStore.shiftList" :key="s.id">
+        <v-list-item :class="{ 'opacity-60': !s.is_active }">
+          <template #prepend>
+            <v-icon icon="mdi-circle" size="14" :color="s.color" />
+          </template>
+          <v-list-item-title class="font-weight-bold">{{ s.name }}</v-list-item-title>
+          <v-list-item-subtitle>
+            {{ s.start_time?.slice(0, 5) }} – {{ s.end_time?.slice(0, 5) }} · {{ s.duration }}
+          </v-list-item-subtitle>
+          <template #append>
+            <v-btn icon="mdi-pencil-outline" size="small" variant="text" @click="openEdit(s)" />
+            <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(s)" />
+          </template>
+        </v-list-item>
+        <v-divider />
+      </template>
+    </v-list>
+    <div v-else class="text-center text-medium-emphasis py-8">
+      {{ t('shifts.empty') }}
     </div>
 
     <ShiftFormDialog v-model="formDialog" :item="selectedItem" :loading="saving" @save="handleSave" />
-  </v-navigation-drawer>
+  </AppDrawer>
 </template>
 
 <script setup>
@@ -52,6 +46,7 @@
   import { useAppUtils } from '@nong-official-dev/core'
   import { useShiftStore } from '@/stores/shiftStore'
   import ShiftFormDialog from '@/components/staff/ShiftFormDialog.vue'
+  import AppDrawer from '@/components/common/AppDrawer.vue'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false }

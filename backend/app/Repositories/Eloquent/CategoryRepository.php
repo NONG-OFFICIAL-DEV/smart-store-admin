@@ -17,7 +17,7 @@ class CategoryRepository extends BaseRepository implements CategoryRepositoryInt
 
     public function query(): Builder
     {
-        return $this->model->newQuery()->with(['tenants', 'businessTypes']);
+        return $this->model->newQuery()->with(['tenants', 'businessTypes'])->withCount('products');
     }
 
     protected function applySort(Builder $query, ?string $sortBy, bool|string $sortDesc = false): void

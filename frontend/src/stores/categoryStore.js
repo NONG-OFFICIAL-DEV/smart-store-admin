@@ -4,7 +4,9 @@ import {
   getCategoryByIdApi,
   createCategoryApi,
   updateCategoryApi,
-  deleteCategoryApi
+  deleteCategoryApi,
+  reorderCategoriesApi,
+  deleteCategoryWithReassignmentApi
 } from '../api/categoryService'
 
 export const useCategoryStore = defineStore('category', {
@@ -24,6 +26,7 @@ export const useCategoryStore = defineStore('category', {
         const res = await getAllCategoriesApi(filters)
         this.categories = res.data.data
         this.pagination = res.data.meta
+        return { items: res.data.data, total: res.data.meta.total }
       } finally {
         this.loading = false
       }
@@ -42,6 +45,13 @@ export const useCategoryStore = defineStore('category', {
     },
     async deleteCategory(id) {
       await deleteCategoryApi(id)
+      this.categories = this.categories.filter(item => item.id !== id)
+    },
+    async reorderCategories(orderedIds) {
+      await reorderCategoriesApi(orderedIds)
+    },
+    async deleteCategoryWithReassignment(id, reassignTo) {
+      await deleteCategoryWithReassignmentApi(id, reassignTo)
       this.categories = this.categories.filter(item => item.id !== id)
     }
   }
