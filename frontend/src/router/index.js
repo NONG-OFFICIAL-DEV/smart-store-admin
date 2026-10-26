@@ -173,16 +173,22 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/system/integrations',
+        name: 'Integrations',
+        component: () => import('@/views/Integrations.vue'),
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+      },
+      // Telegram Bot and E-Menu Settings were merged into one Integrations
+      // page — old links/bookmarks still land somewhere real.
+      {
         path: '/telegram-settings',
         name: 'TelegramSettings',
-        component: () => import('@/views/TelegramSettings.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+        redirect: { name: 'Integrations' }
       },
       {
         path: '/emenu-settings',
         name: 'EmenuSettings',
-        component: () => import('@/views/EmenuSettings.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+        redirect: { name: 'Integrations' }
       },
       {
         path: '/branches',

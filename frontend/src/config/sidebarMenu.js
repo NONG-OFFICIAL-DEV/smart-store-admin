@@ -332,17 +332,10 @@ export const SIDEBAR_MENU = [
         visible: () => true
       },
       {
-        key: 'telegram-settings',
-        titleKey: 'menu.telegram_settings',
-        icon: 'mdi-send-outline',
-        path: '/telegram-settings',
-        visible: ctx => ctx.isSuperAdmin
-      },
-      {
-        key: 'emenu-settings',
-        titleKey: 'menu.emenu_settings',
-        icon: 'mdi-qrcode',
-        path: '/emenu-settings',
+        key: 'integrations',
+        titleKey: 'menu.integrations',
+        icon: 'mdi-puzzle-outline',
+        path: '/system/integrations',
         visible: ctx => ctx.isSuperAdmin
       },
       {
