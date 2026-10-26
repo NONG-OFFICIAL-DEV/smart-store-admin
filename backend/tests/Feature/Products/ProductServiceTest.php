@@ -298,6 +298,37 @@ class ProductServiceTest extends TestCase
         );
     }
 
+    public function test_attachModifierGroups_appends_new_groups_after_existing_ones_in_order(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($owner);
+        $category = $this->makeCategory();
+        $service = $this->app->make(ProductService::class);
+
+        $product = $service->create(['category_id' => $category->id, 'name' => 'Sandwich'], $tenant->id);
+        $groupA = ModifierGroup::create(['tenant_id' => $tenant->id, 'name' => 'Bread']);
+        $groupB = ModifierGroup::create(['tenant_id' => $tenant->id, 'name' => 'Cheese']);
+        $groupC = ModifierGroup::create(['tenant_id' => $tenant->id, 'name' => 'Extras']);
+        $groupD = ModifierGroup::create(['tenant_id' => $tenant->id, 'name' => 'Sauce']);
+
+        $service->attachModifierGroups($product, [$groupA->id, $groupB->id]);
+        $product = $service->attachModifierGroups($product, [$groupC->id, $groupD->id]);
+
+        // Appended after, in the submitted order — not tied at the pivot
+        // default of 0, which would leave the final order undefined.
+        $this->assertSame(
+            [$groupA->id, $groupB->id, $groupC->id, $groupD->id],
+            $product->modifierGroups->pluck('id')->all()
+        );
+
+        // Re-attaching an already-linked id must not move it.
+        $product = $service->attachModifierGroups($product, [$groupA->id]);
+        $this->assertSame(
+            [$groupA->id, $groupB->id, $groupC->id, $groupD->id],
+            $product->modifierGroups->pluck('id')->all()
+        );
+    }
+
     public function test_findByBarcode_reports_out_of_stock_correctly_instead_of_always_failing(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');

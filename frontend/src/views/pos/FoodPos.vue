@@ -430,6 +430,8 @@
           is_required: g.is_required,
           min_selections: g.min_selections,
           max_selections: g.max_selections,
+          allow_custom_value: g.allow_custom_value,
+          custom_suffix: g.custom_suffix,
           options: (g.options ?? []).map(o => ({
             id: o.id,
             name: o.name,

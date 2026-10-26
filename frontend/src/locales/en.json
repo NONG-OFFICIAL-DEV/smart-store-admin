@@ -981,6 +981,7 @@
       "unlink_confirm_title": "Remove option group?",
       "unlink_confirm_message": "This removes \"{name}\" from this product only — the group itself won't be deleted.",
       "unlinked": "Option group removed",
+      "groups_linked": "{n} group linked | {n} groups linked",
       "delete_product_title": "Delete product?",
       "delete_product_message": "Are you sure you want to delete \"{name}\"?"
     },
@@ -2881,18 +2882,16 @@
       "create_btn": "Create Group"
     },
     "link": {
-      "title": "Link Modifier Groups",
-      "subtitle": "Select groups to attach to this product",
-      "search_placeholder": "Search modifier groups...",
-      "already_linked": "Already linked ({n}) — shown with lock icon",
-      "options_count": "{n} options",
-      "min_prefix": "Min:",
-      "max_prefix": "Max:",
+      "title": "Add option groups",
+      "subtitle_product": "to {name}",
+      "search_placeholder": "Search option groups...",
+      "duplicate_name": "Duplicate name",
+      "unusable_reason": "Required group has no available choice",
       "empty_search": "No groups match your search",
-      "empty": "No modifier groups available",
-      "groups_selected": "{n} group selected to link | {n} groups selected to link",
-      "link_groups_count": "Link ({n}) Groups",
-      "link_groups": "Link Groups"
+      "empty_all_linked": "Every option group is already linked to this product",
+      "products_count": "Not used by any product | {n} product | {n} products",
+      "select_groups": "Select groups",
+      "add_groups_count": "Add {n} group | Add {n} groups"
     },
     "option": {
       "edit_title": "Edit Option",

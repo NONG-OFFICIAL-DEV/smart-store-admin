@@ -13,7 +13,7 @@
       </v-btn>
     </div>
 
-    <v-card variant="outlined" rounded="lg" class="pa-4">
+    <v-card rounded="lg" class="pa-4">
       <AppTable
         ref="tableRef"
         :headers="headers"

@@ -142,10 +142,24 @@ class ProductService extends BaseService
         });
     }
 
+    // syncWithoutDetaching keeps existing links, only adds new ones. Each
+    // newly-attached id gets an explicit, incrementing sort_order (in the
+    // given array's order) so it lands after every already-linked group —
+    // left to the pivot's own default, every new row would land at the same
+    // tied value instead.
     public function attachModifierGroups(Product $product, array $modifierGroupIds): Product
     {
-        // syncWithoutDetaching keeps existing links, only adds new ones.
-        $product->modifierGroups()->syncWithoutDetaching($modifierGroupIds);
+        $alreadyLinkedIds = $product->modifierGroups()->pluck('modifier_groups.id')->all();
+        $newIds = array_values(array_diff($modifierGroupIds, $alreadyLinkedIds));
+
+        $nextSortOrder = 1 + (int) ($product->modifierGroups()->max('product_modifier_groups.sort_order') ?? -1);
+
+        $attachments = [];
+        foreach ($newIds as $offset => $id) {
+            $attachments[$id] = ['sort_order' => $nextSortOrder + $offset];
+        }
+
+        $product->modifierGroups()->syncWithoutDetaching($attachments);
 
         return $product->load(['modifierGroups' => fn ($q) => $q->withCount('products')->with('options')]);
     }

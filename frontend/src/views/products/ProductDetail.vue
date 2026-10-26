@@ -592,9 +592,11 @@
       v-if="isFoodProduct"
       v-model="linkDialog"
       :product-id="product?.id"
+      :product-name="product?.name"
       :linked-group-ids="linkedGroupIds"
       :loading="linking"
       @linked="handleModifierLinked"
+      @create-new="openCreateGroup"
     />
 
     <!-- Rendered at this component's root, not nested in the grid, so the
@@ -883,9 +885,16 @@
     linking.value = true
     try {
       await productStore.attachModifierGroups(payload)
+      notif(
+        t('products.detail.groups_linked', payload.modifier_group_ids.length),
+        { type: 'success' }
+      )
       resolve()
     } catch (err) {
       reject(err)
+      if (err?.response?.status !== 422) {
+        notif(t('modifiers.messages.group_save_failed'), { type: 'error' })
+      }
     } finally {
       linking.value = false
     }
