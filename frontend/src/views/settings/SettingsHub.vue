@@ -1,21 +1,60 @@
 <template>
   <v-container fluid class="pa-0">
-    <AppToolbar
-      :title="$t('settings_hub.title')"
-      :subtitle="$t('settings_hub.subtitle')"
-    />
+    <AppToolbar :title="$t('settings_hub.title')" :subtitle="headerSubtitle">
+      <template v-if="section === 'printer'" #actions>
+        <v-select
+          v-model="selectedBranchIdModel"
+          :items="branchStore.branches"
+          item-title="name"
+          item-value="id"
+          :label="t('settings_hub.printer.branch_label')"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          prepend-inner-icon="mdi-store-outline"
+          style="min-width: 220px"
+        />
+      </template>
+    </AppToolbar>
 
-    <v-tabs v-model="activeTab" color="primary" class="mb-4" show-arrows>
-      <v-tab value="company">{{ t('settings_hub.tabs.company') }}</v-tab>
-      <v-tab value="branch">{{ t('settings_hub.tabs.branch') }}</v-tab>
-      <v-tab value="pos">{{ t('settings_hub.tabs.pos') }}</v-tab>
-      <v-tab value="printer">{{ t('settings_hub.tabs.printer') }}</v-tab>
-    </v-tabs>
+    <!-- ── Mobile/tablet — chips above content instead of a side menu ──── -->
+    <v-chip-group
+      v-if="smAndDown"
+      :model-value="section"
+      mandatory
+      selected-class="text-primary"
+      class="mb-4"
+      @update:model-value="section = $event"
+    >
+      <v-chip v-for="s in SECTION_KEYS" :key="s" :value="s" filter variant="tonal" rounded="lg">
+        {{ t(`settings_hub.menu.${s}.title`) }}
+      </v-chip>
+    </v-chip-group>
 
-    <v-window v-model="activeTab">
-      <!-- ── Company Info ────────────────────────────────────────────────── -->
-      <v-window-item value="company">
-        <v-card rounded="lg" elevation="0" border class="pa-6">
+    <v-row>
+      <!-- ── Left section menu (desktop/tablet) ───────────────────────── -->
+      <v-col v-if="!smAndDown" cols="12" md="3">
+        <v-card rounded="lg">
+          <v-list nav density="comfortable">
+            <v-list-item
+              v-for="s in SECTION_KEYS"
+              :key="s"
+              :active="section === s"
+              color="primary"
+              variant="tonal"
+              rounded="lg"
+              :title="t(`settings_hub.menu.${s}.title`)"
+              :subtitle="t(`settings_hub.menu.${s}.subtitle`)"
+              @click="section = s"
+            />
+          </v-list>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" :md="smAndDown ? 12 : 9">
+        <!-- ── Business ──────────────────────────────────────────────── -->
+        <v-card v-if="section === 'business'" rounded="lg" class="pa-6">
           <v-alert
             v-if="!canEdit"
             type="info"
@@ -36,7 +75,7 @@
 
           <v-form ref="formRef" :disabled="!canEdit || saving">
             <v-row dense>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="form.name"
                   :label="t('tenant_create.field.business_name')"
@@ -47,7 +86,7 @@
                   maxlength="150"
                 />
               </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-color-input
                   v-model="form.primary_color"
                   color-pip
@@ -57,44 +96,77 @@
                   pip-location="prepend-inner"
                 />
               </v-col>
-              <v-col cols="12" sm="4">
-                <v-select
-                  v-model="form.currency"
-                  :items="currencyOptions"
-                  item-title="label"
-                  item-value="value"
-                  :label="t('tenant_create.field.currency')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-currency-usd"
-                />
-              </v-col>
             </v-row>
           </v-form>
-
-          <div v-if="canEdit" class="d-flex justify-end mt-2">
-            <v-btn
-              color="primary"
-              variant="flat"
-              rounded="lg"
-              :loading="saving"
-              prepend-icon="mdi-content-save-outline"
-              @click="save"
-            >
-              {{ t('btn.save') }}
-            </v-btn>
-          </div>
         </v-card>
-      </v-window-item>
 
-      <!-- ── Branch ───────────────────────────────────────────────────────── -->
-      <v-window-item value="branch">
-        <Branch />
-      </v-window-item>
+        <!-- ── Currency ──────────────────────────────────────────────── -->
+        <v-card v-else-if="section === 'currency'" rounded="lg" class="pa-6">
+          <v-alert
+            v-if="!canEdit"
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-5"
+            :text="t('settings_hub.owner_only')"
+          />
+          <v-row dense>
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="form.currency"
+                :items="currencyOptions"
+                item-title="label"
+                item-value="value"
+                :label="t('tenant_create.field.currency')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                rounded="lg"
+                prepend-inner-icon="mdi-currency-usd"
+              />
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model.number="form.pos_settings.khr_exchange_rate"
+                type="number"
+                min="0.01"
+                step="1"
+                :label="t('settings_hub.pos_exchange_rate')"
+                :hint="t('settings_hub.pos_exchange_rate_hint')"
+                persistent-hint
+                :disabled="!canEdit || saving"
+                :rules="[v => Number(v) > 0 || t('validation.required')]"
+                variant="outlined"
+                rounded="lg"
+                prefix="៛"
+              />
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="form.pos_settings.khr_rounding"
+                :items="khrRoundingOptions"
+                :label="t('settings_hub.pos_khr_rounding')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                rounded="lg"
+              />
+            </v-col>
+          </v-row>
 
-      <!-- ── POS ──────────────────────────────────────────────────────────── -->
-      <v-window-item value="pos">
-        <v-card rounded="lg" elevation="0" border class="pa-6">
+          <v-sheet color="grey-lighten-4" rounded="lg" class="pa-4 mt-2 d-flex align-center justify-space-between flex-wrap ga-2">
+            <span class="text-body-2 text-medium-emphasis">{{ t('settings_hub.currency_preview_label') }}</span>
+            <span class="text-body-1 font-weight-bold">{{ currencyPreviewText }}</span>
+          </v-sheet>
+          <p class="text-caption text-medium-emphasis mt-3 mb-0">
+            {{ t('settings_hub.currency_preview_note') }}
+          </p>
+        </v-card>
+
+        <!-- ── Branches ──────────────────────────────────────────────── -->
+        <Branch v-else-if="section === 'branches'" />
+
+        <!-- ── POS & payments ────────────────────────────────────────── -->
+        <v-card v-else-if="section === 'pos'" rounded="lg" class="pa-6">
           <v-alert
             v-if="!canEdit"
             type="info"
@@ -110,167 +182,141 @@
           </p>
 
           <div class="mb-5">
-            <div class="text-body-2 font-weight-bold mb-2">
+            <div class="text-body-2 font-weight-bold mb-3">
               {{ t('settings_hub.pos_order_types') }}
             </div>
-            <v-switch
-              v-for="ot in orderTypeOptions"
-              :key="ot.value"
-              v-model="form.pos_settings.order_types"
-              :value="ot.value"
-              :label="ot.label"
-              :disabled="!canEdit || saving"
-              color="primary"
-              density="compact"
-              hide-details
-              class="mb-1"
-            />
+            <v-row dense>
+              <v-col v-for="ot in orderTypeOptions" :key="ot.value" cols="12" sm="4">
+                <v-card
+                  variant="outlined"
+                  rounded="lg"
+                  class="pa-4 d-flex align-center justify-space-between"
+                  :class="isOrderTypeEnabled(ot.value) ? 'bg-teal-lighten-5' : ''"
+                >
+                  <span class="text-body-2 font-weight-medium">{{ ot.label }}</span>
+                  <v-switch
+                    :model-value="isOrderTypeEnabled(ot.value)"
+                    :disabled="!canEdit || saving"
+                    color="teal"
+                    hide-details
+                    density="compact"
+                    @update:model-value="toggleOrderType(ot.value, $event)"
+                  />
+                </v-card>
+              </v-col>
+            </v-row>
           </div>
 
           <v-divider class="mb-5" />
 
-          <v-switch
-            v-model="form.pos_settings.customer_selection"
-            :label="t('settings_hub.pos_customer_selection')"
-            :disabled="!canEdit || saving"
-            color="primary"
-            density="compact"
-            hide-details
-            class="mb-3"
-          />
-          <v-switch
-            v-model="form.pos_settings.order_notes"
-            :label="t('settings_hub.pos_order_notes')"
-            :disabled="!canEdit || saving"
-            color="primary"
-            density="compact"
-            hide-details
-            class="mb-3"
-          />
+          <div class="mb-5">
+            <div class="text-body-2 font-weight-bold mb-3">
+              {{ t('settings_hub.pos_order_options') }}
+            </div>
+            <v-row dense>
+              <v-col v-for="opt in orderOptionOptions" :key="opt.key" cols="12" sm="6">
+                <v-card
+                  variant="outlined"
+                  rounded="lg"
+                  class="pa-4 d-flex align-center justify-space-between"
+                  :class="form.pos_settings[opt.key] ? 'bg-teal-lighten-5' : ''"
+                >
+                  <span class="text-body-2 font-weight-medium">{{ opt.label }}</span>
+                  <v-switch
+                    v-model="form.pos_settings[opt.key]"
+                    :disabled="!canEdit || saving"
+                    color="teal"
+                    hide-details
+                    density="compact"
+                  />
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+
           <v-divider class="mb-5" />
-
-          <div class="mb-3">
-            <div class="text-body-2 font-weight-bold mb-2">
-              {{ t('settings_hub.pos_payment_methods') }}
-            </div>
-            <v-switch
-              v-for="pm in paymentMethodOptions"
-              :key="pm.value"
-              v-model="form.pos_settings.payment_methods"
-              :value="pm.value"
-              :label="pm.label"
-              :disabled="!canEdit || saving"
-              color="primary"
-              density="compact"
-              hide-details
-              class="mb-1"
-            />
-          </div>
-
-          <v-select
-            v-model="form.pos_settings.default_payment_method"
-            :items="enabledPaymentMethodOptions"
-            item-title="label"
-            item-value="value"
-            :label="t('settings_hub.pos_default_payment_method')"
-            :disabled="!canEdit || saving"
-            variant="outlined"
-            rounded="lg"
-            density="compact"
-            hide-details
-          />
-
-          <v-divider class="my-5" />
-
-          <div class="mb-3">
-            <div class="text-body-2 font-weight-bold mb-2">
-              {{ t('settings_hub.table_payment_methods') }}
-            </div>
-            <div class="text-caption text-medium-emphasis mb-2">
-              {{ t('settings_hub.table_payment_methods_hint') }}
-            </div>
-            <v-switch
-              v-for="pm in paymentMethodOptions"
-              :key="pm.value"
-              v-model="form.pos_settings.table_payment_methods"
-              :value="pm.value"
-              :label="pm.label"
-              :disabled="!canEdit || saving"
-              color="primary"
-              density="compact"
-              hide-details
-              class="mb-1"
-            />
-          </div>
-
-          <v-select
-            v-model="form.pos_settings.default_table_payment_method"
-            :items="enabledTablePaymentMethodOptions"
-            item-title="label"
-            item-value="value"
-            :label="t('settings_hub.table_default_payment_method')"
-            :disabled="!canEdit || saving"
-            variant="outlined"
-            rounded="lg"
-            density="compact"
-            hide-details
-          />
-
-          <v-divider class="my-5" />
 
           <div class="text-body-2 font-weight-bold mb-2">
-            {{ t('settings_hub.pos_exchange_rate_section') }}
+            {{ t('settings_hub.pos_payment_methods') }}
           </div>
-          <v-row dense>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model.number="form.pos_settings.khr_exchange_rate"
-                type="number"
-                min="0.01"
-                step="1"
-                :label="t('settings_hub.pos_exchange_rate')"
-                :hint="t('settings_hub.pos_exchange_rate_hint')"
-                persistent-hint
-                :disabled="!canEdit || saving"
-                :rules="[v => Number(v) > 0 || t('validation.required')]"
-                variant="outlined"
-                rounded="lg"
-                density="compact"
-                prepend-inner-icon="mdi-currency-usd"
-              />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.pos_settings.khr_rounding"
-                :items="khrRoundingOptions"
-                :label="t('settings_hub.pos_khr_rounding')"
-                :disabled="!canEdit || saving"
-                variant="outlined"
-                rounded="lg"
-                density="compact"
-                hide-details
-              />
-            </v-col>
-          </v-row>
+          <v-table density="comfortable" class="mb-3 border rounded-lg">
+            <thead>
+              <tr>
+                <th>{{ t('settings_hub.payment_table.method') }}</th>
+                <th class="text-center">{{ t('settings_hub.payment_table.quick_sale') }}</th>
+                <th class="text-center">{{ t('settings_hub.payment_table.table_bill') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="pm in paymentMethodOptions" :key="pm.value">
+                <td>{{ pm.label }}</td>
+                <td class="text-center">
+                  <v-checkbox-btn
+                    :model-value="form.pos_settings.payment_methods.includes(pm.value)"
+                    :disabled="!canEdit || saving"
+                    color="primary"
+                    @update:model-value="toggleMethod('payment_methods', pm.value, $event)"
+                  />
+                </td>
+                <td class="text-center">
+                  <span v-if="pm.value === 'pay_later'" class="text-caption text-medium-emphasis">
+                    {{ t('settings_hub.payment_table.not_used') }}
+                  </span>
+                  <v-checkbox-btn
+                    v-else
+                    :model-value="form.pos_settings.table_payment_methods.includes(pm.value)"
+                    :disabled="!canEdit || saving"
+                    color="primary"
+                    @update:model-value="toggleMethod('table_payment_methods', pm.value, $event)"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td class="text-body-2 font-weight-medium">
+                  {{ t('settings_hub.payment_table.default_method') }}
+                </td>
+                <td class="py-2">
+                  <v-select
+                    v-model="form.pos_settings.default_payment_method"
+                    :items="enabledPaymentMethodOptions"
+                    item-title="label"
+                    item-value="value"
+                    :disabled="!canEdit || saving"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    hide-details
+                  />
+                </td>
+                <td class="py-2">
+                  <v-select
+                    v-model="form.pos_settings.default_table_payment_method"
+                    :items="enabledTablePaymentMethodOptions"
+                    item-title="label"
+                    item-value="value"
+                    :disabled="!canEdit || saving"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    hide-details
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
 
-          <div v-if="canEdit" class="d-flex justify-end mt-5">
-            <v-btn
-              color="primary"
-              variant="flat"
-              rounded="lg"
-              :loading="saving"
-              prepend-icon="mdi-content-save-outline"
-              @click="save"
-            >
-              {{ t('btn.save') }}
-            </v-btn>
-          </div>
+          <v-alert
+            v-if="!posPaymentValid"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            :text="t('settings_hub.payment_table.need_one_hint')"
+          />
         </v-card>
-      </v-window-item>
 
-      <!-- ── Printer ──────────────────────────────────────────────────────── -->
-      <v-window-item value="printer">
-        <v-card rounded="lg" elevation="0" border class="pa-6">
+        <!-- ── Printer ───────────────────────────────────────────────── -->
+        <v-card v-else rounded="lg" class="pa-6">
           <div class="text-body-2 text-medium-emphasis mb-5">
             {{ t('settings_hub.printer.helper') }}
           </div>
@@ -311,21 +357,6 @@
             </div>
           </template>
 
-          <v-select
-            v-if="branchStore.branches.length > 1"
-            v-model="selectedBranchId"
-            :items="branchStore.branches"
-            item-title="name"
-            item-value="id"
-            :label="t('settings_hub.printer.branch_label')"
-            variant="outlined"
-            rounded="lg"
-            density="comfortable"
-            prepend-inner-icon="mdi-store-outline"
-            class="mb-5"
-            style="max-width: 320px"
-          />
-
           <v-text-field
             v-model="printerNameInput"
             :label="t('settings_hub.printer.printer_name_label')"
@@ -336,22 +367,9 @@
             :placeholder="t('settings_hub.printer.printer_name_placeholder')"
             :hint="t('settings_hub.printer.printer_name_hint')"
             persistent-hint
-            class="mb-3"
+            class="mb-5"
             style="max-width: 420px"
           />
-          <div class="d-flex justify-end mb-5" style="max-width: 420px">
-            <v-btn
-              color="primary"
-              variant="flat"
-              rounded="lg"
-              :loading="savingPrinterName"
-              :disabled="printerNameInput === (selectedBranch?.printer_name ?? '')"
-              prepend-icon="mdi-content-save-outline"
-              @click="savePrinterName"
-            >
-              {{ t('btn.save') }}
-            </v-btn>
-          </div>
 
           <v-alert
             v-if="!selectedBranch?.printer_name"
@@ -408,19 +426,83 @@
             </div>
           </template>
         </v-card>
-      </v-window-item>
-    </v-window>
+
+        <!-- ── One save bar for the whole page — Branches saves/deletes
+             instantly through its own drawer instead, so this bar would be
+             both dead and misleading there. ──────────────────────────────── -->
+        <v-card
+          v-if="section !== 'branches'"
+          variant="outlined"
+          rounded="lg"
+          class="pa-4 mt-4 d-flex flex-wrap align-center justify-space-between ga-3"
+        >
+          <span class="text-caption text-medium-emphasis">{{ saveBarText }}</span>
+          <div class="d-flex ga-2">
+            <v-btn variant="text" class="text-none" :disabled="!dirty || saving" @click="discardAll">
+              {{ t('settings_hub.discard') }}
+            </v-btn>
+            <v-btn
+              color="primary"
+              variant="flat"
+              class="text-none"
+              :disabled="!dirty || saving"
+              :loading="saving"
+              @click="saveAll"
+            >
+              {{ t('settings_hub.save_changes') }}
+            </v-btn>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ── Unsaved-changes guard ───────────────────────────────────────── -->
+    <v-dialog v-model="showLeaveConfirm" max-width="420" persistent>
+      <v-card rounded="lg">
+        <v-card-title>{{ t('settings_hub.unsaved_title') }}</v-card-title>
+        <v-card-text>{{ t('settings_hub.unsaved_body') }}</v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" class="text-none" @click="cancelLeave">
+            {{ t('settings_hub.unsaved_stay') }}
+          </v-btn>
+          <v-btn color="error" variant="flat" class="text-none" @click="confirmLeave">
+            {{ t('settings_hub.unsaved_leave') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- ── Unsaved-changes guard — switching which branch's printer you're
+         configuring ──────────────────────────────────────────────────── -->
+    <v-dialog v-model="showBranchSwitchConfirm" max-width="420" persistent>
+      <v-card rounded="lg">
+        <v-card-title>{{ t('settings_hub.branch_switch_title') }}</v-card-title>
+        <v-card-text>{{ t('settings_hub.branch_switch_body') }}</v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" class="text-none" @click="cancelBranchSwitch">
+            {{ t('settings_hub.branch_switch_cancel') }}
+          </v-btn>
+          <v-btn color="error" variant="flat" class="text-none" @click="confirmBranchSwitch">
+            {{ t('settings_hub.branch_switch_confirm') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, watch, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+  import { useDisplay } from 'vuetify'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import { useReceipt } from '@/utils/printReceipt'
+  import { useSettingsForm } from '@/composables/useSettingsForm'
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
   import Branch from '@/views/branches/Branch.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
@@ -428,6 +510,8 @@
 
   const { t } = useI18n()
   const route = useRoute()
+  const router = useRouter()
+  const { smAndDown } = useDisplay()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const { notif } = useAppUtils()
@@ -442,8 +526,19 @@
     testPrintQz
   } = useReceipt()
 
-  const requestedTab = typeof route.query.tab === 'string' ? route.query.tab : null
-  const activeTab = ref(['branch', 'pos', 'printer'].includes(requestedTab) ? requestedTab : 'company')
+  const SECTION_KEYS = ['business', 'currency', 'branches', 'pos', 'printer']
+
+  // Its own route/query (?section=...) — linkable, survives a refresh.
+  const section = computed({
+    get: () => (SECTION_KEYS.includes(route.query.section) ? route.query.section : 'business'),
+    set: val => router.push({ query: { ...route.query, section: val } })
+  })
+
+  const headerSubtitle = computed(() =>
+    section.value === 'printer'
+      ? t('settings_hub.subtitle_selected_branch')
+      : t('settings_hub.subtitle_all_branches')
+  )
 
   const canEdit = computed(() => authStore.isOwner || authStore.isSuperAdmin)
 
@@ -451,7 +546,8 @@
   const saving = ref(false)
   const logoFile = ref(null)
   const logoPreview = ref(null)
-  const form = reactive({
+
+  const DEFAULT_TENANT_FORM = {
     name: '',
     primary_color: '#6366f1',
     currency: 'USD',
@@ -466,7 +562,19 @@
       khr_exchange_rate: 4100,
       khr_rounding: 100
     }
-  })
+  }
+
+  // ONE shared reactive form + original baseline for the whole page's
+  // Business/Currency/POS fields — see composables/useSettingsForm.js.
+  // Printer/logo have their own dirty tracking below since they save
+  // through a different API call (per-branch vs. tenant profile).
+  const {
+    form,
+    isDirty: dirtyTenant,
+    load: loadTenantData,
+    discard: discardTenant,
+    commit: commitTenant
+  } = useSettingsForm(DEFAULT_TENANT_FORM)
 
   const khrRoundingOptions = [
     { value: 100, title: '100 ៛' },
@@ -474,10 +582,38 @@
     { value: 1000, title: '1,000 ៛' }
   ]
 
+  // Fixed sample amount — only here to demonstrate the rate/rounding math
+  // live as the tenant edits it, same formula as the real receipt (see
+  // utils/printReceipt.js).
+  const CURRENCY_PREVIEW_USD = 12.35
+  const currencyPreviewText = computed(() => {
+    const rate = Number(form.pos_settings.khr_exchange_rate) > 0 ? Number(form.pos_settings.khr_exchange_rate) : 4100
+    const rounding = Number(form.pos_settings.khr_rounding) > 0 ? Number(form.pos_settings.khr_rounding) : 100
+    const khr = Math.round((CURRENCY_PREVIEW_USD * rate) / rounding) * rounding
+    const usdText = `$${CURRENCY_PREVIEW_USD.toFixed(2)}`
+    const khrText = `${new Intl.NumberFormat('en-US').format(khr)} ៛`
+    return `${usdText} / ${khrText}`
+  })
+
   const orderTypeOptions = [
     { value: 'dine_in', label: t('pos.cart.order_type.dine_in') },
     { value: 'takeaway', label: t('pos.cart.order_type.takeaway') },
     { value: 'delivery', label: t('pos.cart.order_type.delivery') }
+  ]
+
+  function isOrderTypeEnabled(value) {
+    return form.pos_settings.order_types.includes(value)
+  }
+  function toggleOrderType(value, enabled) {
+    const list = form.pos_settings.order_types
+    const idx = list.indexOf(value)
+    if (enabled && idx === -1) list.push(value)
+    if (!enabled && idx !== -1) list.splice(idx, 1)
+  }
+
+  const orderOptionOptions = [
+    { key: 'customer_selection', label: t('settings_hub.pos_customer_selection') },
+    { key: 'order_notes', label: t('settings_hub.pos_order_notes') }
   ]
 
   const paymentMethodOptions = [
@@ -487,6 +623,16 @@
     { value: 'pay_later', label: t('pos.checkout.methods.pay_later') }
   ]
 
+  // Shared checkbox-cell toggler for both payment_methods (Quick Sale
+  // column) and table_payment_methods (Table bill column) — pay_later is
+  // never toggleable for table_payment_methods (see template: "Not used").
+  function toggleMethod(key, value, enabled) {
+    const list = form.pos_settings[key]
+    const idx = list.indexOf(value)
+    if (enabled && idx === -1) list.push(value)
+    if (!enabled && idx !== -1) list.splice(idx, 1)
+  }
+
   // The default can only ever be one of the currently-enabled methods —
   // narrows the select's own options rather than letting the form save a
   // default that checkout would never actually offer.
@@ -495,9 +641,20 @@
   )
   // Same option list as POS checkout above — a tenant may still want a
   // different subset/default enabled for settling a table's bill than for
-  // ringing up a walk-in sale, so it's tracked as its own setting.
+  // ringing up a walk-in sale, so it's tracked as its own setting. pay_later
+  // never applies to a table bill (see template: "Not used").
   const enabledTablePaymentMethodOptions = computed(() =>
-    paymentMethodOptions.filter(pm => form.pos_settings.table_payment_methods.includes(pm.value))
+    paymentMethodOptions.filter(
+      pm => pm.value !== 'pay_later' && form.pos_settings.table_payment_methods.includes(pm.value)
+    )
+  )
+
+  // Each column must keep at least one method ticked — gates the shared
+  // Save button (see save bar below), not just a toast at save time.
+  const posPaymentValid = computed(
+    () =>
+      form.pos_settings.payment_methods.length > 0 &&
+      form.pos_settings.table_payment_methods.length > 0
   )
 
   // If the tenant unchecks whichever method is currently the default, fall
@@ -522,63 +679,177 @@
     { deep: true }
   )
 
-  onMounted(async () => {
+  // ── Dirty tracking — ONE save bar covers every section ──────────────────
+  // dirtyTenant comes from useSettingsForm() above (business/currency/pos —
+  // all saved through one combined tenant-profile PUT). Printer and the
+  // logo file save through a different call (per-branch), so they're
+  // tracked separately but still fold into the same page-wide `dirty`.
+  const dirtyLogo = computed(() => !!logoFile.value)
+  const dirtyPrinter = computed(
+    () => printerNameInput.value !== (selectedBranch.value?.printer_name ?? '')
+  )
+  const dirty = computed(() => dirtyTenant.value || dirtyLogo.value || dirtyPrinter.value)
+
+  // Informational grouping of which section(s) actually changed — Save
+  // below already only calls the tenant-profile API when dirtyTenant/
+  // dirtyLogo is true and the branch API when dirtyPrinter is true; this is
+  // the same split surfaced at UI granularity.
+  const dirtySections = computed(() => {
+    const sections = []
+    if (dirtyTenant.value || dirtyLogo.value) sections.push('business', 'currency', 'pos')
+    if (dirtyPrinter.value) sections.push('printer')
+    return sections
+  })
+
+  const saveBarText = computed(() => {
+    if (saving.value) return t('settings_hub.save_bar_saving')
+    return dirty.value ? t('settings_hub.save_bar_dirty') : t('settings_hub.save_bar_clean')
+  })
+
+  async function loadTenant() {
     if (!authStore.tenant_id) return
     const res = await getTenantByIdApi(authStore.tenant_id).catch(() => null)
     const tenant = res?.data?.data?.tenant
-    if (!tenant) return
-    form.name = tenant.name ?? ''
-    logoPreview.value = tenant.logo_url ?? null
-    form.primary_color = tenant.primary_color ?? '#6366f1'
-    form.currency = tenant.currency ?? 'USD'
-    if (tenant.pos_settings) {
-      form.pos_settings.order_types = tenant.pos_settings.order_types ?? form.pos_settings.order_types
-      form.pos_settings.customer_selection = tenant.pos_settings.customer_selection ?? true
-      form.pos_settings.order_notes = tenant.pos_settings.order_notes ?? true
-      form.pos_settings.payment_methods =
-        tenant.pos_settings.payment_methods ?? form.pos_settings.payment_methods
-      form.pos_settings.default_payment_method =
-        tenant.pos_settings.default_payment_method ?? 'cash'
-      form.pos_settings.table_payment_methods =
-        tenant.pos_settings.table_payment_methods ?? form.pos_settings.table_payment_methods
-      form.pos_settings.default_table_payment_method =
-        tenant.pos_settings.default_table_payment_method ?? 'cash'
-      form.pos_settings.khr_exchange_rate =
-        tenant.pos_settings.khr_exchange_rate ?? 4100
-      form.pos_settings.khr_rounding =
-        tenant.pos_settings.khr_rounding ?? 100
+    if (!tenant) {
+      notif(t('settings_hub.load_failed'), { type: 'error' })
+      return
     }
-  })
+    logoPreview.value = tenant.logo_url ?? null
+    logoFile.value = null
 
-  const save = async () => {
-    const { valid } = await formRef.value.validate()
-    if (!valid) return
+    // Never load an empty list — an empty column fails the "at least one
+    // method" rule and blocks the shared Save button for every section, not
+    // just this one, so a bad legacy value must self-heal here rather than
+    // surface as a page-wide save lockout.
+    const rawPaymentMethods = tenant.pos_settings?.payment_methods
+    const loadedPaymentMethods = Array.isArray(rawPaymentMethods)
+      ? rawPaymentMethods
+      : DEFAULT_TENANT_FORM.pos_settings.payment_methods
+
+    // pay_later never applies to a table bill — drop it even if stale data
+    // has it from before this restriction existed (the old UI allowed
+    // enabling it there). If that was the tenant's only ticked method, fall
+    // back to cash instead of leaving the column empty.
+    const rawTablePaymentMethods = tenant.pos_settings?.table_payment_methods
+    const loadedTablePaymentMethods = (
+      Array.isArray(rawTablePaymentMethods)
+        ? rawTablePaymentMethods
+        : DEFAULT_TENANT_FORM.pos_settings.table_payment_methods
+    ).filter(v => v !== 'pay_later')
+
+    // load() replaces form AND its original baseline atomically — no code
+    // path can update one without the other, so a page-wide save lockout
+    // like the one this composable replaced can't happen again.
+    loadTenantData({
+      name: tenant.name ?? '',
+      primary_color: tenant.primary_color ?? DEFAULT_TENANT_FORM.primary_color,
+      currency: tenant.currency ?? DEFAULT_TENANT_FORM.currency,
+      pos_settings: {
+        order_types: tenant.pos_settings?.order_types ?? DEFAULT_TENANT_FORM.pos_settings.order_types,
+        customer_selection: tenant.pos_settings?.customer_selection ?? true,
+        order_notes: tenant.pos_settings?.order_notes ?? true,
+        payment_methods: loadedPaymentMethods.length ? loadedPaymentMethods : ['cash'],
+        default_payment_method: tenant.pos_settings?.default_payment_method ?? 'cash',
+        table_payment_methods: loadedTablePaymentMethods.length ? loadedTablePaymentMethods : ['cash'],
+        default_table_payment_method: tenant.pos_settings?.default_table_payment_method ?? 'cash',
+        khr_exchange_rate: tenant.pos_settings?.khr_exchange_rate ?? 4100,
+        khr_rounding: tenant.pos_settings?.khr_rounding ?? 100
+      }
+    })
+  }
+
+  function discardAll() {
+    discardTenant()
+    logoFile.value = null
+    printerNameInput.value = selectedBranch.value?.printer_name ?? ''
+  }
+
+  // Sections render via v-if/v-else-if — only the currently visible one has
+  // a mounted <v-form>, so its :rules can't be trusted as the save gate once
+  // a different section is on screen. Validate the plain data directly
+  // instead, and jump to whichever section actually has the problem.
+  function validateBeforeSave() {
+    if (!form.name) {
+      notif(t('validation.required'), { type: 'error' })
+      section.value = 'business'
+      return false
+    }
+    if (!(Number(form.pos_settings.khr_exchange_rate) > 0)) {
+      notif(t('validation.required'), { type: 'error' })
+      section.value = 'currency'
+      return false
+    }
+    if (!posPaymentValid.value) {
+      notif(t('settings_hub.payment_table.need_one_hint'), { type: 'error' })
+      section.value = 'pos'
+      return false
+    }
+    return true
+  }
+
+  async function saveAll() {
+    if (!dirtySections.value.length) return
+    if ((dirtyTenant.value || dirtyLogo.value) && !validateBeforeSave()) return
 
     saving.value = true
     try {
-      // No new logo picked → plain JSON, existing logo_url stays untouched
-      // server-side. A new file → multipart, the file always wins over
-      // whatever's already stored (see TenantController::updateProfile()).
-      let body = { ...form }
-      if (logoFile.value) {
-        const fd = new FormData()
-        fd.append('logo', logoFile.value)
-        Object.entries(form).forEach(([key, value]) => {
-          if (value === null || value === undefined) return
-          fd.append(key, typeof value === 'object' ? JSON.stringify(value) : value)
-        })
-        body = fd
+      if (dirtyTenant.value || dirtyLogo.value) {
+        // No new logo picked → plain JSON, existing logo_url stays untouched
+        // server-side. A new file → multipart, the file always wins over
+        // whatever's already stored (see TenantController::updateProfile()).
+        let body = { ...form }
+        if (logoFile.value) {
+          const fd = new FormData()
+          fd.append('logo', logoFile.value)
+          Object.entries(form).forEach(([key, value]) => {
+            if (value === null || value === undefined) return
+            fd.append(key, typeof value === 'object' ? JSON.stringify(value) : value)
+          })
+          body = fd
+        }
+        await updateTenantProfileApi(authStore.tenant_id, body)
+        await authStore.fetchMe()
+        commitTenant()
       }
 
-      await updateTenantProfileApi(authStore.tenant_id, body)
-      await authStore.fetchMe()
-      logoFile.value = null
-      notif(t('settings_hub.saved'), { type: 'success'})
+      if (dirtyPrinter.value && selectedBranch.value) {
+        await branchStore.updateBranch(selectedBranch.value.id, {
+          // Explicit null, not undefined — undefined gets dropped from the
+          // JSON body entirely, so clearing the field would silently leave
+          // the old value untouched server-side instead of actually clearing it.
+          printer_name: printerNameInput.value || null
+        })
+        await branchStore.fetchBranches({ perPage: -1 })
+      }
+
+      notif(t('settings_hub.saved'), { type: 'success' })
     } catch (err) {
       notif(err?.response?.data?.message || t('settings_hub.save_failed'), { type: 'error' })
     } finally {
       saving.value = false
     }
+  }
+
+  // ── Leave guard — only fires for navigating OUT of Settings entirely;
+  // switching ?section= stays on the same route record and never triggers
+  // this. ─────────────────────────────────────────────────────────────────
+  const showLeaveConfirm = ref(false)
+  let pendingNext = null
+  onBeforeRouteLeave((to, from, next) => {
+    if (!dirty.value) {
+      next()
+      return
+    }
+    pendingNext = next
+    showLeaveConfirm.value = true
+  })
+  function confirmLeave() {
+    showLeaveConfirm.value = false
+    pendingNext?.(true)
+  }
+  function cancelLeave() {
+    showLeaveConfirm.value = false
+    pendingNext?.(false)
   }
 
   const currencyOptions = [
@@ -590,7 +861,7 @@
     { value: 'MYR', label: t('tenant_create.currency.myr') }
   ]
 
-  // ── Printer tab ──────────────────────────────────────────────────────────
+  // ── Printer section ──────────────────────────────────────────────────────
   const selectedBranchId = ref(authStore.activeBranchId ?? null)
   const selectedBranch = computed(
     () =>
@@ -599,12 +870,40 @@
       null
   )
 
+  // Switching which branch's printer you're configuring while anything on
+  // the page is unsaved would silently lose it the moment printerNameInput
+  // re-syncs to the new branch below — confirm first, same as leaving the
+  // page entirely.
+  const showBranchSwitchConfirm = ref(false)
+  const pendingBranchId = ref(null)
+  const selectedBranchIdModel = computed({
+    get: () => selectedBranchId.value,
+    set: val => {
+      if (val === selectedBranchId.value) return
+      if (dirty.value) {
+        pendingBranchId.value = val
+        showBranchSwitchConfirm.value = true
+      } else {
+        selectedBranchId.value = val
+      }
+    }
+  })
+  function confirmBranchSwitch() {
+    discardAll()
+    selectedBranchId.value = pendingBranchId.value
+    pendingBranchId.value = null
+    showBranchSwitchConfirm.value = false
+  }
+  function cancelBranchSwitch() {
+    pendingBranchId.value = null
+    showBranchSwitchConfirm.value = false
+  }
+
   // connectionStatus: null (never checked) | 'connected' | 'disconnected'
   const connectionStatus = ref(null)
   const checking = ref(false)
   const testPrinting = ref(false)
   const testingQzEncoding = ref(false)
-  const savingPrinterName = ref(false)
   const printerNameInput = ref('')
 
   // Reload the input (and drop any stale check result) whenever the
@@ -617,25 +916,6 @@
     },
     { immediate: true }
   )
-
-  async function savePrinterName() {
-    if (!selectedBranch.value) return
-    savingPrinterName.value = true
-    try {
-      await branchStore.updateBranch(selectedBranch.value.id, {
-        // Explicit null, not undefined — undefined gets dropped from the
-        // JSON body entirely, so clearing the field would silently leave
-        // the old value untouched server-side instead of actually clearing it.
-        printer_name: printerNameInput.value || null
-      })
-      await branchStore.fetchBranches({ perPage: -1 })
-      notif(t('settings_hub.printer.saved'), { type: 'success' })
-    } catch (err) {
-      notif(err?.response?.data?.message || t('settings_hub.printer.save_failed'), { type: 'error' })
-    } finally {
-      savingPrinterName.value = false
-    }
-  }
 
   const connectingUsb = ref(false)
 
@@ -754,7 +1034,21 @@
     }
   }
 
+  // Vue Router's onBeforeRouteLeave guard only covers in-app navigation —
+  // closing the tab or hitting browser refresh bypasses it entirely, so
+  // unsaved changes need the native beforeunload prompt too.
+  function handleBeforeUnload(e) {
+    if (!dirty.value) return
+    e.preventDefault()
+    e.returnValue = ''
+  }
+
   onMounted(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    loadTenant()
     if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
+  })
+  onUnmounted(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload)
   })
 </script>

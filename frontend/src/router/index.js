@@ -193,7 +193,7 @@ const routes = [
       {
         path: '/branches',
         name: 'branches',
-        redirect: to => ({ name: 'settings-hub', query: { ...to.query, tab: 'branch' } })
+        redirect: to => ({ name: 'settings-hub', query: { ...to.query, section: 'branches' } })
       },
       {
         path: '/roles-management',

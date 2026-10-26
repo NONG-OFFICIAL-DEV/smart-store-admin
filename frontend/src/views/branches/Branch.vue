@@ -1,128 +1,135 @@
 <template>
-  <v-container fluid class="pa-0">
-    <v-row>
-      <!-- Form — always visible, doubles as create (empty) and edit
-           (populated by the table's edit action) — no separate Add button
-           or dialog needed. -->
-      <v-col v-if="can('branches.manage')" cols="12" md="4">
-        <BranchFormPanel
-          :branch="editingBranch"
-          :loading="saving"
-          @saved="handleSave"
-          @cancel="editingBranch = null"
+  <div>
+    <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
+      <span class="text-h6 font-weight-bold">{{ t('branches.title') }}</span>
+      <div class="d-flex align-center flex-wrap ga-2">
+        <v-text-field
+          v-model="search"
+          :placeholder="t('branches.search_placeholder')"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          hide-details
+          clearable
+          style="min-width: 220px"
         />
-      </v-col>
+        <v-btn
+          v-if="can('branches.manage')"
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          class="text-none"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          {{ t('branches.add_branch') }}
+        </v-btn>
+      </div>
+    </div>
 
-      <v-col cols="12" :md="can('branches.manage') ? 8 : 12">
-        <v-card rounded="lg" elevation="0" border class="pa-4">
-          <AppTable
-            ref="tableRef"
-            :headers="headers"
-            :fetch-fn="fetchBranches"
-            :filters="filters"
-            item-label="branches"
-          >
-            <!-- Name + address -->
-            <template #[`item.name`]="{ item }">
-              <div class="d-flex align-center gap-3 py-1">
-                <v-avatar
-                  :color="typeColor(item.branch_type?.name)"
-                  variant="tonal"
-                  rounded="lg"
-                  size="36"
-                >
-                  <v-icon :icon="typeIcon(item.branch_type?.name)" size="18" />
-                </v-avatar>
-                <div class="text-body-2 font-weight-medium text-truncate">
-                  {{ item.name }}
-                </div>
-              </div>
+    <v-card variant="outlined" rounded="lg">
+      <v-list v-if="filteredBranches.length" lines="two">
+        <template v-for="(b, i) in filteredBranches" :key="b.id">
+          <v-list-item>
+            <template #prepend>
+              <v-avatar :color="typeColor(b.branch_type?.name)" variant="tonal" rounded="lg" size="40" class="me-3">
+                <v-icon :icon="typeIcon(b.branch_type?.name)" size="20" />
+              </v-avatar>
             </template>
 
-            <!-- Branch type -->
-            <template #[`item.branch_type`]="{ item }">
+            <v-list-item-title class="d-flex align-center ga-2 flex-wrap">
+              <span class="font-weight-medium">{{ b.name }}</span>
               <v-chip
-                v-if="item.branch_type?.name"
-                :color="typeColor(item.branch_type.name)"
+                v-if="b.branch_type?.name"
                 size="x-small"
                 variant="tonal"
+                :color="typeColor(b.branch_type.name)"
                 class="text-capitalize"
               >
-                {{ item.branch_type.name.replace('_', ' ') }}
+                {{ b.branch_type.name.replace('_', ' ') }}
               </v-chip>
-              <span v-else class="text-medium-emphasis">—</span>
-            </template>
+            </v-list-item-title>
 
-            <!-- Contact -->
-            <template #[`item.contact`]="{ item }">
-              <div class="text-caption text-medium-emphasis">
-                <div v-if="item.phone" class="d-flex align-center gap-1">
-                  <v-icon icon="mdi-phone-outline" size="13" />
-                  {{ item.phone }}
-                </div>
-                <div v-if="item.email" class="d-flex align-center gap-1">
-                  <v-icon icon="mdi-email-outline" size="13" />
-                  {{ item.email }}
-                </div>
-                <span v-if="!item.phone && !item.email">—</span>
+            <v-list-item-subtitle>
+              <div v-if="b.address_line1" class="text-truncate">{{ b.address_line1 }}</div>
+              <div class="d-flex ga-3 flex-wrap text-caption">
+                <span v-if="b.phone" class="d-flex align-center ga-1">
+                  <v-icon icon="mdi-phone-outline" size="13" />{{ b.phone }}
+                </span>
+                <span v-if="b.email" class="d-flex align-center ga-1">
+                  <v-icon icon="mdi-email-outline" size="13" />{{ b.email }}
+                </span>
+                <span v-if="!b.address_line1 && !b.phone && !b.email">—</span>
               </div>
-            </template>
+            </v-list-item-subtitle>
 
-            <!-- Status -->
-            <template #[`item.is_active`]="{ item }">
-              <div class="d-flex gap-1 flex-wrap">
-                <v-chip
-                  :color="item.is_open ? 'success' : 'error'"
-                  size="x-small"
-                  variant="tonal"
-                  :prepend-icon="item.is_open ? 'mdi-circle' : 'mdi-circle-outline'"
-                >
-                  {{
-                    item.is_open
-                      ? t('tenant_details.branch_open')
-                      : t('tenant_details.branch_closed')
-                  }}
+            <template #append>
+              <div class="d-flex align-center ga-2">
+                <v-chip :color="statusColor(b)" variant="tonal" size="small" prepend-icon="mdi-circle">
+                  {{ statusLabel(b) }}
                 </v-chip>
-                <AppStatusChip :status="item.is_active ? 'active' : 'inactive'" size="x-small" />
+                <v-btn
+                  v-if="can('branches.manage')"
+                  variant="tonal"
+                  rounded="lg"
+                  size="small"
+                  class="text-none"
+                  @click="openEdit(b)"
+                >
+                  {{ t('btn.edit') }}
+                </v-btn>
+                <v-menu location="bottom end">
+                  <template #activator="{ props: menuProps }">
+                    <v-btn v-bind="menuProps" icon="mdi-dots-vertical" size="small" variant="text" />
+                  </template>
+                  <v-list density="compact" min-width="170">
+                    <v-list-item prepend-icon="mdi-eye-outline" @click="onDetails(b)">
+                      <v-list-item-title>{{ t('btn.view_details') }}</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item
+                      v-if="can('branches.manage')"
+                      prepend-icon="mdi-delete-outline"
+                      base-color="error"
+                      @click="handleDelete(b)"
+                    >
+                      <v-list-item-title>{{ t('btn.delete') }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </div>
             </template>
+          </v-list-item>
+          <v-divider v-if="i < filteredBranches.length - 1" />
+        </template>
+      </v-list>
 
-            <!-- Actions -->
-            <template #[`item.actions`]="{ item }">
-              <v-menu location="bottom end">
-                <template #activator="{ props: menuProps }">
-                  <v-btn v-bind="menuProps" icon="mdi-dots-vertical" size="small" variant="text" />
-                </template>
-                <v-list density="compact" min-width="170">
-                  <v-list-item prepend-icon="mdi-eye-outline" @click="onDetails(item)">
-                    <v-list-item-title>{{ t('btn.view_details') }}</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item prepend-icon="mdi-pencil-outline" @click="openEdit(item)">
-                    <v-list-item-title>{{ t('btn.edit') }}</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item prepend-icon="mdi-delete-outline" base-color="error" @click="handleDelete(item)">
-                    <v-list-item-title>{{ t('btn.delete') }}</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </template>
-          </AppTable>
-        </v-card>
-      </v-col>
-    </v-row>
+      <div v-else class="pa-8 text-center text-medium-emphasis">
+        <v-icon icon="mdi-store-search-outline" size="36" class="mb-2" />
+        <div>{{ search ? t('branches.no_results') : t('branches.empty') }}</div>
+        <div v-if="!search" class="text-caption">{{ t('branches.empty_sub') }}</div>
+      </div>
+    </v-card>
 
-    <BranchDetailDialog v-model="drawer" :branch-id="selectedBranch?.id" />
-  </v-container>
+    <p class="text-caption text-medium-emphasis mt-3 mb-0">
+      {{ t('branches.status_help') }}
+    </p>
+
+    <!-- Rendered at the page root, not nested in the list's layout, so it
+         always covers the full screen regardless of where it's triggered
+         from. -->
+    <BranchFormDrawer v-model="formOpen" :branch="editingBranch" :loading="saving" @saved="handleSave" />
+
+    <BranchDetailDialog v-model="detailOpen" :branch-id="selectedBranch?.id" />
+  </div>
 </template>
 
 <script setup>
-  import { ref, reactive, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
   import { usePermission } from '@/composables/usePermission'
-  import { useAuthStore } from '@/stores/authStore'
-  import { getAllBranchesApi } from '@/api/branchService'
-  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
-  import BranchFormPanel from '@/components/branches/BranchFormPanel.vue'
+  import { useAppUtils } from '@nong-official-dev/core'
+  import BranchFormDrawer from '@/components/branches/BranchFormDrawer.vue'
   import BranchDetailDialog from '@/components/branches/BranchDetailDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
@@ -130,62 +137,37 @@
   const { can } = usePermission()
   const { confirm, notif } = useAppUtils()
   const branchStore = useBranchStore()
-  const authStore = useAuthStore()
 
-  const tableRef = ref(null)
-  const drawer = ref(false)
   const saving = ref(false)
+  const search = ref('')
 
-  const selectedBranch = ref(null)
-  // ── Raw filter input — tenant scoping applies immediately via the
-  // `filters` computed below; AppTable deep-watches it and refetches. ──────────
-  const filterState = reactive({
-    tenant: null
-  })
-  // null = create mode (empty panel); set = editing that branch.
+  const formOpen = ref(false)
+  const detailOpen = ref(false)
   const editingBranch = ref(null)
+  const selectedBranch = ref(null)
 
-  // ── Headers ────────────────────────────────────────────────────────────────
-  const headers = computed(() => [
-    { title: t('branches.table.name'), key: 'name', sortable: true },
-    {
-      title: t('branches.form.branch_type'),
-      key: 'branch_type',
-      sortable: false
-    },
-    { title: t('branches.table.phone'), key: 'contact', sortable: false },
-    { title: t('branches.table.status'), key: 'is_active', sortable: true },
-    ...(can('branches.manage')
-      ? [
-          {
-            title: t('branches.table.actions'),
-            key: 'actions',
-            sortable: false,
-            align: 'start'
-          }
-        ]
-      : [])
-  ])
-
-  // ── Server-driven filters — matches BranchRepository's contract
-  // (search/sortBy/sortDesc/page/perPage + tenant). ──────────────────────────
-  const filters = computed(() => ({
-    tenant: filterState.tenant || undefined
-  }))
-
-  async function fetchBranches(params) {
-    const { data } = await getAllBranchesApi(params)
-    return { items: data.data, total: data.meta.total }
-  }
+  const filteredBranches = computed(() => {
+    const q = search.value?.trim().toLowerCase()
+    if (!q) return branchStore.branches
+    return branchStore.branches.filter(b =>
+      [b.name, b.address_line1, b.phone, b.email].some(v => v?.toLowerCase().includes(q))
+    )
+  })
 
   // ── Actions ───────────────────────────────────────────────────────────────────
+  const openCreate = () => {
+    editingBranch.value = null
+    formOpen.value = true
+  }
+
   const openEdit = b => {
     editingBranch.value = { ...b }
+    formOpen.value = true
   }
 
   const onDetails = b => {
     selectedBranch.value = b
-    drawer.value = true
+    detailOpen.value = true
   }
 
   const handleSave = async branchData => {
@@ -196,8 +178,8 @@
       } else {
         await branchStore.createBranch(branchData)
       }
-      editingBranch.value = null
-      tableRef.value?.refresh()
+      formOpen.value = false
+      await branchStore.fetchBranches({ perPage: -1 })
       notif(t('branches.messages.saved'))
     } finally {
       saving.value = false
@@ -211,8 +193,7 @@
       options: { type: 'warning', width: 550 },
       agree: async () => {
         await branchStore.deleteBranch(branch.id)
-        if (editingBranch.value?.id === branch.id) editingBranch.value = null
-        tableRef.value?.refresh()
+        await branchStore.fetchBranches({ perPage: -1 })
         notif(t('branches.messages.deleted'))
       },
       cancel: () => {}
@@ -236,17 +217,15 @@
       food_truck: 'mdi-truck-outline'
     })[type] || 'mdi-store-outline'
 
+  const statusColor = b => (!b.is_active ? 'grey' : b.is_open ? 'success' : 'warning')
+  const statusLabel = b =>
+    !b.is_active
+      ? t('branches.status.disabled')
+      : b.is_open
+        ? t('branches.status.open')
+        : t('branches.status.closed')
+
   onMounted(() => {
-    // Branches are scoped server-side by the user's own tenant_id.
-    filterState.tenant = authStore.tenant_id
+    if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
   })
 </script>
-
-<style scoped>
-  .gap-1 {
-    gap: 4px;
-  }
-  .gap-3 {
-    gap: 12px;
-  }
-</style>

@@ -62,7 +62,7 @@
           rounded="lg"
           size="small"
           prepend-icon="mdi-plus"
-          :to="{ name: 'settings-hub', query: { tab: 'branch' } }"
+          :to="{ name: 'settings-hub', query: { section: 'branches' } }"
         >
           {{ t('pos.no_branch.action') }}
         </v-btn>
