@@ -100,7 +100,7 @@ class OrderController extends Controller
                     $modifiersData[] = [
                         'modifier_option_id' => $option->id,
                         'option_name'        => $option->name,   // snapshot
-                        'price_adjustment'   => $option->price,
+                        'price_adjustment'   => (float) $option->price,
                         'quantity'           => $modQty,
                     ];
                 }
@@ -113,6 +113,7 @@ class OrderController extends Controller
                     'product_id'      => $product->id,
                     'variant_id'      => $variant?->id,
                     'product_name'    => $product->name,   // snapshot
+                    'variant_name'    => $variant?->name,  // snapshot
                     'quantity'        => $item['quantity'],
                     'unit_price'      => $unitPrice,
                     'discount_amount' => 0,
@@ -297,6 +298,39 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $order ? $this->formatOrder($order) : null,
+        ]);
+    }
+
+    // ── GET /api/v1/public/orders/table/{tableId}/history ────────────────────
+    // Public counterpart to ordersByTable() below — same "every order in the
+    // table's current open session" logic, for the e-menu's own Order History
+    // page (byTable() above only ever surfaces the single latest order, which
+    // isn't a history at all once a table orders more than once per sitting).
+    // Deliberately mirrors byTable()'s narrower public eager-load set (no
+    // `payments`/`cashier.user`) rather than ordersByTable()'s — an anonymous
+    // diner has no business seeing who cashed them out or payment internals.
+    public function sessionHistory(string $tableId)
+    {
+        $session = $this->tableSessions->getOpenSession($tableId);
+        if (!$session) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $orders = Order::with([
+            'items.product',
+            'items.variant',
+            'items.modifiers',
+            'statusHistory',
+            'diningTable',
+        ])
+            ->where('table_session_id', $session->id)
+            ->whereNotIn('status', ['cancelled', 'refunded'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders->map(fn($order) => $this->formatOrder($order))->values(),
         ]);
     }
 

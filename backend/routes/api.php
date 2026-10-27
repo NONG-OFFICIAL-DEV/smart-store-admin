@@ -654,6 +654,7 @@ Route::prefix('v1/public')->group(function () {
     Route::post('orders',                        [OrderController::class, 'store']);
     Route::get('orders/{orderNumber}',           [OrderController::class, 'show']);
     Route::get('orders/table/{tableId}',         [OrderController::class, 'byTable']);
+    Route::get('orders/table/{tableId}/history', [OrderController::class, 'sessionHistory']);
 
     // website register
     Route::get('business-types', [BusinessTypeController::class, 'index']);
