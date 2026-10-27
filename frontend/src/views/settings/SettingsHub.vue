@@ -163,7 +163,9 @@
         </v-card>
 
         <!-- ── Branches ──────────────────────────────────────────────── -->
-        <Branch v-else-if="section === 'branches'" />
+         <v-card v-else-if="section === 'branches'" rounded="lg" class="pa-4">
+           <Branch />
+         </v-card>
 
         <!-- ── POS & payments ────────────────────────────────────────── -->
         <v-card v-else-if="section === 'pos'" rounded="lg" class="pa-6">
@@ -432,7 +434,6 @@
              both dead and misleading there. ──────────────────────────────── -->
         <v-card
           v-if="section !== 'branches'"
-          variant="outlined"
           rounded="lg"
           class="pa-4 mt-4 d-flex flex-wrap align-center justify-space-between ga-3"
         >

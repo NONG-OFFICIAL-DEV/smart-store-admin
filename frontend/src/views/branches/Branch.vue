@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <v-card variant="outlined" rounded="lg">
+    <v-card rounded="lg">
       <v-list v-if="filteredBranches.length" lines="two">
         <template v-for="(b, i) in filteredBranches" :key="b.id">
           <v-list-item>

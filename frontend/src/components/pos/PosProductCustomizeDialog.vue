@@ -208,6 +208,7 @@
             </span>
           </div>
         </div>
+        <v-divider class="py-2"/>
         <v-btn
           v-if="!noteOpen"
           @click="noteOpen = true"
@@ -257,13 +258,18 @@
           </button>
         </div>
 
-        <button
+        <v-btn
           type="button"
-          class="pos-add-btn"
-          :class="{ 'pos-add-btn--blocked': !canAdd }"
+          class="text-none pos-add-btn bg-primary"
+          rounded="lg"
+          size="large"
+          variant="text"
           :disabled="!canAdd"
           @click="onAdd"
         >
+          <template #append>
+            <span>{{ formatMoney(totalPrice) }}</span>
+          </template>
           <span>
             {{
               canAdd
@@ -273,8 +279,7 @@
                   })
             }}
           </span>
-          <span>{{ formatMoney(totalPrice) }}</span>
-        </button>
+        </v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -851,7 +856,7 @@
   .pos-stepper {
     display: flex;
     align-items: center;
-    height: 54px;
+    height: 45px;
     border-radius: 14px;
     background: var(--pos-neutral-bg);
   }
@@ -878,23 +883,8 @@
   }
   .pos-add-btn {
     flex: 1;
-    height: 54px;
-    border-radius: 14px;
-    border: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 18px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: inherit;
-    background: rgb(var(--v-theme-primary));
-    color: rgb(var(--v-theme-on-primary));
-    cursor: pointer;
-  }
-  .pos-add-btn--blocked {
-    background: var(--pos-blocked-bg);
-    color: var(--pos-blocked-text);
-    cursor: not-allowed;
   }
 </style>

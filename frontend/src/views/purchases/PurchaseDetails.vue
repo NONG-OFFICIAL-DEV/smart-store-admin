@@ -81,14 +81,14 @@
         density="compact"
       >
         <template #item.cost_price="{ item }">
-          {{ formatCurrency(item.cost_price) }}
+          {{ formatMoney(item.cost_price) }}
         </template>
         <template #item.item_discount="{ item }">
           {{ item.item_discount }} %
         </template>
         <template #item.item_tax="{ item }">{{ item.item_tax }} %</template>
         <template #item.total="{ item }">
-          {{ formatCurrency(item.quantity * item.cost_price) }}
+          {{ formatMoney(item.quantity * item.cost_price) }}
         </template>
       </v-data-table>
     </v-card-text>
@@ -101,25 +101,27 @@
         <div style="width: 300px">
           <div class="d-flex justify-space-between mb-2">
             <span>{{ $t('common.subtotal') }}:</span>
-            <strong>{{ formatCurrency(purchase.subtotal) }}</strong>
+            <strong>{{ formatMoney(purchase.subtotal) }}</strong>
           </div>
 
           <div class="d-flex justify-space-between mb-2">
             <span>{{ $t('order.tax') }}:</span>
-            <strong>{{ formatCurrency(purchase.tax) }}</strong>
+            <strong>{{ formatMoney(purchase.tax) }}</strong>
           </div>
 
           <div class="d-flex justify-space-between mb-2">
             <span>{{ $t('form.discount') }}:</span>
-            <strong>{{ formatCurrency(purchase.discount) }}</strong>
+            <strong>{{ formatMoney(purchase.discount) }}</strong>
           </div>
 
           <v-divider class="my-2"></v-divider>
 
           <div class="d-flex justify-space-between">
-            <span><strong>{{ $t('common.grand_total') }}:</strong></span>
+            <span>
+              <strong>{{ $t('common.grand_total') }}:</strong>
+            </span>
             <strong class="text-primary">
-              {{ formatCurrency(purchase.total_amount) }}
+              {{ formatMoney(purchase.total_amount) }}
             </strong>
           </div>
         </div>
@@ -142,10 +144,10 @@
   import { useI18n } from 'vue-i18n'
   import { usePurchaseStore } from '@/stores/purchaseStore'
   import { useDate } from '@/composables/useDate'
-  import { useCurrency } from '@/composables/useCurrency.js'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
+  const { format: formatMoney } = useCurrency()
   const { t } = useI18n()
-  const { formatCurrency } = useCurrency()
   const { formatDate } = useDate()
   const route = useRoute()
   const purchaseStore = usePurchaseStore()

@@ -5,12 +5,7 @@
     :title="$t('stock_movements.dialog_title')"
   >
     <!-- Empty State -->
-    <v-alert
-      v-if="!props.stock"
-      type="warning"
-      variant="tonal"
-      class="mb-4"
-    >
+    <v-alert v-if="!props.stock" type="warning" variant="tonal" class="mb-4">
       {{ $t('stock_movements.no_stock_selected') }}
     </v-alert>
     <!-- Data Table -->
@@ -35,7 +30,7 @@
         </span>
       </template>
       <template #item.total_cost="{ item }">
-        {{formatCurrency(item.total_cost)}}
+        {{ formatMoney(item.total_cost) }}
       </template>
 
       <template #item.created_at="{ item }">
@@ -70,11 +65,11 @@
   import { useI18n } from 'vue-i18n'
   import { useStockMovementStore } from '@/stores/stockMovementStore'
   import { useDate } from '@/composables/useDate'
-  import { useCurrency } from '@/composables/useCurrency.js'
   import { AppDialog } from '@nong-official-dev/core'
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
 
+  const { format: formatMoney } = useCurrency()
   const { t } = useI18n()
-  const { formatCurrency } = useCurrency()
   const { formatDateTime } = useDate()
   const stockMovementStore = useStockMovementStore()
 
@@ -91,7 +86,11 @@
   })
 
   const headers = computed(() => [
-    { title: t('stock_movements.table.type'), key: 'movement_type', sortable: false },
+    {
+      title: t('stock_movements.table.type'),
+      key: 'movement_type',
+      sortable: false
+    },
     { title: t('stock_movements.table.qty'), key: 'qty' },
     { title: t('stock_movements.table.total_cost'), key: 'total_cost' },
     { title: t('stock_movements.table.staff'), key: 'user_name' },

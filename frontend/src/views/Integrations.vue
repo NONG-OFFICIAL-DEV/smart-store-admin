@@ -6,7 +6,7 @@
     />
 
     <!-- ── Telegram notifications ─────────────────────────────────────── -->
-    <v-card variant="outlined" rounded="lg" class="mb-4">
+    <v-card rounded="lg" class="mb-4">
       <v-card-item>
         <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
           {{ $t('integrations.telegram.title') }}
@@ -122,7 +122,7 @@
     </v-card>
 
     <!-- ── E-Menu QR links ────────────────────────────────────────────── -->
-    <v-card variant="outlined" rounded="lg" class="mb-4">
+    <v-card rounded="lg" class="mb-4">
       <v-card-item>
         <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
           {{ $t('integrations.emenu.title') }}
@@ -170,7 +170,6 @@
 
     <!-- ── Save bar ───────────────────────────────────────────────────── -->
     <v-card
-      variant="outlined"
       rounded="lg"
       class="pa-4 d-flex justify-end ga-2"
     >
