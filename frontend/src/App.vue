@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <!-- <token-expired /> -->
+    <!-- reverb: wss://admin.nexstacktech.com -->
     <!-- <Notif ref="notifRef" dismissible :default-timeout="2000" />
     <Confirm ref="confirmRef" /> -->
     <AppConfirmDialog />
