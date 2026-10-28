@@ -53,6 +53,17 @@ class Tenant extends BaseModel
         // stamps whichever rate was active onto each payment record.
         'khr_exchange_rate' => 4100,
         'khr_rounding' => 100,
+        // Was missing here despite having its own migration/column default —
+        // the DB-level default had drifted ahead of this constant.
+        'pay_later_enabled' => true,
+        // Food POS's mobile e-menu orders carousel — whether it shows at
+        // all, and whether a sound plays for a newly-arrived order.
+        'show_mobile_menu_orders' => true,
+        'mobile_menu_order_sound' => true,
+        // Same carousel component, shown on the Tables page instead —
+        // independent toggle so a tenant can enable it on one screen but
+        // not the other. mobile_menu_order_sound above is shared by both.
+        'show_mobile_menu_orders_tables' => true,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

@@ -149,6 +149,42 @@ class TenantProfileUpdateTest extends TestCase
         Storage::disk('public')->assertExists($storedPath);
     }
 
+    public function test_mobile_menu_orders_settings_default_true_and_can_be_disabled(): void
+    {
+        $owner = User::create([
+            'email' => 'owner5@example.test',
+            'first_name' => 'Owner',
+            'last_name' => 'User',
+            'is_super_admin' => false,
+        ]);
+
+        $tenant = Tenant::create([
+            'name' => 'Noodle House',
+            'slug' => 'noodle-house',
+            'owner_user_id' => $owner->id,
+            'currency' => 'USD',
+        ]);
+
+        $this->assertTrue($tenant->fresh()->pos_settings['show_mobile_menu_orders']);
+        $this->assertTrue($tenant->fresh()->pos_settings['mobile_menu_order_sound']);
+        $this->assertTrue($tenant->fresh()->pos_settings['show_mobile_menu_orders_tables']);
+
+        $service = $this->app->make(TenantService::class);
+
+        $updated = $service->updateProfile($tenant, [
+            'name' => $tenant->name,
+            'pos_settings' => [
+                'show_mobile_menu_orders' => false,
+                'mobile_menu_order_sound' => false,
+                'show_mobile_menu_orders_tables' => false,
+            ],
+        ]);
+
+        $this->assertFalse($updated->pos_settings['show_mobile_menu_orders']);
+        $this->assertFalse($updated->pos_settings['mobile_menu_order_sound']);
+        $this->assertFalse($updated->pos_settings['show_mobile_menu_orders_tables']);
+    }
+
     public function test_pos_settings_are_left_untouched_when_omitted(): void
     {
         $owner = User::create([

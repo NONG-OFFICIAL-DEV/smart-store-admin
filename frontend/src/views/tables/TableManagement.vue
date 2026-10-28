@@ -38,6 +38,8 @@
       </template>
     </AppToolbar>
 
+    <MobileOrdersCarousel v-if="showMobileOrdersTables" :branch-id="branchId" class="mb-3" />
+
     <div class="d-flex align-center flex-wrap ga-1 mb-2">
       <span class="text-body-2">
         {{ t('tables.summary_count', { count: tableStats.total }) }}
@@ -302,6 +304,7 @@
   import PaymentDialog from '@/components/tables/PaymentDialog.vue'
   import { useAppUtils, AppDialog } from '@nong-official-dev/core'
   import AppToolbar from '@/components/common/AppToolbar.vue'
+  import MobileOrdersCarousel from '@/components/pos/MobileOrdersCarousel.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
@@ -325,6 +328,7 @@
   // must follow the sidebar's active branch like everything else, not load
   // every branch's tables merged together.
   const branchId = computed(() => authStore.activeBranchId || authStore.branch_id)
+  const showMobileOrdersTables = computed(() => authStore.posSettings?.show_mobile_menu_orders_tables !== false)
 
   // Order mode — tap a table to either view its active order (occupied) or
   // jump into Food POS with the table preselected (available). Manage mode

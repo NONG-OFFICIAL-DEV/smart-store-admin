@@ -238,6 +238,36 @@
 
           <v-divider class="mb-5" />
 
+          <div class="mb-5">
+            <div class="text-body-2 font-weight-bold mb-3">
+              {{ t('settings_hub.pos_order_management') }}
+            </div>
+            <v-row dense>
+              <v-col v-for="opt in orderManagementOptions" :key="opt.key" cols="12" sm="6">
+                <v-card
+                  variant="outlined"
+                  rounded="lg"
+                  class="pa-4 d-flex align-center justify-space-between"
+                  :class="form.pos_settings[opt.key] ? 'bg-teal-lighten-5' : ''"
+                >
+                  <div>
+                    <div class="text-body-2 font-weight-medium">{{ opt.label }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ opt.hint }}</div>
+                  </div>
+                  <v-switch
+                    v-model="form.pos_settings[opt.key]"
+                    :disabled="!canEdit || saving"
+                    color="teal"
+                    hide-details
+                    density="compact"
+                  />
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-divider class="mb-5" />
+
           <div class="text-body-2 font-weight-bold mb-2">
             {{ t('settings_hub.pos_payment_methods') }}
           </div>
@@ -561,7 +591,10 @@
       table_payment_methods: ['cash', 'card'],
       default_table_payment_method: 'cash',
       khr_exchange_rate: 4100,
-      khr_rounding: 100
+      khr_rounding: 100,
+      show_mobile_menu_orders: true,
+      show_mobile_menu_orders_tables: true,
+      mobile_menu_order_sound: true
     }
   }
 
@@ -615,6 +648,24 @@
   const orderOptionOptions = [
     { key: 'customer_selection', label: t('settings_hub.pos_customer_selection') },
     { key: 'order_notes', label: t('settings_hub.pos_order_notes') }
+  ]
+
+  const orderManagementOptions = [
+    {
+      key: 'show_mobile_menu_orders',
+      label: t('settings_hub.pos_show_mobile_menu_orders'),
+      hint: t('settings_hub.pos_show_mobile_menu_orders_hint')
+    },
+    {
+      key: 'show_mobile_menu_orders_tables',
+      label: t('settings_hub.pos_show_mobile_menu_orders_tables'),
+      hint: t('settings_hub.pos_show_mobile_menu_orders_tables_hint')
+    },
+    {
+      key: 'mobile_menu_order_sound',
+      label: t('settings_hub.pos_mobile_menu_order_sound'),
+      hint: t('settings_hub.pos_mobile_menu_order_sound_hint')
+    }
   ]
 
   const paymentMethodOptions = [
@@ -754,7 +805,10 @@
         table_payment_methods: loadedTablePaymentMethods.length ? loadedTablePaymentMethods : ['cash'],
         default_table_payment_method: tenant.pos_settings?.default_table_payment_method ?? 'cash',
         khr_exchange_rate: tenant.pos_settings?.khr_exchange_rate ?? 4100,
-        khr_rounding: tenant.pos_settings?.khr_rounding ?? 100
+        khr_rounding: tenant.pos_settings?.khr_rounding ?? 100,
+        show_mobile_menu_orders: tenant.pos_settings?.show_mobile_menu_orders !== false,
+        show_mobile_menu_orders_tables: tenant.pos_settings?.show_mobile_menu_orders_tables !== false,
+        mobile_menu_order_sound: tenant.pos_settings?.mobile_menu_order_sound !== false
       }
     })
   }

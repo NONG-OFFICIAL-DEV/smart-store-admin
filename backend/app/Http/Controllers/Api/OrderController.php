@@ -523,6 +523,10 @@ class OrderController extends Controller
             'queue_number'           => $order->queue_number,
             'order_type'             => $order->order_type,
             'status'                 => $order->status,
+            // 'pos' | 'kiosk' | 'mobile_app' | 'web' | 'third_party' — used by
+            // FoodPos/Tables' MobileOrdersCarousel to tell a staff-rung-up
+            // order apart from one placed through the customer e-menu.
+            'source'                 => $order->source,
             'table_session_id'       => $order->table_session_id,
             'table' => $order->relationLoaded('diningTable') && $order->diningTable ? [
                 'id'     => $order->diningTable->id,

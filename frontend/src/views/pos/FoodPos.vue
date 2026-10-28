@@ -138,6 +138,13 @@
           @update-note="posStore.setNote"
         />
 
+        <MobileOrdersCarousel
+          v-if="showMobileOrders"
+          :branch-id="branchId"
+          class="flex-grow-0 mb-2"
+          :class="touch ? 'px-2' : 'px-1'"
+        />
+
         <div class="pos-page__workspace flex-grow-1 d-flex ga-2">
           <div class="pos-page__products flex-grow-1">
             <PosProductGrid
@@ -251,6 +258,7 @@
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
   import PosProductCustomizeDialog from '@/components/pos/PosProductCustomizeDialog.vue'
+  import MobileOrdersCarousel from '@/components/pos/MobileOrdersCarousel.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import AppToolbar from '@/components/common/AppToolbar.vue'
 
@@ -333,6 +341,7 @@
     () => authStore.posSettings?.customer_selection ?? true
   )
   const showNotes = computed(() => authStore.posSettings?.order_notes ?? true)
+  const showMobileOrders = computed(() => authStore.posSettings?.show_mobile_menu_orders !== false)
 
   const categories = ref([])
   const rawProducts = ref([])

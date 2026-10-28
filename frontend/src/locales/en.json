@@ -669,6 +669,7 @@
     "load_failed": "Failed to load PO"
   },
   "order": {
+    "title": "Order",
     "order_number": "Order Number",
     "order_type": "Order Type",
     "order_date": "Order Date",
@@ -1663,6 +1664,13 @@
     "pos_order_options": "Order Options",
     "pos_customer_selection": "Customer Selection",
     "pos_order_notes": "Order Notes",
+    "pos_order_management": "Order Management",
+    "pos_show_mobile_menu_orders": "Mobile E-Menu Orders — Food POS",
+    "pos_show_mobile_menu_orders_hint": "Show incoming mobile e-menu orders as a carousel at the top of the Food POS screen.",
+    "pos_show_mobile_menu_orders_tables": "Mobile E-Menu Orders — Tables",
+    "pos_show_mobile_menu_orders_tables_hint": "Show incoming mobile e-menu orders as a carousel at the top of the Tables screen.",
+    "pos_mobile_menu_order_sound": "Order Sound",
+    "pos_mobile_menu_order_sound_hint": "Play a sound when a new mobile e-menu order arrives.",
     "pos_payment_methods": "Payment Methods",
     "payment_table": {
       "method": "Method",
@@ -2519,6 +2527,20 @@
     },
     "food": {
       "title": "Food Quick Sale"
+    },
+    "mobile_orders": {
+      "loading": "Loading mobile orders…",
+      "load_failed": "Couldn't load mobile orders.",
+      "empty": "No mobile orders right now.",
+      "empty_all": "No orders right now.",
+      "status_new": "New",
+      "status_in_kitchen": "In Kitchen",
+      "status_ready": "Ready",
+      "items_count": "{n} item | {n} items",
+      "scroll_left": "Scroll left",
+      "scroll_right": "Scroll right",
+      "filter_mobile": "Mobile",
+      "filter_all": "All"
     },
     "grid": {
       "search_placeholder": "Search products or scan barcode",

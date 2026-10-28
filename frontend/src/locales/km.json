@@ -664,6 +664,7 @@
     "load_failed": "បរាជ័យក្នុងការទាញយកបញ្ជាទិញ"
   },
   "order": {
+    "title": "កម្មង់",
     "order_number": "លេខកម្មង់",
     "order_type": "ប្រភេទកម្មង់",
     "order_date": "កាលបរិច្ឆេទ",
@@ -1659,6 +1660,13 @@
     "pos_order_options": "ជម្រើសកម្មង់",
     "pos_customer_selection": "ការជ្រើសរើសអតិថិជន",
     "pos_order_notes": "កំណត់ចំណាំកម្មង់",
+    "pos_order_management": "ការគ្រប់គ្រងកម្មង់",
+    "pos_show_mobile_menu_orders": "កម្មង់ពីម៉ឺនុយទូរស័ព្ទ — ប្រព័ន្ធលក់អាហារ",
+    "pos_show_mobile_menu_orders_hint": "បង្ហាញកម្មង់ពីម៉ឺនុយទូរស័ព្ទដែលទើបចូលថ្មីជាជួរផ្ដេកនៅផ្នែកខាងលើនៃអេក្រង់ប្រព័ន្ធលក់អាហារ។",
+    "pos_show_mobile_menu_orders_tables": "កម្មង់ពីម៉ឺនុយទូរស័ព្ទ — តុអាហារ",
+    "pos_show_mobile_menu_orders_tables_hint": "បង្ហាញកម្មង់ពីម៉ឺនុយទូរស័ព្ទដែលទើបចូលថ្មីជាជួរផ្ដេកនៅផ្នែកខាងលើនៃអេក្រង់តុអាហារ។",
+    "pos_mobile_menu_order_sound": "សំឡេងជូនដំណឹងកម្មង់",
+    "pos_mobile_menu_order_sound_hint": "ចាក់សំឡេងនៅពេលមានកម្មង់ថ្មីពីម៉ឺនុយទូរស័ព្ទចូលមក។",
     "pos_payment_methods": "វិធីបង់ប្រាក់",
     "payment_table": {
       "method": "វិធី",
@@ -2499,6 +2507,20 @@
     },
     "food": {
       "title": "លក់រហ័ស - អាហារ"
+    },
+    "mobile_orders": {
+      "loading": "កំពុងផ្ទុកកម្មង់ពីទូរស័ព្ទ...",
+      "load_failed": "មិនអាចផ្ទុកកម្មង់ពីទូរស័ព្ទបានទេ។",
+      "empty": "មិនមានកម្មង់ពីទូរស័ព្ទនាពេលនេះទេ។",
+      "empty_all": "មិនមានកម្មង់នាពេលនេះទេ។",
+      "status_new": "ថ្មី",
+      "status_in_kitchen": "កំពុងធ្វើម្ហូប",
+      "status_ready": "រួចរាល់",
+      "items_count": "មុខម្ហូប {n}",
+      "scroll_left": "រំកិលទៅឆ្វេង",
+      "scroll_right": "រំកិលទៅស្តាំ",
+      "filter_mobile": "ទូរស័ព្ទ",
+      "filter_all": "ទាំងអស់"
     },
     "grid": {
       "search_placeholder": "ស្វែងរកផលិតផល ឬស្កេនបាកូដ",

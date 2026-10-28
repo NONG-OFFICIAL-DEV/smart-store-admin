@@ -75,6 +75,12 @@ class UpdateTenantProfileRequest extends FormRequest
             // displayed KHR amounts to.
             'pos_settings.khr_exchange_rate' => 'nullable|numeric|min:0.01',
             'pos_settings.khr_rounding' => 'nullable|in:100,500,1000',
+            'pos_settings.pay_later_enabled' => 'boolean',
+            // Food POS's mobile e-menu orders carousel toggle + its sound.
+            'pos_settings.show_mobile_menu_orders' => 'boolean',
+            'pos_settings.mobile_menu_order_sound' => 'boolean',
+            // Same carousel, shown on the Tables page instead.
+            'pos_settings.show_mobile_menu_orders_tables' => 'boolean',
         ];
     }
 
