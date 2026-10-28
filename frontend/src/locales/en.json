@@ -2540,7 +2540,12 @@
       "scroll_left": "Scroll left",
       "scroll_right": "Scroll right",
       "filter_mobile": "Mobile",
-      "filter_all": "All"
+      "filter_all": "All",
+      "source_pos": "POS",
+      "source_mobile": "Mobile E-Menu",
+      "source_kiosk": "Kiosk",
+      "source_web": "Web",
+      "source_third_party": "Third-Party"
     },
     "grid": {
       "search_placeholder": "Search products or scan barcode",

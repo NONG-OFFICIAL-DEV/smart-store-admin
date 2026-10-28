@@ -2520,7 +2520,12 @@
       "scroll_left": "រំកិលទៅឆ្វេង",
       "scroll_right": "រំកិលទៅស្តាំ",
       "filter_mobile": "ទូរស័ព្ទ",
-      "filter_all": "ទាំងអស់"
+      "filter_all": "ទាំងអស់",
+      "source_pos": "ប្រព័ន្ធលក់",
+      "source_mobile": "ម៉ឺនុយទូរស័ព្ទ",
+      "source_kiosk": "គីអស្ក",
+      "source_web": "វេបសាយ",
+      "source_third_party": "ភាគីទីបី"
     },
     "grid": {
       "search_placeholder": "ស្វែងរកផលិតផល ឬស្កេនបាកូដ",

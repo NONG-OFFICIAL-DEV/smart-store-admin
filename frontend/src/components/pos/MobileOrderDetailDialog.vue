@@ -1,12 +1,12 @@
 <template>
-  <AppDialog v-model="model" :max-width="480" :persistent="false" :title="order?.order_number ?? t('order.title')">
+  <AppDialog v-model="model" :max-width="480" :persistent="false" :title="dialogTitle">
     <template v-if="order">
       <div class="d-flex align-center flex-wrap ga-2 mb-4">
+        <v-chip size="small" variant="tonal" :prepend-icon="sourceMeta.icon">
+          {{ sourceMeta.label }}
+        </v-chip>
         <v-chip size="small" variant="tonal" color="primary" class="text-capitalize">
           {{ order.order_type?.replace('_', ' ') ?? '—' }}
-        </v-chip>
-        <v-chip v-if="order.table?.number" size="small" variant="tonal" prepend-icon="mdi-table-furniture">
-          {{ t('kitchen.table_prefix') }} {{ order.table.number }}
         </v-chip>
         <v-chip size="small" variant="flat" :color="statusMeta.color">
           {{ statusMeta.label }}
@@ -147,6 +147,12 @@
     set: v => emit('update:modelValue', v)
   })
 
+  const dialogTitle = computed(() => {
+    if (!props.order) return t('order.title')
+    if (!props.order.table?.number) return props.order.order_number
+    return `${props.order.order_number} · ${t('kitchen.table_prefix')} ${props.order.table.number}`
+  })
+
   // Local copy so Start/Complete/Cancel reflects instantly from the API
   // response — the carousel's own list resync (triggered via 'updated')
   // happens in the background rather than being waited on here.
@@ -165,6 +171,18 @@
     if (ticket.value?.status === 'in_progress') return { label: t('pos.mobile_orders.status_in_kitchen'), color: 'info' }
     if (ticket.value?.status === 'done') return { label: t('pos.mobile_orders.status_ready'), color: 'success' }
     return { label: t('pos.mobile_orders.status_new'), color: 'warning' }
+  })
+
+  const SOURCE_META = {
+    pos: { icon: 'mdi-point-of-sale', label: () => t('pos.mobile_orders.source_pos') },
+    mobile_app: { icon: 'mdi-cellphone', label: () => t('pos.mobile_orders.source_mobile') },
+    kiosk: { icon: 'mdi-tablet', label: () => t('pos.mobile_orders.source_kiosk') },
+    web: { icon: 'mdi-web', label: () => t('pos.mobile_orders.source_web') },
+    third_party: { icon: 'mdi-truck-delivery-outline', label: () => t('pos.mobile_orders.source_third_party') }
+  }
+  const sourceMeta = computed(() => {
+    const meta = SOURCE_META[props.order?.source] ?? SOURCE_META.mobile_app
+    return { icon: meta.icon, label: meta.label() }
   })
 
   const ACTION_API = {
