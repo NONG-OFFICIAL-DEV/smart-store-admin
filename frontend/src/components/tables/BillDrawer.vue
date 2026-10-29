@@ -164,7 +164,7 @@
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
   const tableStore = useTableStore()
-  const { formatBase } = useCurrency()
+  const { formatBase, roundMoney } = useCurrency()
   const { formatDateTime, formatTime } = useDate()
   const { print: printThermal } = useReceipt()
 
@@ -230,8 +230,13 @@
   // recharge an order that was already paid for.
   const unpaidOrders = computed(() => props.orders.filter(o => !o.payment))
 
+  // Summing several already-float money values in JS can land on something
+  // like 26.240000000000002 — roundMoney() clamps to the tenant's real
+  // currency precision (cents for USD, whole numbers for KHR), same fix as
+  // PaymentDialog.vue's identical reducer, so this total and the one that
+  // seeds the Received field there never disagree.
   const totals = computed(() => {
-    const sum = key => unpaidOrders.value.reduce((total, o) => total + Number(o[key] ?? 0), 0)
+    const sum = key => roundMoney(unpaidOrders.value.reduce((total, o) => total + Number(o[key] ?? 0), 0))
     return {
       subtotal: sum('subtotal'),
       discount: sum('discount_amount'),

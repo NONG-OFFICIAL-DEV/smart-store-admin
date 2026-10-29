@@ -109,7 +109,7 @@
                 <div class="flex-grow-1">
                   <div class="font-weight-medium">{{ item.name }}</div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ formatMoney(item.base_price) }}
+                    {{ formatBase(item.base_price) }}
                   </div>
                 </div>
                 <AppStatusChip
@@ -166,7 +166,7 @@
             <!-- Price -->
             <template #item.base_price="{ item }">
               <span class="text-body-2 font-weight-medium">
-                {{ formatMoney(item.base_price) }}
+                {{ formatBase(item.base_price) }}
               </span>
             </template>
 
@@ -272,7 +272,9 @@
   import OptionGroupsList from '@/views/products/OptionGroupsList.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
   import draggable from 'vuedraggable'
-
+  import { useCurrency } from '@/composables/useCurrency_v2.js'
+  
+  const { formatBase } = useCurrency()
   const router = useRouter()
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()
@@ -445,13 +447,6 @@
       notif(`Failed to update ${item.name}`, { type: 'error' })
     }
   }
-
-  // ── Price/stock display ──────────────────────────────────────────────────────
-  const formatMoney = value =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value ?? 0)
 
   // Untracked items (e.g. made-to-order food) have no meaningful stock state.
   const stockStatus = item => {

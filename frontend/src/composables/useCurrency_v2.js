@@ -34,5 +34,16 @@ export function useCurrency() {
     return currency.value === 'KHR' ? '៛' : '$'
   }
 
-  return { format, formatBase, currency, currencySymbol }
+  // Clamps a raw JS-arithmetic result (e.g. summing several order totals,
+  // which can land on 26.240000000000002) to the tenant's own currency's
+  // real precision — USD has cents, KHR has no subunit at all, so a riel
+  // amount should round to a whole number, not to two decimal places.
+  // Any code doing money math in JS should pass its result through this
+  // before storing/displaying/submitting it, rather than assuming cents.
+  function roundMoney(amount) {
+    const n = Number(amount) || 0
+    return currency.value === 'KHR' ? Math.round(n) : Math.round((n + Number.EPSILON) * 100) / 100
+  }
+
+  return { format, formatBase, currency, currencySymbol, roundMoney }
 }

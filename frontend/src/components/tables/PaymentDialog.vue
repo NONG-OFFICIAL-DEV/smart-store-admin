@@ -188,7 +188,7 @@
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
-  const { formatBase, currency, currencySymbol } = useCurrency()
+  const { formatBase, currency, currencySymbol, roundMoney } = useCurrency()
   const { formatDateTime } = useDate()
   const { isTouch } = useTouchDevice()
   const { availableHeight, keepVisible } = useKeyboardSafeArea()
@@ -259,8 +259,14 @@
   // recollect money on an order that's already settled.
   const unpaidOrders = computed(() => props.orders.filter(o => !o.payment))
 
+  // Summing several already-float money values in JS (e.g. 12.99 + 13.25)
+  // can land on something like 26.240000000000002 — roundMoney() clamps it
+  // to the tenant's actual currency precision (cents for USD, whole numbers
+  // for KHR) so it never leaks into the "Received" number input below,
+  // which (unlike formatBase()'d display text) shows whatever raw value is
+  // assigned to it.
   const totals = computed(() => {
-    const sum = key => unpaidOrders.value.reduce((sum2, o) => sum2 + Number(o[key] ?? 0), 0)
+    const sum = key => roundMoney(unpaidOrders.value.reduce((sum2, o) => sum2 + Number(o[key] ?? 0), 0))
     return {
       subtotal: sum('subtotal'),
       discount: sum('discount_amount'),
@@ -275,7 +281,7 @@
   // bill/note the customer actually hands over, same as a real cash drawer.
   // Denominations match the tenant's own base currency (never assume USD).
   const quickButtons = computed(() => {
-    const denominations = currency.value === 'KHR' ? [5000, 10000, 20000, 50000] : [5, 10, 20, 50]
+    const denominations = currency.value === 'KHR' ? [10000, 20000, 50000] : [10, 20, 50]
     return [
       { key: 'exact', label: t('tables.payment.quick_exact'), type: 'exact' },
       ...denominations.map(amount => ({ key: `d${amount}`, label: formatBase(amount), type: 'add', amount })),
