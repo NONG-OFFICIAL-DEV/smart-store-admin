@@ -22,7 +22,7 @@
         :rules="[rules.required]"
         prepend-inner-icon="mdi-storefront-outline"
         :placeholder="$t('branches.form.name_placeholder')"
-        class="mb-2"
+        class="mb-2 mt-2"
       />
 
       <v-select

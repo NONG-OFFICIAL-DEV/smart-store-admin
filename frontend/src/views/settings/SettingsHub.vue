@@ -27,32 +27,40 @@
       class="mb-4"
       @update:model-value="section = $event"
     >
-      <v-chip v-for="s in SECTION_KEYS" :key="s" :value="s" filter variant="tonal" rounded="lg">
-        {{ t(`settings_hub.menu.${s}.title`) }}
+      <v-chip
+        v-for="s in SECTION_KEYS"
+        :key="s.key"
+        :value="s.key"
+        :prepend-icon="s.icon"
+        filter
+        variant="tonal"
+        rounded="lg"
+      >
+        {{ t(`settings_hub.menu.${s.key}.title`) }}
       </v-chip>
     </v-chip-group>
 
     <v-row>
       <!-- ── Left section menu (desktop/tablet) ───────────────────────── -->
-      <v-col v-if="!smAndDown" cols="12" md="3">
-        <v-card rounded="lg">
-          <v-list nav density="comfortable">
-            <v-list-item
-              v-for="s in SECTION_KEYS"
-              :key="s"
-              :active="section === s"
-              color="primary"
-              variant="tonal"
-              rounded="lg"
-              :title="t(`settings_hub.menu.${s}.title`)"
-              :subtitle="t(`settings_hub.menu.${s}.subtitle`)"
-              @click="section = s"
-            />
-          </v-list>
-        </v-card>
+      <v-col v-if="!smAndDown" cols="12" md="2">
+        <!-- <v-card rounded="lg" variant="text"> -->
+        <v-list nav density="comfortable" variant="text">
+          <v-list-item
+            v-for="s in SECTION_KEYS"
+            :key="s.key"
+            :active="section === s.key"
+            color="primary"
+            rounded="lg"
+            :prepend-icon="s.icon"
+            density="compact"
+            :title="t(`settings_hub.menu.${s.key}.title`)"
+            @click="section = s.key"
+          />
+        </v-list>
+        <!-- </v-card> -->
       </v-col>
 
-      <v-col cols="12" :md="smAndDown ? 12 : 9">
+      <v-col cols="12" :md="smAndDown ? 12 : 10">
         <!-- ── Business ──────────────────────────────────────────────── -->
         <v-card v-if="section === 'business'" rounded="lg" class="pa-6">
           <v-alert
@@ -153,9 +161,17 @@
             </v-col>
           </v-row>
 
-          <v-sheet color="grey-lighten-4" rounded="lg" class="pa-4 mt-2 d-flex align-center justify-space-between flex-wrap ga-2">
-            <span class="text-body-2 text-medium-emphasis">{{ t('settings_hub.currency_preview_label') }}</span>
-            <span class="text-body-1 font-weight-bold">{{ currencyPreviewText }}</span>
+          <v-sheet
+            color="grey-lighten-4"
+            rounded="lg"
+            class="pa-4 mt-2 d-flex align-center justify-space-between flex-wrap ga-2"
+          >
+            <span class="text-body-2 text-medium-emphasis">
+              {{ t('settings_hub.currency_preview_label') }}
+            </span>
+            <span class="text-body-1 font-weight-bold">
+              {{ currencyPreviewText }}
+            </span>
           </v-sheet>
           <p class="text-caption text-medium-emphasis mt-3 mb-0">
             {{ t('settings_hub.currency_preview_note') }}
@@ -163,9 +179,9 @@
         </v-card>
 
         <!-- ── Branches ──────────────────────────────────────────────── -->
-         <v-card v-else-if="section === 'branches'" rounded="lg" class="pa-4">
-           <Branch />
-         </v-card>
+        <v-card v-else-if="section === 'branches'" rounded="lg" class="pa-4">
+          <Branch />
+        </v-card>
 
         <!-- ── POS & payments ────────────────────────────────────────── -->
         <v-card v-else-if="section === 'pos'" rounded="lg" class="pa-6">
@@ -188,23 +204,31 @@
               {{ t('settings_hub.pos_order_types') }}
             </div>
             <v-row dense>
-              <v-col v-for="ot in orderTypeOptions" :key="ot.value" cols="12" sm="4">
-                <v-card
-                  variant="outlined"
-                  rounded="lg"
-                  class="pa-4 d-flex align-center justify-space-between"
-                  :class="isOrderTypeEnabled(ot.value) ? 'bg-teal-lighten-5' : ''"
-                >
-                  <span class="text-body-2 font-weight-medium">{{ ot.label }}</span>
-                  <v-switch
-                    :model-value="isOrderTypeEnabled(ot.value)"
-                    :disabled="!canEdit || saving"
-                    color="teal"
-                    hide-details
-                    density="compact"
-                    @update:model-value="toggleOrderType(ot.value, $event)"
-                  />
-                </v-card>
+              <v-col
+                v-for="ot in orderTypeOptions"
+                :key="ot.value"
+                cols="12"
+                sm="4"
+                class="d-flex align-start justify-space-between ga-3"
+              >
+                <div class="flex-grow-1" style="min-width: 0">
+                  <div class="text-body-2 font-weight-medium">
+                    {{ ot.label }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ ot.hint }}
+                  </div>
+                </div>
+                <v-switch
+                  :model-value="isOrderTypeEnabled(ot.value)"
+                  :disabled="!canEdit || saving"
+                  color="teal"
+                  hide-details
+                  density="compact"
+                  class="flex-shrink-0 mt-1 me-6"
+                  @update:model-value="toggleOrderType(ot.value, $event)"
+                />
+                <v-divider vertical class="align-self-stretch" />
               </v-col>
             </v-row>
           </div>
@@ -216,22 +240,30 @@
               {{ t('settings_hub.pos_order_options') }}
             </div>
             <v-row dense>
-              <v-col v-for="opt in orderOptionOptions" :key="opt.key" cols="12" sm="6">
-                <v-card
-                  variant="outlined"
-                  rounded="lg"
-                  class="pa-4 d-flex align-center justify-space-between"
-                  :class="form.pos_settings[opt.key] ? 'bg-teal-lighten-5' : ''"
-                >
-                  <span class="text-body-2 font-weight-medium">{{ opt.label }}</span>
-                  <v-switch
-                    v-model="form.pos_settings[opt.key]"
-                    :disabled="!canEdit || saving"
-                    color="teal"
-                    hide-details
-                    density="compact"
-                  />
-                </v-card>
+              <v-col
+                v-for="opt in orderOptionOptions"
+                :key="opt.key"
+                cols="12"
+                sm="6"
+                class="d-flex align-start justify-space-between ga-3"
+              >
+                <div class="flex-grow-1" style="min-width: 0">
+                  <div class="text-body-2 font-weight-medium">
+                    {{ opt.label }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ opt.hint }}
+                  </div>
+                </div>
+                <v-switch
+                  v-model="form.pos_settings[opt.key]"
+                  :disabled="!canEdit || saving"
+                  color="teal"
+                  hide-details
+                  density="compact"
+                  class="flex-shrink-0 mt-1 me-6"
+                />
+                <v-divider vertical class="align-self-stretch" />
               </v-col>
             </v-row>
           </div>
@@ -243,25 +275,30 @@
               {{ t('settings_hub.pos_order_management') }}
             </div>
             <v-row dense>
-              <v-col v-for="opt in orderManagementOptions" :key="opt.key" cols="12" sm="6">
-                <v-card
-                  variant="outlined"
-                  rounded="lg"
-                  class="pa-4 d-flex align-center justify-space-between"
-                  :class="form.pos_settings[opt.key] ? 'bg-teal-lighten-5' : ''"
-                >
-                  <div>
-                    <div class="text-body-2 font-weight-medium">{{ opt.label }}</div>
-                    <div class="text-caption text-medium-emphasis">{{ opt.hint }}</div>
+              <v-col
+                v-for="opt in orderManagementOptions"
+                :key="opt.key"
+                cols="12"
+                sm="6"
+                class="d-flex align-start justify-space-between ga-3"
+              >
+                <div class="flex-grow-1" style="min-width: 0">
+                  <div class="text-body-2 font-weight-medium">
+                    {{ opt.label }}
                   </div>
-                  <v-switch
-                    v-model="form.pos_settings[opt.key]"
-                    :disabled="!canEdit || saving"
-                    color="teal"
-                    hide-details
-                    density="compact"
-                  />
-                </v-card>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ opt.hint }}
+                  </div>
+                </div>
+                <v-switch
+                  v-model="form.pos_settings[opt.key]"
+                  :disabled="!canEdit || saving"
+                  color="teal"
+                  hide-details
+                  density="compact"
+                  class="flex-shrink-0 mt-1 me-6"
+                />
+                <v-divider vertical class="align-self-stretch" />
               </v-col>
             </v-row>
           </div>
@@ -275,8 +312,12 @@
             <thead>
               <tr>
                 <th>{{ t('settings_hub.payment_table.method') }}</th>
-                <th class="text-center">{{ t('settings_hub.payment_table.quick_sale') }}</th>
-                <th class="text-center">{{ t('settings_hub.payment_table.table_bill') }}</th>
+                <th class="text-center">
+                  {{ t('settings_hub.payment_table.quick_sale') }}
+                </th>
+                <th class="text-center">
+                  {{ t('settings_hub.payment_table.table_bill') }}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -284,22 +325,33 @@
                 <td>{{ pm.label }}</td>
                 <td class="text-center">
                   <v-checkbox-btn
-                    :model-value="form.pos_settings.payment_methods.includes(pm.value)"
+                    :model-value="
+                      form.pos_settings.payment_methods.includes(pm.value)
+                    "
                     :disabled="!canEdit || saving"
                     color="primary"
-                    @update:model-value="toggleMethod('payment_methods', pm.value, $event)"
+                    @update:model-value="
+                      toggleMethod('payment_methods', pm.value, $event)
+                    "
                   />
                 </td>
                 <td class="text-center">
-                  <span v-if="pm.value === 'pay_later'" class="text-caption text-medium-emphasis">
+                  <span
+                    v-if="pm.value === 'pay_later'"
+                    class="text-caption text-medium-emphasis"
+                  >
                     {{ t('settings_hub.payment_table.not_used') }}
                   </span>
                   <v-checkbox-btn
                     v-else
-                    :model-value="form.pos_settings.table_payment_methods.includes(pm.value)"
+                    :model-value="
+                      form.pos_settings.table_payment_methods.includes(pm.value)
+                    "
                     :disabled="!canEdit || saving"
                     color="primary"
-                    @update:model-value="toggleMethod('table_payment_methods', pm.value, $event)"
+                    @update:model-value="
+                      toggleMethod('table_payment_methods', pm.value, $event)
+                    "
                   />
                 </td>
               </tr>
@@ -360,11 +412,24 @@
             <div class="text-caption text-medium-emphasis mb-3">
               {{ t('settings_hub.printer.usb_hint') }}
             </div>
-            <div v-if="usbConnected" class="d-flex align-center flex-wrap ga-3 mb-5">
-              <v-chip color="success" variant="tonal" rounded="lg" prepend-icon="mdi-check-circle">
+            <div
+              v-if="usbConnected"
+              class="d-flex align-center flex-wrap ga-3 mb-5"
+            >
+              <v-chip
+                color="success"
+                variant="tonal"
+                rounded="lg"
+                prepend-icon="mdi-check-circle"
+              >
                 {{ t('settings_hub.printer.usb_connected') }}
               </v-chip>
-              <v-btn variant="tonal" rounded="lg" prepend-icon="mdi-usb-port" @click="onDisconnectUsb">
+              <v-btn
+                variant="tonal"
+                rounded="lg"
+                prepend-icon="mdi-usb-port"
+                @click="onDisconnectUsb"
+              >
                 {{ t('settings_hub.printer.usb_disconnect') }}
               </v-btn>
             </div>
@@ -467,9 +532,16 @@
           rounded="lg"
           class="pa-4 mt-4 d-flex flex-wrap align-center justify-space-between ga-3"
         >
-          <span class="text-caption text-medium-emphasis">{{ saveBarText }}</span>
+          <span class="text-caption text-medium-emphasis">
+            {{ saveBarText }}
+          </span>
           <div class="d-flex ga-2">
-            <v-btn variant="text" class="text-none" :disabled="!dirty || saving" @click="discardAll">
+            <v-btn
+              variant="text"
+              class="text-none"
+              :disabled="!dirty || saving"
+              @click="discardAll"
+            >
               {{ t('settings_hub.discard') }}
             </v-btn>
             <v-btn
@@ -497,7 +569,12 @@
           <v-btn variant="text" class="text-none" @click="cancelLeave">
             {{ t('settings_hub.unsaved_stay') }}
           </v-btn>
-          <v-btn color="error" variant="flat" class="text-none" @click="confirmLeave">
+          <v-btn
+            color="error"
+            variant="flat"
+            class="text-none"
+            @click="confirmLeave"
+          >
             {{ t('settings_hub.unsaved_leave') }}
           </v-btn>
         </v-card-actions>
@@ -515,7 +592,12 @@
           <v-btn variant="text" class="text-none" @click="cancelBranchSwitch">
             {{ t('settings_hub.branch_switch_cancel') }}
           </v-btn>
-          <v-btn color="error" variant="flat" class="text-none" @click="confirmBranchSwitch">
+          <v-btn
+            color="error"
+            variant="flat"
+            class="text-none"
+            @click="confirmBranchSwitch"
+          >
             {{ t('settings_hub.branch_switch_confirm') }}
           </v-btn>
         </v-card-actions>
@@ -557,11 +639,19 @@
     testPrintQz
   } = useReceipt()
 
-  const SECTION_KEYS = ['business', 'currency', 'branches', 'pos', 'printer']
-
+  const SECTION_KEYS = [
+    { key: 'business', icon: 'mdi-store-cog-outline' },
+    { key: 'currency', icon: 'mdi-currency-usd' },
+    { key: 'branches', icon: 'mdi-source-branch' },
+    { key: 'pos', icon: 'mdi-point-of-sale' },
+    { key: 'printer', icon: 'mdi-printer-outline' }
+  ]
   // Its own route/query (?section=...) — linkable, survives a refresh.
   const section = computed({
-    get: () => (SECTION_KEYS.includes(route.query.section) ? route.query.section : 'business'),
+    get: () =>
+      SECTION_KEYS.some(s => s.key === route.query.section)
+        ? route.query.section
+        : 'business',
     set: val => router.push({ query: { ...route.query, section: val } })
   })
 
@@ -621,19 +711,40 @@
   // utils/printReceipt.js).
   const CURRENCY_PREVIEW_USD = 12.35
   const currencyPreviewText = computed(() => {
-    const rate = Number(form.pos_settings.khr_exchange_rate) > 0 ? Number(form.pos_settings.khr_exchange_rate) : 4100
-    const rounding = Number(form.pos_settings.khr_rounding) > 0 ? Number(form.pos_settings.khr_rounding) : 100
+    const rate =
+      Number(form.pos_settings.khr_exchange_rate) > 0
+        ? Number(form.pos_settings.khr_exchange_rate)
+        : 4100
+    const rounding =
+      Number(form.pos_settings.khr_rounding) > 0
+        ? Number(form.pos_settings.khr_rounding)
+        : 100
     const khr = Math.round((CURRENCY_PREVIEW_USD * rate) / rounding) * rounding
     const usdText = `$${CURRENCY_PREVIEW_USD.toFixed(2)}`
     const khrText = `${new Intl.NumberFormat('en-US').format(khr)} ៛`
     return `${usdText} / ${khrText}`
   })
 
-  const orderTypeOptions = [
-    { value: 'dine_in', label: t('pos.cart.order_type.dine_in') },
-    { value: 'takeaway', label: t('pos.cart.order_type.takeaway') },
-    { value: 'delivery', label: t('pos.cart.order_type.delivery') }
-  ]
+  // Built from t() — must stay reactive (computed, not a plain const) or the
+  // labels/hints freeze in whatever language was active on first render and
+  // never follow a later locale switch.
+  const orderTypeOptions = computed(() => [
+    {
+      value: 'dine_in',
+      label: t('pos.cart.order_type.dine_in'),
+      hint: t('settings_hub.pos_order_type_hint_dine_in')
+    },
+    {
+      value: 'takeaway',
+      label: t('pos.cart.order_type.takeaway'),
+      hint: t('settings_hub.pos_order_type_hint_takeaway')
+    },
+    {
+      value: 'delivery',
+      label: t('pos.cart.order_type.delivery'),
+      hint: t('settings_hub.pos_order_type_hint_delivery')
+    }
+  ])
 
   function isOrderTypeEnabled(value) {
     return form.pos_settings.order_types.includes(value)
@@ -645,12 +756,20 @@
     if (!enabled && idx !== -1) list.splice(idx, 1)
   }
 
-  const orderOptionOptions = [
-    { key: 'customer_selection', label: t('settings_hub.pos_customer_selection') },
-    { key: 'order_notes', label: t('settings_hub.pos_order_notes') }
-  ]
+  const orderOptionOptions = computed(() => [
+    {
+      key: 'customer_selection',
+      label: t('settings_hub.pos_customer_selection'),
+      hint: t('settings_hub.pos_customer_selection_hint')
+    },
+    {
+      key: 'order_notes',
+      label: t('settings_hub.pos_order_notes'),
+      hint: t('settings_hub.pos_order_notes_hint')
+    }
+  ])
 
-  const orderManagementOptions = [
+  const orderManagementOptions = computed(() => [
     {
       key: 'show_mobile_menu_orders',
       label: t('settings_hub.pos_show_mobile_menu_orders'),
@@ -666,14 +785,14 @@
       label: t('settings_hub.pos_mobile_menu_order_sound'),
       hint: t('settings_hub.pos_mobile_menu_order_sound_hint')
     }
-  ]
+  ])
 
-  const paymentMethodOptions = [
+  const paymentMethodOptions = computed(() => [
     { value: 'cash', label: t('pos.checkout.methods.cash') },
     { value: 'card', label: t('pos.checkout.methods.card') },
     { value: 'qr', label: t('pos.checkout.methods.qr') },
     { value: 'pay_later', label: t('pos.checkout.methods.pay_later') }
-  ]
+  ])
 
   // Shared checkbox-cell toggler for both payment_methods (Quick Sale
   // column) and table_payment_methods (Table bill column) — pay_later is
@@ -689,15 +808,19 @@
   // narrows the select's own options rather than letting the form save a
   // default that checkout would never actually offer.
   const enabledPaymentMethodOptions = computed(() =>
-    paymentMethodOptions.filter(pm => form.pos_settings.payment_methods.includes(pm.value))
+    paymentMethodOptions.value.filter(pm =>
+      form.pos_settings.payment_methods.includes(pm.value)
+    )
   )
   // Same option list as POS checkout above — a tenant may still want a
   // different subset/default enabled for settling a table's bill than for
   // ringing up a walk-in sale, so it's tracked as its own setting. pay_later
   // never applies to a table bill (see template: "Not used").
   const enabledTablePaymentMethodOptions = computed(() =>
-    paymentMethodOptions.filter(
-      pm => pm.value !== 'pay_later' && form.pos_settings.table_payment_methods.includes(pm.value)
+    paymentMethodOptions.value.filter(
+      pm =>
+        pm.value !== 'pay_later' &&
+        form.pos_settings.table_payment_methods.includes(pm.value)
     )
   )
 
@@ -740,7 +863,9 @@
   const dirtyPrinter = computed(
     () => printerNameInput.value !== (selectedBranch.value?.printer_name ?? '')
   )
-  const dirty = computed(() => dirtyTenant.value || dirtyLogo.value || dirtyPrinter.value)
+  const dirty = computed(
+    () => dirtyTenant.value || dirtyLogo.value || dirtyPrinter.value
+  )
 
   // Informational grouping of which section(s) actually changed — Save
   // below already only calls the tenant-profile API when dirtyTenant/
@@ -748,14 +873,17 @@
   // the same split surfaced at UI granularity.
   const dirtySections = computed(() => {
     const sections = []
-    if (dirtyTenant.value || dirtyLogo.value) sections.push('business', 'currency', 'pos')
+    if (dirtyTenant.value || dirtyLogo.value)
+      sections.push('business', 'currency', 'pos')
     if (dirtyPrinter.value) sections.push('printer')
     return sections
   })
 
   const saveBarText = computed(() => {
     if (saving.value) return t('settings_hub.save_bar_saving')
-    return dirty.value ? t('settings_hub.save_bar_dirty') : t('settings_hub.save_bar_clean')
+    return dirty.value
+      ? t('settings_hub.save_bar_dirty')
+      : t('settings_hub.save_bar_clean')
   })
 
   async function loadTenant() {
@@ -797,18 +925,29 @@
       primary_color: tenant.primary_color ?? DEFAULT_TENANT_FORM.primary_color,
       currency: tenant.currency ?? DEFAULT_TENANT_FORM.currency,
       pos_settings: {
-        order_types: tenant.pos_settings?.order_types ?? DEFAULT_TENANT_FORM.pos_settings.order_types,
+        order_types:
+          tenant.pos_settings?.order_types ??
+          DEFAULT_TENANT_FORM.pos_settings.order_types,
         customer_selection: tenant.pos_settings?.customer_selection ?? true,
         order_notes: tenant.pos_settings?.order_notes ?? true,
-        payment_methods: loadedPaymentMethods.length ? loadedPaymentMethods : ['cash'],
-        default_payment_method: tenant.pos_settings?.default_payment_method ?? 'cash',
-        table_payment_methods: loadedTablePaymentMethods.length ? loadedTablePaymentMethods : ['cash'],
-        default_table_payment_method: tenant.pos_settings?.default_table_payment_method ?? 'cash',
+        payment_methods: loadedPaymentMethods.length
+          ? loadedPaymentMethods
+          : ['cash'],
+        default_payment_method:
+          tenant.pos_settings?.default_payment_method ?? 'cash',
+        table_payment_methods: loadedTablePaymentMethods.length
+          ? loadedTablePaymentMethods
+          : ['cash'],
+        default_table_payment_method:
+          tenant.pos_settings?.default_table_payment_method ?? 'cash',
         khr_exchange_rate: tenant.pos_settings?.khr_exchange_rate ?? 4100,
         khr_rounding: tenant.pos_settings?.khr_rounding ?? 100,
-        show_mobile_menu_orders: tenant.pos_settings?.show_mobile_menu_orders !== false,
-        show_mobile_menu_orders_tables: tenant.pos_settings?.show_mobile_menu_orders_tables !== false,
-        mobile_menu_order_sound: tenant.pos_settings?.mobile_menu_order_sound !== false
+        show_mobile_menu_orders:
+          tenant.pos_settings?.show_mobile_menu_orders !== false,
+        show_mobile_menu_orders_tables:
+          tenant.pos_settings?.show_mobile_menu_orders_tables !== false,
+        mobile_menu_order_sound:
+          tenant.pos_settings?.mobile_menu_order_sound !== false
       }
     })
   }
@@ -858,7 +997,10 @@
           fd.append('logo', logoFile.value)
           Object.entries(form).forEach(([key, value]) => {
             if (value === null || value === undefined) return
-            fd.append(key, typeof value === 'object' ? JSON.stringify(value) : value)
+            fd.append(
+              key,
+              typeof value === 'object' ? JSON.stringify(value) : value
+            )
           })
           body = fd
         }
@@ -879,7 +1021,9 @@
 
       notif(t('settings_hub.saved'), { type: 'success' })
     } catch (err) {
-      notif(err?.response?.data?.message || t('settings_hub.save_failed'), { type: 'error' })
+      notif(err?.response?.data?.message || t('settings_hub.save_failed'), {
+        type: 'error'
+      })
     } finally {
       saving.value = false
     }
@@ -907,14 +1051,14 @@
     pendingNext?.(false)
   }
 
-  const currencyOptions = [
+  const currencyOptions = computed(() => [
     { value: 'USD', label: t('tenant_create.currency.usd') },
     { value: 'KHR', label: t('tenant_create.currency.khr') },
     { value: 'EUR', label: t('tenant_create.currency.eur') },
     { value: 'GBP', label: t('tenant_create.currency.gbp') },
     { value: 'SGD', label: t('tenant_create.currency.sgd') },
     { value: 'MYR', label: t('tenant_create.currency.myr') }
-  ]
+  ])
 
   // ── Printer section ──────────────────────────────────────────────────────
   const selectedBranchId = ref(authStore.activeBranchId ?? null)
@@ -991,7 +1135,9 @@
         // generic message — this is what actually tells you whether it's a
         // Windows driver conflict, a cancelled picker, or something else.
         notif(
-          t('settings_hub.printer.usb_connect_failed', { reason: printError.value ?? '—' }),
+          t('settings_hub.printer.usb_connect_failed', {
+            reason: printError.value ?? '—'
+          }),
           { type: 'error' }
         )
       }
@@ -1006,7 +1152,11 @@
   }
 
   const statusColor = computed(() =>
-    connectionStatus.value === 'connected' ? 'success' : connectionStatus.value === 'disconnected' ? 'error' : 'grey'
+    connectionStatus.value === 'connected'
+      ? 'success'
+      : connectionStatus.value === 'disconnected'
+        ? 'error'
+        : 'grey'
   )
   const statusIcon = computed(() =>
     connectionStatus.value === 'connected'
@@ -1040,7 +1190,15 @@
       branch_address: selectedBranch.value?.address_line1 ?? null,
       branch_phone: selectedBranch.value?.phone ?? null,
       date: new Date().toLocaleString(),
-      items: [{ name: t('settings_hub.printer.test_item'), unit: null, qty: 1, unit_price: 0, total_price: 0 }],
+      items: [
+        {
+          name: t('settings_hub.printer.test_item'),
+          unit: null,
+          qty: 1,
+          unit_price: 0,
+          total_price: 0
+        }
+      ],
       subtotal: 0,
       discount: 0,
       tax: 0,
@@ -1056,11 +1214,16 @@
   async function sendTestPrint() {
     testPrinting.value = true
     try {
-      const ok = await printThermal(buildTestReceipt(), selectedBranch.value?.printer_name)
+      const ok = await printThermal(
+        buildTestReceipt(),
+        selectedBranch.value?.printer_name
+      )
       notif(
         ok
           ? t('settings_hub.printer.test_print_sent')
-          : t('settings_hub.printer.test_print_failed', { reason: printError.value ?? '' }),
+          : t('settings_hub.printer.test_print_failed', {
+              reason: printError.value ?? ''
+            }),
         { type: ok ? 'success' : 'error' }
       )
       connectionStatus.value = ok ? 'connected' : 'disconnected'
@@ -1081,7 +1244,9 @@
       notif(t('settings_hub.printer.test_print_sent'), { type: 'success' })
     } catch (err) {
       notif(
-        t('settings_hub.printer.test_print_failed', { reason: err?.message ?? '' }),
+        t('settings_hub.printer.test_print_failed', {
+          reason: err?.message ?? ''
+        }),
         { type: 'error' }
       )
     } finally {
