@@ -106,7 +106,13 @@ class TenantController extends Controller
         $logoUrl = null;
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('logos', 'public');
-            $logoUrl = Storage::url($path);
+            // Storage::url() with no disk given resolves against
+            // FILESYSTEM_DISK's default ('local'), which has no 'url'
+            // config and falls back to a request-context-sensitive route —
+            // came out as a bare relative path under a real HTTP request.
+            // 'public' disk's own 'url' config is a plain string concat,
+            // always absolute.
+            $logoUrl = Storage::disk('public')->url($path);
         }
 
         // Same route serves both the superadmin-only admin panel (POST
@@ -151,7 +157,7 @@ class TenantController extends Controller
         // in the same storage/app/public/logos location.
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('logos', 'public');
-            $validated['logo_url'] = Storage::url($path);
+            $validated['logo_url'] = Storage::disk('public')->url($path);
         }
 
         $tenant = $this->tenants->updateProfile($tenant, $validated);

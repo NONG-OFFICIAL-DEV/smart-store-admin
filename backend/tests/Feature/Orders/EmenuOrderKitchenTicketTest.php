@@ -113,6 +113,22 @@ class EmenuOrderKitchenTicketTest extends TestCase
         );
     }
 
+    public function test_placing_an_order_for_a_food_tenant_with_kitchen_ticket_disabled_does_not_create_one(): void
+    {
+        $tenant = $this->makeTenant('RESTAURANT');
+        $branch = $this->makeBranch($tenant);
+        $branch->update(['kitchen_ticket_enabled' => false]);
+        $product = $this->makeProduct($tenant);
+
+        $response = $this->placeOrder($branch, $product);
+        $orderId = $response->getData(true)['data']['id'];
+
+        $this->assertSame(
+            0,
+            KitchenDisplayTicket::where('order_id', $orderId)->count()
+        );
+    }
+
     public function test_placing_a_dine_in_order_at_a_table_occupies_that_table(): void
     {
         $tenant = $this->makeTenant('RESTAURANT');

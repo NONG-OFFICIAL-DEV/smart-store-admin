@@ -41,6 +41,9 @@ class BranchResource extends JsonResource
             'is_open' => $this->is_open,
             'is_active' => $this->is_active,
             'branch_type_id' => $this->branch_type_id,
+            'customer_display_settings' => $this->customer_display_settings,
+            'kitchen_ticket_enabled' => $this->kitchen_ticket_enabled,
+            'kitchen_auto_serve_hours' => $this->kitchen_auto_serve_hours,
             'full_address' => $this->full_address,
             'created_at' => $this->created_at?->toIso8601String(),
 

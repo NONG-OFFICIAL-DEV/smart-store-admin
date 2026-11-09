@@ -188,8 +188,11 @@ class OrderController extends Controller
             // Food tenants need a kitchen ticket for every order so it shows
             // up on the Kitchen Display without a staff member manually
             // looking it up by order number. Mart/retail tenants have no
-            // prep step, so no ticket is created for them.
-            if ($branch->tenant->businessType?->category === 'food') {
+            // prep step, so no ticket is created for them. A branch can
+            // also opt out entirely (kitchen_ticket_enabled) if it doesn't
+            // actually staff a Kitchen Display — otherwise tickets just
+            // pile up in 'new' forever with no one to progress them.
+            if ($branch->tenant->businessType?->category === 'food' && $branch->kitchen_ticket_enabled) {
                 KitchenDisplayTicket::create([
                     'order_id'  => $order->id,
                     'branch_id' => $branch->id,
@@ -503,6 +506,41 @@ class OrderController extends Controller
                 'data'    => $this->formatOrder($order),
             ]);
         });
+    }
+
+    // ── PATCH /api/v1/orders/{order}/serve ───────────────────────────────────
+    // A kitchen ticket has no status past 'done' (see KitchenDisplayTicketService)
+    // — nothing ever told the ORDER itself that food actually reached the
+    // customer, so a ready ticket just sat in the Mobile Orders Carousel /
+    // Kitchen Display's "Ready" column indefinitely with no action left to
+    // take on it. This is that missing action. Deliberately does NOT reuse
+    // Order::updateStatus() — that helper unconditionally nulls completed_at
+    // for any status outside ['completed', 'cancelled'], which would wipe out
+    // an already-paid order's completion timestamp the moment it's served.
+    public function serve(Order $order)
+    {
+        if (in_array($order->status, ['cancelled', 'refunded'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "A {$order->status} order can't be marked served.",
+            ], 422);
+        }
+
+        $fromStatus = $order->status;
+        $order->update(['status' => 'served']);
+
+        OrderStatusHistory::create([
+            'order_id'            => $order->id,
+            'from_status'         => $fromStatus,
+            'to_status'           => 'served',
+            'changed_by_staff_id' => auth()->user()?->staff?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order marked as served.',
+            'data'    => $order->fresh(),
+        ]);
     }
 
     private function generateQueueNumber(string $branchId): int

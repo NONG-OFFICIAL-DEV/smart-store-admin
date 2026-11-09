@@ -35,6 +35,16 @@ const routes = [
     meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
   },
   {
+    // Second-screen customer display — full-screen, no sidebar/app bar, no
+    // login. Reachable with zero auth (see PUBLIC_AUTH_ROUTES below): a
+    // freshly-unboxed tablet opening this URL has no token at all, and even
+    // once paired it never logs in, it just holds a device_token.
+    path: '/customer-display',
+    name: 'CustomerDisplay',
+    component: () => import('@/views/pos/CustomerDisplayPage.vue'),
+    meta: { transition: 'fade', superAdminAccessible: true }
+  },
+  {
     path: '/layout',
     name: 'Layout',
     component: () => import('@/views/layout/Layout.vue'),
@@ -465,7 +475,7 @@ const router = createRouter({
 // away — signup/forgot/reset are legitimate destinations even mid-session
 // (e.g. a link opened in a new tab), unlike Login itself which a logged-in
 // user should never land back on.
-const PUBLIC_AUTH_ROUTES = ['Login', 'Register', 'ForgotPassword', 'ResetPassword']
+const PUBLIC_AUTH_ROUTES = ['Login', 'Register', 'ForgotPassword', 'ResetPassword', 'CustomerDisplay']
 
 router.beforeEach(async (to, from, next) => {
   const { useAuthStore } = await import('@/stores/authStore')

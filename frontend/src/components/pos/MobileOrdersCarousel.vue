@@ -115,6 +115,17 @@
               {{ t('kitchen.complete') }}
             </v-btn>
             <v-btn
+              v-if="card.ticket.status === 'done'"
+              size="x-small"
+              color="primary"
+              variant="flat"
+              class="text-none"
+              @click="doServe(card)"
+            >
+              {{ t('pos.mobile_orders.serve') }}
+            </v-btn>
+            <v-btn
+              v-if="card.ticket.status !== 'done'"
               size="x-small"
               variant="text"
               color="error"
@@ -158,6 +169,7 @@
     completeKitchenDisplayTicketApi,
     cancelKitchenDisplayTicketApi
   } from '@/api/kitchenDisplayTicketService'
+  import { markOrderServedApi } from '@/api/orderService'
   import { getEcho } from '@/utils/echo'
   import { playNewOrderSound } from '@/utils/playNewOrderSound'
   import MobileOrderDetailDialog from '@/components/pos/MobileOrderDetailDialog.vue'
@@ -193,40 +205,48 @@
   // on every page load/remount rather than persisting anywhere.
   const sourceFilter = ref('mobile')
 
-  async function loadTickets() {
-    if (!props.branchId) return
-    loading.value = true
-    loadFailed.value = false
-    try {
-      const { data } = await getAllKitchenDisplayTicketsApi({
-        branch_id: props.branchId,
-        perPage: -1
-      })
-      tickets.value = data.data.filter(tk => tk.status !== 'cancelled')
-      await hydrateOrderCache()
-      await nextTick()
-      updateScrollState()
-    } catch {
-      loadFailed.value = true
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function hydrateOrderCache() {
-    const missing = [...new Set(tickets.value.map(tk => tk.order_id))].filter(
-      id => !orderCache.value[id]
-    )
-    await Promise.all(
-      missing.map(async id => {
-        try {
-          const res = await orderStore.fetchOrderById(id)
-          orderCache.value = { ...orderCache.value, [id]: res.data.data }
-        } catch {
-          // order lookup failed — this ticket is excluded below until it resolves
+  // A new mobile order can fire `.order.new` several times in quick
+  // succession (a few customers checking out around the same moment) —
+  // without this guard each event kicked off its own full reload
+  // (GET kitchen-tickets + one GET /orders/{id} per ticket), piling up
+  // duplicate in-flight requests for the exact same data. Calls that land
+  // while a load is already running just await that same in-flight call
+  // instead of starting a new one.
+  let loadInFlight = null
+  function loadTickets() {
+    if (!props.branchId) return Promise.resolve()
+    if (loadInFlight) return loadInFlight
+    loadInFlight = (async () => {
+      loading.value = true
+      loadFailed.value = false
+      try {
+        const { data } = await getAllKitchenDisplayTicketsApi({
+          branch_id: props.branchId,
+          perPage: -1
+        })
+        tickets.value = data.data.filter(tk => tk.status !== 'cancelled')
+        // Each ticket already carries a trimmed summary of its order
+        // (order_number/status/source/table/items — see
+        // KitchenDisplayTicketResource) — used to be one extra
+        // GET /orders/{id} PER TICKET just to render the card list, which
+        // is exactly what was flooding the network tab. The full order
+        // (subtotal/tax/payment/etc.) is only ever fetched on demand, when
+        // a card is actually opened — see openDetail().
+        const summaries = {}
+        for (const tk of tickets.value) {
+          if (tk.order) summaries[tk.order_id] = tk.order
         }
-      })
-    )
+        orderCache.value = { ...orderCache.value, ...summaries }
+        await nextTick()
+        updateScrollState()
+      } catch {
+        loadFailed.value = true
+      } finally {
+        loading.value = false
+        loadInFlight = null
+      }
+    })()
+    return loadInFlight
   }
 
   // Defaults to mobile e-menu orders only — a ticket whose order came from
@@ -266,9 +286,18 @@
     return { label: t('pos.mobile_orders.status_new'), color: 'warning' }
   }
 
-  function openDetail(card) {
-    selectedOrder.value = card.order
+  // The card list only ever has the trimmed order summary (see
+  // loadTickets()) — the detail dialog needs the full order (subtotal,
+  // tax, service charge, line-item prices), fetched here on demand rather
+  // than upfront for every ticket.
+  async function openDetail(card) {
     selectedTicket.value = card.ticket
+    try {
+      const res = await orderStore.fetchOrderById(card.orderId)
+      selectedOrder.value = res.data.data
+    } catch {
+      selectedOrder.value = card.order
+    }
     detailDialog.value = true
   }
 
@@ -291,6 +320,25 @@
   async function doCancel(ticket) {
     try {
       await cancelKitchenDisplayTicketApi(ticket.id)
+      await loadTickets()
+    } catch {
+      loadFailed.value = true
+    }
+  }
+
+  // The kitchen ticket itself has no status past 'done' — this marks the
+  // ORDER served instead, which is what actually makes the card disappear
+  // (cards already excludes orders whose status is in ORDER_NOT_ACTIVE,
+  // which includes 'served').
+  async function doServe(card) {
+    try {
+      const res = await markOrderServedApi(card.orderId)
+      // hydrateOrderCache() only fetches ids it doesn't already have — the
+      // order for this ticket was already cached (that's how the card got
+      // rendered in the first place), so without patching it here the
+      // cached copy keeps its pre-serve status and the card never
+      // disappears no matter how many times loadTickets() reruns.
+      orderCache.value = { ...orderCache.value, [card.orderId]: res.data.data }
       await loadTickets()
     } catch {
       loadFailed.value = true

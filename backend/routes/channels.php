@@ -35,3 +35,26 @@ Broadcast::channel('branch.{branchId}.orders', function ($user, string $branchId
 
     return (string) $user->staff?->branch_id === $branchId;
 });
+
+/*
+ * Staff-side auth for the customer-display channel — used if a staff
+ * member's own browser ever subscribes (e.g. a "display connected?"
+ * indicator in Settings). The paired TABLET itself never goes through
+ * this: it has no JWT, so it authorizes via device_token against
+ * CustomerDisplayController::broadcastingAuth() instead (a separate,
+ * unauthenticated route — see routes/api.php's v1/public group).
+ */
+Broadcast::channel('branch.{branchId}.terminal.{terminalId}.display', function ($user, string $branchId, string $terminalId) {
+    if ($user->is_super_admin) {
+        return true;
+    }
+
+    if ($tenant = $user->ownedTenant) {
+        return Branch::withoutGlobalScopes()
+            ->where('id', $branchId)
+            ->where('tenant_id', $tenant->id)
+            ->exists();
+    }
+
+    return (string) $user->staff?->branch_id === $branchId;
+});

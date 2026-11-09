@@ -50,9 +50,25 @@
     </v-chip-group>
 
     <div class="pos-product-grid__scroll flex-grow-1">
-      <div v-if="loading" class="d-flex justify-center py-10">
-        <v-progress-circular indeterminate color="primary" />
-      </div>
+      <!-- Skeleton placeholders — same column layout as the real grid
+           below, so nothing shifts once products actually arrive. Shown
+           for every fetch (initial load, branch switch, search), not just
+           the first one, so a fast re-search never flashes "No products
+           found" before the new results land. -->
+      <v-row v-if="loading" :dense="!touch">
+        <v-col
+          v-for="n in 10"
+          :key="`skeleton-${n}`"
+          cols="6"
+          :sm="touch ? 6 : 4"
+          :md="touch ? 4 : 3"
+          :lg="touch ? 3 : 2"
+        >
+          <v-card rounded="lg" border elevation="0" class="h-100">
+            <v-skeleton-loader type="image, list-item-two-line, button" />
+          </v-card>
+        </v-col>
+      </v-row>
 
       <v-alert
         v-else-if="!products.length"

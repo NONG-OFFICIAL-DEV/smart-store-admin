@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <AppToolbar :title="$t('settings_hub.title')" :subtitle="headerSubtitle">
-      <template v-if="section === 'printer'" #actions>
+      <template v-if="BRANCH_SCOPED_SECTIONS.includes(section)" #actions>
         <v-select
           v-model="selectedBranchIdModel"
           :items="branchStore.branches"
@@ -400,7 +400,7 @@
         </v-card>
 
         <!-- ── Printer ───────────────────────────────────────────────── -->
-        <v-card v-else rounded="lg" class="pa-6">
+        <v-card v-else-if="section === 'printer'" rounded="lg" class="pa-6">
           <div class="text-body-2 text-medium-emphasis mb-5">
             {{ t('settings_hub.printer.helper') }}
           </div>
@@ -524,6 +524,295 @@
           </template>
         </v-card>
 
+        <!-- ── Kitchen ticket workflow (per branch) ───────────────────── -->
+        <v-card v-else-if="section === 'kitchen'" rounded="lg" class="pa-6">
+          <v-alert
+            v-if="!canEdit"
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-5"
+            :text="t('settings_hub.owner_only')"
+          />
+
+          <div v-if="!selectedBranch" class="text-caption text-medium-emphasis">
+            {{ t('settings_hub.kitchen.no_branch_hint') }}
+          </div>
+          <template v-else>
+            <div class="d-flex align-start justify-space-between ga-3">
+              <div class="flex-grow-1" style="min-width: 0">
+                <div class="text-body-2 font-weight-medium">
+                  {{ t('settings_hub.kitchen.enabled') }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ t('settings_hub.kitchen.enabled_hint') }}
+                </div>
+              </div>
+              <v-switch
+                v-model="kitchenTicketEnabledInput"
+                :disabled="!canEdit || saving"
+                color="teal"
+                hide-details
+                density="compact"
+                class="flex-shrink-0 mt-1"
+              />
+            </div>
+
+            <v-alert
+              v-if="!kitchenTicketEnabledInput"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              rounded="lg"
+              class="mt-5"
+            >
+              {{ t('settings_hub.kitchen.disabled_warning') }}
+            </v-alert>
+
+            <v-divider class="my-5" />
+
+            <div class="text-body-2 font-weight-medium mb-1">
+              {{ t('settings_hub.kitchen.auto_serve_hours') }}
+            </div>
+            <div class="text-caption text-medium-emphasis mb-3">
+              {{ t('settings_hub.kitchen.auto_serve_hours_hint') }}
+            </div>
+            <v-select
+              v-model="kitchenAutoServeHoursInput"
+              :items="autoServeHoursOptions"
+              :disabled="!canEdit || saving"
+              variant="outlined"
+              density="compact"
+              rounded="lg"
+              hide-details
+              style="max-width: 280px"
+            />
+          </template>
+        </v-card>
+
+        <!-- ── Customer display (per branch) ──────────────────────────── -->
+        <v-card v-else rounded="lg" class="pa-6">
+          <v-alert
+            v-if="!canEdit"
+            type="info"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-5"
+            :text="t('settings_hub.owner_only')"
+          />
+
+          <div class="d-flex align-start justify-space-between ga-3 mb-5">
+            <div class="flex-grow-1" style="min-width: 0">
+              <div class="text-body-2 font-weight-medium">
+                {{ t('settings_hub.customer_display.enabled') }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ t('settings_hub.customer_display.enabled_hint') }}
+              </div>
+            </div>
+            <v-switch
+              v-model="cdForm.enabled"
+              :disabled="!canEdit || saving"
+              color="teal"
+              hide-details
+              density="compact"
+              class="flex-shrink-0 mt-1"
+            />
+          </div>
+
+          <v-divider class="mb-5" />
+
+          <div class="text-body-2 font-weight-bold mb-3">
+            {{ t('settings_hub.customer_display.promo_title') }}
+          </div>
+          <v-row dense class="mb-2">
+            <v-col cols="12" sm="4">
+              <ProductImageUpload
+                v-model:image-file="cdPromoFile"
+                v-model:image-preview="cdPromoPreview"
+                compact
+                :title="t('settings_hub.customer_display.promo_image')"
+              />
+            </v-col>
+            <v-col cols="12" sm="8">
+              <v-text-field
+                v-model="cdForm.promo_title"
+                :label="t('settings_hub.customer_display.promo_title_label')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                class="mb-3"
+                hide-details
+              />
+              <v-textarea
+                v-model="cdForm.promo_subtitle"
+                :label="t('settings_hub.customer_display.promo_subtitle_label')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                rows="2"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+          <div class="text-caption text-medium-emphasis mb-5">
+            {{ t('settings_hub.customer_display.promo_hint') }}
+          </div>
+
+          <v-divider class="mb-5" />
+
+          <v-row dense class="mb-5">
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="cdForm.wifi_text"
+                :label="t('settings_hub.customer_display.wifi_text')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                hide-details
+                prepend-inner-icon="mdi-wifi"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="cdForm.thank_you_delay_seconds"
+                :items="thankYouDelayOptions"
+                :label="t('settings_hub.customer_display.thank_you_delay')"
+                :disabled="!canEdit || saving"
+                variant="outlined"
+                density="compact"
+                rounded="lg"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="mb-5" />
+
+          <div class="text-body-2 font-weight-bold mb-1">
+            {{ t('settings_hub.customer_display.qr_image') }}
+          </div>
+          <div class="text-caption text-medium-emphasis mb-3">
+            {{ t('settings_hub.customer_display.qr_image_hint') }}
+          </div>
+          <v-row dense class="mb-5">
+            <v-col cols="12" sm="4">
+              <ProductImageUpload
+                v-model:image-file="cdQrFile"
+                v-model:image-preview="cdQrPreview"
+                compact
+                :title="t('settings_hub.customer_display.qr_image')"
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="mb-5" />
+
+          <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-3">
+            <div class="text-body-2 font-weight-bold">
+              {{ t('settings_hub.customer_display.paired_devices') }}
+            </div>
+            <div class="d-flex flex-wrap ga-2">
+              <v-btn
+                variant="tonal"
+                color="teal"
+                rounded="lg"
+                size="small"
+                class="text-none"
+                prepend-icon="mdi-monitor-share"
+                :disabled="!cdForm.enabled"
+                @click="openCustomerDisplay"
+              >
+                {{ t('settings_hub.customer_display.open_display') }}
+              </v-btn>
+              <v-btn
+                variant="tonal"
+                rounded="lg"
+                size="small"
+                class="text-none"
+                prepend-icon="mdi-tablet-cellphone"
+                :disabled="!canEdit || !selectedBranch"
+                @click="pairDialogOpen = true"
+              >
+                {{ t('settings_hub.customer_display.pair_tablet') }}
+              </v-btn>
+            </div>
+          </div>
+          <div v-if="!selectedBranch" class="text-caption text-medium-emphasis">
+            {{ t('settings_hub.customer_display.no_branch_hint') }}
+          </div>
+          <v-skeleton-loader v-else-if="loadingDevices" type="list-item-two-line" />
+          <div
+            v-else-if="!pairedDevices.length"
+            class="text-caption text-medium-emphasis"
+          >
+            {{ t('settings_hub.customer_display.no_devices') }}
+          </div>
+          <v-table v-else density="comfortable" class="border rounded-lg">
+            <tbody>
+              <tr v-for="device in pairedDevices" :key="device.id">
+                <td class="py-2" style="min-width: 180px">
+                  <v-text-field
+                    v-if="renamingDeviceId === device.id"
+                    v-model="renameDeviceInput"
+                    density="compact"
+                    variant="outlined"
+                    rounded="lg"
+                    hide-details
+                    autofocus
+                    @keyup.enter="confirmRenameDevice(device)"
+                    @keyup.esc="renamingDeviceId = null"
+                  />
+                  <span v-else class="text-body-2 font-weight-medium">
+                    {{ device.device_name }}
+                  </span>
+                </td>
+                <td class="text-caption text-medium-emphasis">
+                  {{ t('settings_hub.customer_display.paired_at') }}
+                  {{ formatPairedAt(device.paired_at) }}
+                </td>
+                <td class="text-right" style="white-space: nowrap">
+                  <template v-if="renamingDeviceId === device.id">
+                    <v-btn
+                      icon="mdi-check"
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      @click="confirmRenameDevice(device)"
+                    />
+                    <v-btn
+                      icon="mdi-close"
+                      size="small"
+                      variant="text"
+                      @click="renamingDeviceId = null"
+                    />
+                  </template>
+                  <template v-else>
+                    <v-btn
+                      icon="mdi-pencil-outline"
+                      size="small"
+                      variant="text"
+                      @click="startRenameDevice(device)"
+                    />
+                    <v-btn
+                      icon="mdi-link-off"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="unpairDevice(device)"
+                    />
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card>
+
         <!-- ── One save bar for the whole page — Branches saves/deletes
              instantly through its own drawer instead, so this bar would be
              both dead and misleading there. ──────────────────────────────── -->
@@ -603,6 +892,45 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- ── Pair a customer-display tablet ─────────────────────────────── -->
+    <v-dialog v-model="pairDialogOpen" max-width="360">
+      <v-card rounded="lg">
+        <v-card-title>{{ t('pos.customerDisplay.pairTablet') }}</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="pairCode"
+            :label="t('pos.customerDisplay.code')"
+            variant="outlined"
+            rounded="lg"
+            maxlength="6"
+            autofocus
+          />
+          <v-text-field
+            v-model="pairDeviceName"
+            :label="t('pos.customerDisplay.deviceName')"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="pairDialogOpen = false">
+            {{ t('btn.cancel') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="pairing"
+            :disabled="pairCode.length !== 6"
+            @click="claimPairing"
+          >
+            {{ t('pos.customerDisplay.pair') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -617,6 +945,14 @@
   import { useReceipt } from '@/utils/printReceipt'
   import { useSettingsForm } from '@/composables/useSettingsForm'
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
+  import { updateBranchApi } from '@/api/branchService'
+  import {
+    getCustomerDisplayDevicesApi,
+    renameCustomerDisplayDeviceApi,
+    unpairCustomerDisplayDeviceApi,
+    claimCustomerDisplayPairingApi
+  } from '@/api/customerDisplayService'
+  import { useCustomerDisplayPublisher } from '@/composables/useCustomerDisplay'
   import Branch from '@/views/branches/Branch.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
   import AppToolbar from '@/components/common/AppToolbar.vue'
@@ -627,7 +963,7 @@
   const { smAndDown } = useDisplay()
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
-  const { notif } = useAppUtils()
+  const { notif, confirm } = useAppUtils()
   const {
     print: printThermal,
     checkConnection,
@@ -639,24 +975,33 @@
     testPrintQz
   } = useReceipt()
 
-  const SECTION_KEYS = [
-    { key: 'business', icon: 'mdi-store-cog-outline' },
-    { key: 'currency', icon: 'mdi-currency-usd' },
-    { key: 'branches', icon: 'mdi-source-branch' },
-    { key: 'pos', icon: 'mdi-point-of-sale' },
-    { key: 'printer', icon: 'mdi-printer-outline' }
-  ]
+  // Kitchen ticket workflow is only meaningful for food-category
+  // tenants — mart/coffee-counter orders never get a kitchen ticket in
+  // the first place (see CoffeePOSorderController/OrderController), so
+  // the section would just be a confusing no-op toggle for them.
+  const SECTION_KEYS = computed(() =>
+    [
+      { key: 'business', icon: 'mdi-store-cog-outline' },
+      { key: 'currency', icon: 'mdi-currency-usd' },
+      { key: 'branches', icon: 'mdi-source-branch' },
+      { key: 'pos', icon: 'mdi-point-of-sale' },
+      { key: 'printer', icon: 'mdi-printer-outline' },
+      authStore.isFood ? { key: 'kitchen', icon: 'mdi-chef-hat' } : null,
+      { key: 'customer_display', icon: 'mdi-monitor-share' }
+    ].filter(Boolean)
+  )
   // Its own route/query (?section=...) — linkable, survives a refresh.
   const section = computed({
     get: () =>
-      SECTION_KEYS.some(s => s.key === route.query.section)
+      SECTION_KEYS.value.some(s => s.key === route.query.section)
         ? route.query.section
         : 'business',
     set: val => router.push({ query: { ...route.query, section: val } })
   })
 
+  const BRANCH_SCOPED_SECTIONS = ['printer', 'kitchen', 'customer_display']
   const headerSubtitle = computed(() =>
-    section.value === 'printer'
+    BRANCH_SCOPED_SECTIONS.includes(section.value)
       ? t('settings_hub.subtitle_selected_branch')
       : t('settings_hub.subtitle_all_branches')
   )
@@ -863,19 +1208,31 @@
   const dirtyPrinter = computed(
     () => printerNameInput.value !== (selectedBranch.value?.printer_name ?? '')
   )
+  const dirtyKitchen = computed(
+    () =>
+      kitchenTicketEnabledInput.value !== (selectedBranch.value?.kitchen_ticket_enabled ?? true) ||
+      kitchenAutoServeHoursInput.value !== (selectedBranch.value?.kitchen_auto_serve_hours ?? 12)
+  )
   const dirty = computed(
-    () => dirtyTenant.value || dirtyLogo.value || dirtyPrinter.value
+    () =>
+      dirtyTenant.value ||
+      dirtyLogo.value ||
+      dirtyPrinter.value ||
+      dirtyKitchen.value ||
+      dirtyCustomerDisplay.value
   )
 
   // Informational grouping of which section(s) actually changed — Save
   // below already only calls the tenant-profile API when dirtyTenant/
-  // dirtyLogo is true and the branch API when dirtyPrinter is true; this is
-  // the same split surfaced at UI granularity.
+  // dirtyLogo is true and the branch API when dirtyPrinter/dirtyKitchen is
+  // true; this is the same split surfaced at UI granularity.
   const dirtySections = computed(() => {
     const sections = []
     if (dirtyTenant.value || dirtyLogo.value)
       sections.push('business', 'currency', 'pos')
     if (dirtyPrinter.value) sections.push('printer')
+    if (dirtyKitchen.value) sections.push('kitchen')
+    if (dirtyCustomerDisplay.value) sections.push('customer_display')
     return sections
   })
 
@@ -956,6 +1313,13 @@
     discardTenant()
     logoFile.value = null
     printerNameInput.value = selectedBranch.value?.printer_name ?? ''
+    kitchenTicketEnabledInput.value = selectedBranch.value?.kitchen_ticket_enabled ?? true
+    kitchenAutoServeHoursInput.value = selectedBranch.value?.kitchen_auto_serve_hours ?? 12
+    cdForm.value = { ...cdOriginal.value }
+    cdPromoFile.value = null
+    cdPromoPreview.value = cdForm.value.promo_image_url
+    cdQrFile.value = null
+    cdQrPreview.value = cdForm.value.merchant_qr_image_url
   }
 
   // Sections render via v-if/v-else-if — only the currently visible one has
@@ -1009,14 +1373,47 @@
         commitTenant()
       }
 
-      if (dirtyPrinter.value && selectedBranch.value) {
+      if ((dirtyPrinter.value || dirtyKitchen.value) && selectedBranch.value) {
         await branchStore.updateBranch(selectedBranch.value.id, {
           // Explicit null, not undefined — undefined gets dropped from the
           // JSON body entirely, so clearing the field would silently leave
           // the old value untouched server-side instead of actually clearing it.
-          printer_name: printerNameInput.value || null
+          printer_name: printerNameInput.value || null,
+          kitchen_ticket_enabled: kitchenTicketEnabledInput.value,
+          kitchen_auto_serve_hours: kitchenAutoServeHoursInput.value
         })
         await branchStore.fetchBranches({ perPage: -1 })
+      }
+
+      if (dirtyCustomerDisplay.value && selectedBranch.value) {
+        // Same multipart-when-a-file-is-attached pattern as the tenant
+        // logo above — a new promo/QR image always wins over whatever
+        // URL is already stored (see BranchController::update()).
+        let body = { customer_display_settings: cdForm.value }
+        if (cdPromoFile.value || cdQrFile.value) {
+          const fd = new FormData()
+          fd.append('customer_display_settings', JSON.stringify(cdForm.value))
+          if (cdPromoFile.value) fd.append('customer_display_promo_image', cdPromoFile.value)
+          if (cdQrFile.value) fd.append('customer_display_qr_image', cdQrFile.value)
+          body = fd
+        }
+        const res = await updateBranchApi(selectedBranch.value.id, body)
+        await branchStore.fetchBranches({ perPage: -1 })
+
+        // Re-baseline from what the server actually persisted (not just
+        // cdForm as we sent it) — a new upload comes back with a fresh
+        // promo/QR image_url that cdForm never had, and without this the
+        // dirty check keeps comparing against the pre-save snapshot and
+        // the leave-guard fires forever after a successful save.
+        const saved = res?.data?.data?.customer_display_settings
+        if (saved) {
+          cdForm.value = { ...DEFAULT_CD_SETTINGS, ...saved }
+          cdOriginal.value = { ...cdForm.value }
+          cdPromoFile.value = null
+          cdPromoPreview.value = cdForm.value.promo_image_url
+          cdQrFile.value = null
+          cdQrPreview.value = cdForm.value.merchant_qr_image_url
+        }
       }
 
       notif(t('settings_hub.saved'), { type: 'success' })
@@ -1114,6 +1511,181 @@
       connectionStatus.value = null
     },
     { immediate: true }
+  )
+
+  // Defaults to true (matches the column's DB default) — a branch that
+  // hasn't explicitly set this yet keeps today's behavior unchanged.
+  const kitchenTicketEnabledInput = ref(true)
+  watch(
+    () => selectedBranch.value?.kitchen_ticket_enabled,
+    val => {
+      kitchenTicketEnabledInput.value = val ?? true
+    },
+    { immediate: true }
+  )
+
+  // How long a forgotten kitchen ticket sits before AutoServeStaleKitchenTickets
+  // (hourly scheduled job) marks its order served on its own — defaults to
+  // 12, matching the column's DB default.
+  const autoServeHoursOptions = [1, 2, 4, 6, 8, 12, 24, 48, 72].map(n => ({
+    value: n,
+    title: n === 1 ? '1h' : `${n}h`
+  }))
+  const kitchenAutoServeHoursInput = ref(12)
+  watch(
+    () => selectedBranch.value?.kitchen_auto_serve_hours,
+    val => {
+      kitchenAutoServeHoursInput.value = val ?? 12
+    },
+    { immediate: true }
+  )
+
+  // ── Customer display section (per branch, like Printer above) ──────────
+  const DEFAULT_CD_SETTINGS = {
+    enabled: false,
+    promo_image_url: null,
+    promo_title: null,
+    promo_subtitle: null,
+    wifi_text: null,
+    thank_you_delay_seconds: 10,
+    merchant_qr_image_url: null
+  }
+  const cdForm = ref({ ...DEFAULT_CD_SETTINGS })
+  const cdOriginal = ref({ ...DEFAULT_CD_SETTINGS })
+  const cdPromoFile = ref(null)
+  const cdPromoPreview = ref(null)
+  const cdQrFile = ref(null)
+  const cdQrPreview = ref(null)
+  const pairedDevices = ref([])
+  const loadingDevices = ref(false)
+  const renamingDeviceId = ref(null)
+  const renameDeviceInput = ref('')
+
+  const thankYouDelayOptions = [
+    { value: 5, title: '5s' },
+    { value: 10, title: '10s' },
+    { value: 15, title: '15s' }
+  ]
+
+  function formatPairedAt(iso) {
+    if (!iso) return ''
+    return new Date(iso).toLocaleDateString()
+  }
+
+  async function fetchPairedDevices() {
+    if (!selectedBranch.value) {
+      pairedDevices.value = []
+      return
+    }
+    loadingDevices.value = true
+    try {
+      const { data } = await getCustomerDisplayDevicesApi(selectedBranch.value.id)
+      pairedDevices.value = data.data
+    } catch {
+      pairedDevices.value = []
+    } finally {
+      loadingDevices.value = false
+    }
+  }
+
+  function startRenameDevice(device) {
+    renamingDeviceId.value = device.id
+    renameDeviceInput.value = device.device_name
+  }
+
+  async function confirmRenameDevice(device) {
+    const name = renameDeviceInput.value.trim()
+    if (!name) return
+    try {
+      await renameCustomerDisplayDeviceApi(device.id, name)
+      device.device_name = name
+      renamingDeviceId.value = null
+    } catch {
+      notif(t('settings_hub.customer_display.rename_failed'), { type: 'error' })
+    }
+  }
+
+  function unpairDevice(device) {
+    confirm({
+      title: t('settings_hub.customer_display.unpair_title'),
+      message: t('settings_hub.customer_display.unpair_body', { name: device.device_name }),
+      options: { type: 'warning' },
+      agree: async () => {
+        try {
+          await unpairCustomerDisplayDeviceApi(device.id)
+          pairedDevices.value = pairedDevices.value.filter(d => d.id !== device.id)
+        } catch {
+          notif(t('settings_hub.customer_display.unpair_failed'), { type: 'error' })
+        }
+      }
+    })
+  }
+
+  // ── Open display / pair tablet — moved here from the POS toolbar since
+  // they're setup actions done rarely, not something staff reach for mid-
+  // order. pairDevice() only writes {deviceId} to localStorage keyed by
+  // branch id, so it works fine from a publisher instance created here
+  // rather than the one FoodPos/RetailPos keep alive during a live order.
+  const customerDisplay = useCustomerDisplayPublisher(selectedBranchId)
+  const pairDialogOpen = ref(false)
+  const pairCode = ref('')
+  const pairDeviceName = ref('')
+  const pairing = ref(false)
+
+  function openCustomerDisplay() {
+    window.open('/customer-display', '_blank', 'noopener')
+  }
+
+  async function claimPairing() {
+    if (!selectedBranch.value) return
+    pairing.value = true
+    try {
+      const { data } = await claimCustomerDisplayPairingApi(
+        pairCode.value,
+        pairDeviceName.value || 'Customer display',
+        selectedBranch.value.id
+      )
+      customerDisplay.pairDevice(data.data.id)
+      notif(t('pos.customerDisplay.paired'), { type: 'success' })
+      pairDialogOpen.value = false
+      pairCode.value = ''
+      pairDeviceName.value = ''
+      fetchPairedDevices()
+    } catch (err) {
+      notif(
+        err.response?.data?.errors?.code?.[0] ??
+          err.response?.data?.message ??
+          t('pos.customerDisplay.pairFailed'),
+        { type: 'error' }
+      )
+    } finally {
+      pairing.value = false
+    }
+  }
+
+  // Reload the form (and paired devices list) whenever the selected branch
+  // changes or its settings are updated elsewhere — same pattern as the
+  // printer_name watcher above.
+  watch(
+    () => selectedBranch.value?.id,
+    () => {
+      const settings = selectedBranch.value?.customer_display_settings ?? {}
+      cdForm.value = { ...DEFAULT_CD_SETTINGS, ...settings }
+      cdOriginal.value = { ...cdForm.value }
+      cdPromoFile.value = null
+      cdPromoPreview.value = cdForm.value.promo_image_url
+      cdQrFile.value = null
+      cdQrPreview.value = cdForm.value.merchant_qr_image_url
+      fetchPairedDevices()
+    },
+    { immediate: true }
+  )
+
+  const dirtyCustomerDisplay = computed(
+    () =>
+      !!cdPromoFile.value ||
+      !!cdQrFile.value ||
+      JSON.stringify(cdForm.value) !== JSON.stringify(cdOriginal.value)
   )
 
   const connectingUsb = ref(false)

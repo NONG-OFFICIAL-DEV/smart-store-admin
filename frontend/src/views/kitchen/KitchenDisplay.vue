@@ -102,6 +102,15 @@
                     {{ t('kitchen.complete') }}
                   </v-btn>
                   <v-btn
+                    v-if="ticket.status === 'done'"
+                    size="x-small"
+                    color="primary"
+                    variant="tonal"
+                    @click="doServe(ticket)"
+                  >
+                    {{ t('pos.mobile_orders.serve') }}
+                  </v-btn>
+                  <v-btn
                     v-if="ticket.status !== 'done'"
                     size="x-small"
                     color="error"
@@ -124,7 +133,6 @@
   import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAuthStore } from '@/stores/authStore'
-  import { useOrderStore } from '@/stores/orderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
   import {
     getAllKitchenDisplayTicketsApi,
@@ -132,6 +140,7 @@
     completeKitchenDisplayTicketApi,
     cancelKitchenDisplayTicketApi
   } from '@/api/kitchenDisplayTicketService'
+  import { markOrderServedApi } from '@/api/orderService'
   import { getEcho } from '@/utils/echo'
   import { playNewOrderSound } from '@/utils/playNewOrderSound'
   import AppToolbar from '@/components/common/AppToolbar.vue'
@@ -139,7 +148,6 @@
   const { t } = useI18n()
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
-  const orderStore = useOrderStore()
 
   // No local picker — branch comes from the global BranchSwitcher (see
   // AppBar), same source FoodPos.vue/OrdersManagement.vue already read.
@@ -156,41 +164,55 @@
     { status: 'done', title: t('kitchen.columns.ready'), icon: 'mdi-check-circle-outline', color: 'success' }
   ]
 
+  // A kitchen ticket has no status past 'done' — the only thing that can
+  // ever move an order to 'served' is the explicit Serve action below, so
+  // this can never accidentally hide an otherwise-untouched ticket (e.g. a
+  // POS order, which is already 'completed' the instant its ticket is
+  // created — filtering on that status too would wipe out the whole board).
+  const activeTickets = computed(() =>
+    tickets.value.filter(tk => orderCache.value[tk.order_id]?.status !== 'served')
+  )
   const ticketsByStatus = computed(() => ({
-    new: tickets.value.filter(t => t.status === 'new'),
-    in_progress: tickets.value.filter(t => t.status === 'in_progress'),
-    done: tickets.value.filter(t => t.status === 'done')
+    new: activeTickets.value.filter(t => t.status === 'new'),
+    in_progress: activeTickets.value.filter(t => t.status === 'in_progress'),
+    done: activeTickets.value.filter(t => t.status === 'done')
   }))
 
-  async function loadTickets() {
-    if (!branchId.value) return
-    loading.value = true
-    try {
-      const { data } = await getAllKitchenDisplayTicketsApi({
-        branch_id: branchId.value,
-        perPage: -1
-      })
-      tickets.value = data.data.filter(tk => tk.status !== 'cancelled')
-      await hydrateOrderCache()
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function hydrateOrderCache() {
-    const missing = [...new Set(tickets.value.map(tk => tk.order_id))].filter(
-      id => !orderCache.value[id]
-    )
-    await Promise.all(
-      missing.map(async id => {
-        try {
-          const res = await orderStore.fetchOrderById(id)
-          orderCache.value = { ...orderCache.value, [id]: res.data.data }
-        } catch {
-          // order lookup failed — card falls back to a truncated id, non-fatal
+  // A new order can fire `.order.new` several times in quick succession (a
+  // few customers checking out around the same moment) — without this
+  // guard each event kicked off its own full reload (GET kitchen-tickets +
+  // one GET /orders/{id} per ticket), piling up duplicate in-flight
+  // requests for the exact same data. Calls that land while a load is
+  // already running just await that same in-flight call instead of
+  // starting a new one.
+  let loadInFlight = null
+  function loadTickets() {
+    if (!branchId.value) return Promise.resolve()
+    if (loadInFlight) return loadInFlight
+    loadInFlight = (async () => {
+      loading.value = true
+      try {
+        const { data } = await getAllKitchenDisplayTicketsApi({
+          branch_id: branchId.value,
+          perPage: -1
+        })
+        tickets.value = data.data.filter(tk => tk.status !== 'cancelled')
+        // Each ticket already carries a trimmed summary of its order
+        // (order_number/status/table/items — see
+        // KitchenDisplayTicketResource) — used to be one extra
+        // GET /orders/{id} PER TICKET just to render the card, which is
+        // exactly what was flooding the network tab on this page.
+        const summaries = {}
+        for (const tk of tickets.value) {
+          if (tk.order) summaries[tk.order_id] = tk.order
         }
-      })
-    )
+        orderCache.value = { ...orderCache.value, ...summaries }
+      } finally {
+        loading.value = false
+        loadInFlight = null
+      }
+    })()
+    return loadInFlight
   }
 
   function orderLabel(ticket) {
@@ -240,6 +262,23 @@
   async function doCancel(ticket) {
     try {
       await cancelKitchenDisplayTicketApi(ticket.id)
+      await loadTickets()
+    } catch {
+      notif(t('kitchen.action_failed'), { type: 'error' })
+    }
+  }
+
+  // The ticket itself has no status past 'done' — this marks the ORDER
+  // served instead, which is what makes it disappear (see activeTickets).
+  async function doServe(ticket) {
+    try {
+      const res = await markOrderServedApi(ticket.order_id)
+      // hydrateOrderCache() only fetches ids it doesn't already have — the
+      // order for this ticket was already cached (that's how the ticket
+      // got rendered in the first place), so without patching it here the
+      // cached copy keeps its pre-serve status and activeTickets never
+      // excludes it no matter how many times loadTickets() reruns.
+      orderCache.value = { ...orderCache.value, [ticket.order_id]: res.data.data }
       await loadTickets()
     } catch {
       notif(t('kitchen.action_failed'), { type: 'error' })

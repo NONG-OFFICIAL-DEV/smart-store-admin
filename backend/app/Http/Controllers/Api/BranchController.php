@@ -11,6 +11,7 @@ use App\Services\BranchService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BranchController extends Controller
 {
@@ -57,7 +58,38 @@ class BranchController extends Controller
 
     public function update(UpdateBranchRequest $request, Branch $branch): JsonResponse
     {
-        $branch = $this->branches->update($branch, $request->validated());
+        $validated = $request->validated();
+
+        // Same pattern as TenantController::updateProfile()'s logo — a
+        // newly-uploaded file always wins over a hand-typed URL. Based off
+        // whatever's already in $validated (or, failing that, the branch's
+        // current settings) rather than assigned bare, so a file upload
+        // alone never wipes the other customer_display_settings keys.
+        if ($request->hasFile('customer_display_promo_image') || $request->hasFile('customer_display_qr_image')) {
+            $settings = $validated['customer_display_settings'] ?? $branch->customer_display_settings ?? [];
+
+            // Storage::url() (no disk specified) resolves against
+            // FILESYSTEM_DISK's default ('local' here), which has no
+            // explicit 'url' config and falls back to a request-context-
+            // sensitive route — it came out as a bare relative path
+            // (/storage/...) under real HTTP requests, breaking every
+            // <img> tag. The 'public' disk's own 'url' config is a plain
+            // string concat (env('APP_URL').'/storage'), always absolute —
+            // ask for it explicitly rather than relying on whichever disk
+            // happens to be default.
+            if ($request->hasFile('customer_display_promo_image')) {
+                $path = $request->file('customer_display_promo_image')->store('customer-display', 'public');
+                $settings['promo_image_url'] = Storage::disk('public')->url($path);
+            }
+            if ($request->hasFile('customer_display_qr_image')) {
+                $path = $request->file('customer_display_qr_image')->store('customer-display', 'public');
+                $settings['merchant_qr_image_url'] = Storage::disk('public')->url($path);
+            }
+
+            $validated['customer_display_settings'] = $settings;
+        }
+
+        $branch = $this->branches->update($branch, $validated);
 
         return $this->success(new BranchResource($branch), 'Branch updated successfully.');
     }

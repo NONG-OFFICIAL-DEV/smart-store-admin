@@ -88,6 +88,7 @@ use App\Http\Controllers\Api\SubscriptionPlanHistoryController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\TelegramSettingController;
 use App\Http\Controllers\Api\EmenuSettingController;
+use App\Http\Controllers\Api\CustomerDisplayController;
 
 Route::get('/test', [AuthController::class, 'test']);
 
@@ -428,6 +429,15 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::patch('table-sessions/{tableSession}/pay', [TableSessionController::class, 'pay']);
     });
 
+    // Reachable by whoever can actually act on a kitchen ticket (Kitchen
+    // Display, kitchen.manage) OR by counter/POS staff (Mobile Orders
+    // Carousel, orders.manage) — it's the same "food reached the customer"
+    // action from both screens, and kitchen staff commonly don't hold
+    // orders.manage. Kept out of the strict orders.manage-only group above
+    // for exactly that reason.
+    Route::middleware('permission:orders.manage,kitchen.manage')
+        ->patch('orders/{order}/serve', [OrderController::class, 'serve']);
+
     // ── Kitchen Display ───────────────────────────────────────────────────────
     Route::middleware(['permission:kitchen.manage', 'feature:KDS'])->group(function () {
         Route::apiResource('kitchen-tickets', KitchenDisplayTicketController::class);
@@ -642,6 +652,13 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::put('products/{product}/units/{unit}', [ProductUnitController::class, 'update']);
         Route::delete('products/{product}/units/{unit}', [ProductUnitController::class, 'destroy']);
     });
+
+    // ── Customer display ────────────────────────────────────────────────────
+    Route::post('customer-display/pairing/claim', [CustomerDisplayController::class, 'claimPairing']);
+    Route::get('customer-display/devices',          [CustomerDisplayController::class, 'index']);
+    Route::put('customer-display/devices/{device}', [CustomerDisplayController::class, 'update']);
+    Route::delete('customer-display/devices/{device}', [CustomerDisplayController::class, 'destroy']);
+    Route::post('customer-display/{deviceId}/state', [CustomerDisplayController::class, 'state']);
 });
 
 
@@ -660,4 +677,12 @@ Route::prefix('v1/public')->group(function () {
     Route::get('business-types', [BusinessTypeController::class, 'index']);
     Route::post('business-register',    [TenantController::class, 'store'])->middleware('throttle:register');
     Route::get('plans', [PlanController::class, 'publicPlans']);
+
+    // Customer display — unpaired device (no login) requests a pairing
+    // code, then authorizes its own private channel once paired via
+    // device_token instead of a staff JWT. See CustomerDisplayController.
+    Route::post('customer-display/pairing', [CustomerDisplayController::class, 'requestPairing'])
+        ->middleware('throttle:60,1');
+    Route::post('customer-display/broadcasting-auth', [CustomerDisplayController::class, 'broadcastingAuth'])
+        ->middleware('throttle:120,1');
 });

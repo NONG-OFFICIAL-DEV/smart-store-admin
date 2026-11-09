@@ -10,6 +10,10 @@ export const updateOrderApi = (id, data) => http.put(`/v1/orders/${id}`, data)
 export const deleteOrderApi = id => http.delete(`/v1/orders/${id}`)
 export const settleOrderPaymentApi = (id, data) =>
   http.patch(`/v1/orders/${id}/settle-payment`, data)
+// Marks food physically handed to the customer — the kitchen ticket itself
+// has no status past 'done', this is the action that actually clears a
+// ready ticket out of the Mobile Orders Carousel / Kitchen Display.
+export const markOrderServedApi = id => http.patch(`/v1/orders/${id}/serve`)
 export const exportOrdersApi = (params = {}) => {
   return http.get('/v1/orders/export', {
     params,

@@ -1164,6 +1164,19 @@
       "businessType": "Business Type",
       "inventoryAndStock": "Inventory & Stock"
     },
+    "step": {
+      "basics": "Basics",
+      "pricingVariants": "Pricing & Variants",
+      "inventoryUnits": "Inventory & Units",
+      "review": "Review"
+    },
+    "review": {
+      "edit": "Edit",
+      "hidden": "Hidden",
+      "stockSummary": "{qty} in stock",
+      "confirmHint": "Review the details below, then create your product.",
+      "noImage": "No image"
+    },
     "businessNature": {
       "food": "Food & Beverage",
       "mart": "Mart / Retail",
@@ -1631,7 +1644,9 @@
       "currency": { "title": "Currency", "subtitle": "Exchange rate, riel" },
       "branches": { "title": "Branches", "subtitle": "Locations, phone" },
       "pos": { "title": "POS & payments", "subtitle": "Order types, methods" },
-      "printer": { "title": "Printer", "subtitle": "Receipt printer" }
+      "printer": { "title": "Printer", "subtitle": "Receipt printer" },
+      "kitchen": { "title": "Kitchen", "subtitle": "Ticket workflow" },
+      "customer_display": { "title": "Customer display", "subtitle": "Second screen, pairing" }
     },
     "section_select_label": "Section",
     "subtitle_all_branches": "Applies to all branches.",
@@ -1723,6 +1738,37 @@
         "disconnected": "Not Connected",
         "unknown": "Not Checked Yet"
       }
+    },
+    "kitchen": {
+      "enabled": "Enable kitchen ticket workflow",
+      "enabled_hint": "When off, checkout for this branch never creates a kitchen ticket — orders complete immediately at payment with no 'new' ticket left behind for no one to progress.",
+      "disabled_warning": "No kitchen tickets will be created for this branch. Only turn this off if no one actually manages the Kitchen Display here.",
+      "auto_serve_hours": "Auto-serve after",
+      "auto_serve_hours_hint": "A forgotten ticket (any status) past this age gets automatically marked served, so it doesn't sit there indefinitely with no one to act on it.",
+      "no_branch_hint": "Create a branch first to configure its kitchen workflow."
+    },
+    "customer_display": {
+      "enabled": "Enable customer display",
+      "enabled_hint": "Turns on the customer-facing screen for this branch and shows live order/payment updates on it.",
+      "open_display": "Open customer display",
+      "pair_tablet": "Pair tablet",
+      "promo_title": "Today's special (idle screen)",
+      "promo_image": "Promo image",
+      "promo_title_label": "Promo title",
+      "promo_subtitle_label": "Promo subtitle",
+      "promo_hint": "Shown on the idle screen only when an image and title are both set — otherwise the teal welcome panel fills the whole screen.",
+      "wifi_text": "Wi-Fi text (idle screen)",
+      "thank_you_delay": "Thank-you screen delay",
+      "qr_image": "Merchant QR image",
+      "qr_image_hint": "Shown on the QR payment screen as a fallback — this app doesn't generate a real KHQR payload yet, so upload a photo/screenshot of your bank's own QR code.",
+      "paired_devices": "Paired devices",
+      "no_devices": "No devices paired yet — open the customer display on a tablet, then click \"Pair tablet\" above and enter its pairing code.",
+      "no_branch_hint": "Create a branch first to pair a customer display.",
+      "paired_at": "Paired",
+      "rename_failed": "Couldn't rename that device.",
+      "unpair_title": "Unpair device?",
+      "unpair_body": "\"{name}\" will stop receiving order updates and will need to be paired again.",
+      "unpair_failed": "Couldn't unpair that device."
     }
   },
   "staff": {
@@ -2521,6 +2567,15 @@
     "settings": {
       "title": "POS Settings"
     },
+    "customerDisplay": {
+      "open": "Open customer display",
+      "pairTablet": "Pair tablet display",
+      "code": "6-digit code",
+      "deviceName": "Device name",
+      "pair": "Pair",
+      "paired": "Customer display paired.",
+      "pairFailed": "Couldn't pair that code."
+    },
     "retail": {
       "title": "Retail Quick Sale",
       "subtitle": "Sell products quickly and easily",
@@ -2541,6 +2596,7 @@
       "status_new": "New",
       "status_in_kitchen": "In Kitchen",
       "status_ready": "Ready",
+      "serve": "Serve",
       "items_count": "{n} item | {n} items",
       "scroll_left": "Scroll left",
       "scroll_right": "Scroll right",
@@ -2625,6 +2681,11 @@
       "change": "Change due",
       "cash_dialog_title": "Cash payment",
       "cash_dialog_confirm": "Confirm & complete sale",
+      "qr_dialog_title": "QR payment",
+      "qr_dialog_hint": "Shown on the customer display too — wait for them to scan and pay before confirming.",
+      "qr_dialog_not_configured": "No QR image set up for this branch (Settings → Customer display).",
+      "qr_dialog_confirm_print": "Confirm & Print",
+      "qr_dialog_confirm_new_sale": "Confirm & New Sale",
       "submit": "Complete sale",
       "success": "Sale completed.",
       "failed": "Could not complete the sale. Please try again."
@@ -3230,10 +3291,13 @@
       "restaurant_fallback": "Restaurant",
       "table_label": "Table {number}",
       "scan_to_order": "Scan to order",
-      "url_label": "QR URL",
-      "preview_size": "Preview Size: {size}px",
-      "qr_color": "QR Color",
-      "background": "Background"
+      "promo_text_label": "Promo text (optional)",
+      "promo_text_placeholder": "e.g. Follow us {'@'}yourstore",
+      "promo_text_hint": "Shown below \"Scan to order\" on the printed/downloaded card.",
+      "download_card": "Branded card (PNG)",
+      "download_card_hint": "Ready to print as-is, with your colors and text baked in.",
+      "download_plain": "QR only (SVG)",
+      "download_plain_hint": "Plain vector QR — use this if you'll design your own flyer or table tent."
     },
     "subtitle": "Floor plan · Status · Capacity",
     "add": "Add Table",

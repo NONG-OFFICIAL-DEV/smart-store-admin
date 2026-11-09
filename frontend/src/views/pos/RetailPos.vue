@@ -113,6 +113,7 @@
           @remove="posStore.removeItem"
           @clear="posStore.clear"
           @checkout="submitOrder"
+          @qr-open="openQrPending"
         />
       </div>
       </div>
@@ -142,20 +143,29 @@
         @remove="posStore.removeItem"
         @clear="posStore.clear"
         @checkout="onMobileCheckout"
+        @qr-open="openQrPending"
       />
     </v-bottom-sheet>
 
     <PosReceiptDialog
+      ref="receiptDialogRef"
       v-model="receiptOpen"
       :receipt="receipt"
       :printer-name="activeBranchPrinterName"
+      :qr-pending="qrPending"
+      :qr-image-url="branchCdSettings.merchant_qr_image_url"
+      :qr-total="posStore.subtotal"
+      :qr-items="posStore.items"
+      :submitting="submitting"
       @close="receiptOpen = false"
+      @confirm="onQrConfirmed"
+      @cancel="onQrCancelled"
     />
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useDisplay } from 'vuetify'
   import { useAuthStore } from '@/stores/authStore'
@@ -174,6 +184,10 @@
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
+  import {
+    useCustomerDisplayPublisher,
+    buildCustomerDisplayState
+  } from '@/composables/useCustomerDisplay'
 
   const { t, locale } = useI18n()
   const { format: formatMoney } = useCurrency()
@@ -201,9 +215,29 @@
     mobileCartOpen.value = false
     submitOrder(payload)
   }
-  const selectedBranchName = computed(
-    () => branchStore.branches.find(b => b.id === branchId.value)?.name ?? ''
-  )
+  const activeBranch = computed(() => branchStore.branches.find(b => b.id === branchId.value))
+  const selectedBranchName = computed(() => activeBranch.value?.name ?? '')
+  const branchCdSettings = computed(() => activeBranch.value?.customer_display_settings ?? {})
+
+  // ── Customer display sync ──────────────────────────────────────────────
+  const customerDisplay = useCustomerDisplayPublisher(branchId)
+  const suppressCartPublish = ref(false)
+
+  function publishCartState() {
+    if (suppressCartPublish.value) return
+    customerDisplay.publish(
+      buildCustomerDisplayState({
+        state: posStore.items.length ? 'order' : 'idle',
+        authStore,
+        posStore,
+        branchName: selectedBranchName.value,
+        branchSettings: branchCdSettings.value
+      })
+    )
+  }
+
+  watch(() => posStore.items, publishCartState, { deep: true, immediate: true })
+
   const activeBranchPrinterName = computed(
     () => branchStore.branches.find(b => b.id === branchId.value)?.printer_name ?? null
   )
@@ -224,6 +258,17 @@
   const receiptOpen = ref(false)
   const receipt = ref(null)
   const submitting = ref(false)
+  const receiptDialogRef = ref(null)
+  // True while the Receipt dialog is showing the QR-confirm content (amount
+  // + QR code + "Confirm & Print"/"Confirm & New Sale") instead of an
+  // actual printed receipt — flips false once the order submits, swapping
+  // the SAME open dialog over to the normal receipt view.
+  const qrPending = ref(false)
+  // Which combined action the cashier picked on the QR-pending screen —
+  // read once the order actually submits (see submitOrder's success path)
+  // so one click both confirms AND immediately prints/closes, instead of
+  // a separate "Confirm" click followed by a separate "Print"/"New sale" click.
+  const qrConfirmAction = ref(null)
 
   const customerOptions = ref([])
   async function onSearchCustomer(search) {
@@ -295,8 +340,17 @@
     }))
   )
 
+  // Every keystroke/category change re-fires this (see
+  // watch([categoryId, search], ...) below) with no debounce — fast typing
+  // can have an earlier request resolve AFTER a later one, which would
+  // otherwise overwrite the correct (newer) results with stale ones and
+  // flash "No products found" for a query that no longer matches what's in
+  // the search box. loadProductsSeq makes only the most-recently-dispatched
+  // call allowed to touch state.
+  let loadProductsSeq = 0
   async function loadProducts() {
     if (!branchId.value) return
+    const seq = ++loadProductsSeq
     loading.value = true
     try {
       const { data } = await getRetailPosProductsApi({
@@ -304,11 +358,13 @@
         category_id: categoryId.value || undefined,
         search: search.value || undefined
       })
+      if (seq !== loadProductsSeq) return
       rawProducts.value = data.data.data
     } catch {
+      if (seq !== loadProductsSeq) return
       notif(t('pos.load_failed'), { type: 'error' })
     } finally {
-      loading.value = false
+      if (seq === loadProductsSeq) loading.value = false
     }
   }
 
@@ -318,9 +374,42 @@
       product_id: option.product_id,
       product_unit_id: option.product_unit_id,
       name: product.name,
+      name_km: product.name_km,
+      image_url: product.image_url,
       unit_label: option.label,
       unit_price: option.price
     })
+  }
+
+  // Opens the Receipt dialog in its QR-pending stage — amount + QR code +
+  // "Confirm receive" — and pushes the same QR screen to the customer
+  // display, both the instant the cashier picks QR, before the order even
+  // exists. The dialog stays open and later swaps to the real receipt (see
+  // onQrConfirmed) rather than closing and reopening a second dialog.
+  function openQrPending() {
+    qrPending.value = true
+    receiptOpen.value = true
+    customerDisplay.publish(
+      buildCustomerDisplayState({
+        state: 'pay_qr',
+        authStore,
+        posStore,
+        branchName: selectedBranchName.value,
+        branchSettings: branchCdSettings.value,
+        payment: { method: 'qr' }
+      })
+    )
+  }
+
+  function onQrConfirmed(action) {
+    qrConfirmAction.value = action
+    submitOrder({ payment_method: 'qr', cash_tendered: undefined })
+  }
+
+  function onQrCancelled() {
+    qrPending.value = false
+    receiptOpen.value = false
+    publishCartState()
   }
 
   async function submitOrder({ payment_method, cash_tendered }) {
@@ -346,9 +435,66 @@
         receipt.value = data.data.receipt
         receiptOpen.value = true
       }
+      // The QR-pending view (items + QR + total) never swaps to a
+      // different "receipt" layout — one click both confirms AND
+      // immediately prints/closes, with no visible change in between.
+      // print() still uses the real `receipt` set just above; closing
+      // afterward is what actually ends the QR dialog, not a qrPending flip.
+      if (payment_method === 'qr') {
+        ;(async () => {
+          if (qrConfirmAction.value === 'print') {
+            await nextTick()
+            await receiptDialogRef.value?.print()
+          }
+          receiptOpen.value = false
+          qrPending.value = false
+        })()
+        qrConfirmAction.value = null
+      }
+
+      const receiptData = data.data.receipt
+      const delaySeconds = Number(branchCdSettings.value.thank_you_delay_seconds) || 10
+
+      suppressCartPublish.value = true
+      customerDisplay.publish(
+        buildCustomerDisplayState({
+          state: 'thanks',
+          authStore,
+          posStore,
+          branchName: selectedBranchName.value,
+          branchSettings: branchCdSettings.value,
+          orderNumber: receiptData.order_number,
+          totals: { totalUsd: receiptData.total, discount: receiptData.discount },
+          payment: {
+            method: receiptData.payment_method,
+            paidBase: receiptData.cash_tendered,
+            changeBase: receiptData.change_given
+          }
+        })
+      )
+
       posStore.clear()
       notif(t('pos.checkout.success'), { type: 'success' })
+
+      setTimeout(() => {
+        customerDisplay.publish(
+          buildCustomerDisplayState({
+            state: 'idle',
+            authStore,
+            posStore,
+            branchName: selectedBranchName.value,
+            branchSettings: branchCdSettings.value
+          })
+        )
+        suppressCartPublish.value = false
+      }, delaySeconds * 1000)
     } catch (err) {
+      if (payment_method === 'qr') {
+        qrPending.value = false
+        qrConfirmAction.value = null
+        receiptOpen.value = false
+        publishCartState()
+      }
       notif(
         err.response?.data?.message ?? err.response?.data?.errors?.[0] ?? t('pos.checkout.failed'),
         { type: 'error' }

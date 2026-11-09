@@ -28,6 +28,9 @@ class Branch extends BaseModel
         'is_open',
         'is_active',
         'branch_type_id',
+        'customer_display_settings',
+        'kitchen_ticket_enabled',
+        'kitchen_auto_serve_hours',
     ];
 
     protected $casts = [
@@ -37,6 +40,9 @@ class Branch extends BaseModel
         'longitude'            => 'decimal:6',
         'is_open'              => 'boolean',
         'is_active'            => 'boolean',
+        'customer_display_settings' => 'array',
+        'kitchen_ticket_enabled' => 'boolean',
+        'kitchen_auto_serve_hours' => 'integer',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────

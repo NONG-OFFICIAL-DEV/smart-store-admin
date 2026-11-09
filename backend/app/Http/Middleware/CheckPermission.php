@@ -26,7 +26,15 @@ class CheckPermission
             return $next($request);
         }
 
-        if (!$user->hasPermission($permission)) {
+        // A route can list several permissions separated by commas (e.g.
+        // 'orders.manage,kitchen.manage') when more than one role legitimately
+        // needs it — any ONE of them is enough. Single-permission routes keep
+        // working unchanged (array_filter/explode on a comma-less string just
+        // returns the one value).
+        $required = array_filter(array_map('trim', explode(',', $permission)));
+        $hasAny = collect($required)->contains(fn ($p) => $user->hasPermission($p));
+
+        if (!$hasAny) {
             return response()->json([
                 'message'  => 'Forbidden',
                 'required' => $permission,

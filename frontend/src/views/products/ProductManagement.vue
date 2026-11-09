@@ -199,6 +199,16 @@
               />
             </template>
 
+            <!-- Featured -->
+            <template #item.is_featured="{ item }">
+              <v-switch
+                v-model="item.is_featured"
+                color="amber"
+                hide-details
+                @change="toggleFeatured(item)"
+              />
+            </template>
+
             <!-- Actions -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-1">
@@ -419,6 +429,11 @@
         sortable: false
       },
       {
+        title: t('products.table.featured'),
+        key: 'is_featured',
+        sortable: false
+      },
+      {
         title: t('products.table.actions'),
         key: 'actions',
         sortable: false,
@@ -444,6 +459,21 @@
       })
     } catch {
       item.is_available = !item.is_available // revert optimistic update
+      notif(`Failed to update ${item.name}`, { type: 'error' })
+    }
+  }
+
+  // ── Toggle featured ────────────────────────────────────────────────────────────
+  const toggleFeatured = async item => {
+    try {
+      await productStore.updateProduct(item.id, {
+        is_featured: item.is_featured
+      })
+      notif(`${item.name} ${item.is_featured ? 'featured' : 'unfeatured'}`, {
+        type: 'success'
+      })
+    } catch {
+      item.is_featured = !item.is_featured // revert optimistic update
       notif(`Failed to update ${item.name}`, { type: 'error' })
     }
   }

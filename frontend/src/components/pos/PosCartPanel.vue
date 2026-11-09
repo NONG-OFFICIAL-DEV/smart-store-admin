@@ -208,12 +208,25 @@
       type: Array,
       default: () => ['cash', 'card', 'qr', 'pay_later']
     },
-    defaultPaymentMethod: { type: String, default: 'cash' }
+    defaultPaymentMethod: { type: String, default: 'cash' },
+    // Synchronous pre-flight check run before ANY payment dialog opens
+    // (cash, qr) or an order submits — return false to block checkout
+    // entirely. Owned by the caller since it's business-specific (e.g.
+    // FoodPos requires a table for dine-in; RetailPos has no such concept)
+    // — this component just gates on whatever the caller decides.
+    beforeCheckout: { type: Function, default: () => true }
   })
 
   const { mdAndDown: touch } = useDisplay()
 
-  const emit = defineEmits(['update-qty', 'update-notes', 'remove', 'clear', 'checkout'])
+  const emit = defineEmits([
+    'update-qty',
+    'update-notes',
+    'remove',
+    'clear',
+    'checkout',
+    'qr-open'
+  ])
 
   const paymentMethod = ref(props.defaultPaymentMethod)
 
@@ -270,8 +283,17 @@
   )
 
   function onCheckout() {
+    if (!props.beforeCheckout()) return
     if (paymentMethod.value === 'cash') {
       cashDialogOpen.value = true
+      return
+    }
+    if (paymentMethod.value === 'qr') {
+      // No local dialog here — the parent page owns the QR-confirm step
+      // (it's the same Receipt dialog, just shown pre-submission) since it
+      // also owns the customer-display publisher and the actual order
+      // submission.
+      emit('qr-open')
       return
     }
     emit('checkout', { payment_method: paymentMethod.value, cash_tendered: undefined })

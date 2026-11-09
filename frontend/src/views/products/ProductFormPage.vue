@@ -11,200 +11,205 @@
     />
 
     <div class="pa-0">
-      <v-form ref="formRef">
-        <v-row>
-          <!-- ══════════════════════════════════════════════════════════════
-               LEFT COLUMN
-          ═══════════════════════════════════════════════════════════════════ -->
-          <v-col cols="12" md="4" lg="3">
-            <!-- ── Product Image ──────────────────────────────────────── -->
-            <ProductImageUpload
-              v-model:image-file="imageFile"
-              v-model:image-preview="imagePreview"
-              v-model:image-url="form.image_url"
-            />
+      <!-- ── Step indicator ─────────────────────────────────────────────── -->
+      <div class="step-nav mb-6">
+        <template v-for="(label, idx) in stepLabels" :key="idx">
+          <button
+            type="button"
+            class="step-pill"
+            :class="{
+              'step-pill--active': step === idx + 1,
+              'step-pill--done': step > idx + 1
+            }"
+            :disabled="idx + 1 > highestStepReached"
+            @click="goToStep(idx + 1)"
+          >
+            <span class="step-pill__num">
+              <v-icon v-if="step > idx + 1" icon="mdi-check" size="12" />
+              <template v-else>{{ idx + 1 }}</template>
+            </span>
+            <span class="step-pill__label">{{ label }}</span>
+          </button>
+          <div
+            v-if="idx < stepLabels.length - 1"
+            class="step-pill__connector"
+            :class="{ 'step-pill__connector--done': step > idx + 1 }"
+          />
+        </template>
+      </div>
 
-            <!-- ── Visibility ─────────────────────────────────────────── -->
-            <v-card rounded="xl" border elevation="0" class="mb-4">
-              <v-card-text class="pa-4">
-                <div class="section-label mb-3">
-                  <v-icon icon="mdi-eye-outline" size="12" class="mr-1" />
-                  {{ $t('products.cardTitle.visibility') }}
-                </div>
-                <div class="d-flex flex-column" style="gap: 12px">
-                  <div class="d-flex align-center justify-space-between">
-                    <div>
-                      <div class="text-body-2 font-weight-medium">
-                        {{ t('products.field.available') }}
-                      </div>
-                      <div class="text-caption text-grey">
-                        {{ $t('products.field.visibleInMenuCatalog') }}
-                      </div>
+      <span
+        v-if="formError"
+        class="step-error text-caption text-error d-flex align-center mb-4"
+      >
+        <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />
+        {{ formError }}
+      </span>
+
+      <v-window v-model="step">
+        <!-- ══════════════════════════════════════════════════════════════
+             STEP 1 — BASICS
+        ═══════════════════════════════════════════════════════════════════ -->
+        <v-window-item :value="1">
+          <v-form ref="step1Ref">
+            <v-row>
+              <!-- ── LEFT COLUMN ──────────────────────────────────────── -->
+              <v-col cols="12" md="4" lg="3">
+                <!-- ── Product Image ──────────────────────────────────── -->
+                <ProductImageUpload
+                  v-model:image-file="imageFile"
+                  v-model:image-preview="imagePreview"
+                  v-model:image-url="form.image_url"
+                />
+              </v-col>
+
+              <!-- ── RIGHT COLUMN ─────────────────────────────────────── -->
+              <v-col cols="12" md="8" lg="9">
+                <!-- ── Core Info ──────────────────────────────────────── -->
+                <v-card rounded="lg" border elevation="0" class="mb-4">
+                  <v-card-text class="pa-5">
+                    <div class="section-label mb-4">
+                      <v-icon
+                        icon="mdi-information-outline"
+                        size="12"
+                        class="mr-1"
+                      />
+                      {{ $t('products.cardTitle.coreInformation') }}
                     </div>
-                    <v-switch
-                      v-model="form.is_available"
-                      color="success"
-                      density="compact"
-                      inset
-                      hide-details
-                    />
-                  </div>
-                  <v-divider />
-                  <div class="d-flex align-center justify-space-between">
-                    <div>
-                      <div class="text-body-2 font-weight-medium">
-                        {{ t('products.field.featured') }}
-                      </div>
-                      <div class="text-caption text-grey">
-                        {{ $t('products.field.featuredHintFull') }}
-                      </div>
+                    <v-row dense>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="form.name"
+                          :label="t('products.field.productName')"
+                          variant="outlined"
+                          rounded="lg"
+                          :rules="[r.required, r.maxLen(200)]"
+                          prepend-inner-icon="mdi-package-variant"
+                          maxlength="200"
+                          counter="200"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="form.name_km"
+                          :label="t('products.field.productNameKm')"
+                          variant="outlined"
+                          rounded="lg"
+                          hide-details="auto"
+                          prepend-inner-icon="mdi-package-variant"
+                          maxlength="200"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-select
+                          v-model="form.category_id"
+                          :items="categories"
+                          item-title="name"
+                          item-value="id"
+                          :label="t('products.field.category')"
+                          variant="outlined"
+                          rounded="lg"
+                          :rules="[r.required]"
+                          prepend-inner-icon="mdi-tag-outline"
+                        />
+                      </v-col>
+                      <v-col v-if="isFoodProduct" cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="form.preparation_time"
+                          :label="t('products.field.prepTime')"
+                          type="number"
+                          variant="outlined"
+                          rounded="lg"
+                          hide-details="auto"
+                          :rules="[r.nonNegativeInt]"
+                          prepend-inner-icon="mdi-clock-outline"
+                          suffix="min"
+                          min="0"
+                          clearable
+                        />
+                      </v-col>
+                      <v-col cols="12">
+                        <v-textarea
+                          v-model="form.description"
+                          :label="t('products.field.description')"
+                          variant="outlined"
+                          rounded="lg"
+                          rows="3"
+                          hide-details
+                          prepend-inner-icon="mdi-text"
+                          clearable
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+
+                <!-- ── Identifiers ────────────────────────────────────── -->
+                <!-- SKU/barcode only apply to mart products — sort_order used
+                     to live here too, now set via drag-reorder in the product
+                     table instead of a manual number field. -->
+                <v-card
+                  v-if="isMartProduct"
+                  rounded="lg"
+                  border
+                  elevation="0"
+                  class="mb-4"
+                >
+                  <v-card-text class="pa-5">
+                    <div class="section-label mb-4">
+                      <v-icon icon="mdi-barcode-scan" size="12" class="mr-1" />
+                      {{ $t('products.cardTitle.identifiers') }}
                     </div>
-                    <v-switch
-                      v-model="form.is_featured"
-                      color="amber"
-                      density="compact"
-                      inset
-                      hide-details
-                    />
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
+                    <v-row dense>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="form.sku"
+                          :label="t('products.field.sku')"
+                          variant="outlined"
+                          rounded="lg"
+                          hide-details="auto"
+                          :rules="[r.maxLen(60)]"
+                          prepend-inner-icon="mdi-identifier"
+                          clearable
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="form.barcode"
+                          :label="t('products.field.barcode')"
+                          variant="outlined"
+                          rounded="lg"
+                          hide-details="auto"
+                          :rules="[r.maxLen(60)]"
+                          prepend-inner-icon="mdi-barcode"
+                          clearable
+                        />
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-window-item>
 
-          <!-- ══════════════════════════════════════════════════════════════
-               RIGHT COLUMN
-          ═══════════════════════════════════════════════════════════════════ -->
-          <v-col cols="12" md="8" lg="9">
-            <!-- ── Core Info ──────────────────────────────────────────── -->
-            <v-card rounded="xl" border elevation="0" class="mb-4">
-              <v-card-text class="pa-5">
-                <div class="section-label mb-4">
-                  <v-icon
-                    icon="mdi-information-outline"
-                    size="12"
-                    class="mr-1"
-                  />
-                  {{ $t('products.cardTitle.coreInformation') }}
-                </div>
-                <v-row dense>
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model="form.name"
-                      :label="t('products.field.productName')"
-                      variant="outlined"
-                      rounded="lg"
-                      :rules="[r.required, r.maxLen(200)]"
-                      prepend-inner-icon="mdi-package-variant"
-                      maxlength="200"
-                      counter="200"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model="form.name_km"
-                      :label="t('products.field.productNameKm')"
-                      variant="outlined"
-                      rounded="lg"
-                      hide-details="auto"
-                      prepend-inner-icon="mdi-package-variant"
-                      maxlength="200"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-select
-                      v-model="form.category_id"
-                      :items="categories"
-                      item-title="name"
-                      item-value="id"
-                      :label="t('products.field.category')"
-                      variant="outlined"
-                      rounded="lg"
-                      :rules="[r.required]"
-                      prepend-inner-icon="mdi-tag-outline"
-                    />
-                  </v-col>
-                  <v-col v-if="isFoodProduct" cols="12" sm="6">
-                    <v-text-field
-                      v-model.number="form.preparation_time"
-                      :label="t('products.field.prepTime')"
-                      type="number"
-                      variant="outlined"
-                      rounded="lg"
-                      hide-details="auto"
-                      :rules="[r.nonNegativeInt]"
-                      prepend-inner-icon="mdi-clock-outline"
-                      suffix="min"
-                      min="0"
-                      clearable
-                    />
-                  </v-col>
-                  <v-col cols="12">
-                    <v-textarea
-                      v-model="form.description"
-                      :label="t('products.field.description')"
-                      variant="outlined"
-                      rounded="lg"
-                      rows="3"
-                      hide-details
-                      prepend-inner-icon="mdi-text"
-                      clearable
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-
-            <!-- ── Identifiers ────────────────────────────────────────── -->
-            <!-- SKU/barcode only apply to mart products — sort_order used
-                 to live here too, now set via drag-reorder in the product
-                 table instead of a manual number field. -->
-            <v-card v-if="isMartProduct" rounded="xl" border elevation="0" class="mb-4">
-              <v-card-text class="pa-5">
-                <div class="section-label mb-4">
-                  <v-icon icon="mdi-barcode-scan" size="12" class="mr-1" />
-                  {{ $t('products.cardTitle.identifiers') }}
-                </div>
-                <v-row dense>
-                  <v-col v-if="isMartProduct" cols="12" sm="6">
-                    <v-text-field
-                      v-model="form.sku"
-                      :label="t('products.field.sku')"
-                      variant="outlined"
-                      rounded="lg"
-                      hide-details="auto"
-                      :rules="[r.maxLen(60)]"
-                      prepend-inner-icon="mdi-identifier"
-                      clearable
-                    />
-                  </v-col>
-                  <v-col v-if="isMartProduct" cols="12" sm="6">
-                    <v-text-field
-                      v-model="form.barcode"
-                      :label="t('products.field.barcode')"
-                      variant="outlined"
-                      rounded="lg"
-                      hide-details="auto"
-                      :rules="[r.maxLen(60)]"
-                      prepend-inner-icon="mdi-barcode"
-                      clearable
-                    />
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-
-            <!-- ══════════════════════════════════════════════════════════
-                 FOOD PRODUCT SECTIONS
-            ═══════════════════════════════════════════════════════════════ -->
+        <!-- ══════════════════════════════════════════════════════════════
+             STEP 2 — PRICING/VARIANTS (food) OR INVENTORY/UNITS (mart)
+        ═══════════════════════════════════════════════════════════════════ -->
+        <v-window-item :value="2">
+          <v-form ref="step2Ref">
+            <!-- ══════ FOOD PRODUCT SECTIONS ══════ -->
             <template v-if="isFoodProduct && resolvedBuConfig">
               <!-- ── Kitchen Details ──────────────────────────────────── -->
               <!-- Prep Time moved to Core Information; calories removed
                    entirely. Only COFFEE_SHOP/BAKERY have anything left to
                    show here, so the card itself is gated on those too. -->
               <v-card
-                v-if="resolvedBuCode === 'COFFEE_SHOP' || resolvedBuCode === 'BAKERY'"
-                rounded="xl"
+                v-if="
+                  resolvedBuCode === 'COFFEE_SHOP' ||
+                  resolvedBuCode === 'BAKERY'
+                "
+                rounded="lg"
                 border
                 elevation="0"
                 class="mb-4"
@@ -272,7 +277,7 @@
               </v-card>
 
               <!-- ── Pricing & Variants ───────────────────────────────── -->
-              <v-card rounded="xl" border elevation="0" class="mb-4">
+              <v-card rounded="lg" border elevation="0" class="mb-4">
                 <v-card-text class="pa-5">
                   <div class="d-flex align-center justify-space-between mb-4">
                     <div class="section-label">
@@ -459,7 +464,9 @@
                     >
                       <v-text-field
                         v-model="variant.name"
-                        :placeholder="$t('products.variant.freeformNamePlaceholder')"
+                        :placeholder="
+                          $t('products.variant.freeformNamePlaceholder')
+                        "
                         variant="outlined"
                         rounded="lg"
                         hide-details
@@ -524,12 +531,10 @@
               </v-card>
             </template>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 MART PRODUCT SECTIONS
-            ═══════════════════════════════════════════════════════════════ -->
+            <!-- ══════ MART PRODUCT SECTIONS ══════ -->
             <template v-if="isMartProduct && resolvedBuConfig">
               <!-- ── Inventory & Stock ────────────────────────────────── -->
-              <v-card rounded="xl" border elevation="0" class="mb-4">
+              <v-card rounded="lg" border elevation="0" class="mb-4">
                 <v-card-text class="pa-5">
                   <div class="section-label mb-4">
                     <v-icon icon="mdi-warehouse" size="12" class="mr-1" />
@@ -600,7 +605,7 @@
               </v-card>
 
               <!-- ── Units & Pricing ──────────────────────────────────── -->
-              <v-card rounded="xl" border elevation="0" class="mb-4">
+              <v-card rounded="lg" border elevation="0" class="mb-4">
                 <v-card-text class="pa-5">
                   <div class="d-flex align-center justify-space-between mb-1">
                     <div class="section-label">
@@ -626,7 +631,20 @@
                     :class="unit.is_base_unit ? 'unit-row--base' : ''"
                   >
                     <div class="d-flex align-center justify-space-between mb-3">
-                      <div class="d-flex align-center" style="gap: 8px">
+                      <div
+                        class="d-flex align-center flex-grow-1"
+                        style="gap: 8px; cursor: pointer; min-width: 0"
+                        @click="toggleUnitCollapsed(i)"
+                      >
+                        <v-icon
+                          :icon="
+                            isUnitCollapsed(i)
+                              ? 'mdi-chevron-right'
+                              : 'mdi-chevron-down'
+                          "
+                          size="18"
+                          color="grey"
+                        />
                         <v-chip
                           v-if="unit.is_base_unit"
                           size="x-small"
@@ -646,7 +664,18 @@
                           {{ $t('unit.derived_unit_chip') }}
                         </v-chip>
                         <span class="text-body-2 font-weight-medium">
-                          {{ unit.unit_name || t('unit.unit_fallback_name', { n: i + 1 }) }}
+                          {{
+                            unit.unit_name ||
+                            t('unit.unit_fallback_name', { n: i + 1 })
+                          }}
+                        </span>
+                        <span
+                          v-if="isUnitCollapsed(i)"
+                          class="text-caption text-grey text-truncate"
+                        >
+                          · {{ formatBase(unit.retail_price ?? 0) }} · ×{{
+                            unit.qty_per_base
+                          }}
                         </span>
                       </div>
                       <v-btn
@@ -659,7 +688,7 @@
                       />
                     </div>
 
-                    <v-row dense>
+                    <v-row v-if="!isUnitCollapsed(i)" dense>
                       <v-col cols="12" sm="4">
                         <v-combobox
                           v-model="unit.unit_name"
@@ -869,7 +898,7 @@
             <v-alert
               v-if="resolvedBuConfig"
               variant="tonal"
-              rounded="xl"
+              rounded="lg"
               density="compact"
               class="mb-4"
               :color="isFoodProduct ? 'primary' : 'indigo'"
@@ -889,34 +918,296 @@
                 <span v-else>{{ t('products.alert.retail') }}</span>
               </span>
             </v-alert>
+          </v-form>
+        </v-window-item>
 
-            <!-- ── Actions ────────────────────────────────────────────── -->
-            <div class="d-flex align-center justify-end" style="gap: 12px">
-              <span v-if="formError" class="text-caption text-error mr-auto">
-                <v-icon
-                  icon="mdi-alert-circle-outline"
-                  size="14"
-                  class="mr-1"
-                />
-                {{ formError }}
-              </span>
-              <v-btn variant="tonal" rounded="lg" :to="'/products'">
-                {{ t('btn.cancel') }}
-              </v-btn>
-              <v-btn
-                :color="isEdit ? 'primary' : 'success'"
-                variant="flat"
+        <!-- ══════════════════════════════════════════════════════════════
+             STEP 3 — REVIEW
+        ═══════════════════════════════════════════════════════════════════ -->
+        <v-window-item :value="3">
+          <v-row>
+            <v-col cols="12" md="8" lg="9" order="2" order-md="1">
+              <!-- ── Basics summary ───────────────────────────────────── -->
+              <v-card rounded="lg" border elevation="0" class="mb-4">
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <div class="section-label">
+                      <v-icon
+                        icon="mdi-information-outline"
+                        size="12"
+                        class="mr-1"
+                      />
+                      {{ $t('products.cardTitle.coreInformation') }}
+                    </div>
+                    <v-btn
+                      size="x-small"
+                      variant="text"
+                      color="primary"
+                      @click="goToStep(1)"
+                    >
+                      {{ t('products.review.edit') }}
+                    </v-btn>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap: 20px">
+                    <div class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.productName') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ form.name || '—' }}
+                      </div>
+                    </div>
+                    <div v-if="form.name_km" class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.productNameKm') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ form.name_km }}
+                      </div>
+                    </div>
+                    <div class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.category') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ selectedCategoryName }}
+                      </div>
+                    </div>
+                    <div v-if="isMartProduct && form.sku" class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.sku') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ form.sku }}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-if="form.description"
+                    class="review-description mt-4 pa-3 rounded-lg text-body-2 text-grey"
+                  >
+                    {{ form.description }}
+                  </div>
+                </v-card-text>
+              </v-card>
+
+              <!-- ── Food pricing summary ─────────────────────────────── -->
+              <v-card
+                v-if="isFoodProduct"
                 rounded="lg"
-                :loading="isLoadingEdit"
-                :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
-                @click="handleSubmit"
+                border
+                elevation="0"
+                class="mb-4"
               >
-                {{ isEdit ? t('btn.save_changes') : t('btn.create') }}
-              </v-btn>
-            </div>
-          </v-col>
-        </v-row>
-      </v-form>
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <div class="section-label">
+                      <v-icon icon="mdi-currency-usd" size="12" class="mr-1" />
+                      {{ $t('products.cardTitle.pricingAndVariants') }}
+                    </div>
+                    <v-btn
+                      size="x-small"
+                      variant="text"
+                      color="primary"
+                      @click="goToStep(2)"
+                    >
+                      {{ t('products.review.edit') }}
+                    </v-btn>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap: 20px">
+                    <div class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.basePrice') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ formatBase(form.base_price ?? 0) }}
+                      </div>
+                    </div>
+                    <div v-if="form.cost_price" class="review-field">
+                      <div class="text-caption text-grey">
+                        {{ t('products.field.costPrice') }}
+                      </div>
+                      <div class="text-body-1 font-weight-medium">
+                        {{ formatBase(form.cost_price) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="form.variants.length" class="mt-3">
+                    <div class="text-caption text-grey mb-1">
+                      {{
+                        t(
+                          'products.variant.variantCount',
+                          form.variants.length,
+                          {
+                            count: form.variants.length
+                          }
+                        )
+                      }}
+                    </div>
+                    <div class="d-flex flex-wrap" style="gap: 8px">
+                      <v-chip
+                        v-for="(v, i) in form.variants"
+                        :key="`review-variant-${i}`"
+                        size="small"
+                        :color="v.is_default ? 'primary' : undefined"
+                        :variant="v.is_default ? 'flat' : 'tonal'"
+                        label
+                      >
+                        {{ v.name || '—' }} ·
+                        {{ formatBase(v.price_adjustment ?? 0) }}
+                      </v-chip>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+
+              <!-- ── Mart units summary ────────────────────────────────── -->
+              <v-card
+                v-if="isMartProduct"
+                rounded="lg"
+                border
+                elevation="0"
+                class="mb-4"
+              >
+                <v-card-text class="pa-5">
+                  <div class="d-flex align-center justify-space-between mb-4">
+                    <div class="section-label">
+                      <v-icon
+                        icon="mdi-layers-triple-outline"
+                        size="12"
+                        class="mr-1"
+                      />
+                      {{ $t('unit.title') }}
+                    </div>
+                    <v-btn
+                      size="x-small"
+                      variant="text"
+                      color="primary"
+                      @click="goToStep(2)"
+                    >
+                      {{ t('products.review.edit') }}
+                    </v-btn>
+                  </div>
+                  <div class="text-caption text-grey mb-3">
+                    {{
+                      t('products.review.stockSummary', {
+                        qty: form.stock_quantity ?? 0
+                      })
+                    }}
+                  </div>
+                  <div class="d-flex flex-column" style="gap: 10px">
+                    <div
+                      v-for="(unit, i) in form.units"
+                      :key="`review-unit-${i}`"
+                      class="d-flex align-center justify-space-between pa-3 rounded-lg review-unit-row"
+                    >
+                      <div class="d-flex align-center" style="gap: 10px">
+                        <v-avatar size="28" rounded="lg" color="indigo-lighten-5">
+                          <v-icon
+                            icon="mdi-cube-outline"
+                            size="15"
+                            color="indigo"
+                          />
+                        </v-avatar>
+                        <div>
+                          <div class="text-body-2 font-weight-medium">
+                            {{ unit.unit_name || '—' }}
+                          </div>
+                          <v-chip
+                            v-if="unit.is_base_unit"
+                            size="x-small"
+                            color="indigo"
+                            label
+                            variant="tonal"
+                          >
+                            {{ $t('unit.base_unit_chip') }}
+                          </v-chip>
+                        </div>
+                      </div>
+                      <span class="text-body-2 font-weight-bold">
+                        {{ formatBase(unit.retail_price ?? 0) }}
+                      </span>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- ── Live preview card ─────────────────────────────────── -->
+            <v-col cols="12" md="4" lg="3" order="1" order-md="2">
+              <v-card
+                rounded="lg"
+                border
+                elevation="0"
+                class="mb-4 review-preview-card"
+              >
+                <v-img
+                  v-if="imagePreview"
+                  :src="imagePreview"
+                  height="160"
+                  cover
+                  class="rounded-t-lg"
+                />
+                <div v-else class="review-preview-placeholder">
+                  <v-icon icon="mdi-image-outline" size="28" color="grey" />
+                  <span class="text-caption text-grey mt-1">
+                    {{ t('products.review.noImage') }}
+                  </span>
+                </div>
+                <v-card-text class="pa-4 text-center">
+                  <div class="text-body-1 font-weight-bold">
+                    {{ form.name || t('products.newTitle') }}
+                  </div>
+                  <div class="text-caption text-grey">
+                    {{ selectedCategoryName }}
+                  </div>
+                </v-card-text>
+              </v-card>
+              <v-alert
+                variant="tonal"
+                color="primary"
+                rounded="lg"
+                density="compact"
+              >
+                <span class="text-caption">
+                  {{ t('products.review.confirmHint') }}
+                </span>
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-window-item>
+      </v-window>
+
+      <!-- ── Footer nav ─────────────────────────────────────────────────── -->
+      <div class="d-flex align-center justify-end mt-4" style="gap: 12px">
+        <v-btn v-if="step === 1" variant="tonal" rounded="lg" :to="'/products'">
+          {{ t('btn.cancel') }}
+        </v-btn>
+        <v-btn v-else variant="tonal" rounded="lg" @click="goBack">
+          {{ t('btn.back') }}
+        </v-btn>
+        <v-btn
+          v-if="step < 3"
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          append-icon="mdi-arrow-right"
+          @click="goNext"
+        >
+          {{ t('btn.next') }}
+        </v-btn>
+        <v-btn
+          v-else
+          :color="isEdit ? 'primary' : 'success'"
+          variant="flat"
+          rounded="lg"
+          :loading="isLoadingEdit"
+          :prepend-icon="isEdit ? 'mdi-content-save-outline' : 'mdi-plus'"
+          @click="handleSubmit"
+        >
+          {{ isEdit ? t('btn.save_changes') : t('btn.create') }}
+        </v-btn>
+      </div>
     </div>
   </v-container>
 </template>
@@ -953,10 +1244,9 @@
   // ── Composables ────────────────────────────────────────────────────────────────
   const { t } = useI18n()
   const { notif } = useAppUtils()
-  const { currencySymbol } = useCurrency()
+  const { currencySymbol, formatBase } = useCurrency()
 
   // ── State ──────────────────────────────────────────────────────────────────────
-  const formRef = ref(null)
   const formError = ref('')
   const imagePreview = ref(null)
   const imageFile = ref(null)
@@ -965,6 +1255,13 @@
   const isHydrating = ref(false)
   const dbUnits = ref([])
   const loadingNames = ref(false)
+
+  // ── Stepper ────────────────────────────────────────────────────────────────────
+  const step = ref(1)
+  const highestStepReached = ref(1)
+  const step1Ref = ref(null)
+  const step2Ref = ref(null)
+
   // ── Form ───────────────────────────────────────────────────────────────────────
   const commonUnits = [
     { title: 'pcs', qty_per_base: 1, source: 'common' },
@@ -1042,7 +1339,9 @@
   })
 
   // ── Business type ──────────────────────────────────────────────────────────────
-  const resolvedBuCode = computed(() => authStore.bu_type?.toUpperCase() ?? 'RESTAURANT')
+  const resolvedBuCode = computed(
+    () => authStore.bu_type?.toUpperCase() ?? 'RESTAURANT'
+  )
 
   const resolvedBuConfig = computed(() =>
     resolvedBuCode.value ? (BUSINESS_TYPES[resolvedBuCode.value] ?? null) : null
@@ -1051,11 +1350,53 @@
   // Dynamic (backend business_types.category), not the static icon/color
   // registry — this is the current tenant only (create/edit form), so
   // authStore.bu_category is always the right source.
-  const productNature = computed(
-    () => authStore.bu_category ?? 'food'
-  )
+  const productNature = computed(() => authStore.bu_category ?? 'food')
   const isFoodProduct = computed(() => productNature.value === 'food')
   const isMartProduct = computed(() => productNature.value === 'mart')
+
+  // ── Stepper labels & navigation ─────────────────────────────────────────────────
+  const stepLabels = computed(() => [
+    t('products.step.basics'),
+    isFoodProduct.value
+      ? t('products.step.pricingVariants')
+      : t('products.step.inventoryUnits'),
+    t('products.step.review')
+  ])
+
+  const selectedCategoryName = computed(
+    () =>
+      categories.value.find(c => c.id === form.value.category_id)?.name ?? '—'
+  )
+
+  function goToStep(n) {
+    if (n <= highestStepReached.value) step.value = n
+  }
+
+  function goBack() {
+    formError.value = ''
+    step.value -= 1
+  }
+
+  async function goNext() {
+    formError.value = ''
+    const activeFormRef = step.value === 1 ? step1Ref : step2Ref
+    const { valid } = await activeFormRef.value.validate()
+    if (!valid) {
+      formError.value = t('products.errors.fixBeforeSaving')
+      return
+    }
+    if (
+      step.value === 2 &&
+      isMartProduct.value &&
+      form.value.units.length === 0
+    ) {
+      formError.value = t('unit.at_least_one_unit_required')
+      return
+    }
+    step.value += 1
+    if (step.value > highestStepReached.value)
+      highestStepReached.value = step.value
+  }
 
   // ── Pricing helpers ────────────────────────────────────────────────────────────
   const defaultVariantIndex = computed(() =>
@@ -1154,6 +1495,18 @@
   const addUnit = () =>
     form.value.units.push(makeUnit(form.value.units.length === 0))
 
+  // ── Unit row collapse (purely UI state, never sent to the backend) ─────────
+  const collapsedUnits = ref(new Set())
+
+  const isUnitCollapsed = i => collapsedUnits.value.has(i)
+
+  const toggleUnitCollapsed = i => {
+    const next = new Set(collapsedUnits.value)
+    if (next.has(i)) next.delete(i)
+    else next.add(i)
+    collapsedUnits.value = next
+  }
+
   const removeUnit = i => {
     const wasBase = form.value.units[i]?.is_base_unit
     form.value.units.splice(i, 1)
@@ -1161,6 +1514,13 @@
       form.value.units[0].is_base_unit = true
       form.value.units[0].qty_per_base = 1
     }
+    // Re-key collapsed-row indices since the splice shifts everything above i down by one
+    const next = new Set()
+    collapsedUnits.value.forEach(idx => {
+      if (idx === i) return
+      next.add(idx > i ? idx - 1 : idx)
+    })
+    collapsedUnits.value = next
   }
 
   const setBaseUnit = i =>
@@ -1189,6 +1549,8 @@
       supplier_code: null,
       units: []
     })
+    step.value = 1
+    highestStepReached.value = 1
   })
 
   // Auto-seed base unit for mart (skipped during hydration)
@@ -1215,8 +1577,7 @@
       (!v && v !== 0) ||
       (Number.isInteger(Number(v)) && Number(v) >= 0) ||
       t('products.rule.nonNegativeInt'),
-    maxLen: n => v =>
-      !v || v.length <= n || t('products.rule.maxLen', { n })
+    maxLen: n => v => !v || v.length <= n || t('products.rule.maxLen', { n })
   }
 
   // ── Hydrate form for edit ──────────────────────────────────────────────────────
@@ -1249,7 +1610,11 @@
     const food = isFoodProduct.value
     const data = {
       ...form.value,
-      base_price: food ? form.value.base_price : null,
+      // products.base_price is NOT NULL (default 0.00) — unlike cost_price,
+      // sending null here 500s the update. Mart products don't price via
+      // base_price (they use per-unit retail_price), so 0 is the correct
+      // "unused" value, not null.
+      base_price: food ? form.value.base_price : 0,
       cost_price: food ? form.value.cost_price : null,
       variants: food ? form.value.variants : [],
       preparation_time: food ? form.value.preparation_time : null,
@@ -1284,11 +1649,20 @@
   // ── Submit ─────────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     formError.value = ''
-    const { valid } = await formRef.value.validate()
-    if (!valid)
-      return (formError.value = t('products.errors.fixBeforeSaving'))
-    if (isMartProduct.value && form.value.units.length === 0)
-      return (formError.value = t('unit.at_least_one_unit_required'))
+    const [{ valid: step1Valid }, { valid: step2Valid }] = await Promise.all([
+      step1Ref.value.validate(),
+      step2Ref.value.validate()
+    ])
+    if (!step1Valid || !step2Valid) {
+      formError.value = t('products.errors.fixBeforeSaving')
+      step.value = !step1Valid ? 1 : 2
+      return
+    }
+    if (isMartProduct.value && form.value.units.length === 0) {
+      formError.value = t('unit.at_least_one_unit_required')
+      step.value = 2
+      return
+    }
 
     const payload = buildPayload()
     try {
@@ -1351,6 +1725,9 @@
     try {
       const item = await productStore.fetchProductForEdit(id)
       hydrateForm(item)
+      // Editing an already-saved product — every step is already filled in,
+      // so let the user jump straight to any step instead of re-walking Next.
+      highestStepReached.value = 3
     } catch {
       formError.value = t('products.errors.loadFailed')
     } finally {
@@ -1389,5 +1766,112 @@
   .unit-row--base {
     border-color: rgb(var(--v-theme-indigo));
     background: rgba(var(--v-theme-indigo), 0.04);
+  }
+
+  /* ── Step indicator ──────────────────────────────────────────────────── */
+  .step-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .step-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .step-pill:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  .step-pill__num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(var(--v-theme-on-surface), 0.08);
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    flex-shrink: 0;
+  }
+
+  .step-pill--active .step-pill__num {
+    background: rgb(var(--v-theme-primary));
+    color: rgb(var(--v-theme-on-primary));
+  }
+
+  .step-pill--done .step-pill__num {
+    background: rgb(var(--v-theme-success));
+    color: white;
+  }
+
+  .step-pill--active .step-pill__label {
+    font-weight: 700;
+    color: rgb(var(--v-theme-primary));
+  }
+
+  .step-pill__label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: rgba(var(--v-theme-on-surface), 0.7);
+    white-space: nowrap;
+  }
+
+  .step-pill__connector {
+    width: 40px;
+    height: 2px;
+    background: rgba(var(--v-theme-on-surface), 0.12);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .step-pill__connector--done {
+    background: rgb(var(--v-theme-success));
+  }
+
+  .step-error {
+    justify-content: center;
+  }
+
+  /* ── Review step ─────────────────────────────────────────────────────── */
+  .review-field {
+    flex: 0 1 180px;
+  }
+
+  .review-description {
+    background: rgba(var(--v-theme-surface-variant), 0.3);
+    line-height: 1.5;
+  }
+
+  .review-unit-row {
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    background: rgb(var(--v-theme-surface));
+  }
+
+  .review-preview-card {
+    position: sticky;
+    overflow: hidden;
+  }
+
+  .review-preview-placeholder {
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-surface-variant), 0.3);
   }
 </style>

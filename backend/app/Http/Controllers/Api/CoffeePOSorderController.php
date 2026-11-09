@@ -285,8 +285,11 @@ class CoffeePOSorderController extends Controller
             // came from the e-menu or was rung up here on the POS directly —
             // see OrderController::store() for the same gate. Mart/retail
             // and coffee-counter tenants have no prep step, so none is
-            // created for them.
-            if ($branch->tenant->businessType?->category === 'food') {
+            // created for them. A branch can also opt out entirely
+            // (kitchen_ticket_enabled) if it doesn't actually staff a
+            // Kitchen Display — otherwise tickets just pile up in 'new'
+            // forever with no one to progress them.
+            if ($branch->tenant->businessType?->category === 'food' && $branch->kitchen_ticket_enabled) {
                 KitchenDisplayTicket::create([
                     'order_id'  => $order->id,
                     'branch_id' => $branch->id,

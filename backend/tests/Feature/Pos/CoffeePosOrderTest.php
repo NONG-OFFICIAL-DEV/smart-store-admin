@@ -372,4 +372,24 @@ class CoffeePosOrderTest extends TestCase
 
         $this->assertSame(0, KitchenDisplayTicket::where('order_id', $orderId)->count());
     }
+
+    public function test_a_food_tenant_with_kitchen_ticket_disabled_does_not_create_a_kitchen_ticket(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantFoodNoKitchen', 'RESTAURANT');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $branch->update(['kitchen_ticket_enabled' => false]);
+        $product = $this->makeProduct($tenant->id);
+
+        $response = $this->submit([
+            'branch_id' => $branch->id,
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $orderId = $response->getData(true)['data']['id'];
+
+        $this->assertSame(0, KitchenDisplayTicket::where('order_id', $orderId)->count());
+    }
 }

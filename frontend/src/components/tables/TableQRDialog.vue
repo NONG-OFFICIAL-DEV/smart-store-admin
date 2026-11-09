@@ -59,79 +59,31 @@
                   {{ $t('tables.qr.scan_to_order') }}
                 </span>
               </div>
+              <div v-if="promoText" class="text-center mt-1">
+                <span
+                  :style="{ color: fgColor, opacity: 0.45, fontSize: '9px' }"
+                >
+                  {{ promoText }}
+                </span>
+              </div>
             </div>
           </div>
 
           <v-divider />
 
-          <!-- QR URL (readonly) -->
+          <!-- Promo tagline (optional, printed below "Scan to order") -->
           <v-text-field
-            :model-value="qrData.url"
-            :label="$t('tables.qr.url_label')"
+            v-model="promoText"
+            :label="$t('tables.qr.promo_text_label')"
+            :placeholder="$t('tables.qr.promo_text_placeholder')"
+            :hint="$t('tables.qr.promo_text_hint')"
+            persistent-hint
             variant="outlined"
             rounded="lg"
-            readonly
-            hide-details
-            prepend-inner-icon="mdi-link-variant"
-            append-inner-icon="mdi-content-copy"
-            @click:append-inner="copyUrl"
+            density="comfortable"
+            clearable
           />
 
-          <!-- Size slider -->
-          <div>
-            <label
-              class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
-            >
-              {{ $t('tables.qr.preview_size', { size: qrSize }) }}
-            </label>
-            <v-slider
-              v-model="qrSize"
-              :min="120"
-              :max="300"
-              :step="10"
-              color="primary"
-              hide-details
-              thumb-label
-            />
-          </div>
-
-          <!-- Colors -->
-          <v-row dense>
-            <v-col cols="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-2 d-block"
-              >
-                {{ $t('tables.qr.qr_color') }}
-              </label>
-              <div class="d-flex align-center gap-2 flex-wrap">
-                <div
-                  v-for="c in presetColors"
-                  :key="c"
-                  class="color-chip"
-                  :class="{ 'color-chip--active': fgColor === c }"
-                  :style="{ background: c }"
-                  @click="fgColor = c"
-                />
-              </div>
-            </v-col>
-            <v-col cols="6">
-              <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-2 d-block"
-              >
-                {{ $t('tables.qr.background') }}
-              </label>
-              <div class="d-flex align-center gap-2 flex-wrap">
-                <div
-                  v-for="c in presetBgColors"
-                  :key="c"
-                  class="color-chip color-chip--bordered"
-                  :class="{ 'color-chip--active': bgColor === c }"
-                  :style="{ background: c }"
-                  @click="bgColor = c"
-                />
-              </div>
-            </v-col>
-          </v-row>
         </div>
 
     <template #actions="{ loading }">
@@ -146,25 +98,52 @@
       </v-btn>
       <v-spacer />
       <v-btn variant="tonal" rounded="lg" @click="close">{{ $t('btn.close') }}</v-btn>
-      <v-btn
-        color="primary"
-        variant="flat"
-        rounded="lg"
-        prepend-icon="mdi-download"
-        :disabled="!qrData?.qr_image_url || qrLoading"
-        @click="onDownloadQr(table)"
-      >
-        {{ $t('btn.download') }}
-      </v-btn>
+      <v-btn-group color="primary" variant="flat" rounded="lg" divided size="default">
+        <v-btn
+          prepend-icon="mdi-download"
+          :disabled="!qrData?.qr_image_url || qrLoading"
+          @click="onDownloadQr(table)"
+        >
+          {{ $t('btn.download') }}
+        </v-btn>
+        <v-menu>
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              icon="mdi-chevron-down"
+              :disabled="!qrData?.qr_image_url || qrLoading"
+              v-bind="menuProps"
+            />
+          </template>
+          <v-list density="compact">
+            <v-list-item @click="onDownloadQr(table)">
+              <template #prepend>
+                <v-icon icon="mdi-image-outline" class="me-2" />
+              </template>
+              <v-list-item-title>{{ $t('tables.qr.download_card') }}</v-list-item-title>
+              <v-list-item-subtitle>{{ $t('tables.qr.download_card_hint') }}</v-list-item-subtitle>
+            </v-list-item>
+            <v-list-item @click="onDownloadQrOnly(table)">
+              <template #prepend>
+                <v-icon icon="mdi-qrcode" class="me-2" />
+              </template>
+              <v-list-item-title>{{ $t('tables.qr.download_plain') }}</v-list-item-title>
+              <v-list-item-subtitle>{{ $t('tables.qr.download_plain_hint') }}</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-btn-group>
     </template>
   </AppDialog>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import { useTableStore } from '@/stores/tableStore'
   import { storeToRefs } from 'pinia'
   import { AppDialog } from '@nong-official-dev/core'
+
+  const { t } = useI18n()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -180,37 +159,41 @@
     set: val => emit('update:modelValue', val)
   })
 
-  const qrSize = ref(200)
-  const fgColor = ref('#1a1a2e')
-  const bgColor = ref('#ffffff')
+  // Card is no longer user-styleable (size/colors were removed) — fixed
+  // look for every tenant, only the promo tagline is customizable.
+  const qrSize = 200
+  const fgColor = '#1a1a2e'
+  const bgColor = '#ffffff'
 
-  const presetColors = [
-    '#1a1a2e',
-    '#1b4332',
-    '#7c3aed',
-    '#b91c1c',
-    '#0369a1',
-    '#000000'
-  ]
-  const presetBgColors = [
-    '#ffffff',
-    '#f8f9fa',
-    '#fef9c3',
-    '#f0fdf4',
-    '#eff6ff',
-    '#fdf4ff'
-  ]
+  // Promo text is store-wide branding, not per-table — and the dialog is
+  // `v-if`-toggled in TableManagement.vue, so it's destroyed and recreated
+  // on every open. Without this it would silently reset to blank each
+  // time, which looks like the QR "regenerated" even though the actual QR
+  // code/table on the backend never changed.
+  const PROMO_TEXT_KEY = 'tableQrPromoText'
+  const promoText = ref(localStorage.getItem(PROMO_TEXT_KEY) ?? '')
 
-  const copyUrl = () => {
-    if (qrData.value?.url) navigator.clipboard.writeText(qrData.value.url)
-  }
+  watch(promoText, value => {
+    localStorage.setItem(PROMO_TEXT_KEY, value ?? '')
+  })
 
   const regenerate = () => {
     if (props.table?.id) tableStore.regenerateQr(props.table.id)
     tableStore.fetchQrCodeTable(props.table.id)
   }
   const onDownloadQr = (table) => {
-    tableStore.downloadQr(table)
+    tableStore.downloadQr(table, {
+      branchName: qrData.value?.branch_name || t('tables.qr.restaurant_fallback'),
+      promoText: promoText.value,
+      tableLabel: t('tables.qr.table_label', { number: table?.table_number }),
+      scanLabel: t('tables.qr.scan_to_order'),
+      size: qrSize,
+      fgColor,
+      bgColor
+    })
+  }
+  const onDownloadQrOnly = (table) => {
+    tableStore.downloadQrOnly(table)
   }
 
   const close = () => {
@@ -239,28 +222,6 @@
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-  }
-  .color-chip {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition:
-      transform 0.15s,
-      box-shadow 0.15s;
-    flex-shrink: 0;
-  }
-  .color-chip:hover {
-    transform: scale(1.15);
-  }
-  .color-chip--active {
-    box-shadow:
-      0 0 0 2px white,
-      0 0 0 4px currentColor;
-    transform: scale(1.1);
-  }
-  .color-chip--bordered {
-    border: 1px solid rgba(0, 0, 0, 0.15);
   }
   .gap-3 {
     gap: 12px;

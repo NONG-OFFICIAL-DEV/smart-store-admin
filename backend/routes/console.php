@@ -10,3 +10,8 @@ Artisan::command('inspire', function () {
 
 // No-ops on its own (see TelegramPoll) if TELEGRAM_BOT_TOKEN isn't set yet.
 Schedule::command('telegram:fetch-updates')->everyMinute();
+
+// Safety net for branches that don't actually staff their Kitchen Display —
+// a forgotten ticket (any status) past 12h auto-serves instead of sitting
+// there indefinitely. See AutoServeStaleKitchenTickets.
+Schedule::command('kitchen:auto-serve-stale')->hourly();
