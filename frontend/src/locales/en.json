@@ -866,8 +866,6 @@
     "subtitle": "Manage your product groupings and display order",
     "system_badge": "System",
     "custom_badge": "Custom",
-    "view_only_hint": "System category — managed by the platform, view only",
-    "empty": "No categories found",
     "form": {
       "name": "Category Name",
       "sort_order": "Sort Order",
@@ -876,15 +874,8 @@
     },
     "dialog": {
       "edit": "Edit Category",
-      "add": "Add New Category",
-      "name_placeholder": "e.g. Beverages",
-      "active_status": "Active Status",
-      "lid_exchange": "Lid Exchange",
-      "business_types": "Business Types",
-      "business_types_placeholder": "Select which business types get this category"
+      "add": "Add New Category"
     },
-    "delete_title": "Delete Category",
-    "delete_message": "Are you sure you want to delete \"{name}\"?",
     "tab": {
       "add_category": "Add category",
       "header_name": "Name",
@@ -906,7 +897,14 @@
       "delete_message_used_one": "\"{name}\" has 1 product. Move it to:",
       "delete_message_used_other": "\"{name}\" has {n} products. Move them to:",
       "reassign_label": "Move products to",
-      "delete_failed": "Failed to delete category"
+      "delete_failed": "Failed to delete category",
+      "admin_title": "System Categories",
+      "admin_subtitle": "Curate the shared catalog every tenant draws from",
+      "filter_business_type": "Business type",
+      "filter_scope_all": "All",
+      "filter_scope_system": "System",
+      "filter_scope_custom": "Custom",
+      "owned_by": "Owned by {name}"
     },
     "drawer": {
       "add_title": "Add category",
@@ -919,7 +917,11 @@
       "show_on_emenu": "Show on E-Menu",
       "show_on_emenu_hint": "Include this category in the public digital menu.",
       "save_category": "Save category",
-      "error_name_required": "Name is required."
+      "error_name_required": "Name is required.",
+      "is_system_label": "System category",
+      "is_system_hint": "Shared with every tenant of the selected business types, instead of one tenant's own private list.",
+      "business_types_label": "Business types",
+      "business_types_placeholder": "Select which business types get this category"
     },
     "messages": {
       "saved": "Category saved",

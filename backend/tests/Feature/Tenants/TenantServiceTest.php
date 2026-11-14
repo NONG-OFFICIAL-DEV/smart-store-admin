@@ -4,8 +4,12 @@ namespace Tests\Feature\Tenants;
 
 use App\Http\Resources\PlanResource;
 use App\Models\Branch;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Plan;
 use App\Models\PlanBillingCycle;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\Staff;
 use App\Models\Tenant;
@@ -310,6 +314,49 @@ class TenantServiceTest extends TestCase
         $service->delete($tenant);
 
         $this->assertNull(Tenant::find($tenant->id));
+    }
+
+    /**
+     * Regression test: `products.tenant_id` cascades straight off the
+     * tenant, but `order_items.product_id` is RESTRICT — a bare
+     * $tenant->delete() used to race those two cascade paths and the
+     * RESTRICT won, blocking the delete with a FK violation any time a
+     * tenant had an order referencing one of its products. delete() must
+     * clear orders (which cascades away order_items) before the tenant
+     * delete ever reaches products.
+     */
+    public function test_delete_removes_a_tenant_with_orders_referencing_its_products(): void
+    {
+        [$tenant] = $this->makeTenantWithOwner('TenantWithOrders');
+        $branch = Branch::create(['tenant_id' => $tenant->id, 'name' => 'B', 'address_line1' => 'x', 'city' => 'y']);
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'category_id' => Category::create(['name' => 'Cat'])->id,
+            'name' => 'Iced Latte',
+            'base_price' => 4.5,
+        ]);
+        $order = Order::create([
+            'branch_id' => $branch->id,
+            'order_number' => 'ORD-1',
+            'status' => 'completed',
+            'source' => 'pos',
+            'total_amount' => 9,
+        ]);
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'quantity' => 2,
+            'unit_price' => 4.5,
+            'total_price' => 9,
+        ]);
+
+        $service = $this->app->make(TenantService::class);
+        $service->delete($tenant);
+
+        $this->assertNull(Tenant::find($tenant->id));
+        $this->assertNull(Product::withoutGlobalScopes()->find($product->id));
+        $this->assertNull(Order::withoutGlobalScopes()->find($order->id));
     }
 
     public function test_update_updates_owner_and_tenant_fields(): void

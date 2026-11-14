@@ -14,8 +14,7 @@ export const useCategoryStore = defineStore('category', {
     categories: [],
     category: null,
     pagination: {},
-    // CategoryView.vue already binds :loading="categoryStore.loading", but
-    // this state never existed — the loading spinner was always a no-op.
+    // Several consumers bind :loading="categoryStore.loading".
     loading: false
   }),
 

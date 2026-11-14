@@ -225,7 +225,7 @@ const routes = [
       {
         path: '/system-categories',
         name: 'SystemCategories',
-        component: () => import('@/views/catalogs/CategoryView.vue'),
+        component: () => import('@/views/products/CategoriesTab.vue'),
         props: { adminMode: true },
         // Reuses the tenant Catalog hub's Categories tab component in
         // "admin mode" — every category managed here is system-wide (see

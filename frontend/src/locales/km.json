@@ -861,8 +861,6 @@
     "subtitle": "គ្រប់គ្រងការចាត់ចំណាត់ និងលំដាប់បង្ហាញផលិតផល",
     "system_badge": "ប្រព័ន្ធ",
     "custom_badge": "ផ្ទាល់ខ្លួន",
-    "view_only_hint": "ប្រភេទប្រព័ន្ធ — គ្រប់គ្រងដោយវេទិកា មើលបានតែប៉ុណ្ណោះ",
-    "empty": "រកមិនឃើញប្រភេទ",
     "form": {
       "name": "ឈ្មោះប្រភេទ",
       "sort_order": "លំដាប់",
@@ -871,15 +869,8 @@
     },
     "dialog": {
       "edit": "កែប្រែប្រភេទ",
-      "add": "បន្ថែមប្រភេទថ្មី",
-      "name_placeholder": "ឧ. ភេសជ្ជៈ",
-      "active_status": "ស្ថានភាពសកម្ម",
-      "lid_exchange": "ការប្តូរគម្រប",
-      "business_types": "ប្រភេទអាជីវកម្ម",
-      "business_types_placeholder": "ជ្រើសរើសប្រភេទអាជីវកម្មដែលទទួលបានប្រភេទនេះ"
+      "add": "បន្ថែមប្រភេទថ្មី"
     },
-    "delete_title": "លុបប្រភេទ",
-    "delete_message": "តើអ្នកប្រាកដថាចង់លុប \"{name}\" ដែរឬទេ?",
     "tab": {
       "add_category": "បន្ថែមប្រភេទ",
       "header_name": "ឈ្មោះ",
@@ -901,7 +892,14 @@
       "delete_message_used_one": "\"{name}\" មានផលិតផល {n}។ ផ្លាស់ទីវាទៅ៖",
       "delete_message_used_other": "\"{name}\" មានផលិតផល {n}។ ផ្លាស់ទីវាទៅ៖",
       "reassign_label": "ផ្លាស់ទីផលិតផលទៅ",
-      "delete_failed": "មិនអាចលុបប្រភេទបានទេ"
+      "delete_failed": "មិនអាចលុបប្រភេទបានទេ",
+      "admin_title": "ប្រភេទប្រព័ន្ធ",
+      "admin_subtitle": "គ្រប់គ្រងកាតាឡុកដែលអ្នកជួលទាំងអស់ប្រើរួមគ្នា",
+      "filter_business_type": "ប្រភេទអាជីវកម្ម",
+      "filter_scope_all": "ទាំងអស់",
+      "filter_scope_system": "ប្រព័ន្ធ",
+      "filter_scope_custom": "ផ្ទាល់ខ្លួន",
+      "owned_by": "ជាកម្មសិទ្ធិរបស់ {name}"
     },
     "drawer": {
       "add_title": "បន្ថែមប្រភេទ",
@@ -914,7 +912,11 @@
       "show_on_emenu": "បង្ហាញនៅលើម៉ឺនុយអេឡិចត្រូនិក",
       "show_on_emenu_hint": "បញ្ចូលប្រភេទនេះក្នុងម៉ឺនុយឌីជីថលសាធារណៈ។",
       "save_category": "រក្សាទុកប្រភេទ",
-      "error_name_required": "ត្រូវការឈ្មោះ។"
+      "error_name_required": "ត្រូវការឈ្មោះ។",
+      "is_system_label": "ប្រភេទប្រព័ន្ធ",
+      "is_system_hint": "ចែករំលែកជាមួយអ្នកជួលគ្រប់រូបនៃប្រភេទអាជីវកម្មដែលបានជ្រើសរើស ជំនួសឱ្យបញ្ជីឯកជនផ្ទាល់ខ្លួនរបស់អ្នកជួលតែម្នាក់។",
+      "business_types_label": "ប្រភេទអាជីវកម្ម",
+      "business_types_placeholder": "ជ្រើសរើសប្រភេទអាជីវកម្មដែលទទួលបានប្រភេទនេះ"
     },
     "messages": {
       "saved": "បានរក្សាទុកប្រភេទ",

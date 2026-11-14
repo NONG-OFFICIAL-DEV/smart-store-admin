@@ -1,6 +1,27 @@
 <template>
   <div>
-    <div class="d-flex align-center justify-end flex-wrap ga-2 mb-4">
+    <custom-title
+      v-if="adminMode"
+      icon="mdi-tag-multiple-outline"
+      :title="t('categories.tab.admin_title')"
+      :subtitle="t('categories.tab.admin_subtitle')"
+      class="mb-4"
+    >
+      <template #right>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          class="text-none"
+          prepend-icon="mdi-plus"
+          @click="openCreate"
+        >
+          {{ t('categories.tab.add_category') }}
+        </v-btn>
+      </template>
+    </custom-title>
+
+    <div v-else class="d-flex align-center justify-end flex-wrap ga-2 mb-4">
       <v-btn
         :color="reorderMode ? 'primary' : 'default'"
         :variant="reorderMode ? 'flat' : 'outlined'"
@@ -9,7 +30,11 @@
         :prepend-icon="reorderMode ? 'mdi-check' : 'mdi-sort'"
         @click="toggleReorderMode"
       >
-        {{ reorderMode ? t('products.reorder.done') : t('products.reorder.toggle') }}
+        {{
+          reorderMode
+            ? t('products.reorder.done')
+            : t('products.reorder.toggle')
+        }}
       </v-btn>
       <v-btn
         color="primary"
@@ -23,11 +48,53 @@
       </v-btn>
     </div>
 
+    <!-- Admin-only filters — a super admin's list spans every tenant and
+         business type at once, so narrowing it down matters here in a way
+         it never does for one tenant's own (already homogeneous) list. -->
+    <v-row v-if="adminMode" dense class="mb-2">
+      <v-col cols="12" sm="5" md="4">
+        <v-select
+          v-model="businessTypeFilter"
+          :items="businessTypeStore.businessTypes"
+          item-title="name"
+          item-value="id"
+          :label="t('categories.tab.filter_business_type')"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          clearable
+          hide-details
+        />
+      </v-col>
+      <v-col cols="12" sm="7" md="8">
+        <v-btn-toggle
+          v-model="scopeFilter"
+          color="primary"
+          variant="outlined"
+          rounded="lg"
+          density="comfortable"
+          mandatory
+        >
+          <v-btn value="" class="text-none">{{ t('categories.tab.filter_scope_all') }}</v-btn>
+          <v-btn value="true" class="text-none">{{ t('categories.tab.filter_scope_system') }}</v-btn>
+          <v-btn value="false" class="text-none">{{ t('categories.tab.filter_scope_custom') }}</v-btn>
+        </v-btn-toggle>
+      </v-col>
+    </v-row>
+
     <!-- Drag-reorder — toggled explicitly, same pattern as the Products
          tab's own reorder mode: a full, unpaginated, sort_order-sorted list
-         swapped in for AppTable's paginated/searchable view. -->
-    <v-card v-if="reorderMode" rounded="lg" elevation="0" border class="pa-4">
-      <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="mb-3">
+         swapped in for AppTable's paginated/searchable view. Admin mode
+         never offers this — its list mixes rows from every tenant, which
+         has no single meaningful order. -->
+    <v-card v-if="reorderMode && !adminMode" rounded="lg" elevation="0" border class="pa-4">
+      <v-alert
+        type="info"
+        variant="tonal"
+        density="compact"
+        rounded="lg"
+        class="mb-3"
+      >
         {{ t('products.reorder.hint') }}
       </v-alert>
 
@@ -46,10 +113,19 @@
             class="category-row d-flex align-center ga-3 py-2 px-2"
             :class="isHidden(item) ? 'opacity-60' : ''"
           >
-            <v-icon icon="mdi-drag-vertical" class="drag-handle" style="cursor: grab" />
+            <v-icon
+              icon="mdi-drag-vertical"
+              class="drag-handle"
+              style="cursor: grab"
+            />
             <div class="flex-grow-1" style="min-width: 0">
-              <div class="font-weight-medium text-truncate">{{ item.name }}</div>
-              <div v-if="item.name_km" class="text-caption text-medium-emphasis text-truncate">
+              <div class="font-weight-medium text-truncate">
+                {{ item.name }}
+              </div>
+              <div
+                v-if="item.name_km"
+                class="text-caption text-medium-emphasis text-truncate"
+              >
                 {{ item.name_km }}
               </div>
             </div>
@@ -57,7 +133,10 @@
         </template>
       </draggable>
 
-      <div v-if="!reorderLoading && !allCategories.length" class="text-center py-10">
+      <div
+        v-if="!reorderLoading && !allCategories.length"
+        class="text-center py-10"
+      >
         <p class="text-medium-emphasis">{{ t('categories.tab.empty') }}</p>
       </div>
     </v-card>
@@ -69,6 +148,7 @@
         ref="tableRef"
         :headers="headers"
         :fetch-fn="fetchCategoriesForTable"
+        :filters="adminFilters"
         :show-search="true"
         :item-label="t('categories.title')"
       >
@@ -78,19 +158,33 @@
             <div v-if="item.name_km" class="text-caption text-medium-emphasis">
               {{ item.name_km }}
             </div>
+            <div v-if="adminMode" class="d-flex align-center flex-wrap ga-1 mt-1">
+              <v-chip v-if="item.is_system" size="x-small" variant="tonal" color="primary" prepend-icon="mdi-shield-star-outline">
+                {{ t('categories.system_badge') }}
+              </v-chip>
+              <v-chip v-else size="x-small" variant="tonal">{{ t('categories.custom_badge') }}</v-chip>
+              <v-chip v-for="bt in item.business_types" :key="bt.id" size="x-small" variant="tonal">
+                {{ bt.name }}
+              </v-chip>
+              <v-chip v-if="!item.is_system && item.tenants?.length" size="x-small" variant="outlined" prepend-icon="mdi-store-outline">
+                {{ t('categories.tab.owned_by', { name: item.tenants[0].name }) }}
+              </v-chip>
+            </div>
           </div>
         </template>
 
         <template #item.products_count="{ item }">
-          <v-btn
-            variant="text"
-            density="compact"
-            class="text-none"
-            color="primary"
-            @click="$emit('view-products', item.id)"
+          <a
+            v-if="!adminMode"
+            href="#"
+            class="text-primary text-decoration-none products-link"
+            @click.prevent="$emit('view-products', item.id)"
           >
             {{ t('categories.tab.products_count', item.products_count ?? 0) }}
-          </v-btn>
+          </a>
+          <span v-else class="text-medium-emphasis">
+            {{ t('categories.tab.products_count', item.products_count ?? 0) }}
+          </span>
         </template>
 
         <template #item.show_on_pos="{ item }">
@@ -133,8 +227,16 @@
         <template #no-data>
           <div class="text-center py-10">
             <v-icon icon="mdi-shape-outline" size="48" color="grey-lighten-1" />
-            <p class="text-medium-emphasis mt-3">{{ t('categories.tab.empty') }}</p>
-            <v-btn color="primary" variant="tonal" class="mt-3 text-none" prepend-icon="mdi-plus" @click="openCreate">
+            <p class="text-medium-emphasis mt-3">
+              {{ t('categories.tab.empty') }}
+            </p>
+            <v-btn
+              color="primary"
+              variant="tonal"
+              class="mt-3 text-none"
+              prepend-icon="mdi-plus"
+              @click="openCreate"
+            >
               {{ t('categories.tab.add_category') }}
             </v-btn>
           </div>
@@ -148,6 +250,7 @@
       v-model="drawerOpen"
       :category="selectedCategory"
       :loading="saving"
+      :admin-mode="adminMode"
       @saved="handleSaved"
     />
 
@@ -177,7 +280,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" class="text-none" @click="reassignDeleteOpen = false">
+          <v-btn
+            variant="text"
+            class="text-none"
+            @click="reassignDeleteOpen = false"
+          >
             {{ t('btn.cancel') }}
           </v-btn>
           <v-btn
@@ -202,23 +309,57 @@
   import { AppTable, useAppUtils } from '@nong-official-dev/core'
   import draggable from 'vuedraggable'
   import { useCategoryStore } from '@/stores/categoryStore'
+  import { useBusinessTypeStore } from '@/stores/businessTypeStore'
   import { getAllCategoriesApi } from '@/api/categoryService'
   import CategoryDrawer from '@/components/products/CategoryDrawer.vue'
 
   const { t } = useI18n()
   const { notif, confirm } = useAppUtils()
   const categoryStore = useCategoryStore()
+  const businessTypeStore = useBusinessTypeStore()
+
+  const props = defineProps({
+    // Only true on the super-admin "system categories" page (see router)
+    // — see CategoryDrawer.vue for the matching admin-only fields.
+    adminMode: { type: Boolean, default: false }
+  })
 
   defineEmits(['view-products'])
 
   const tableRef = ref(null)
 
+  // ── Admin-only filters ───────────────────────────────────────────────────
+  const businessTypeFilter = ref(null)
+  const scopeFilter = ref('')
+  const adminFilters = computed(() =>
+    props.adminMode
+      ? { business_type_id: businessTypeFilter.value || undefined, is_system: scopeFilter.value || undefined }
+      : {}
+  )
+
   const headers = [
     { title: t('categories.tab.header_name'), key: 'name', sortable: true },
-    { title: t('categories.tab.header_products'), key: 'products_count', sortable: false },
-    { title: t('categories.tab.show_on_pos'), key: 'show_on_pos', sortable: false },
-    { title: t('categories.tab.show_on_emenu'), key: 'show_on_emenu', sortable: false },
-    { title: t('categories.tab.header_actions'), key: 'actions', sortable: false, align: 'end' }
+    {
+      title: t('categories.tab.header_products'),
+      key: 'products_count',
+      sortable: false
+    },
+    {
+      title: t('categories.tab.show_on_pos'),
+      key: 'show_on_pos',
+      sortable: false
+    },
+    {
+      title: t('categories.tab.show_on_emenu'),
+      key: 'show_on_emenu',
+      sortable: false
+    },
+    {
+      title: t('categories.tab.header_actions'),
+      key: 'actions',
+      sortable: false,
+      align: 'end'
+    }
   ]
 
   // Deliberately bypasses categoryStore.fetchCategories() — that action
@@ -357,7 +498,10 @@
   // sidesteps that entirely.
   const deleteMessageUsed = computed(() => {
     const n = categoryToDelete.value?.products_count ?? 0
-    const key = n === 1 ? 'categories.tab.delete_message_used_one' : 'categories.tab.delete_message_used_other'
+    const key =
+      n === 1
+        ? 'categories.tab.delete_message_used_one'
+        : 'categories.tab.delete_message_used_other'
     return t(key, { n, name: categoryToDelete.value?.name })
   })
 
@@ -390,7 +534,10 @@
     if (!reassignTo.value) return
     deleting.value = true
     try {
-      await categoryStore.deleteCategoryWithReassignment(categoryToDelete.value.id, reassignTo.value)
+      await categoryStore.deleteCategoryWithReassignment(
+        categoryToDelete.value.id,
+        reassignTo.value
+      )
       reassignDeleteOpen.value = false
       await afterDelete()
     } catch {
@@ -408,10 +555,17 @@
 
   onMounted(() => {
     loadAllCategories()
+    if (props.adminMode && !businessTypeStore.businessTypes.length) {
+      businessTypeStore.fetchBusinessTypes()
+    }
   })
 </script>
 
 <style scoped>
+  .products-link:hover {
+    text-decoration: underline !important;
+    cursor: pointer;
+  }
   .category-row + .category-row {
     border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   }

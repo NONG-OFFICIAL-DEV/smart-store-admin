@@ -24,7 +24,7 @@ class CategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $paginator = $this->categories->list($request->only([
-            'search', 'sortBy', 'sortDesc', 'perPage',
+            'search', 'sortBy', 'sortDesc', 'perPage', 'business_type_id', 'is_system',
         ]));
 
         return $this->success(

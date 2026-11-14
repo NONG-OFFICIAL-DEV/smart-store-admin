@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Http\Resources\PlanResource;
 use App\Models\Branch;
 use App\Models\BranchType;
+use App\Models\MartPurchaseOrder;
+use App\Models\Order;
 use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Staff;
@@ -179,9 +181,27 @@ class TenantService extends BaseService
         });
     }
 
+    /**
+     * `products.tenant_id` and `modifier_groups.tenant_id` cascade straight
+     * off the tenant, but `order_items.product_id` and
+     * `mart_purchase_order_items.product_id` (and
+     * `order_item_modifiers.modifier_option_id`) are RESTRICT — so a bare
+     * $tenant->delete() races two cascade paths to the same rows and the
+     * RESTRICT wins, blocking the whole delete with a FK violation.
+     * Explicitly clearing orders/mart purchase orders first removes those
+     * referencing rows (via their own cascades) before the tenant delete
+     * ever reaches products/modifier_options.
+     */
     public function delete(Tenant $tenant): void
     {
-        $tenant->delete();
+        DB::transaction(function () use ($tenant) {
+            $branchIds = $tenant->branches()->pluck('id');
+
+            Order::whereIn('branch_id', $branchIds)->delete();
+            MartPurchaseOrder::where('tenant_id', $tenant->id)->delete();
+
+            $tenant->delete();
+        });
     }
 
     /**
