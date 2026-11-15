@@ -150,12 +150,12 @@
           <div class="pos-page__products flex-grow-1">
             <PosProductGrid
               ref="productGridRef"
-              customizable
               :products="normalizedProducts"
               :categories="posCategories"
               :category-id="categoryId"
               :search="search"
               :loading="loading"
+              :cart-quantities="cartQuantityByProduct"
               @update:search="search = $event"
               @update:category-id="categoryId = $event"
               @add="onAdd"
@@ -366,7 +366,12 @@
   const rawProducts = ref([])
   const categoryId = ref(null)
   const search = ref('')
-  const loading = ref(false)
+  // Starts true, not false — onMounted awaits branchStore.fetchBranches()
+  // and loadCategories() BEFORE loadProducts() ever runs (that's the only
+  // place this flips to false), so a false initial value left a real gap
+  // where products.length was still 0 but loading hadn't been set yet,
+  // flashing "No products found" before the skeleton ever showed.
+  const loading = ref(true)
 
   const receiptOpen = ref(false)
   const receipt = ref(null)
@@ -516,11 +521,22 @@
           name: p.name,
           name_km: p.name_km,
           image_url: p.image_url,
+          image_fit: p.image_fit ?? 'cover',
           base_price: Number(p.base_price ?? 0),
           options,
           modifier_groups: modifierGroups
         }
       })
+  )
+
+  // product_id -> total qty across every size/variant currently in the
+  // cart — PosProductGrid uses this for the per-card qty badge/selected
+  // border, it has no other awareness of cart state.
+  const cartQuantityByProduct = computed(() =>
+    posStore.items.reduce((acc, item) => {
+      acc[item.product_id] = (acc[item.product_id] ?? 0) + item.qty
+      return acc
+    }, {})
   )
 
   async function loadCategories() {

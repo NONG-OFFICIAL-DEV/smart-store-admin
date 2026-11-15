@@ -918,6 +918,7 @@
       "show_on_emenu_hint": "Include this category in the public digital menu.",
       "save_category": "Save category",
       "error_name_required": "Name is required.",
+      "icon_label": "Icon",
       "is_system_label": "System category",
       "is_system_hint": "Shared with every tenant of the selected business types, instead of one tenant's own private list.",
       "business_types_label": "Business types",
@@ -2617,11 +2618,9 @@
       "from_price": "From",
       "unavailable": "Unavailable",
       "unavailable_reason": "\"{name}\" is required but has no available choices right now.",
-      "stock": {
-        "in_stock": "In stock",
-        "low_stock": "Low stock",
-        "out_of_stock": "Out of stock"
-      }
+      "sold_out": "Sold out",
+      "options_badge": "Options",
+      "card_aria_label": "{name}, {price}, {qty} in order"
     },
     "customize": {
       "size": "Size",

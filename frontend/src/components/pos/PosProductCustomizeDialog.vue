@@ -60,13 +60,13 @@
           >
             <button
               v-for="opt in sizeOptions"
-              :key="opt.variant_id"
+              :key="opt.key"
               type="button"
               class="pos-choice"
-              :class="{ 'pos-choice--selected': variantId === opt.variant_id }"
+              :class="{ 'pos-choice--selected': selectedOptionKey === opt.key }"
               role="radio"
-              :aria-checked="variantId === opt.variant_id"
-              @click="variantId = opt.variant_id"
+              :aria-checked="selectedOptionKey === opt.key"
+              @click="selectedOptionKey = opt.key"
             >
               <span class="pos-choice__label">
                 {{ opt.label }}
@@ -308,7 +308,11 @@
 
   const emit = defineEmits(['update:modelValue', 'add'])
 
-  const variantId = ref(null)
+  // Keyed by the option's own `key` (always present, unique — food options
+  // key on variant_id, retail options key on product_unit_id) rather than
+  // `variant_id` directly, so this dialog works for either product shape
+  // without caring which id field a given option actually carries.
+  const selectedOptionKey = ref(null)
   const selections = ref({})
   const customValues = reactive({})
   const numpadOpen = reactive({})
@@ -350,8 +354,8 @@
 
   function resetState() {
     const opts = sizeOptions.value
-    variantId.value = opts.length
-      ? (opts.find(o => o.is_default)?.variant_id ?? opts[0].variant_id)
+    selectedOptionKey.value = opts.length
+      ? (opts.find(o => o.is_default)?.key ?? opts[0].key)
       : null
 
     const nextSelections = {}
@@ -506,7 +510,7 @@
   }
 
   const selectedVariantOption = computed(
-    () => sizeOptions.value.find(o => o.variant_id === variantId.value) ?? null
+    () => sizeOptions.value.find(o => o.key === selectedOptionKey.value) ?? null
   )
 
   const modifiersTotal = computed(() => {
@@ -584,6 +588,10 @@
 
     emit('add', {
       product: props.product,
+      // Full selected option object — Retail's unit options carry
+      // product_unit_id (not variant_id), so a caller that isn't
+      // Food/coffee reads its own id field off this instead.
+      option: selectedVariantOption.value,
       variant_id: selectedVariantOption.value?.variant_id ?? null,
       variant_name: selectedVariantOption.value?.label ?? null,
       unit_price: unitPrice.value,

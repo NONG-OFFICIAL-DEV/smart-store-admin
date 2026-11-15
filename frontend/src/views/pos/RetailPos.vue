@@ -93,9 +93,11 @@
           :category-id="categoryId"
           :search="search"
           :loading="loading"
+          :cart-quantities="cartQuantityByProduct"
           @update:search="search = $event"
           @update:category-id="categoryId = $event"
           @add="onAdd"
+          @customize="openCustomize"
         />
       </div>
 
@@ -161,6 +163,12 @@
       @confirm="onQrConfirmed"
       @cancel="onQrCancelled"
     />
+
+    <PosProductCustomizeDialog
+      v-model="customizeOpen"
+      :product="customizeProduct"
+      @add="onAddFromDialog"
+    />
   </div>
 </template>
 
@@ -183,6 +191,7 @@
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
+  import PosProductCustomizeDialog from '@/components/pos/PosProductCustomizeDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import {
     useCustomerDisplayPublisher,
@@ -244,6 +253,13 @@
   const productGridRef = ref(null)
   const cartPanelRef = ref(null)
 
+  const customizeOpen = ref(false)
+  const customizeProduct = ref(null)
+  function openCustomize(product) {
+    customizeProduct.value = product
+    customizeOpen.value = true
+  }
+
   // Mart has no table/dine-in concept — only Customer + Notes are
   // tenant-configurable here (Settings > POS).
   const showCustomer = computed(() => authStore.posSettings?.customer_selection ?? true)
@@ -253,7 +269,12 @@
   const rawProducts = ref([])
   const categoryId = ref(null)
   const search = ref('')
-  const loading = ref(false)
+  // Starts true, not false — onMounted awaits branchStore.fetchBranches()
+  // BEFORE loadProducts() ever runs (that's the only place this flips to
+  // false), so a false initial value left a real gap where products.length
+  // was still 0 but loading hadn't been set yet, flashing "No products
+  // found" before the skeleton ever showed.
+  const loading = ref(true)
 
   const receiptOpen = ref(false)
   const receipt = ref(null)
@@ -307,10 +328,20 @@
         id: p.id,
         name: p.name,
         image_url: p.image_url,
+        image_fit: p.image_fit ?? 'cover',
         options,
         stockStatus: stockStatus(p)
       }
     })
+  )
+
+  // product_id -> total qty across every unit currently in the cart —
+  // PosProductGrid uses this for the per-card qty badge/selected border.
+  const cartQuantityByProduct = computed(() =>
+    posStore.items.reduce((acc, item) => {
+      acc[item.product_id] = (acc[item.product_id] ?? 0) + item.qty
+      return acc
+    }, {})
   )
 
   function stockStatus(p) {
@@ -378,6 +409,24 @@
       image_url: product.image_url,
       unit_label: option.label,
       unit_price: option.price
+    })
+  }
+
+  // PosProductCustomizeDialog.vue's unit picker, reused here for products
+  // with more than one unit — it emits the full selected option object
+  // (product_unit_id, label, price), same shape onAdd() already consumes.
+  function onAddFromDialog(payload) {
+    posStore.addItem({
+      key: payload.option.key,
+      product_id: payload.option.product_id,
+      product_unit_id: payload.option.product_unit_id,
+      name: payload.product.name,
+      name_km: payload.product.name_km,
+      image_url: payload.product.image_url,
+      unit_label: payload.option.label,
+      unit_price: payload.unit_price,
+      qty: payload.quantity,
+      notes: payload.notes
     })
   }
 

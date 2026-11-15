@@ -232,6 +232,47 @@ class CategoryServiceTest extends TestCase
         $this->assertCount(0, Category::all());
     }
 
+    /**
+     * Covers the super-admin "system categories" page's filter row —
+     * business_type_id and is_system are the only two filters that matter
+     * there (see CategoryRepository::applyFilters()), since a super admin's
+     * list spans every tenant/business type at once.
+     */
+    public function test_list_filters_by_business_type_and_system_scope(): void
+    {
+        $restaurantType = \App\Models\BusinessType::firstOrCreate(['code' => 'RESTAURANT'], ['name' => 'Restaurant']);
+        $martType = \App\Models\BusinessType::firstOrCreate(['code' => 'MART'], ['name' => 'Mart']);
+
+        $admin = User::create([
+            'email' => 'admin4@example.test',
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'is_super_admin' => true,
+        ]);
+        Auth::login($admin);
+        $service = $this->app->make(CategoryService::class);
+
+        $service->create(['name' => 'Beverages', 'is_system' => true], [], [$restaurantType->id]);
+        $service->create(['name' => 'Groceries', 'is_system' => true], [], [$martType->id]);
+        [$tenantA] = $this->makeTenantWithOwner('TenantA');
+        $service->create(['name' => 'My Custom', 'is_system' => true], [], []);
+        $service->create(['name' => 'Owner Custom'], [$tenantA->id]);
+
+        $all = $service->list([]);
+        $this->assertSame(4, $all->total());
+
+        $restaurantOnly = $service->list(['business_type_id' => $restaurantType->id]);
+        $this->assertSame(1, $restaurantOnly->total());
+        $this->assertSame('Beverages', $restaurantOnly->items()[0]->name);
+
+        $systemOnly = $service->list(['is_system' => 'true']);
+        $this->assertSame(3, $systemOnly->total());
+
+        $customOnly = $service->list(['is_system' => 'false']);
+        $this->assertSame(1, $customOnly->total());
+        $this->assertSame('Owner Custom', $customOnly->items()[0]->name);
+    }
+
     public function test_by_menu_returns_categories_shared_with_the_menus_tenant(): void
     {
         [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
