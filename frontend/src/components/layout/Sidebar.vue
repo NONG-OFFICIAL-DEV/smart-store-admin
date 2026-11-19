@@ -4,8 +4,7 @@
   import { useRouter, useRoute } from 'vue-router'
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
-  import ShopBranchSwitcher from './ShopBranchSwitcher.vue'
-  import AppBarActions from './AppBarActions.vue'
+  import SidebarFooter from './SidebarFooter.vue'
 
   // Files in /public are served from the site root — use URL strings,
   // don't import them (Vite doesn't support importing from /public).
@@ -59,6 +58,19 @@
   function goHome() {
     router.push('/')
     if (isTemporary.value) emit('update:modelValue', false)
+  }
+
+  async function handleLogout() {
+    try {
+      await authService.logout() // tell the server
+    } catch (e) {
+      // ignore — still log out locally
+    } finally {
+      localStorage.removeItem('token') // use your real token key
+      localStorage.removeItem('user')
+      if (isTemporary.value) emit('update:modelValue', false)
+      router.replace('/login')
+    }
   }
 
   const { filteredMenu, openGroups, isGroupActive } =
@@ -259,18 +271,12 @@
 
     <!-- Footer actions: Sidebar-only / POS-focus -->
     <template v-if="showChrome" #append>
-      <div class="sidebar-footer">
-        <ShopBranchSwitcher v-if="!isRail" class="mb-1" />
-        <v-divider class="my-1" />
-        <AppBarActions
-          :user="user"
-          :bu-name="buName"
-          :branch-name="branchName"
-          :role-name="roleName"
-          :compact="isRail"
-          vertical
-        />
-      </div>
+      <SidebarFooter
+        :user="user"
+        :role-name="roleName"
+        :rail="isRail"
+        @logout="handleLogout"
+      />
     </template>
   </v-navigation-drawer>
 
