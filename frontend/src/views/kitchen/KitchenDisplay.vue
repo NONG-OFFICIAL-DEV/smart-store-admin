@@ -149,7 +149,7 @@
   const { notif } = useAppUtils()
   const authStore = useAuthStore()
 
-  // No local picker — branch comes from the global BranchSwitcher (see
+  // No local picker — branch comes from the global ShopBranchSwitcher (see
   // AppBar), same source FoodPos.vue/OrdersManagement.vue already read.
   const branchId = computed(() => authStore.activeBranchId || authStore.branch_id)
   const loading = ref(false)

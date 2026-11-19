@@ -4,6 +4,7 @@ import authService from '../api/auth'
 import { PLANS } from '@/constants/plan'
 import { connectEcho, disconnectEcho } from '@/utils/echo'
 import { impersonateTenantApi } from '@/api/tenantService'
+import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -275,6 +276,13 @@ export const useAuthStore = defineStore('auth', {
       } else {
         this.blockedApiError = null
       }
+
+      // Per-user layout/theme/accent/density — see uiPreferencesStore for
+      // why this lives here rather than at each individual fetchMe() call
+      // site: login, impersonation, and "return to admin" all need the
+      // freshly-authenticated user's own copy applied, not whichever
+      // was cached from whoever was signed in before.
+      useUiPreferencesStore().hydrateFromServer(d.ui_preferences)
 
       if (this.me?.id) connectEcho()
     },

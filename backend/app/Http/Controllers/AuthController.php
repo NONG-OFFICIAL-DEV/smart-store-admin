@@ -15,6 +15,7 @@ use App\Services\TwoFactorAuthService;
 use App\Exceptions\InvalidRefreshTokenException;
 use App\Exceptions\RefreshTokenExpiredException;
 use App\Exceptions\RefreshTokenReusedException;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -27,6 +28,8 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     private const TWO_FACTOR_CHALLENGE_TTL_MINUTES = 5;
 
     public function test(): \Illuminate\Http\JsonResponse
@@ -269,6 +272,11 @@ class AuthController extends Controller
             // a super admin has no tenant of their own to be suspended.
             'tenant_is_active'    => true,
             'must_change_password' => $user->must_change_password,
+            // Personal, not tenant-specific — same for every role branch
+            // below, so this lives in $base rather than being repeated in
+            // each of the three response blocks.
+            'preferred_language'  => $user->preferred_language,
+            'ui_preferences'      => $user->ui_preferences,
             // Layout.vue's notification-bell badge reads this — was always
             // 0 because this key was never set at all. NotificationService
             // already has the correct "visible to this user" query (accounts
@@ -364,6 +372,42 @@ class AuthController extends Controller
             'trial_ends_at'       => $subscription?->trial_ends_at,
             'tenant_is_active'    => $staff->tenant?->is_active ?? true,
         ]));
+    }
+
+    /**
+     * Personal app-shell preferences (layout/theme/accent/density +
+     * language) — same place regardless of role, since these aren't
+     * tenant-scoped. Kept outside the 'v1' route group (no
+     * subscription.active gate) so a blocked/suspended tenant's users can
+     * still fix their own cosmetic settings, same reasoning as me() itself.
+     */
+    public function updatePreferences(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'preferred_language' => ['nullable', 'in:en,km'],
+            'ui_preferences' => ['nullable', 'array'],
+            'ui_preferences.layout' => ['nullable', 'in:classic,sidebar_only,icon_rail,pos_focus'],
+            'ui_preferences.theme' => ['nullable', 'in:light,dark,auto'],
+            'ui_preferences.accent' => ['nullable', 'in:teal,blue,orange,purple,rose'],
+            'ui_preferences.density' => ['nullable', 'in:comfortable,compact'],
+        ]);
+
+        $data = [];
+        if (array_key_exists('preferred_language', $validated)) {
+            $data['preferred_language'] = $validated['preferred_language'];
+        }
+        if (array_key_exists('ui_preferences', $validated)) {
+            $data['ui_preferences'] = array_merge($user->ui_preferences ?? [], $validated['ui_preferences']);
+        }
+
+        $user->update($data);
+
+        return $this->success([
+            'preferred_language' => $user->preferred_language,
+            'ui_preferences' => $user->ui_preferences,
+        ], 'Preferences updated.');
     }
 
     // A plain array, not the raw model — 'user' => $user used to dump every

@@ -23,6 +23,39 @@ export function normalizeDensity(value) {
 export const appDensity = ref(normalizeDensity(localStorage.getItem('density')))
 const savedLocale = localStorage.getItem('lang') || 'km'
 
+// ── Accent colors ─────────────────────────────────────────────────────────
+// Five brand-consistent options offered in the Appearance page — 'teal' is
+// the original/default hue this app shipped with (unchanged values).
+export const ACCENTS = {
+  teal: { light: '#00838F', dark: '#26C6DA' },
+  blue: { light: '#1565C0', dark: '#42A5F5' },
+  orange: { light: '#E65100', dark: '#FFA726' },
+  purple: { light: '#6A1B9A', dark: '#BA68C8' },
+  rose: { light: '#AD1457', dark: '#F06292' }
+}
+
+export function normalizeAccent(value) {
+  return ACCENTS[value] ? value : 'teal'
+}
+
+const savedAccent = normalizeAccent(localStorage.getItem('accent'))
+
+// ── Theme mode (light/dark/auto) ──────────────────────────────────────────
+// Resolved synchronously, at module load — BEFORE createVuetify() ever runs
+// — same convention already used for savedLocale above. Previously nothing
+// read the stored mode until a dialog's onMounted() fired well after first
+// paint, so every load flashed Vuetify's hardcoded 'light' default first.
+function resolveInitialThemeName(mode) {
+  if (mode === 'dark') return 'dark'
+  if (mode === 'auto') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'light'
+}
+
+const savedThemeMode = localStorage.getItem('theme') || 'light'
+const initialThemeName = resolveInitialThemeName(savedThemeMode)
+
 const DENSITY_FIELDS = [
   'VTextField',
   'VSelect',
@@ -83,11 +116,12 @@ const vuetify = createVuetify({
     VCard: { rounded: 'lg', border: true, elevation: 0 }
   },
   theme: {
+    defaultTheme: initialThemeName,
     themes: {
       light: {
         dark: false,
         colors: {
-          primary: '#00838F',
+          primary: ACCENTS[savedAccent].light,
           secondary: '#c17290',
           textField: '#2f9dab',
           icon: '#653748',
@@ -106,7 +140,7 @@ const vuetify = createVuetify({
       dark: {
         dark: true,
         colors: {
-          primary: '#26C6DA',
+          primary: ACCENTS[savedAccent].dark,
           secondary: '#D690AC',
           textField: '#4DD0E1',
           icon: '#D8A8BC',
@@ -145,5 +179,15 @@ watch(
   },
   { immediate: true }
 )
+
+// Runtime accent swap — called from PreferencesDialog's live preview/save.
+// Mutates both theme definitions directly (not just the currently-active
+// one) so switching light<->dark/auto afterward keeps the chosen accent
+// instead of reverting to whichever hex was baked in at module load.
+export function applyAccent(key) {
+  const accent = normalizeAccent(key)
+  vuetify.theme.themes.value.light.colors.primary = ACCENTS[accent].light
+  vuetify.theme.themes.value.dark.colors.primary = ACCENTS[accent].dark
+}
 
 export default vuetify

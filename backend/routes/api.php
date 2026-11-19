@@ -111,6 +111,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
+    Route::patch('/me/preferences', [AuthController::class, 'updatePreferences']);
     Route::post('/logout',  [AuthController::class, 'logout']);
 
     Route::prefix('two-factor')->group(function () {

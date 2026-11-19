@@ -147,17 +147,44 @@
     "name": "Nexstack Tech",
     "footer": "Nexstack Tech — Enterprise Edition"
   },
+  "app_bar": {
+    "appearance": "Appearance",
+    "online": "Online",
+    "offline": "Offline",
+    "lang_compact": "EN · ខ្មែរ",
+    "select_branch": "Select branch",
+    "current_shop": "Current shop",
+    "switch_branch": "Switch branch",
+    "branch_open": "Open",
+    "branch_closed": "Closed"
+  },
   "preferences": {
     "title": "Preferences",
     "subtitle": "Customize your experience",
     "language": "Language",
+    "layout": "Layout",
+    "layouts": {
+      "classic": { "label": "Classic", "hint": "Top bar + full menu. Good for owners on a desktop." },
+      "sidebar_only": { "label": "Sidebar only", "hint": "No top bar, more room for products." },
+      "icon_rail": { "label": "Icon rail", "hint": "Top bar + icon-only sidebar. Good for smaller laptops." },
+      "pos_focus": { "label": "POS focus", "hint": "No sidebar, no top bar. Best for cashiers on a tablet." }
+    },
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
     "auto": "Auto",
+    "accent": "Accent color",
+    "accents": {
+      "teal": "Teal",
+      "blue": "Blue",
+      "orange": "Orange",
+      "purple": "Purple",
+      "rose": "Rose"
+    },
     "density": "Density",
     "comfortable": "Comfortable",
-    "compact": "Compact"
+    "compact": "Compact",
+    "preview": "Preview"
   },
   "profile": {
     "title": "Profile",

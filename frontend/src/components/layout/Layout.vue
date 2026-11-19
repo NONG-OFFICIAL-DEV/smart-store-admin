@@ -1,15 +1,51 @@
 <template>
   <div>
-    <app-bar
+    <template v-if="layout === 'classic' || layout === 'icon_rail'">
+      <app-bar
+        :user="user"
+        :rail="effectiveRail"
+        @toggle="toggleRail"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+      />
+      <sidebar
+        :user="user"
+        :rail="effectiveRail"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+      />
+    </template>
+
+    <sidebar
+      v-else-if="layout === 'sidebar_only'"
+      variant="sidebar_only"
       :user="user"
-      :rail="rail"
-      @toggle="toggleRail"
       :bu-name="buName"
       :branch-name="branchName"
       :role-name="roleName"
-      :logo-url="logo_url"
     />
-    <sidebar :user="user" v-model:rail="rail" />
+
+    <template v-else-if="layout === 'pos_focus'">
+      <v-btn
+        icon="mdi-menu"
+        class="pos-focus-fab"
+        color="primary"
+        elevation="4"
+        size="large"
+        @click="posNavOpen = true"
+      />
+      <sidebar
+        variant="pos_focus"
+        v-model="posNavOpen"
+        :user="user"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+      />
+    </template>
+
     <v-main>
       <v-container class="px-4" fluid>
         <v-alert
@@ -75,6 +111,7 @@
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
   import { useAuthStore } from '@/stores/authStore'
+  import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
   import { useRouter } from 'vue-router'
 
   const { mdAndDown } = useDisplay()
@@ -85,14 +122,20 @@
   const storedRail = localStorage.getItem('sidebar-rail')
   const rail = ref(storedRail === null ? mdAndDown.value : storedRail === 'true')
   const authStore = useAuthStore()
+  const uiPrefs = useUiPreferencesStore()
   const router = useRouter()
   const { t, te } = useI18n()
+
+  const layout = computed(() => uiPrefs.layout)
+  // Icon-rail is always collapsed — the hamburger toggle is a no-op there,
+  // only Classic's sidebar actually expands/collapses.
+  const effectiveRail = computed(() => (layout.value === 'icon_rail' ? true : rail.value))
+  const posNavOpen = ref(false)
 
   const user = computed(() => authStore.me)
   const buName = computed(() => authStore.bu_name)
   const branchName = computed(() => authStore.branch_name)
   const roleName = computed(() => authStore.role_name)
-  const logo_url = computed(() => authStore.logo_url)
   const trialDaysLeft = computed(() => authStore.trialDaysLeft)
   const blockedApiError = computed(() => authStore.blockedApiError)
   // Translated-by-code when we have a mapping for it; otherwise fall back
@@ -114,11 +157,20 @@
   })
 
   function toggleRail() {
+    if (layout.value === 'icon_rail') return
     rail.value = !rail.value
   }
 </script>
 
 <style>
+  /* POS-focus layout — floating nav trigger, no permanent chrome */
+  .pos-focus-fab {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1005;
+  }
+
   /* Forward → */
   .slide-enter-from {
     opacity: 0;

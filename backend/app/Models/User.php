@@ -37,6 +37,7 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         'last_name',
         'avatar_url',
         'preferred_language',
+        'ui_preferences',
         'telegram_chat_id',
         'notify_email',
         'notify_telegram',
@@ -76,6 +77,7 @@ class User extends Authenticatable implements JWTSubject, CanResetPasswordContra
         // readable back by anyone, even with the app's own encryption key.
         'two_factor_recovery_codes' => 'array',
         'two_factor_confirmed_at'   => 'datetime',
+        'ui_preferences'            => 'array',
     ];
 
     protected $appends = [

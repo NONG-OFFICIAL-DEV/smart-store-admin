@@ -53,5 +53,9 @@ export default {
 
   updateEmail(email, current_password) {
     return http.put('/v1/auth/email', { email, current_password })
+  },
+
+  updatePreferences(payload) {
+    return http.patch('/me/preferences', payload)
   }
 }

@@ -13,7 +13,6 @@
 </template>
 
 <script setup>
-  import { onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
   // import ConfirmDialog from '@nong-official-dev/core/plugins/confirm/ConfirmDialog.vue'
   // import NotificationAlert from '@nong-official-dev/core/plugins/notif/NotificationAlert.vue'
   // import Notif from '@/components/global/Notification.vue'
@@ -25,41 +24,13 @@
   // const notifRef = ref(null)
   // const confirmRef = ref(null)
 
-  // Get current Vue instance
-  const instance = getCurrentInstance()
+  // Register global methods for both Options and Composition APIs
+  // app.config.globalProperties.$notif = notifRef.value?.newAlert
+  // app.config.globalProperties.$confirm = confirmRef.value?.open
 
-  // Keyboard switcher
-  const handleKeyDown = e => {
-    if (e.shiftKey && e.ctrlKey && e.key === 'L') {
-      e.preventDefault()
-      const currentLocale =
-        instance.appContext.config.globalProperties.$i18n.locale
-      const newLocale = currentLocale === 'en' ? 'km' : 'en'
-      instance.appContext.config.globalProperties.$i18n.locale = newLocale
-      localStorage.setItem('lang', newLocale)
-    }
-  }
-
-  onMounted(() => {
-    // const app = instance.appContext.app
-
-    // Register global methods for both Options and Composition APIs
-    // app.config.globalProperties.$notif = notifRef.value?.newAlert
-    // app.config.globalProperties.$confirm = confirmRef.value?.open
-
-    // Restore saved language preference
-    const savedLang = localStorage.getItem('lang')
-    if (savedLang) {
-      instance.appContext.config.globalProperties.$i18n.locale = savedLang
-    }
-
-    // Bind keyboard event
-    document.addEventListener('keydown', handleKeyDown)
-  })
-
-  onBeforeUnmount(() => {
-    document.removeEventListener('keydown', handleKeyDown)
-  })
+  // Language is restored synchronously at i18n creation (plugins/i18n.js) and
+  // switched via the one shared LanguageSwitch.vue everywhere it's reachable
+  // — no separate keyboard shortcut or per-page restore logic needed anymore.
 </script>
 
 <style>
@@ -81,7 +52,7 @@
 
   body {
     /* font-family: 'Poppins', sans-serif; */
-    font-family: 'Google Sans', serif;
+    font-family: 'Google Sans', 'Noto Sans Khmer', serif;
     font-optical-sizing: auto;
     touch-action: manipulation;
     position: relative;

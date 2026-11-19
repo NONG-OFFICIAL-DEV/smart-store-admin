@@ -1,13 +1,41 @@
 <script setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
+  import { useTheme } from 'vuetify'
+  import { useRouter } from 'vue-router'
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
-  import BranchSwitcher from './BranchSwitcher.vue'
+  import ShopBranchSwitcher from './ShopBranchSwitcher.vue'
+  import AppBarActions from './AppBarActions.vue'
+  import logoWhite from '/logo_white.png'
+  import logoDark from '/logo_dark.png'
 
-  defineProps({
+  const props = defineProps({
     user: Object,
-    rail: Boolean
+    rail: Boolean,
+    buName: String,
+    branchName: String,
+    roleName: String,
+    // 'classic' (default, permanent, used by AppBar's own hamburger toggle),
+    // 'sidebar_only' (permanent, brand header + footer actions, no AppBar),
+    // 'pos_focus' (temporary overlay, brand header + footer actions, no AppBar).
+    variant: {
+      type: String,
+      default: 'classic'
+    },
+    // Only meaningful for variant="pos_focus" — open state of the temporary
+    // overlay drawer (Classic/Icon-rail stay permanent and ignore this).
+    modelValue: Boolean
   })
+
+  const emit = defineEmits(['update:modelValue'])
+
+  const router = useRouter()
+  const theme = useTheme()
+  const isDark = computed(() => theme.global.current.value.dark)
+  const platformLogo = computed(() => (isDark.value ? logoWhite : logoDark))
+
+  const showChrome = computed(() => props.variant === 'sidebar_only' || props.variant === 'pos_focus')
+  const isTemporary = computed(() => props.variant === 'pos_focus')
 
   const { filteredMenu, openGroups, isGroupActive } = useSidebarMenu(SIDEBAR_MENU)
 
@@ -39,14 +67,21 @@
 <template>
   <v-navigation-drawer
     :rail="rail"
-    permanent
+    :permanent="!isTemporary"
+    :temporary="isTemporary"
+    :model-value="isTemporary ? modelValue : true"
+    @update:model-value="v => emit('update:modelValue', v)"
     elevation="0"
     class="border-right"
     width="260"
   >
-    <!-- BRANCH SWITCHER — pinned at the very top, only shown when there's an
-         actual choice to make (owner, multi-branch tenant). -->
-    <BranchSwitcher :rail="rail" />
+    <!-- Brand header — Sidebar-only/POS-focus only; Classic/Icon-rail keep
+         the platform logo in AppBar instead. -->
+    <div v-if="showChrome" class="sidebar-brand">
+      <button type="button" class="platform-logo-btn" @click="router.push('/')">
+        <v-img :src="platformLogo" height="28" width="auto" contain />
+      </button>
+    </div>
 
     <!-- MENU -->
     <v-list v-model:opened="openGroups" nav density="compact" class="sidebar-list">
@@ -141,6 +176,13 @@
       </div>
     </v-list>
 
+    <template v-if="showChrome" #append>
+      <div class="sidebar-footer">
+        <ShopBranchSwitcher v-if="variant === 'sidebar_only'" class="mb-1" />
+        <v-divider class="my-1" />
+        <AppBarActions :user="user" :bu-name="buName" :branch-name="branchName" :role-name="roleName" vertical />
+      </div>
+    </template>
   </v-navigation-drawer>
 
   <!-- ── RAIL FLYOUT SUBMENU ──────────────────────────────────────────────────── -->
@@ -224,6 +266,26 @@
   .sub-item :deep(.v-list-item__prepend > .v-icon) {
     font-size: 18px;
     opacity: 0.8;
+  }
+
+  /* ── Brand header (Sidebar-only / POS-focus) ────────────────────────────── */
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    padding: 16px 16px 8px;
+  }
+  .platform-logo-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  /* ── Footer actions (Sidebar-only / POS-focus) ──────────────────────────── */
+  .sidebar-footer {
+    padding: 8px;
   }
 
   /* ── Version footer ─────────────────────────────────────────────────────── */
