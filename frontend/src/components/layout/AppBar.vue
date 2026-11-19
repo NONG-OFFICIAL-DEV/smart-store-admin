@@ -12,12 +12,13 @@
          tenant's own logo (that only ever shows on receipts/bills/
          customer display/e-menu). See ShopBranchSwitcher for the
          per-tenant branding instead. -->
-    <v-app-bar-title class="d-none d-lg-block d-print-block">
+    <!-- <v-app-bar-title class="d-none d-lg-block d-print-block">
+      nexstacktech
       <button type="button" class="platform-logo-btn" @click="router.push('/')">
-        <v-img :src="platformLogo" height="32" width="auto" contain />
+        <v-img :src="platformLogo" width="100" contain />
       </button>
-    </v-app-bar-title>
-    <v-divider class="mx-3" inset vertical />
+    </v-app-bar-title> -->
+    <!-- <v-divider class="mx-3" inset vertical /> -->
 
     <ShopBranchSwitcher />
 

@@ -1,52 +1,45 @@
-
 <template>
   <v-menu
+    v-model="open"
     location="bottom end"
     transition="scale-transition"
     offset="8"
-    min-width="190"
+    :max-width="MENU_WIDTH"
   >
     <template #activator="{ props: menuProps }">
       <v-btn
         v-bind="menuProps"
         variant="text"
         rounded="lg"
-        size="default"
-        class="lang-switch-btn px-2"
         height="38"
+        :width="BUTTON_WIDTH"
+        class="lang-switch-btn px-2"
+        :aria-label="t('lang.change')"
       >
-        <v-img
-          :src="currentFlag"
-          width="21"
-          height="21"
-          class="flag-img me-2"
-          cover
-        />
-
-        <span class="lang-label">
-          {{ currentLanguage?.label }}
-        </span>
-
-        <v-icon
-          icon="mdi-chevron-down"
-          size="16"
-          class="ms-1 lang-chevron"
-        />
+        <div class="lang-btn-inner">
+          <v-img
+            :src="currentLanguage.flag"
+            width="21"
+            height="21"
+            class="flag-img"
+            cover
+          />
+          <span class="lang-label">{{ currentLanguage.label }}</span>
+          <!-- <v-icon
+            :icon="open ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+            size="16"
+            class="lang-chevron"
+          /> -->
+        </div>
       </v-btn>
     </template>
 
-    <v-list
-      class="lang-menu pa-1"
-      rounded="lg"
-      density="compact"
-    >
+    <v-list class="pa-1" rounded="lg" density="compact">
       <v-list-item
         v-for="opt in options"
         :key="opt.code"
         :active="locale === opt.code"
-        :value="opt.code"
         rounded="md"
-        class="lang-option"
         @click="select(opt.code)"
       >
         <template #prepend>
@@ -54,7 +47,7 @@
             :src="opt.flag"
             width="22"
             height="22"
-            class="flag-img"
+            class="flag-img me-3"
             cover
           />
         </template>
@@ -68,11 +61,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import authService from '@/api/auth'
 
+// Fixed sizes so English and Khmer look the same
+const BUTTON_WIDTH = 132
+const MENU_WIDTH = 100
+
 const { t, locale } = useI18n()
+const open = ref(false)
 
 const options = computed(() => [
   { code: 'en', label: t('lang.en'), flag: '/images/gb.png' },
@@ -83,13 +81,13 @@ const currentLanguage = computed(
   () => options.value.find(o => o.code === locale.value) ?? options.value[0]
 )
 
-const currentFlag = computed(() => currentLanguage.value.flag)
-
 function select(code) {
+  open.value = false
   if (locale.value === code) return
 
   locale.value = code
   localStorage.setItem('lang', code)
+  document.documentElement.setAttribute('lang', code)
 
   authService
     .updatePreferences({ preferred_language: code })
@@ -98,36 +96,44 @@ function select(code) {
 </script>
 
 <style scoped>
-/* .lang-switch-btn {
+.lang-switch-btn {
   min-width: 0;
-  font-weight: 500;
   letter-spacing: 0;
-  border: 1px solid rgba(var(--v-border-color), 0.12);
-  background: rgba(var(--v-theme-surface), 0.5);
-} */
+  text-transform: none;
+}
 
 .lang-switch-btn:hover {
   background: rgba(var(--v-theme-on-surface), 0.05);
 }
 
-.flag-img {
-  border-radius: 4px;
-  flex-shrink: 0;
-  overflow: hidden;
+/* Fixed layout inside the button: flag | label (fills) | chevron */
+.lang-btn-inner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .lang-label {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flag-img {
+  flex: none;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .lang-chevron {
+  flex: none;
   opacity: 0.65;
-}
-
-.lang-menu {
-  border: 1px solid rgba(var(--v-border-color), 0.12);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .lang-option {

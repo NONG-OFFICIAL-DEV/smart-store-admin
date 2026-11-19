@@ -1,17 +1,18 @@
 <template>
   <div>
     <template v-if="layout === 'classic' || layout === 'icon_rail'">
+   
+      <sidebar
+        :user="user"
+        :rail="effectiveRail"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+      />   
       <app-bar
         :user="user"
         :rail="effectiveRail"
         @toggle="toggleRail"
-        :bu-name="buName"
-        :branch-name="branchName"
-        :role-name="roleName"
-      />
-      <sidebar
-        :user="user"
-        :rail="effectiveRail"
         :bu-name="buName"
         :branch-name="branchName"
         :role-name="roleName"
