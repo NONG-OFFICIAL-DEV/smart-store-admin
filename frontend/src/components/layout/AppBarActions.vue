@@ -1,5 +1,5 @@
 <template>
-  <div class="app-bar-actions" :class="vertical ? 'app-bar-actions--vertical' : 'app-bar-actions--horizontal'">
+  <div class="app-bar-actions">
     <!-- Register status — only meaningful for staff (owners have no Staff
          row of their own, so there's nothing personal to open/close) -->
     <v-chip
@@ -7,7 +7,7 @@
       size="small"
       variant="tonal"
       :color="registerOpen ? 'success' : 'default'"
-      :class="vertical ? 'w-100' : 'd-none d-md-inline-flex'"
+      class="d-none d-md-inline-flex"
       rounded="lg"
       :prepend-icon="registerOpen ? 'mdi-circle' : 'mdi-circle-outline'"
       @click="openRegisterPanel"
@@ -21,30 +21,20 @@
       variant="tonal"
       :color="isOnline ? 'success' : 'error'"
       rounded="lg"
-      :class="vertical ? 'w-100' : 'd-none d-sm-inline-flex'"
+      class="d-none d-sm-inline-flex"
       :prepend-icon="isOnline ? 'mdi-circle' : 'mdi-circle-outline'"
     >
       {{ isOnline ? t('app_bar.online') : t('app_bar.offline') }}
     </v-chip>
 
-    <LanguageSwitch :class="vertical ? 'w-100' : undefined" />
+    <LanguageSwitch />
 
     <!-- Notifications -->
     <AppNotificationBell
-      ref="bellRef"
-      :fetch-recent="fetchRecentNotifications"
-      :fetch-unread-count="fetchUnreadNotificationCount"
-      :mark-read="markNotificationAsReadApi"
-      :mark-all-read="markAllNotificationsReadApi"
-      :message="n => n.title"
-      :format-date="formatDateTime"
-      :title="t('notification.title')"
-      :empty-text="t('notification.no_notifications')"
-      :mark-all-read-text="t('notification.mark_all_read')"
-      :view-all-text="t('btn.view_all')"
-      :poll-interval-ms="POLL_FALLBACK_MS"
-      @item-click="goToNotifications"
-      @view-all="goToNotifications"
+      :ref="bell.bellRef"
+      v-bind="bell.bellProps"
+      @item-click="bell.goToNotifications"
+      @view-all="bell.goToNotifications"
     />
 
     <!-- Avatar / user menu -->
@@ -56,12 +46,7 @@
       :close-on-content-click="false"
     >
       <template #activator="{ props: menuProps }">
-        <button
-          type="button"
-          class="user-btn"
-          :class="{ 'user-btn--vertical': vertical }"
-          v-bind="menuProps"
-        >
+        <button type="button" class="user-btn" v-bind="menuProps">
           <v-avatar :color="avatarColor" size="36" class="avatar-ring">
             <v-img v-if="user?.avatar_url" :src="user.avatar_url" cover />
             <span v-else class="text-caption font-weight-black text-white">
@@ -287,7 +272,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useAuthStore } from '@/stores/authStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useRouter } from 'vue-router'
@@ -295,29 +280,18 @@
   import PreferencesDialog from '../common/PreferencesDialog.vue'
   import LanguageSwitch from '../common/LanguageSwitch.vue'
   import { useAvatar } from '@/composables/useAvatar'
-  import { useDate } from '@/composables/useDate'
   import { useOnlineStatus } from '@/composables/useOnlineStatus'
+  import { useNotificationBell } from '@/composables/useNotificationBell'
+  import { useLogout } from '@/composables/useLogout'
   import { useCashDrawerStore } from '@/stores/cashDrawerStore'
-  import { getEcho } from '@/utils/echo'
-  import {
-    getAllNotificationsApi,
-    getUnreadNotificationCountApi,
-    markNotificationAsReadApi,
-    markAllNotificationsReadApi
-  } from '@/api/notificationService'
   import { useAppUtils, AppNotificationBell, AppDialog } from '@nong-official-dev/core'
-
-  // Echo/Reverb (see onMounted below) is the primary freshness mechanism —
-  // this is just a fallback in case a push event is missed (dropped socket,
-  // brief disconnect). The bell's own onMounted still fires one immediate
-  // fetch regardless of this value, so the badge is never stale on load.
-  const POLL_FALLBACK_MS = 5 * 60 * 1000
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
-  const { formatDateTime } = useDate()
   const { getInitials, getAvatarColor } = useAvatar()
   const { isOnline } = useOnlineStatus()
+  const bell = useNotificationBell()
+  const { logout } = useLogout()
 
   const authStore = useAuthStore()
   const branchStore = useBranchStore()
@@ -328,16 +302,12 @@
     user: Object,
     buName: String,
     branchName: String,
-    roleName: String,
-    // Stacked arrangement for the Sidebar-only/POS-focus footer — vs the
-    // default horizontal row used inside the top app bar.
-    vertical: Boolean
+    roleName: String
   })
 
   // State
   const userMenu = ref(false)
   const prefDialog = ref(false)
-  const bellRef = ref(null)
 
   const openPreferences = () => {
     userMenu.value = false
@@ -491,42 +461,8 @@
     return getAvatarColor(props.user, { palette: colors })
   })
 
-  // Notifications — matches BaseRepository::paginateServer()'s contract;
-  // unread_count comes back in index()'s meta (see NotificationController).
-  async function fetchRecentNotifications({ perPage }) {
-    const { data } = await getAllNotificationsApi({ perPage })
-    return { items: data.data, unreadCount: data.meta.unread_count }
-  }
-
-  async function fetchUnreadNotificationCount() {
-    const { data } = await getUnreadNotificationCountApi()
-    return data.data.count
-  }
-
-  const goToNotifications = () => router.push('/notifications')
-
-  // Live push — the router guard's fetchMe() call already connects Echo
-  // before Layout (and this component) ever mounts, so a live instance
-  // should already exist here.
-  let notificationChannel = null
-
   onMounted(() => {
-    const echo = getEcho()
-    const userId = authStore.me?.id
-    if (echo && userId) {
-      notificationChannel = echo.private(`App.Models.User.${userId}`)
-      notificationChannel.listen('.notification.created', () => {
-        bellRef.value?.refresh()
-      })
-    }
-
     loadRegisterState()
-  })
-
-  onUnmounted(() => {
-    if (notificationChannel) {
-      notificationChannel.stopListening('.notification.created')
-    }
   })
 
   // Navigation
@@ -536,50 +472,19 @@
   }
 
   // Logout
-  const handleLogout = async () => {
-    try {
-      userMenu.value = false
-
-      // 1. API call first (token still valid)
-      await authStore.logout()
-
-      // 2. Clear token and state
-      localStorage.removeItem('token')
-      authStore.$reset()
-
-      // 3. Navigate — guard sees no token → $reset() → allows Login
-      await router.push({ name: 'Login' })
-
-      notif(t('messages.logout_success'), {
-        type: 'success',
-        color: 'primary'
-      })
-    } catch {
-      notif(t('messages.logout_failed'), {
-        type: 'error',
-        color: 'error'
-      })
-    }
+  const handleLogout = () => {
+    userMenu.value = false
+    logout()
   }
 </script>
 
 <style scoped>
-  .app-bar-actions--horizontal {
+  .app-bar-actions {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .app-bar-actions--vertical {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 8px;
-  }
 
-  .w-100 {
-    width: 100%;
-  }
   .gap-1 {
     gap: 4px;
   }
@@ -607,24 +512,6 @@
   }
   .user-btn:hover {
     background: rgba(var(--v-theme-on-surface), 0.06);
-  }
-  .user-btn--vertical {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .user-btn__text {
-    flex-direction: column;
-    text-align: start;
-    line-height: 1.15;
-  }
-  .user-btn__name {
-    font-size: 13px;
-    font-weight: 700;
-    color: rgb(var(--v-theme-on-surface));
-  }
-  .user-btn__role {
-    font-size: 12px;
-    color: rgba(var(--v-theme-on-surface), 0.6);
   }
 
   .avatar-ring {

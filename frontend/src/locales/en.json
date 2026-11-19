@@ -4,6 +4,11 @@
     "km": "Khmer",
     "zh": "Chinese"
   },
+  "logout": {
+    "confirm_title": "Log out?",
+    "confirm_message": "You have an unsaved order in the cart. Logging out will discard it.",
+    "aria_label": "Log out"
+  },
   "menu": {
     "dashboard": "Dashboard",
     "tenant": "Tenants",

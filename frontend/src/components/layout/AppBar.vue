@@ -8,18 +8,8 @@
     ></v-app-bar-nav-icon>
     <v-divider class="mx-3" inset vertical />
 
-    <!-- Platform brand — the SAME image for every tenant, never the
-         tenant's own logo (that only ever shows on receipts/bills/
-         customer display/e-menu). See ShopBranchSwitcher for the
-         per-tenant branding instead. -->
-    <!-- <v-app-bar-title class="d-none d-lg-block d-print-block">
-      nexstacktech
-      <button type="button" class="platform-logo-btn" @click="router.push('/')">
-        <v-img :src="platformLogo" width="100" contain />
-      </button>
-    </v-app-bar-title> -->
-    <!-- <v-divider class="mx-3" inset vertical /> -->
-
+    <!-- The platform logo lives in the Sidebar header for every layout (see
+         Sidebar.vue) — never duplicated here. -->
     <ShopBranchSwitcher />
 
     <template v-slot:append>
@@ -29,16 +19,8 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue'
-  import { useTheme } from 'vuetify'
-  import { useRouter } from 'vue-router'
   import ShopBranchSwitcher from './ShopBranchSwitcher.vue'
   import AppBarActions from './AppBarActions.vue'
-  import logoWhite from '/logo_white.png'
-  import logoDark from '/logo_dark.png'
-
-  const router = useRouter()
-  const theme = useTheme()
 
   const emit = defineEmits(['toggle'])
 
@@ -49,21 +31,4 @@
     branchName: String,
     roleName: String
   })
-
-  const isDark = computed(() => theme.global.current.value.dark)
-
-  // The platform brand — identical for every tenant. Never the tenant's own
-  // logo (ShopBranchSwitcher reads authStore.logo_url for that instead).
-  const platformLogo = computed(() => (isDark.value ? logoWhite : logoDark))
 </script>
-
-<style scoped>
-  .platform-logo-btn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    padding: 0;
-  }
-</style>

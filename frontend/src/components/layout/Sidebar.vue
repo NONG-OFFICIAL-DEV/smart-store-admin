@@ -4,15 +4,8 @@
   import { useRouter, useRoute } from 'vue-router'
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
+  import { LOGOS } from '@/config/branding'
   import SidebarFooter from './SidebarFooter.vue'
-
-  // Files in /public are served from the site root — use URL strings,
-  // don't import them (Vite doesn't support importing from /public).
-  const LOGOS = {
-    light: '/logo_dark.png', // dark logo for light backgrounds
-    dark: '/logo_white.png', // white logo for dark backgrounds
-    rail: '/logo_rail.png' // small square mark for the collapsed rail
-  }
 
   const RAIL_WIDTH = 64
   const DRAWER_WIDTH = 260
@@ -58,19 +51,6 @@
   function goHome() {
     router.push('/')
     if (isTemporary.value) emit('update:modelValue', false)
-  }
-
-  async function handleLogout() {
-    try {
-      await authService.logout() // tell the server
-    } catch (e) {
-      // ignore — still log out locally
-    } finally {
-      localStorage.removeItem('token') // use your real token key
-      localStorage.removeItem('user')
-      if (isTemporary.value) emit('update:modelValue', false)
-      router.replace('/login')
-    }
   }
 
   const { filteredMenu, openGroups, isGroupActive } =
@@ -271,12 +251,7 @@
 
     <!-- Footer actions: Sidebar-only / POS-focus -->
     <template v-if="showChrome" #append>
-      <SidebarFooter
-        :user="user"
-        :role-name="roleName"
-        :rail="isRail"
-        @logout="handleLogout"
-      />
+      <SidebarFooter :user="user" :role-name="roleName" :rail="isRail" />
     </template>
   </v-navigation-drawer>
 
@@ -398,11 +373,6 @@
   .sub-item :deep(.v-list-item__prepend > .v-icon) {
     font-size: 18px;
     opacity: 0.8;
-  }
-
-  /* ── Footer ── */
-  .sidebar-footer {
-    padding: 8px;
   }
 
   /* ── Active item (sidebar + flyout) ── */
