@@ -194,6 +194,25 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex justify-end">
+            <v-btn
+              :icon="
+                item.is_active
+                  ? 'mdi-pause-circle-outline'
+                  : 'mdi-play-circle-outline'
+              "
+              :color="item.is_active ? 'warning' : 'success'"
+              variant="text"
+              size="small"
+              v-tooltip="{
+                text: item.is_active
+                  ? $t('tenant_details.suspend_tenant')
+                  : $t('tenant_details.activate_tenant'),
+                location: 'top'
+              }"
+              class="me-2"
+              @click="toggleActive(item)"
+            />
+            
             <v-menu>
               <template #activator="{ props: menuProps }">
                 <v-btn
@@ -234,20 +253,6 @@
                   class="text-indigo"
                   :disabled="impersonatingId === item.id"
                   @click="loginAsTenant(item)"
-                />
-                <v-list-item
-                  :title="
-                    item.is_active
-                      ? $t('tenant_details.suspend_tenant')
-                      : $t('tenant_details.activate_tenant')
-                  "
-                  :prepend-icon="
-                    item.is_active
-                      ? 'mdi-pause-circle-outline'
-                      : 'mdi-play-circle-outline'
-                  "
-                  :class="item.is_active ? 'text-warning' : 'text-success'"
-                  @click="toggleActive(item)"
                 />
                 <v-list-item
                   :title="$t('btn.delete')"
@@ -352,7 +357,6 @@
     return { items: data.data, total: data.meta.total }
   }
 
-
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
     {
@@ -445,7 +449,11 @@
   }
 
   const openManageSubscription = tenant => {
-    router.push({ name: 'tenant-subscription', params: { id: tenant.id }, query: { tenantName: tenant.name } })
+    router.push({
+      name: 'tenant-subscription',
+      params: { id: tenant.id },
+      query: { tenantName: tenant.name }
+    })
   }
 
   const openUsersDialog = tenant => {
