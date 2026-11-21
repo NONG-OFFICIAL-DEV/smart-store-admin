@@ -1,22 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <AppToolbar :title="$t('settings_hub.title')" :subtitle="headerSubtitle">
-      <template v-if="BRANCH_SCOPED_SECTIONS.includes(section)" #actions>
-        <v-select
-          v-model="selectedBranchIdModel"
-          :items="branchStore.branches"
-          item-title="name"
-          item-value="id"
-          :label="t('settings_hub.printer.branch_label')"
-          variant="outlined"
-          density="compact"
-          rounded="lg"
-          hide-details
-          prepend-inner-icon="mdi-store-outline"
-          style="min-width: 220px"
-        />
-      </template>
-    </AppToolbar>
+    <AppToolbar :title="$t('settings_hub.title')" :subtitle="headerSubtitle" />
 
     <!-- ── Mobile/tablet — chips above content instead of a side menu ──── -->
     <v-chip-group
@@ -870,29 +854,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- ── Unsaved-changes guard — switching which branch's printer you're
-         configuring ──────────────────────────────────────────────────── -->
-    <v-dialog v-model="showBranchSwitchConfirm" max-width="420" persistent>
-      <v-card rounded="lg">
-        <v-card-title>{{ t('settings_hub.branch_switch_title') }}</v-card-title>
-        <v-card-text>{{ t('settings_hub.branch_switch_body') }}</v-card-text>
-        <v-card-actions class="pa-4 pt-0">
-          <v-spacer />
-          <v-btn variant="text" class="text-none" @click="cancelBranchSwitch">
-            {{ t('settings_hub.branch_switch_cancel') }}
-          </v-btn>
-          <v-btn
-            color="error"
-            variant="flat"
-            class="text-none"
-            @click="confirmBranchSwitch"
-          >
-            {{ t('settings_hub.branch_switch_confirm') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- ── Pair a customer-display tablet ─────────────────────────────── -->
     <v-dialog v-model="pairDialogOpen" max-width="360">
       <v-card rounded="lg">
@@ -1000,11 +961,12 @@
   })
 
   const BRANCH_SCOPED_SECTIONS = ['printer', 'kitchen', 'customer_display']
-  const headerSubtitle = computed(() =>
-    BRANCH_SCOPED_SECTIONS.includes(section.value)
-      ? t('settings_hub.subtitle_selected_branch')
-      : t('settings_hub.subtitle_all_branches')
-  )
+  const headerSubtitle = computed(() => {
+    if (!BRANCH_SCOPED_SECTIONS.includes(section.value)) return t('settings_hub.subtitle_all_branches')
+    return selectedBranch.value
+      ? t('settings_hub.subtitle_selected_branch', { branch: selectedBranch.value.name })
+      : t('settings_hub.subtitle_no_branch')
+  })
 
   const canEdit = computed(() => authStore.isOwner || authStore.isSuperAdmin)
 
@@ -1458,42 +1420,31 @@
   ])
 
   // ── Printer section ──────────────────────────────────────────────────────
-  const selectedBranchId = ref(authStore.activeBranchId ?? null)
+  // Which branch's printer/kitchen/customer-display settings are shown here
+  // now just follows the app's single branch switcher (sidebar/app bar),
+  // not a page-local picker — see authStore.activeBranchId /
+  // ShopBranchSwitcher.vue.
   const selectedBranch = computed(
     () =>
-      branchStore.branches.find(b => b.id === selectedBranchId.value) ??
+      branchStore.branches.find(b => b.id === authStore.activeBranchId) ??
       branchStore.branches[0] ??
       null
   )
 
-  // Switching which branch's printer you're configuring while anything on
-  // the page is unsaved would silently lose it the moment printerNameInput
-  // re-syncs to the new branch below — confirm first, same as leaving the
-  // page entirely.
-  const showBranchSwitchConfirm = ref(false)
-  const pendingBranchId = ref(null)
-  const selectedBranchIdModel = computed({
-    get: () => selectedBranchId.value,
-    set: val => {
-      if (val === selectedBranchId.value) return
+  // Switching the active branch elsewhere in the app while anything on this
+  // page is unsaved would otherwise leave stale inputs silently out of sync
+  // with the new branch — discard them and say so, rather than trying to
+  // block/revert a switcher this page no longer owns.
+  watch(
+    () => authStore.activeBranchId,
+    (val, oldVal) => {
+      if (val === oldVal || oldVal == null) return
       if (dirty.value) {
-        pendingBranchId.value = val
-        showBranchSwitchConfirm.value = true
-      } else {
-        selectedBranchId.value = val
+        discardAll()
+        notif(t('settings_hub.branch_switch_discarded'), { type: 'warning' })
       }
     }
-  })
-  function confirmBranchSwitch() {
-    discardAll()
-    selectedBranchId.value = pendingBranchId.value
-    pendingBranchId.value = null
-    showBranchSwitchConfirm.value = false
-  }
-  function cancelBranchSwitch() {
-    pendingBranchId.value = null
-    showBranchSwitchConfirm.value = false
-  }
+  )
 
   // connectionStatus: null (never checked) | 'connected' | 'disconnected'
   const connectionStatus = ref(null)
@@ -1626,7 +1577,8 @@
   // order. pairDevice() only writes {deviceId} to localStorage keyed by
   // branch id, so it works fine from a publisher instance created here
   // rather than the one FoodPos/RetailPos keep alive during a live order.
-  const customerDisplay = useCustomerDisplayPublisher(selectedBranchId)
+  const activeBranchIdRef = computed(() => authStore.activeBranchId)
+  const customerDisplay = useCustomerDisplayPublisher(activeBranchIdRef)
   const pairDialogOpen = ref(false)
   const pairCode = ref('')
   const pairDeviceName = ref('')
