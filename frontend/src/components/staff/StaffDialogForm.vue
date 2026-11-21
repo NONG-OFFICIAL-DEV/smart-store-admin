@@ -2,7 +2,6 @@
   <AppDrawer
     :model-value="model"
     width="560"
-    :loading="loading"
     :persistent="loading"
     :confirm-close="() => confirmDiscard(isDirty)"
     @update:model-value="model = $event"

@@ -21,7 +21,7 @@
   const { getInitials, getAvatarColor } = useAvatar()
   const { isOnline } = useOnlineStatus()
   const bell = useNotificationBell()
-  const { goToAccount, customerDisplayEnabled, openCustomerDisplay } = useUserMenu()
+  const { goToAccount } = useUserMenu()
   const { options, currentLanguage, select } = useLanguage()
   const { logout } = useLogout()
 
@@ -59,16 +59,6 @@
               <span class="name">{{ user?.first_name }} {{ user?.last_name }}</span>
               <span v-if="metaText" class="meta">{{ metaText }}</span>
             </span>
-          </button>
-
-          <button
-            v-if="customerDisplayEnabled"
-            type="button"
-            class="icon-btn"
-            :aria-label="t('settings_hub.customer_display.open_display')"
-            @click="openCustomerDisplay"
-          >
-            <v-icon icon="mdi-monitor-share" size="18" />
           </button>
 
           <button
@@ -111,7 +101,7 @@
 
           <FooterNotificationsMenu
             v-bind="bell.bellProps"
-            :unread-count="bell.unreadCount"
+            :unread-count="bell.unreadCount.value"
             :label="t('app_bar.alerts')"
             @item-click="bell.goToNotifications"
             @view-all="bell.goToNotifications"
@@ -153,7 +143,7 @@
           <FooterNotificationsMenu
             v-bind="bell.bellProps"
             rail
-            :unread-count="bell.unreadCount"
+            :unread-count="bell.unreadCount.value"
             @item-click="bell.goToNotifications"
             @view-all="bell.goToNotifications"
             @read="bell.refreshUnreadCount"
@@ -364,21 +354,18 @@
     line-height: 1;
   }
 
-  /* ── Rail ────────────────────────────────────────────────────────────── */
+  /* ── Rail: same full-width row style as the menu ────────────────────── */
   .rail {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 6px;
   }
   .rail-btn {
-    width: 44px;
-    height: 40px;
+    width: 100%;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 0;
     border: 0;
     background: transparent;
     color: rgb(var(--v-theme-on-surface));
@@ -386,26 +373,34 @@
     cursor: pointer;
   }
   .rail-btn:hover {
-    background: rgba(var(--v-theme-on-surface), 0.06);
+    background: rgba(var(--v-theme-on-surface), 0.05);
   }
   .rail-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
   .rail-divider {
-    width: 32px;
     height: 1px;
+    margin: 8px 12px;
     background: rgba(var(--v-border-color), var(--v-border-opacity));
   }
   .rail-avatar {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     background: transparent;
     padding: 0;
-    border-radius: 999px;
     cursor: pointer;
+  }
+  .rail-avatar .avatar {
+    width: 34px;
+    height: 34px;
   }
   .rail-avatar:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
 </style>

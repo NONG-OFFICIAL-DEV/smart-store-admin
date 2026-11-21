@@ -6,24 +6,29 @@
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
   import { LOGOS } from '@/config/branding'
-  import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
+  import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
+  import { SIDEBAR_RAIL_WIDTH, SIDEBAR_EXPANDED_WIDTH } from '@/config/sidebarLayout'
   import SidebarFooter from './SidebarFooter.vue'
+  import ShopBranchSwitcher from './ShopBranchSwitcher.vue'
 
-  const RAIL_WIDTH = 64
-  const DRAWER_WIDTH = 260
+  const RAIL_WIDTH = SIDEBAR_RAIL_WIDTH
+  const DRAWER_WIDTH = SIDEBAR_EXPANDED_WIDTH
 
   const props = defineProps({
     user: Object,
-    rail: Boolean,
     buName: String,
     branchName: String,
     roleName: String,
     // 'classic'      → permanent; logo lives in the AppBar
-    // 'icon_rail'    → permanent rail; logo lives in the AppBar
+    // 'icon_rail'    → permanent; logo lives in the AppBar
     // 'sidebar_only' → permanent; brand header + footer actions, no AppBar
-    // 'pos_focus'    → temporary overlay; brand header + footer actions
+    // 'pos_focus'    → temporary overlay; brand header only — same AppBar
+    //                  as Classic/Icon-rail handles branch/language/user
+    //                  (see Layout.vue), just with the drawer always
+    //                  temporary instead of permanent
     variant: { type: String, default: 'classic' },
-    // Only used for variant="pos_focus" (open state of the overlay)
+    // Open state of the temporary overlay (POS-focus always, every layout
+    // below the lg breakpoint — see useSidebarCollapse's isTemporary)
     modelValue: Boolean
   })
 
@@ -33,34 +38,20 @@
   const route = useRoute()
   const theme = useTheme()
   const { t } = useI18n()
-  const uiPrefs = useUiPreferencesStore()
+  const variantRef = computed(() => props.variant)
+  const { isTemporary, isCollapsed: isRail, toggleCollapse } = useSidebarCollapse(variantRef)
 
   const isDark = computed(() => theme.global.current.value.dark)
   // Logo shows in the sidebar for ALL layouts (it no longer lives in the AppBar)
   const showBrand = true
-  // Footer actions (branch, language, user) only when there is no AppBar
-  const showChrome = computed(() =>
-    ['sidebar_only', 'pos_focus'].includes(props.variant)
-  )
-  const isTemporary = computed(() => props.variant === 'pos_focus')
-  // Only Sidebar-only can be collapsed by the user — Classic/Icon-rail's
-  // rail state is driven by the hamburger toggle (Layout.vue's own `rail`
-  // prop), and POS-focus's drawer is temporary, never collapsible.
-  const isSidebarOnly = computed(() => props.variant === 'sidebar_only')
-
-  // The rail never applies to the temporary POS-focus drawer. Sidebar-only
-  // sources its own collapse state from the per-user preference (persisted,
-  // restored synchronously — no flash) instead of the `rail` prop, which
-  // Layout.vue only ever wires up for Classic/Icon-rail.
-  const isRail = computed(() => {
-    if (isTemporary.value) return false
-    if (isSidebarOnly.value) return uiPrefs.sidebarOnlyCollapsed
-    return props.rail
-  })
-
-  function toggleSidebarCollapse() {
-    uiPrefs.setSidebarOnlyCollapsed(!uiPrefs.sidebarOnlyCollapsed)
-  }
+  // Footer actions (branch, language, user) only when there is no AppBar —
+  // POS-focus has one (reused from Classic/Icon-rail, see Layout.vue), so
+  // it's excluded here same as those two.
+  const showChrome = computed(() => props.variant === 'sidebar_only')
+  const isPosFocus = computed(() => props.variant === 'pos_focus')
+  // POS-focus's drawer is narrower (280px) than the other permanent-layout
+  // drawers (260px), per its own design.
+  const drawerWidth = computed(() => (isPosFocus.value ? 280 : DRAWER_WIDTH))
 
   const brandLogo = computed(() => {
     if (isRail.value) return LOGOS.rail
@@ -70,6 +61,10 @@
   function goHome() {
     router.push('/')
     if (isTemporary.value) emit('update:modelValue', false)
+  }
+
+  function closeDrawer() {
+    emit('update:modelValue', false)
   }
 
   const { filteredMenu, openGroups, isGroupActive } =
@@ -103,11 +98,18 @@
     )
   }
 
+  // Rail single items are plain links, not Vuetify <v-list-item>, so they
+  // don't get router-link's own active-class handling — compute it directly
+  // (exact match; these are leaf items, no nested sub-routes to account for).
+  function isLinkActive(link) {
+    return route.path === link.path
+  }
+
   function onKeydown(e) {
     if (e.key === 'Escape') hideFlyout()
-    if (isSidebarOnly.value && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+    if (!isTemporary.value && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
       e.preventDefault()
-      toggleSidebarCollapse()
+      toggleCollapse()
     }
   }
 
@@ -141,7 +143,7 @@
   <v-navigation-drawer
     :rail="isRail"
     :rail-width="RAIL_WIDTH"
-    :width="DRAWER_WIDTH"
+    :width="drawerWidth"
     :permanent="!isTemporary"
     :temporary="isTemporary"
     :model-value="isTemporary ? modelValue : true"
@@ -149,11 +151,11 @@
     class="border-e"
     @update:model-value="v => emit('update:modelValue', v)"
   >
-    <!-- Brand header: Sidebar-only / POS-focus (Classic & Icon-rail show it in the AppBar) -->
+    <!-- Brand header: logo, every layout -->
     <div
       v-if="showBrand"
       class="sidebar-brand"
-      :class="{ 'sidebar-brand--rail': isRail }"
+      :class="{ 'sidebar-brand--rail': isRail, 'sidebar-brand--pos-focus': isPosFocus }"
     >
       <button
         type="button"
@@ -169,27 +171,93 @@
         />
       </button>
 
-      <v-tooltip
-        v-if="isSidebarOnly"
-        location="end"
-        :text="isRail ? t('sidebar.expand_menu') : t('sidebar.collapse_menu')"
+      <button
+        v-if="isPosFocus"
+        type="button"
+        class="drawer-close-btn"
+        :aria-label="t('pos_focus.close_menu')"
+        @click="closeDrawer"
       >
-        <template #activator="{ props: tip }">
-          <button
-            type="button"
-            v-bind="tip"
-            class="collapse-btn"
-            :aria-label="isRail ? t('sidebar.expand_menu') : t('sidebar.collapse_menu')"
-            @click="toggleSidebarCollapse"
-          >
-            <v-icon :icon="isRail ? 'mdi-dock-right' : 'mdi-dock-left'" size="18" />
-          </button>
-        </template>
-      </v-tooltip>
+        <v-icon icon="mdi-close" size="18" />
+      </button>
     </div>
 
-    <!-- MENU -->
+    <!-- Branch switcher: Sidebar-only only (Classic/Icon-rail/POS-focus all
+         show it in the AppBar instead) -->
+    <div
+      v-if="showChrome && buName"
+      class="sidebar-branch"
+      :class="{ 'sidebar-branch--rail': isRail }"
+    >
+      <ShopBranchSwitcher :rail="isRail" />
+    </div>
+
+    <!-- MENU: RAIL — plain HTML full-width rows, Vuetify only for the
+         tooltip and the flyout it opens (see Teleport block below) -->
+    <nav v-if="isRail" class="rail-nav" aria-label="Primary">
+      <template v-for="link in filteredMenu" :key="link.key">
+        <div v-if="link.key === 'system'" class="rail-divider-line" />
+
+        <!-- ── SINGLE ITEM ── -->
+        <v-tooltip v-if="!link.children" location="end" :text="link.title">
+          <template #activator="{ props: tip }">
+            <router-link
+              v-if="!link.newTab"
+              v-bind="tip"
+              :to="link.path"
+              class="rail-row"
+              :class="{ 'rail-row--active': isLinkActive(link) }"
+              :aria-label="link.title"
+            >
+              <v-icon :icon="link.icon" size="22" />
+            </router-link>
+            <a
+              v-else
+              v-bind="tip"
+              :href="link.path"
+              target="_blank"
+              rel="noopener"
+              class="rail-row"
+              :aria-label="link.title"
+            >
+              <v-icon :icon="link.icon" size="22" />
+            </a>
+          </template>
+        </v-tooltip>
+
+        <!-- ── GROUP: icon opens the flyout ── -->
+        <v-tooltip
+          v-else
+          location="end"
+          :text="link.title"
+          :disabled="flyout.visible"
+        >
+          <template #activator="{ props: tip }">
+            <button
+              type="button"
+              v-bind="tip"
+              class="rail-row"
+              :class="{
+                'rail-row--active': isRailGroupHighlighted(link),
+                'rail-row--pos': link.emphasize
+              }"
+              :aria-label="link.title"
+              :aria-expanded="
+                flyout.visible && flyout.group?.key === link.key
+              "
+              aria-haspopup="menu"
+              @click="showFlyout(link, $event)"
+            >
+              <v-icon :icon="link.icon" size="22" />
+            </button>
+          </template>
+        </v-tooltip>
+      </template>
+    </nav>
+
+    <!-- MENU: EXPANDED — unchanged -->
     <v-list
+      v-else
       v-model:opened="openGroups"
       nav
       density="compact"
@@ -200,55 +268,21 @@
         <v-divider v-if="link.key === 'system'" class="my-2 mx-2" />
 
         <!-- ── SINGLE ITEM ── -->
-        <template v-if="!link.children">
-          <v-tooltip :disabled="!isRail" location="end" :text="link.title">
-            <template #activator="{ props: tip }">
-              <v-list-item
-                v-bind="tip"
-                :to="!link.newTab ? link.path : undefined"
-                :href="link.newTab ? link.path : undefined"
-                :target="link.newTab ? '_blank' : undefined"
-                :rel="link.newTab ? 'noopener' : undefined"
-                :prepend-icon="link.icon"
-                :title="isRail ? undefined : link.title"
-                :aria-label="link.title"
-                rounded="lg"
-                class="mb-1"
-                active-class="active-item"
-              />
-            </template>
-          </v-tooltip>
-        </template>
+        <v-list-item
+          v-if="!link.children"
+          :to="!link.newTab ? link.path : undefined"
+          :href="link.newTab ? link.path : undefined"
+          :target="link.newTab ? '_blank' : undefined"
+          :rel="link.newTab ? 'noopener' : undefined"
+          :prepend-icon="link.icon"
+          :title="link.title"
+          :aria-label="link.title"
+          rounded="lg"
+          class="mb-1"
+          active-class="active-item"
+        />
 
-        <!-- ── GROUP, RAIL: icon opens a flyout ── -->
-        <template v-else-if="isRail">
-          <v-tooltip
-            location="end"
-            :text="link.title"
-            :disabled="flyout.visible"
-          >
-            <template #activator="{ props: tip }">
-              <v-list-item
-                v-bind="tip"
-                :prepend-icon="link.icon"
-                :aria-label="link.title"
-                :aria-expanded="
-                  flyout.visible && flyout.group?.key === link.key
-                "
-                aria-haspopup="menu"
-                rounded="lg"
-                class="mb-1 rail-group-trigger"
-                :class="{
-                  'active-item': isRailGroupHighlighted(link),
-                  'pos-group-trigger': link.emphasize
-                }"
-                @click="showFlyout(link, $event)"
-              />
-            </template>
-          </v-tooltip>
-        </template>
-
-        <!-- ── GROUP, EXPANDED: accordion ── -->
+        <!-- ── GROUP: accordion ── -->
         <v-list-group v-else :value="link.key">
           <template #activator="{ props: groupProps }">
             <v-list-item
@@ -356,19 +390,40 @@
 <style scoped>
   /* ── Brand header ── */
   .sidebar-brand {
-    min-height: 64px; /* same height as the AppBar */
+    height: 64px; /* same height as the AppBar */
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 0 16px;
     border-bottom: 1px solid
       rgba(var(--v-border-color), var(--v-border-opacity));
   }
   .sidebar-brand--rail {
-    flex-direction: column;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 0;
+    padding: 0;
+  }
+  .sidebar-brand--pos-focus {
+    height: 52px;
+    justify-content: space-between;
+  }
+  .drawer-close-btn {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(var(--v-theme-on-surface), 0.7);
+    cursor: pointer;
+  }
+  .drawer-close-btn:hover {
+    background: rgba(var(--v-theme-on-surface), 0.06);
+  }
+  .drawer-close-btn:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: 2px;
   }
   .platform-logo-btn {
     border: 0;
@@ -380,26 +435,6 @@
     align-items: center;
   }
   .platform-logo-btn:focus-visible {
-    outline: 2px solid rgb(var(--v-theme-primary));
-    outline-offset: 2px;
-  }
-  .collapse-btn {
-    width: 32px;
-    height: 32px;
-    flex: none;
-    border-radius: 9px;
-    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-    background: transparent;
-    color: rgba(var(--v-theme-on-surface), 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  .collapse-btn:hover {
-    background: rgba(var(--v-theme-on-surface), 0.06);
-  }
-  .collapse-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
     outline-offset: 2px;
   }
@@ -415,6 +450,15 @@
     height: 32px;
     object-fit: contain;
     display: block;
+  }
+
+  /* ── Branch switcher (Sidebar-only / POS-focus) ── */
+  .sidebar-branch {
+    padding: 8px;
+    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  }
+  .sidebar-branch--rail {
+    padding: 0;
   }
 
   /* ── Remove Vuetify nav spacing (items already use .mb-1) ── */
@@ -467,32 +511,72 @@
     border-radius: 0 4px 4px 0;
   }
 
-  /* ── POS group emphasis ── */
-  .pos-group-header,
-  .pos-group-trigger {
+  /* ── POS group emphasis (expanded accordion header) ── */
+  .pos-group-header {
     background: rgba(var(--v-theme-primary), 0.08) !important;
     border: 1px solid rgba(var(--v-theme-primary), 0.18);
   }
   .pos-group-header :deep(.v-list-item-title),
-  .pos-group-header :deep(.v-icon),
-  .pos-group-trigger :deep(.v-icon) {
+  .pos-group-header :deep(.v-icon) {
     color: rgb(var(--v-theme-primary));
     font-weight: 700;
   }
 
-  /* ── Rail: centered icons ── */
-  .rail-group-trigger {
-    cursor: pointer;
+  /* ── Rail: plain-HTML full-width rows ──────────────────────────────────
+     Not Vuetify <v-list-item> — a bare CSS grid component whose "content"
+     area is still rendered (just empty) and keeps claiming width as a 1fr
+     track no matter what CSS is thrown at it, which is what made icons look
+     off-center before. Plain buttons/links sidestep that entirely. */
+  .rail-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
   }
-  :deep(.v-navigation-drawer--rail .v-list-item) {
-    padding-inline: 0 !important;
+  .rail-row {
+    position: relative;
+    width: 100%;
+    height: 48px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    color: rgba(var(--v-theme-on-surface), 0.7);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
-  :deep(.v-navigation-drawer--rail .v-list-item__prepend) {
-    margin-inline-end: 0 !important;
+  .rail-row:hover {
+    background: rgba(var(--v-theme-on-surface), 0.05);
   }
-  :deep(.v-navigation-drawer--rail .v-list-item__spacer) {
-    display: none;
+  .rail-row:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: -2px;
+  }
+  .rail-row--active {
+    background: rgba(var(--v-theme-primary), 0.1);
+    color: rgb(var(--v-theme-primary));
+  }
+  .rail-row--active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: rgb(var(--v-theme-primary));
+    border-radius: 0 3px 3px 0;
+  }
+  .rail-row--pos {
+    color: rgb(var(--v-theme-primary));
+  }
+  .rail-divider-line {
+    height: 1px;
+    margin: 8px 12px;
+    background: rgba(var(--v-border-color), var(--v-border-opacity));
   }
 
   /* ── Flyout ── */

@@ -74,9 +74,15 @@ export function useSidebarMenu(rawMenu) {
   )
 
   // ── Active-route highlighting ──────────────────────────────────────────
+  // A plain `startsWith` would match unrelated routes that merely share a
+  // text prefix (e.g. '/orders-reports'.startsWith('/orders') or
+  // '/tenants-billing'.startsWith('/tenants')) — require either an exact
+  // match or a real path-segment boundary.
   function isGroupActive(group) {
     if (!group.children) return false
-    return group.children.some(c => c.path && route.path.startsWith(c.path))
+    return group.children.some(
+      c => c.path && (route.path === c.path || route.path.startsWith(c.path + '/'))
+    )
   }
 
   // ── Expand/collapse state — persisted, defaults to the active group ────

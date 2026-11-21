@@ -5,6 +5,9 @@
     "zh": "ចិន",
     "change": "ប្តូរភាសា"
   },
+  "pos_focus": {
+    "close_menu": "បិទម៉ឺនុយ"
+  },
   "logout": {
     "confirm_title": "ចាកចេញ?",
     "confirm_message": "អ្នកមានការកម្ម៉ង់ដែលមិនទាន់រក្សាទុកនៅក្នុងកន្ត្រក។ ការចាកចេញនឹងលុបវាចោល។",
@@ -155,16 +158,20 @@
   },
   "app_bar": {
     "appearance": "រូបរាង",
-    "online": "អនឡាញ",
-    "offline": "គ្មានអ៊ីនធឺណិត",
     "alerts": "ការជូនដំណឹង",
     "account_menu": "ម៉ឺនុយគណនី",
     "lang_compact": "EN · ខ្មែរ",
+    "offline_message": "គ្មានអ៊ីនធឺណិត · ការបញ្ជាទិញត្រូវបានរក្សាទុក ហើយនឹងធ្វើសមកាលកម្ម",
+    "back_online": "មានអ៊ីនធឺណិតឡើងវិញ"
+  },
+  "shop_switcher": {
     "select_branch": "ជ្រើសរើសសាខា",
-    "current_shop": "ហាងបច្ចុប្បន្ន",
     "switch_branch": "ប្តូរសាខា",
-    "branch_open": "បើក",
-    "branch_closed": "បិទ"
+    "branches_label": "សាខា · {count}",
+    "search_placeholder": "ស្វែងរកសាខា",
+    "no_results": "មិនមានសាខាត្រូវគ្នានឹង \"{query}\" ទេ",
+    "manage_branches": "គ្រប់គ្រងសាខា",
+    "switched_to": "បានប្តូរទៅ {branch}"
   },
   "account": {
     "title": "គណនីរបស់ខ្ញុំ",
@@ -189,10 +196,6 @@
       "saved": "ប្រវត្តិរូបត្រូវបានកែប្រែ។",
       "save_failed": "មិនអាចកែប្រែប្រវត្តិរូបបានទេ។",
       "password_strength_hint": "យ៉ាងហោចណាស់ ៨ តួអក្សរ មានអក្សរធំ អក្សរតូច និងលេខ"
-    },
-    "preferences": {
-      "default_branch": "សាខាលំនាំដើមពេលចូលប្រព័ន្ធ",
-      "default_branch_hint": "សាខាមួយណាដែលអ្នកចង់ចូលភ្លាមៗបន្ទាប់ពីចូលប្រព័ន្ធ។"
     },
     "keyboard": {
       "general": "ទូទៅ",
@@ -409,8 +412,8 @@
     "toggle_sidebar": "បង្រួម/ពង្រីកម៉ឺនុយចំហៀង"
   },
   "sidebar": {
-    "collapse_menu": "បង្រួមម៉ឺនុយ",
-    "expand_menu": "ពង្រីកម៉ឺនុយ"
+    "collapse_menu": "បង្រួមម៉ឺនុយ (Ctrl+B)",
+    "expand_menu": "ពង្រីកម៉ឺនុយ (Ctrl+B)"
   },
   "forgot_password": {
     "tagline": "សង្គ្រោះគណនី",
@@ -896,6 +899,9 @@
     "empty_sub": "បន្ថែមសាខាដំបូងដើម្បីចាប់ផ្តើម",
     "no_results": "មិនមានសាខាត្រូវគ្នានឹងការស្វែងរករបស់អ្នកទេ",
     "add_branch": "បន្ថែមសាខា",
+    "default_branch": "លំនាំដើម",
+    "set_as_default": "កំណត់ជាលំនាំដើម",
+    "default_branch_help": "សាខាលំនាំដើមគឺជាកន្លែងដែលម្ចាស់នឹងចូលភ្លាមៗបន្ទាប់ពីចូលប្រព័ន្ធ។",
     "status": {
       "open": "បើក",
       "closed": "បិទ",
@@ -939,7 +945,8 @@
       "saved": "បានរក្សាទុកសាខាដោយជោគជ័យ",
       "delete_title": "លុបសាខា",
       "delete_message": "តើអ្នកប្រាកដថាចង់លុប \"{name}\" ដែរឬទេ?",
-      "deleted": "បានលុបសាខា"
+      "deleted": "បានលុបសាខា",
+      "default_set": "សាខាលំនាំដើមត្រូវបានធ្វើបច្ចុប្បន្នភាព"
     }
   },
   "categories": {

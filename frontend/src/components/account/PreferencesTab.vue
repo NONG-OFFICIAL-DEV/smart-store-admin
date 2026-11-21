@@ -36,52 +36,16 @@
         <AppearanceSettings />
       </v-card-text>
     </v-card>
-
-    <!-- Default branch -->
-    <v-card v-if="showDefaultBranch" variant="outlined" rounded="lg" class="mt-4">
-      <v-card-text class="pa-5">
-        <div class="d-flex align-center gap-2 mb-4">
-          <v-icon size="18" color="primary">mdi-store-outline</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('account.preferences.default_branch') }}</span>
-        </div>
-        <v-select
-          :model-value="prefs.defaultBranchId"
-          :items="branchStore.branches"
-          item-title="name"
-          item-value="id"
-          variant="outlined"
-          rounded="lg"
-          clearable
-          :label="t('account.preferences.default_branch')"
-          :hint="t('account.preferences.default_branch_hint')"
-          persistent-hint
-          @update:model-value="prefs.setDefaultBranch"
-        />
-      </v-card-text>
-    </v-card>
   </div>
 </template>
 
 <script setup>
-  import { computed, onMounted } from 'vue'
+  import { computed } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useAuthStore } from '@/stores/authStore'
-  import { useBranchStore } from '@/stores/branchStore'
-  import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
   import AppearanceSettings from './AppearanceSettings.vue'
   import authService from '@/api/auth'
 
   const { t, locale } = useI18n()
-  const authStore = useAuthStore()
-  const branchStore = useBranchStore()
-  const prefs = useUiPreferencesStore()
-
-  // Only meaningful for an owner/multi-branch user — staff are always
-  // forced onto their one assigned branch (see authStore.fetchMe()), and a
-  // super admin has no branch concept at all.
-  const showDefaultBranch = computed(
-    () => !authStore.isSuperAdmin && !authStore.branch_id && branchStore.branches.length > 1
-  )
 
   const languages = computed(() => [
     { code: 'km', label: t('lang.km') || 'ខ្មែរ', flag: '/images/kh.png' },
@@ -93,10 +57,6 @@
     localStorage.setItem('lang', code)
     authService.updatePreferences({ preferred_language: code }).catch(() => {})
   }
-
-  onMounted(() => {
-    if (!branchStore.branches.length) branchStore.fetchBranches()
-  })
 </script>
 
 <style scoped>

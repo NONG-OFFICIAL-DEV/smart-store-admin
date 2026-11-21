@@ -1,18 +1,17 @@
 <template>
   <div>
     <template v-if="layout === 'classic' || layout === 'icon_rail'">
-   
       <sidebar
+        :variant="layout"
+        v-model="navOpen"
         :user="user"
-        :rail="effectiveRail"
         :bu-name="buName"
         :branch-name="branchName"
         :role-name="roleName"
-      />   
+      />
       <app-bar
         :user="user"
-        :rail="effectiveRail"
-        @toggle="toggleRail"
+        @toggle="navOpen = true"
         :bu-name="buName"
         :branch-name="branchName"
         :role-name="roleName"
@@ -22,6 +21,7 @@
     <sidebar
       v-else-if="layout === 'sidebar_only'"
       variant="sidebar_only"
+      v-model="navOpen"
       :user="user"
       :bu-name="buName"
       :branch-name="branchName"
@@ -29,23 +29,43 @@
     />
 
     <template v-else-if="layout === 'pos_focus'">
-      <v-btn
-        icon="mdi-menu"
-        class="pos-focus-fab"
-        color="primary"
-        elevation="4"
-        size="large"
-        @click="posNavOpen = true"
-      />
       <sidebar
         variant="pos_focus"
-        v-model="posNavOpen"
+        v-model="navOpen"
         :user="user"
         :bu-name="buName"
         :branch-name="branchName"
         :role-name="roleName"
       />
+      <app-bar
+        :user="user"
+        :force-hamburger="true"
+        @toggle="navOpen = true"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+      />
     </template>
+
+    <!-- Mobile open trigger for Sidebar-only, the one other layout with no
+         AppBar hamburger -->
+    <v-btn
+      v-if="layout === 'sidebar_only' && mdAndDown"
+      icon="mdi-menu"
+      class="mobile-nav-fab"
+      color="primary"
+      elevation="4"
+      size="large"
+      @click="navOpen = true"
+    />
+
+    <!-- Unified collapse/expand handle — desktop only, permanent layouts only -->
+    <SidebarCollapseHandle
+      v-if="showCollapseHandle"
+      :collapsed="isCollapsed"
+      :left="handleLeft"
+      @toggle="toggleCollapse"
+    />
 
     <v-main>
       <v-container class="px-4" fluid>
@@ -108,30 +128,41 @@
 <script setup>
   import { ref, computed, onMounted, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { useDisplay } from 'vuetify'
   import Sidebar from './Sidebar.vue'
   import AppBar from './AppBar.vue'
+  import SidebarCollapseHandle from './SidebarCollapseHandle.vue'
   import { useAuthStore } from '@/stores/authStore'
   import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
+  import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
+  import { SIDEBAR_RAIL_WIDTH, SIDEBAR_EXPANDED_WIDTH } from '@/config/sidebarLayout'
   import { useRouter } from 'vue-router'
 
-  const { mdAndDown } = useDisplay()
-
-  // Only fall back to viewport width when the user has never chosen a state
-  // themselves (no stored preference yet) — a tablet-width screen starts
-  // collapsed to rail mode, but an explicit prior choice is always respected.
-  const storedRail = localStorage.getItem('sidebar-rail')
-  const rail = ref(storedRail === null ? mdAndDown.value : storedRail === 'true')
   const authStore = useAuthStore()
   const uiPrefs = useUiPreferencesStore()
   const router = useRouter()
   const { t, te } = useI18n()
 
   const layout = computed(() => uiPrefs.layout)
-  // Icon-rail is always collapsed — the hamburger toggle is a no-op there,
-  // only Classic's sidebar actually expands/collapses.
-  const effectiveRail = computed(() => (layout.value === 'icon_rail' ? true : rail.value))
-  const posNavOpen = ref(false)
+
+  // Single open/close state for whichever Sidebar instance is currently
+  // rendered — temporary overlay below lg (every layout) and always for
+  // POS-focus; a no-op v-model for the permanent desktop drawer.
+  const navOpen = ref(false)
+
+  const { isTemporary, isCollapsed, toggleCollapse, mdAndDown } = useSidebarCollapse(layout)
+  // The handle only makes sense for a permanent desktop drawer — hidden on
+  // POS-focus (always temporary) and below lg (temporary overlay, opened by
+  // the hamburger/fab instead).
+  const showCollapseHandle = computed(() => !isTemporary.value)
+  const handleLeft = computed(
+    () => (isCollapsed.value ? SIDEBAR_RAIL_WIDTH : SIDEBAR_EXPANDED_WIDTH) - 12
+  )
+
+  // Resizing back up to desktop mid-overlay shouldn't leave it primed to
+  // reopen immediately next time the viewport narrows again.
+  watch(isTemporary, v => {
+    if (!v) navOpen.value = false
+  })
 
   const user = computed(() => authStore.me)
   const buName = computed(() => authStore.bu_name)
@@ -152,20 +183,11 @@
       router.push({ name: 'Login' })
     }
   })
-
-  watch(rail, val => {
-    localStorage.setItem('sidebar-rail', val)
-  })
-
-  function toggleRail() {
-    if (layout.value === 'icon_rail') return
-    rail.value = !rail.value
-  }
 </script>
 
 <style>
-  /* POS-focus layout — floating nav trigger, no permanent chrome */
-  .pos-focus-fab {
+  /* Sidebar-only on mdAndDown — floating nav trigger, no AppBar there */
+  .mobile-nav-fab {
     position: fixed;
     top: 16px;
     left: 16px;

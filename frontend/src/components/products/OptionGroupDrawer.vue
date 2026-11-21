@@ -1,7 +1,6 @@
 <template>
   <AppDrawer
     :model-value="modelValue"
-    :loading="loading"
     :persistent="loading"
     :confirm-close="() => confirmDiscard(isDirty)"
     @update:model-value="$emit('update:modelValue', $event)"

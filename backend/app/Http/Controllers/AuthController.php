@@ -394,7 +394,7 @@ class AuthController extends Controller
             'ui_preferences.accent' => ['nullable', 'in:teal,blue,orange,purple,rose'],
             'ui_preferences.density' => ['nullable', 'in:comfortable,compact'],
             'ui_preferences.default_branch_id' => ['nullable', 'uuid'],
-            'ui_preferences.sidebar_only_collapsed' => ['nullable', 'boolean'],
+            'ui_preferences.sidebar_collapsed' => ['nullable', 'boolean'],
         ]);
 
         $data = [];

@@ -1,5 +1,11 @@
 <template>
   <div class="app-bar-actions">
+    <!-- Offline pill — left of everything else in this row -->
+    <div v-if="!isOnline" class="offline-pill" :class="{ 'offline-pill--dark': isDark }">
+      <span class="offline-dot" />
+      {{ t('app_bar.offline_message') }}
+    </div>
+
     <!-- Register status — only meaningful for staff (owners have no Staff
          row of their own, so there's nothing personal to open/close) -->
     <v-chip
@@ -15,50 +21,60 @@
       {{ registerOpen ? t('cash_register.open_label') : t('cash_register.closed_label') }}
     </v-chip>
 
-    <!-- Online status -->
-    <v-chip
-      size="small"
-      variant="tonal"
-      :color="isOnline ? 'success' : 'error'"
-      rounded="lg"
-      class="d-none d-sm-inline-flex"
-      :prepend-icon="isOnline ? 'mdi-circle' : 'mdi-circle-outline'"
-    >
-      {{ isOnline ? t('app_bar.online') : t('app_bar.offline') }}
-    </v-chip>
+    <!-- 1. Language -->
+    <v-menu v-model="langMenu" location="bottom end" offset="8">
+      <template #activator="{ props: menuProps }">
+        <button type="button" class="bar-btn lang-btn" v-bind="menuProps" :aria-label="t('lang.change')">
+          <img :src="currentLanguage.flag" width="22" height="16" class="lang-flag" alt="" />
+          <span class="lang-code d-none d-md-inline">{{ shortCode }}</span>
+          <v-icon icon="mdi-chevron-down" size="14" class="bar-chevron" />
+        </button>
+      </template>
 
-    <LanguageSwitch />
+      <v-list class="pa-1" rounded="lg" density="compact">
+        <v-list-item
+          v-for="opt in options"
+          :key="opt.code"
+          :active="currentLanguage.code === opt.code"
+          rounded="md"
+          @click="onSelectLanguage(opt.code)"
+        >
+          <template #prepend>
+            <img :src="opt.flag" width="20" height="14" class="flag me-3" alt="" />
+          </template>
+          <v-list-item-title class="text-body-2">{{ opt.label }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
-    <!-- Notifications -->
-    <AppNotificationBell
+    <!-- 2. Notifications -->
+    <FooterNotificationsMenu
       :ref="bell.bellRef"
+      bar
       v-bind="bell.bellProps"
+      :unread-count="bell.unreadCount.value"
       @item-click="bell.goToNotifications"
       @view-all="bell.goToNotifications"
+      @read="bell.refreshUnreadCount"
     />
 
-    <!-- Customer display -->
-    <v-btn
-      v-if="customerDisplayEnabled"
-      icon
-      variant="text"
-      size="small"
-      :aria-label="t('settings_hub.customer_display.open_display')"
-      @click="openCustomerDisplay"
-    >
-      <v-icon icon="mdi-monitor-share" size="20" />
-    </v-btn>
+    <!-- 3. Divider -->
+    <span class="bar-divider" />
 
-    <!-- Avatar / user menu (Profile + Sign out) -->
+    <!-- 4. Account -->
     <v-menu v-model="userMenu" rounded="xl" min-width="230" offset="8" :close-on-content-click="false">
       <template #activator="{ props: menuProps }">
-        <button type="button" class="user-btn" v-bind="menuProps" :aria-label="t('app_bar.account_menu')">
-          <v-avatar :color="avatarColor" size="36" class="avatar-ring">
-            <v-img v-if="user?.avatar_url" :src="user.avatar_url" cover />
-            <span v-else class="text-caption font-weight-black text-white">
-              {{ initials }}
-            </span>
-          </v-avatar>
+        <button type="button" class="bar-btn account-btn" v-bind="menuProps" :aria-label="t('app_bar.account_menu')">
+          <span class="account-avatar" :class="`bg-${avatarColor}`">
+            <img v-if="user?.avatar_url" :src="user.avatar_url" alt="" class="account-avatar-img" />
+            <span v-else class="account-initials">{{ initials }}</span>
+            <span class="account-dot" :class="isOnline ? 'account-dot--on' : 'account-dot--off'" />
+          </span>
+          <span class="account-text d-none d-md-flex">
+            <span class="account-name">{{ user?.first_name }} {{ user?.last_name }}</span>
+            <span v-if="roleName" class="account-role">{{ roleName }}</span>
+          </span>
+          <v-icon icon="mdi-chevron-down" size="14" class="bar-chevron d-none d-md-inline-flex" />
         </button>
       </template>
 
@@ -160,25 +176,29 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
+  import { useTheme } from 'vuetify'
   import { useAuthStore } from '@/stores/authStore'
   import { useI18n } from 'vue-i18n'
-  import LanguageSwitch from '../common/LanguageSwitch.vue'
+  import FooterNotificationsMenu from './FooterNotificationsMenu.vue'
   import UserMenuCard from './UserMenuCard.vue'
   import { useAvatar } from '@/composables/useAvatar'
   import { useOnlineStatus } from '@/composables/useOnlineStatus'
   import { useNotificationBell } from '@/composables/useNotificationBell'
   import { useUserMenu } from '@/composables/useUserMenu'
+  import { useLanguage } from '@/composables/useLanguage'
   import { useLogout } from '@/composables/useLogout'
   import { useCashDrawerStore } from '@/stores/cashDrawerStore'
-  import { useAppUtils, AppNotificationBell, AppDialog } from '@nong-official-dev/core'
+  import { useAppUtils, AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
+  const theme = useTheme()
   const { getInitials, getAvatarColor } = useAvatar()
   const { isOnline } = useOnlineStatus()
   const bell = useNotificationBell()
-  const { goToAccount, customerDisplayEnabled, openCustomerDisplay } = useUserMenu()
+  const { goToAccount } = useUserMenu()
+  const { options, currentLanguage, select } = useLanguage()
   const { logout } = useLogout()
 
   const authStore = useAuthStore()
@@ -191,12 +211,29 @@
     roleName: String
   })
 
+  const isDark = computed(() => theme.global.current.value.dark)
+
   const userMenu = ref(false)
+  const langMenu = ref(false)
+  const shortCode = computed(() => currentLanguage.value.code.toUpperCase())
+
+  function onSelectLanguage(code) {
+    langMenu.value = false
+    select(code)
+  }
 
   function onProfileClick() {
     userMenu.value = false
     goToAccount('profile')
   }
+
+  // Back-online is worth a one-off confirmation; the offline pill already
+  // covers "you're offline" for as long as that lasts, so no snackbar there.
+  watch(isOnline, (value, wasOnline) => {
+    if (value && wasOnline === false) {
+      notif(t('app_bar.back_online'), { type: 'success' })
+    }
+  })
 
   // ── Cash register ──────────────────────────────────────────────────────
   const registerOpen = ref(false)
@@ -303,54 +340,142 @@
   .app-bar-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
-  .gap-1 {
-    gap: 4px;
-  }
-  .gap-2 {
-    gap: 8px;
-  }
-  .gap-3 {
-    gap: 12px;
-  }
-  .min-w-0 {
-    min-width: 0;
-  }
-
-  .user-btn {
-    display: inline-flex;
+  /* ── Shared control chrome ──────────────────────────────────────────── */
+  .bar-btn {
+    height: 40px;
+    min-width: 40px;
+    padding: 0 10px;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 8px 4px 4px;
-    border-radius: 999px;
-    border: none;
+    gap: 6px;
+    border: 0;
+    border-radius: 10px;
     background: transparent;
+    color: rgb(var(--v-theme-on-surface));
     cursor: pointer;
     font-family: inherit;
-    transition: background-color 0.15s;
   }
-  .user-btn:hover {
+  .bar-btn:hover {
     background: rgba(var(--v-theme-on-surface), 0.06);
   }
-
-  .avatar-ring {
-    outline: 2px solid rgba(var(--v-theme-primary), 0.3);
+  .bar-btn:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
     outline-offset: 2px;
-    transition: outline-color 0.2s;
   }
-  .avatar-ring:hover {
-    outline-color: rgba(var(--v-theme-primary), 0.7);
+  .bar-chevron {
+    flex: none;
+    opacity: 0.55;
+  }
+  .bar-divider {
+    width: 1px;
+    height: 28px;
+    flex: none;
+    margin: 0 6px;
+    background: rgba(var(--v-border-color), var(--v-border-opacity));
   }
 
-  .shortcut-key {
-    font-family: inherit;
-    font-size: 0.75rem;
+  /* ── Language ──────────────────────────────────────────────────────── */
+  .lang-flag {
+    flex: none;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+  }
+  .lang-code {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── Account ───────────────────────────────────────────────────────── */
+  .account-btn {
+    padding: 4px 10px 4px 4px;
+  }
+  .account-avatar {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+  }
+  .account-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  .account-initials {
+    font-size: 13px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(var(--v-theme-on-surface), 0.08);
-    border: 1px solid rgba(var(--v-theme-on-surface), 0.14);
+    color: #fff;
+  }
+  .account-dot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid rgb(var(--v-theme-surface));
+  }
+  .account-dot--on {
+    background: rgb(var(--v-theme-success));
+  }
+  .account-dot--off {
+    background: rgb(var(--v-theme-error));
+  }
+  .account-text {
+    flex-direction: column;
+    line-height: 1.25;
+    text-align: start;
+    min-width: 0;
+  }
+  .account-name {
+    font-size: 13px;
+    font-weight: 700;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .account-role {
+    font-size: 12px;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Offline pill ──────────────────────────────────────────────────── */
+  .offline-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: auto;
+    background: #fef3f2;
+    color: #b42318;
+  }
+  .offline-pill--dark {
+    background: rgba(240, 68, 56, 0.15);
+    color: #fda29b;
+  }
+  .offline-dot {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: #f04438;
   }
 </style>

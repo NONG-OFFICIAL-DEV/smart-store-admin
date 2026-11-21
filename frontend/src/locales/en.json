@@ -5,6 +5,9 @@
     "zh": "Chinese",
     "change": "Change language"
   },
+  "pos_focus": {
+    "close_menu": "Close menu"
+  },
   "logout": {
     "confirm_title": "Log out?",
     "confirm_message": "You have an unsaved order in the cart. Logging out will discard it.",
@@ -155,16 +158,20 @@
   },
   "app_bar": {
     "appearance": "Appearance",
-    "online": "Online",
-    "offline": "Offline",
     "alerts": "Alerts",
     "account_menu": "Account menu",
     "lang_compact": "EN · ខ្មែរ",
+    "offline_message": "Offline · orders are saved and will sync",
+    "back_online": "Back online"
+  },
+  "shop_switcher": {
     "select_branch": "Select branch",
-    "current_shop": "Current shop",
     "switch_branch": "Switch branch",
-    "branch_open": "Open",
-    "branch_closed": "Closed"
+    "branches_label": "Branches · {count}",
+    "search_placeholder": "Search branches",
+    "no_results": "No branches match \"{query}\"",
+    "manage_branches": "Manage branches",
+    "switched_to": "Switched to {branch}"
   },
   "account": {
     "title": "My account",
@@ -189,10 +196,6 @@
       "saved": "Profile updated.",
       "save_failed": "Failed to update profile.",
       "password_strength_hint": "At least 8 characters, with upper & lower case letters and a number"
-    },
-    "preferences": {
-      "default_branch": "Default branch on login",
-      "default_branch_hint": "Which branch to land on right after you log in."
     },
     "keyboard": {
       "general": "General",
@@ -407,8 +410,8 @@
     "toggle_sidebar": "Collapse/expand sidebar"
   },
   "sidebar": {
-    "collapse_menu": "Collapse menu",
-    "expand_menu": "Expand menu"
+    "collapse_menu": "Collapse menu (Ctrl+B)",
+    "expand_menu": "Expand menu (Ctrl+B)"
   },
   "forgot_password": {
     "tagline": "ACCOUNT RECOVERY",
@@ -901,6 +904,9 @@
     "empty_sub": "Add your first branch to get started",
     "no_results": "No branches match your search",
     "add_branch": "Add branch",
+    "default_branch": "Default",
+    "set_as_default": "Set as default",
+    "default_branch_help": "The default branch is where an owner lands right after logging in.",
     "status": {
       "open": "Open",
       "closed": "Closed",
@@ -944,7 +950,8 @@
       "saved": "Branch saved successfully",
       "delete_title": "Delete Branch",
       "delete_message": "Are you sure you want to delete \"{name}\"?",
-      "deleted": "Branch deleted"
+      "deleted": "Branch deleted",
+      "default_set": "Default branch updated"
     }
   },
   "categories": {

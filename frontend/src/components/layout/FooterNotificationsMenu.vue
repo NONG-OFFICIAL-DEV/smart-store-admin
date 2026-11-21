@@ -20,11 +20,18 @@
       <v-tooltip v-if="rail" location="end" :text="title">
         <template #activator="{ props: tip }">
           <button type="button" v-bind="{ ...tip, ...menuProps }" class="rail-btn" :aria-label="title">
-            <v-icon icon="mdi-bell-outline" size="18" />
-            <span v-if="unreadCount > 0" class="badge badge--dot" />
+            <span class="icon-wrap">
+              <v-icon icon="mdi-bell-outline" size="18" />
+              <span v-if="unreadCount > 0" class="badge badge--dot" />
+            </span>
           </button>
         </template>
       </v-tooltip>
+
+      <button v-else-if="bar" type="button" v-bind="menuProps" class="bar-notif-btn" :aria-label="title">
+        <v-icon icon="mdi-bell-outline" size="20" />
+        <span v-if="unreadCount > 0" class="bar-notif-badge">{{ badgeText }}</span>
+      </button>
 
       <button v-else type="button" v-bind="menuProps" class="bottom-btn" :aria-label="title">
         <v-icon icon="mdi-bell-outline" size="18" />
@@ -88,7 +95,7 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
 
   const props = defineProps({
     // Same shape/semantics as AppNotificationBell's own props.
@@ -110,7 +117,11 @@
     // kept in sync instead of re-fetching a second independent counter.
     unreadCount: { type: Number, default: 0 },
     label: { type: String, default: 'Alerts' },
-    rail: Boolean
+    rail: Boolean,
+    // AppBarActions.vue's compact square trigger — badge caps at "9+"
+    // instead of showing the raw count (rail/bottom-btn keep their own
+    // existing uncapped behavior, unchanged).
+    bar: Boolean
   })
 
   const emit = defineEmits(['item-click', 'view-all', 'read'])
@@ -118,6 +129,8 @@
   const menuOpen = ref(false)
   const loading = ref(false)
   const notifications = ref([])
+
+  const badgeText = computed(() => (props.unreadCount > 9 ? '9+' : props.unreadCount))
 
   async function loadRecent() {
     loading.value = true
@@ -185,24 +198,27 @@
   }
 
   .rail-btn {
-    width: 44px;
-    height: 40px;
+    width: 100%;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 0;
     border: 0;
     background: transparent;
     color: rgb(var(--v-theme-on-surface));
     cursor: pointer;
-    position: relative;
   }
   .rail-btn:hover {
-    background: rgba(var(--v-theme-on-surface), 0.06);
+    background: rgba(var(--v-theme-on-surface), 0.05);
   }
   .rail-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+  .icon-wrap {
+    position: relative;
+    display: inline-flex;
   }
 
   .badge {
@@ -221,11 +237,51 @@
   }
   .badge--dot {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: -2px;
+    right: -2px;
     min-width: 8px;
     width: 8px;
     height: 8px;
     padding: 0;
+  }
+
+  .bar-notif-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgb(var(--v-theme-on-surface));
+    cursor: pointer;
+  }
+  .bar-notif-btn:hover {
+    background: rgba(var(--v-theme-on-surface), 0.06);
+  }
+  .bar-notif-btn:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: 2px;
+  }
+  .bar-notif-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #d92d20;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid rgb(var(--v-theme-surface));
   }
 </style>

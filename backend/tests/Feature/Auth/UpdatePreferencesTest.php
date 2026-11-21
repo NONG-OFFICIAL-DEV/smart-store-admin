@@ -76,26 +76,27 @@ class UpdatePreferencesTest extends TestCase
     }
 
     /**
-     * Sidebar-only layout's own collapse/expand state (Ctrl/Cmd+B) — persisted
-     * the same way as every other appearance preference.
+     * Sidebar collapse/expand state (Ctrl/Cmd+B or the floating handle) —
+     * shared across Classic/Sidebar-only/Icon-rail, persisted the same way
+     * as every other appearance preference.
      */
-    public function test_saves_sidebar_only_collapsed_state(): void
+    public function test_saves_sidebar_collapsed_state(): void
     {
         $user = User::create(['email' => 'u4@example.test', 'first_name' => 'U', 'last_name' => '4']);
         Auth::login($user);
 
-        $this->callUpdatePreferences(['ui_preferences' => ['sidebar_only_collapsed' => true]]);
+        $this->callUpdatePreferences(['ui_preferences' => ['sidebar_collapsed' => true]]);
 
         $user->refresh();
-        $this->assertTrue($user->ui_preferences['sidebar_only_collapsed']);
+        $this->assertTrue($user->ui_preferences['sidebar_collapsed']);
     }
 
-    public function test_rejects_a_non_boolean_sidebar_only_collapsed_value(): void
+    public function test_rejects_a_non_boolean_sidebar_collapsed_value(): void
     {
         $user = User::create(['email' => 'u5@example.test', 'first_name' => 'U', 'last_name' => '5']);
         Auth::login($user);
 
         $this->expectException(ValidationException::class);
-        $this->callUpdatePreferences(['ui_preferences' => ['sidebar_only_collapsed' => 'not-a-boolean']]);
+        $this->callUpdatePreferences(['ui_preferences' => ['sidebar_collapsed' => 'not-a-boolean']]);
     }
 }

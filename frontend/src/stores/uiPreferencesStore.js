@@ -29,10 +29,13 @@ function loadCached() {
     // only meaningful for an owner/multi-branch user; staff are always
     // forced onto their one assigned branch regardless (see authStore).
     defaultBranchId: parsed.defaultBranchId ?? null,
-    // Sidebar-only layout's own collapse/expand state (Ctrl/Cmd+B) — read
-    // synchronously here so Sidebar.vue never flashes expanded-then-collapses
-    // on load, same as every other preference in this bag.
-    sidebarOnlyCollapsed: parsed.sidebarOnlyCollapsed ?? false
+    // Whether the sidebar is collapsed to its icon rail — shared across
+    // Classic/Sidebar-only/Icon-rail (Ctrl/Cmd+B or the floating handle
+    // toggle it). null = the user has never chosen; each layout then falls
+    // back to its own default (see useSidebarCollapse.js). Read synchronously
+    // here so Sidebar.vue never flashes expanded-then-collapses on load,
+    // same as every other preference in this bag.
+    sidebarCollapsed: parsed.sidebarCollapsed ?? null
   }
 }
 
@@ -57,7 +60,7 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
           accent: this.accent,
           density: this.density,
           defaultBranchId: this.defaultBranchId,
-          sidebarOnlyCollapsed: this.sidebarOnlyCollapsed
+          sidebarCollapsed: this.sidebarCollapsed
         })
       )
       // Legacy standalone keys — PreferencesDialog/AuthLayout/App.vue's
@@ -101,8 +104,8 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
       this.defaultBranchId = branchId || null
       this.persistAndSync()
     },
-    setSidebarOnlyCollapsed(value) {
-      this.sidebarOnlyCollapsed = !!value
+    setSidebarCollapsed(value) {
+      this.sidebarCollapsed = !!value
       this.persistAndSync()
     },
 
@@ -119,7 +122,7 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
             accent: this.accent,
             density: this.density,
             default_branch_id: this.defaultBranchId,
-            sidebar_only_collapsed: this.sidebarOnlyCollapsed
+            sidebar_collapsed: this.sidebarCollapsed
           }
         })
         .catch(() => {})
@@ -138,7 +141,7 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
         accent: normalizeAccent(serverPrefs.accent ?? this.accent),
         density: normalizeDensity(serverPrefs.density ?? this.density),
         defaultBranchId: serverPrefs.default_branch_id ?? this.defaultBranchId,
-        sidebarOnlyCollapsed: serverPrefs.sidebar_only_collapsed ?? this.sidebarOnlyCollapsed
+        sidebarCollapsed: serverPrefs.sidebar_collapsed ?? this.sidebarCollapsed
       }
       const current = {
         layout: this.layout,
@@ -146,7 +149,7 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
         accent: this.accent,
         density: this.density,
         defaultBranchId: this.defaultBranchId,
-        sidebarOnlyCollapsed: this.sidebarOnlyCollapsed
+        sidebarCollapsed: this.sidebarCollapsed
       }
       const changed = JSON.stringify(next) !== JSON.stringify(current)
 
