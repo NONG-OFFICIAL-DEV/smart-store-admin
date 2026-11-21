@@ -814,9 +814,9 @@
     // session/tenant, or a branch that's since been deleted) — the API
     // 404s on a branch_id that doesn't resolve for the current tenant.
     // Re-validate against the just-fetched list rather than trusting it
-    // blindly; the sidebar's own BranchSwitcher does the same self-repair
-    // on its own mount, but that's a separate component with no
-    // guaranteed ordering against this page's mount.
+    // blindly; the app bar's own ShopBranchSwitcher does the same
+    // self-repair on its own mount, but that's a separate component with
+    // no guaranteed ordering against this page's mount.
     if (
       branchId.value &&
       !branchStore.branches.some(b => b.id === branchId.value)

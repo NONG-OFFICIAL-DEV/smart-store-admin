@@ -97,6 +97,35 @@ class RefreshTokenService
             ->update(['revoked_at' => now()]);
     }
 
+    /**
+     * Active sessions for the account/security UI — rotation already revokes
+     * the previous row in a family on every refresh, so this naturally
+     * returns at most one row per real device, not the full rotation history.
+     */
+    public function listActiveForUser(string $userId)
+    {
+        return RefreshToken::where('user_id', $userId)
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->orderByDesc('last_used_at')
+            ->get();
+    }
+
+    public function familyIdForToken(string $rawToken): ?string
+    {
+        return RefreshToken::where('token_hash', hash('sha256', $rawToken))->value('family_id');
+    }
+
+    // "Sign out of other devices" — keeps $exceptFamilyId's session alive,
+    // revokes every other active family for this user.
+    public function revokeOthers(string $userId, ?string $exceptFamilyId): void
+    {
+        RefreshToken::where('user_id', $userId)
+            ->whereNull('revoked_at')
+            ->when($exceptFamilyId, fn ($q) => $q->where('family_id', '!=', $exceptFamilyId))
+            ->update(['revoked_at' => now()]);
+    }
+
     private function createRow(string $userId, string $familyId, Request $request): array
     {
         $raw = Str::random(64);

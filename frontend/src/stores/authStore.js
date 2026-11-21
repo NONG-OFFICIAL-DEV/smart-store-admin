@@ -4,6 +4,7 @@ import authService from '../api/auth'
 import { PLANS } from '@/constants/plan'
 import { connectEcho, disconnectEcho } from '@/utils/echo'
 import { impersonateTenantApi } from '@/api/tenantService'
+import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -255,8 +256,15 @@ export const useAuthStore = defineStore('auth', {
 
       // Staff can never work outside their assigned branch — force it,
       // overriding any stale localStorage value (e.g. left over from a
-      // previous owner session on a shared device).
-      if (this.branch_id) this.setActiveBranch(this.branch_id)
+      // previous owner session on a shared device). An owner/multi-branch
+      // user has no single branch_id, so their own "default branch on
+      // login" preference (My account > Preferences) applies instead,
+      // taking precedence over whatever was last active in this browser.
+      if (this.branch_id) {
+        this.setActiveBranch(this.branch_id)
+      } else if (d.ui_preferences?.default_branch_id) {
+        this.setActiveBranch(d.ui_preferences.default_branch_id)
+      }
 
       this.unread_notifications_count = d.unread_notifications_count ?? 0
       this.mustChangePassword = d.must_change_password ?? false
@@ -275,6 +283,13 @@ export const useAuthStore = defineStore('auth', {
       } else {
         this.blockedApiError = null
       }
+
+      // Per-user layout/theme/accent/density — see uiPreferencesStore for
+      // why this lives here rather than at each individual fetchMe() call
+      // site: login, impersonation, and "return to admin" all need the
+      // freshly-authenticated user's own copy applied, not whichever
+      // was cached from whoever was signed in before.
+      useUiPreferencesStore().hydrateFromServer(d.ui_preferences)
 
       if (this.me?.id) connectEcho()
     },

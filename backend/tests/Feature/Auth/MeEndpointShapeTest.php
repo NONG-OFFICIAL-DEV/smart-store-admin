@@ -46,7 +46,7 @@ class MeEndpointShapeTest extends TestCase
         $body = $this->callMe();
 
         $this->assertSame(
-            ['id', 'email', 'first_name', 'last_name', 'full_name', 'avatar_url', 'two_factor_confirmed_at'],
+            ['id', 'email', 'first_name', 'last_name', 'full_name', 'phone', 'avatar_url', 'two_factor_confirmed_at'],
             array_keys($body['user'])
         );
         $this->assertSame($owner->id, $body['user']['id']);

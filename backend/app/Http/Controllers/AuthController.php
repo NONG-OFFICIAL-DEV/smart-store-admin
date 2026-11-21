@@ -15,18 +15,22 @@ use App\Services\TwoFactorAuthService;
 use App\Exceptions\InvalidRefreshTokenException;
 use App\Exceptions\RefreshTokenExpiredException;
 use App\Exceptions\RefreshTokenReusedException;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 use App\Models\User;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     private const TWO_FACTOR_CHALLENGE_TTL_MINUTES = 5;
 
     public function test(): \Illuminate\Http\JsonResponse
@@ -269,6 +273,11 @@ class AuthController extends Controller
             // a super admin has no tenant of their own to be suspended.
             'tenant_is_active'    => true,
             'must_change_password' => $user->must_change_password,
+            // Personal, not tenant-specific — same for every role branch
+            // below, so this lives in $base rather than being repeated in
+            // each of the three response blocks.
+            'preferred_language'  => $user->preferred_language,
+            'ui_preferences'      => $user->ui_preferences,
             // Layout.vue's notification-bell badge reads this — was always
             // 0 because this key was never set at all. NotificationService
             // already has the correct "visible to this user" query (accounts
@@ -366,6 +375,44 @@ class AuthController extends Controller
         ]));
     }
 
+    /**
+     * Personal app-shell preferences (layout/theme/accent/density +
+     * language) — same place regardless of role, since these aren't
+     * tenant-scoped. Kept outside the 'v1' route group (no
+     * subscription.active gate) so a blocked/suspended tenant's users can
+     * still fix their own cosmetic settings, same reasoning as me() itself.
+     */
+    public function updatePreferences(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'preferred_language' => ['nullable', 'in:en,km'],
+            'ui_preferences' => ['nullable', 'array'],
+            'ui_preferences.layout' => ['nullable', 'in:classic,sidebar_only,icon_rail,pos_focus'],
+            'ui_preferences.theme' => ['nullable', 'in:light,dark,auto'],
+            'ui_preferences.accent' => ['nullable', 'in:teal,blue,orange,purple,rose'],
+            'ui_preferences.density' => ['nullable', 'in:comfortable,compact'],
+            'ui_preferences.default_branch_id' => ['nullable', 'uuid'],
+            'ui_preferences.sidebar_collapsed' => ['nullable', 'boolean'],
+        ]);
+
+        $data = [];
+        if (array_key_exists('preferred_language', $validated)) {
+            $data['preferred_language'] = $validated['preferred_language'];
+        }
+        if (array_key_exists('ui_preferences', $validated)) {
+            $data['ui_preferences'] = array_merge($user->ui_preferences ?? [], $validated['ui_preferences']);
+        }
+
+        $user->update($data);
+
+        return $this->success([
+            'preferred_language' => $user->preferred_language,
+            'ui_preferences' => $user->ui_preferences,
+        ], 'Preferences updated.');
+    }
+
     // A plain array, not the raw model — 'user' => $user used to dump every
     // column plus whatever relations happened to already be loaded on this
     // request's auth()->user() instance (e.g. ownedTenant, accessed a few
@@ -383,9 +430,80 @@ class AuthController extends Controller
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
             'full_name' => $user->full_name,
+            'phone' => $user->phone,
             'avatar_url' => $user->avatar_url,
             'two_factor_confirmed_at' => $user->two_factor_confirmed_at,
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // UPDATE PROFILE — name/phone/avatar only. Email is changed separately via
+    // updateEmail() (requires the current password); this never touches it.
+    // PUT /api/v1/auth/profile
+    // ─────────────────────────────────────────────────────────────────────────────
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:30',
+            'avatar' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:5120',
+        ]);
+
+        // Same disk/path convention as TenantController::updateProfile()'s logo
+        // upload — store the file, persist the full public URL on the column.
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar_url'] = Storage::disk('public')->url($path);
+        }
+        unset($validated['avatar']);
+
+        $user->update($validated);
+
+        return $this->success(['user' => $this->meUserShape($user)], 'Profile updated.');
+    }
+
+    /**
+     * Active device sessions — one row per non-revoked, non-expired refresh
+     * token (rotation revokes the previous row in a family, so this is
+     * naturally already at most one row per device/family). The caller's
+     * own refresh_token (already in its localStorage) marks "this device"
+     * by matching family_id — optional, so the list still renders without it.
+     */
+    public function sessions(Request $request, RefreshTokenService $refreshTokenService)
+    {
+        $request->validate(['refresh_token' => 'nullable|string']);
+
+        $user = auth()->user();
+        $currentFamilyId = $request->filled('refresh_token')
+            ? $refreshTokenService->familyIdForToken($request->refresh_token)
+            : null;
+
+        $sessions = $refreshTokenService->listActiveForUser($user->id)->map(fn ($s) => [
+            'id' => $s->id,
+            'device_name' => $s->device_name,
+            'ip_address' => $s->ip_address,
+            'last_used_at' => $s->last_used_at,
+            'created_at' => $s->created_at,
+            'is_current' => $currentFamilyId !== null && $s->family_id === $currentFamilyId,
+        ])->values();
+
+        return $this->success(['sessions' => $sessions]);
+    }
+
+    // Keeps this device's own session alive, revokes every other family for
+    // this user — requires refresh_token so "other" has something to exclude.
+    public function revokeOtherSessions(Request $request, RefreshTokenService $refreshTokenService)
+    {
+        $request->validate(['refresh_token' => 'required|string']);
+
+        $user = auth()->user();
+        $familyId = $refreshTokenService->familyIdForToken($request->refresh_token);
+        $refreshTokenService->revokeOthers($user->id, $familyId);
+
+        return $this->success(null, 'Signed out of other devices.');
     }
 
     // Lazy trial expiry — there's no cron/scheduler running in this app (see

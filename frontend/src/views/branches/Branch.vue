@@ -69,6 +69,17 @@
                 <v-chip :color="statusColor(b)" variant="tonal" size="small" prepend-icon="mdi-circle">
                   {{ statusLabel(b) }}
                 </v-chip>
+                <v-chip
+                  v-if="canSetDefault"
+                  :variant="isDefaultBranch(b) ? 'tonal' : 'outlined'"
+                  :color="isDefaultBranch(b) ? 'amber-darken-2' : 'default'"
+                  size="small"
+                  :class="{ 'cursor-pointer': !isDefaultBranch(b) }"
+                  :prepend-icon="isDefaultBranch(b) ? 'mdi-star' : 'mdi-star-outline'"
+                  @click="!isDefaultBranch(b) && setDefaultBranch(b)"
+                >
+                  {{ isDefaultBranch(b) ? t('branches.default_branch') : t('branches.set_as_default') }}
+                </v-chip>
                 <v-btn
                   v-if="can('branches.manage')"
                   variant="tonal"
@@ -114,6 +125,9 @@
     <p class="text-caption text-medium-emphasis mt-3 mb-0">
       {{ t('branches.status_help') }}
     </p>
+    <p v-if="canSetDefault" class="text-caption text-medium-emphasis mt-1 mb-0">
+      {{ t('branches.default_branch_help') }}
+    </p>
 
     <!-- Rendered at the page root, not nested in the list's layout, so it
          always covers the full screen regardless of where it's triggered
@@ -127,6 +141,8 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useBranchStore } from '@/stores/branchStore'
+  import { useAuthStore } from '@/stores/authStore'
+  import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
   import { usePermission } from '@/composables/usePermission'
   import { useAppUtils } from '@nong-official-dev/core'
   import BranchFormDrawer from '@/components/branches/BranchFormDrawer.vue'
@@ -137,6 +153,8 @@
   const { can } = usePermission()
   const { confirm, notif } = useAppUtils()
   const branchStore = useBranchStore()
+  const authStore = useAuthStore()
+  const prefs = useUiPreferencesStore()
 
   const saving = ref(false)
   const search = ref('')
@@ -145,6 +163,20 @@
   const detailOpen = ref(false)
   const editingBranch = ref(null)
   const selectedBranch = ref(null)
+
+  // Only meaningful for an owner/multi-branch user — staff are always
+  // forced onto their one assigned branch (see authStore.fetchMe()), and a
+  // super admin has no branch concept at all.
+  const canSetDefault = computed(
+    () => !authStore.isSuperAdmin && !authStore.branch_id && branchStore.branches.length > 1
+  )
+
+  const isDefaultBranch = b => prefs.defaultBranchId === b.id
+
+  const setDefaultBranch = b => {
+    prefs.setDefaultBranch(b.id)
+    notif(t('branches.messages.default_set'))
+  }
 
   const filteredBranches = computed(() => {
     const q = search.value?.trim().toLowerCase()
@@ -229,3 +261,9 @@
     if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
   })
 </script>
+
+<style scoped>
+  .cursor-pointer {
+    cursor: pointer;
+  }
+</style>

@@ -2,7 +2,16 @@
   "lang": {
     "en": "English",
     "km": "Khmer",
-    "zh": "Chinese"
+    "zh": "Chinese",
+    "change": "Change language"
+  },
+  "pos_focus": {
+    "close_menu": "Close menu"
+  },
+  "logout": {
+    "confirm_title": "Log out?",
+    "confirm_message": "You have an unsaved order in the cart. Logging out will discard it.",
+    "aria_label": "Log out"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -147,17 +156,91 @@
     "name": "Nexstack Tech",
     "footer": "Nexstack Tech — Enterprise Edition"
   },
+  "app_bar": {
+    "appearance": "Appearance",
+    "alerts": "Alerts",
+    "account_menu": "Account menu",
+    "lang_compact": "EN · ខ្មែរ",
+    "offline_message": "Offline · orders are saved and will sync",
+    "back_online": "Back online"
+  },
+  "shop_switcher": {
+    "select_branch": "Select branch",
+    "switch_branch": "Switch branch",
+    "branches_label": "Branches · {count}",
+    "search_placeholder": "Search branches",
+    "no_results": "No branches match \"{query}\"",
+    "manage_branches": "Manage branches",
+    "switched_to": "Switched to {branch}"
+  },
+  "account": {
+    "title": "My account",
+    "subtitle": "Manage your profile, preferences, and security.",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "keyboard": "Keyboard",
+      "security": "Security"
+    },
+    "profile": {
+      "info_title": "Profile information",
+      "upload_photo": "Upload photo",
+      "photo_hint": "PNG, JPG or WEBP, max 5 MB",
+      "photo_type_error": "Please choose a PNG, JPG, or WEBP image.",
+      "photo_size_error": "Image must be 5 MB or smaller.",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "email_readonly_note": "This is your login email — change it from Security settings.",
+      "saved": "Profile updated.",
+      "save_failed": "Failed to update profile.",
+      "password_strength_hint": "At least 8 characters, with upper & lower case letters and a number"
+    },
+    "keyboard": {
+      "general": "General",
+      "quick_sale": "Quick Sale"
+    },
+    "security": {
+      "title": "Active sessions",
+      "sign_out_others": "Sign out of other devices",
+      "sign_out_others_confirm": "Every other device currently signed in to your account will be signed out.",
+      "sign_out_others_success": "Signed out of other devices.",
+      "sign_out_others_failed": "Failed to sign out other devices.",
+      "this_device": "This device",
+      "unknown_device": "Unknown device",
+      "last_active": "Last active",
+      "no_sessions": "No active sessions.",
+      "load_failed": "Failed to load sessions."
+    }
+  },
   "preferences": {
     "title": "Preferences",
     "subtitle": "Customize your experience",
     "language": "Language",
+    "layout": "Layout",
+    "layouts": {
+      "classic": { "label": "Classic", "hint": "Top bar + full menu. Good for owners on a desktop." },
+      "sidebar_only": { "label": "Sidebar only", "hint": "No top bar, more room for products." },
+      "icon_rail": { "label": "Icon rail", "hint": "Top bar + icon-only sidebar. Good for smaller laptops." },
+      "pos_focus": { "label": "POS focus", "hint": "No sidebar, no top bar. Best for cashiers on a tablet." }
+    },
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
     "auto": "Auto",
+    "accent": "Accent color",
+    "accents": {
+      "teal": "Teal",
+      "blue": "Blue",
+      "orange": "Orange",
+      "purple": "Purple",
+      "rose": "Rose"
+    },
     "density": "Density",
     "comfortable": "Comfortable",
-    "compact": "Compact"
+    "compact": "Compact",
+    "preview": "Preview"
   },
   "profile": {
     "title": "Profile",
@@ -323,7 +406,12 @@
     "title": "Keyboard",
     "search": "Focus search",
     "checkout": "Checkout",
-    "close": "Close dialog"
+    "close": "Close dialog",
+    "toggle_sidebar": "Collapse/expand sidebar"
+  },
+  "sidebar": {
+    "collapse_menu": "Collapse menu (Ctrl+B)",
+    "expand_menu": "Expand menu (Ctrl+B)"
   },
   "forgot_password": {
     "tagline": "ACCOUNT RECOVERY",
@@ -773,7 +861,8 @@
     "latitude_range": "Must be between -90 and 90",
     "longitude_range": "Must be between -180 and 180",
     "password_complexity": "Must include an uppercase letter, a lowercase letter, and a number",
-    "password_mismatch": "Passwords do not match"
+    "password_mismatch": "Passwords do not match",
+    "password_min_length": "Must be at least 8 characters"
   },
   "table": {
     "no_data": "No data available",
@@ -815,6 +904,9 @@
     "empty_sub": "Add your first branch to get started",
     "no_results": "No branches match your search",
     "add_branch": "Add branch",
+    "default_branch": "Default",
+    "set_as_default": "Set as default",
+    "default_branch_help": "The default branch is where an owner lands right after logging in.",
     "status": {
       "open": "Open",
       "closed": "Closed",
@@ -858,7 +950,8 @@
       "saved": "Branch saved successfully",
       "delete_title": "Delete Branch",
       "delete_message": "Are you sure you want to delete \"{name}\"?",
-      "deleted": "Branch deleted"
+      "deleted": "Branch deleted",
+      "default_set": "Default branch updated"
     }
   },
   "categories": {
@@ -1653,15 +1746,13 @@
     },
     "section_select_label": "Section",
     "subtitle_all_branches": "Applies to all branches.",
-    "subtitle_selected_branch": "Settings for the selected branch.",
+    "subtitle_selected_branch": "Settings for {branch} — switch branches from the sidebar or app bar.",
+    "subtitle_no_branch": "Select a branch from the sidebar or app bar to configure its settings.",
     "save_bar_note": "One Save for the whole page.",
     "save_bar_clean": "All changes saved",
     "save_bar_dirty": "You have unsaved changes",
     "save_bar_saving": "Saving changes…",
-    "branch_switch_title": "Unsaved changes",
-    "branch_switch_body": "Switching branches will discard your unsaved changes. Continue?",
-    "branch_switch_cancel": "Cancel",
-    "branch_switch_confirm": "Discard & switch",
+    "branch_switch_discarded": "Switched branch — your unsaved changes were discarded",
     "discard": "Discard",
     "save_changes": "Save changes",
     "unsaved_title": "Unsaved changes",
@@ -1723,7 +1814,6 @@
       "usb_disconnect": "Disconnect",
       "qz_section": "Network Printer (QZ Tray)",
       "qz_hint": "Only needed if you're not using a direct USB connection above — requires the QZ Tray desktop app.",
-      "branch_label": "Branch",
       "printer_name_label": "Receipt Printer Name",
       "printer_name_placeholder": "e.g. Diamond",
       "printer_name_hint": "Must match the printer name registered in QZ Tray on this branch's till — leave blank to keep using the browser's print dialog",

@@ -48,15 +48,7 @@
           <v-spacer class="d-none d-md-flex" />
 
           <div class="d-flex align-center ga-1">
-            <v-btn
-              icon
-              variant="text"
-              size="small"
-              :title="t('common.language')"
-              @click="toggleLocale"
-            >
-              <v-icon icon="mdi-translate" size="20" />
-            </v-btn>
+            <LanguageSwitch />
             <v-btn
               icon
               variant="text"
@@ -88,17 +80,12 @@
   import { computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useTheme } from 'vuetify'
+  import LanguageSwitch from '../common/LanguageSwitch.vue'
 
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
   const theme = useTheme()
 
   const isDark = computed(() => theme.global.current.value.dark)
-
-  function toggleLocale() {
-    const next = locale.value === 'en' ? 'km' : 'en'
-    locale.value = next
-    localStorage.setItem('lang', next)
-  }
 
   function applyTheme(val) {
     if (val === 'auto') {

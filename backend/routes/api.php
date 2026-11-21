@@ -111,6 +111,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middle
 // ── Protected routes ─────────────────────────────────────────────────────────
 Route::middleware(['jwt.auth', 'password.changed'])->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
+    Route::patch('/me/preferences', [AuthController::class, 'updatePreferences']);
     Route::post('/logout',  [AuthController::class, 'logout']);
 
     Route::prefix('two-factor')->group(function () {
@@ -141,6 +142,8 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::put('profile',  [AuthController::class, 'updateProfile']);
         Route::put('password', [AuthController::class, 'changePassword']);
         Route::put('email',    [AuthController::class, 'updateEmail']);
+        Route::post('sessions', [AuthController::class, 'sessions']);
+        Route::post('sessions/revoke-others', [AuthController::class, 'revokeOtherSessions']);
     });
 
     // Tenant self-service read — a tenant owner/staff must be able to view

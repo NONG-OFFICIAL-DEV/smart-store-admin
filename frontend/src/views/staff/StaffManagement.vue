@@ -33,8 +33,8 @@
 
   const { roles } = storeToRefs(roleStore)
 
-  // Branch context comes from the global sidebar branch switcher (see
-  // BranchSwitcher.vue / authStore.activeBranchId) — no separate branch
+  // Branch context comes from the global app-bar branch switcher (see
+  // ShopBranchSwitcher.vue / authStore.activeBranchId) — no separate branch
   // filter on this page, matching OrdersManagement.vue/KitchenDisplay.vue.
   const branchId = computed(
     () => authStore.activeBranchId || authStore.branch_id
