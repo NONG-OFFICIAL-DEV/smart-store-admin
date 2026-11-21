@@ -57,5 +57,22 @@ export default {
 
   updatePreferences(payload) {
     return http.patch('/me/preferences', payload)
+  },
+
+  updateProfile(formData) {
+    // A native PUT can't carry multipart/form-data (PHP never populates
+    // hasFile() on it) — POST with the _method spoof instead, same
+    // convention as tenantService.js's logo upload.
+    return http.post('/v1/auth/profile?_method=PUT', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+
+  sessions() {
+    return http.post('/v1/auth/sessions', { refresh_token: localStorage.getItem('refresh_token') })
+  },
+
+  revokeOtherSessions() {
+    return http.post('/v1/auth/sessions/revoke-others', { refresh_token: localStorage.getItem('refresh_token') })
   }
 }

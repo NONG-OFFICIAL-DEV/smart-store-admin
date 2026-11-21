@@ -61,37 +61,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import authService from '@/api/auth'
+import { useLanguage } from '@/composables/useLanguage'
 
 // Fixed sizes so English and Khmer look the same
 const BUTTON_WIDTH = 132
 const MENU_WIDTH = 100
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
+const { options, currentLanguage, locale, select: selectLanguage } = useLanguage()
 const open = ref(false)
-
-const options = computed(() => [
-  { code: 'en', label: t('lang.en'), flag: '/images/gb.png' },
-  { code: 'km', label: t('lang.km'), flag: '/images/kh.png' }
-])
-
-const currentLanguage = computed(
-  () => options.value.find(o => o.code === locale.value) ?? options.value[0]
-)
 
 function select(code) {
   open.value = false
-  if (locale.value === code) return
-
-  locale.value = code
-  localStorage.setItem('lang', code)
-  document.documentElement.setAttribute('lang', code)
-
-  authService
-    .updatePreferences({ preferred_language: code })
-    .catch(() => {})
+  selectLanguage(code)
 }
 </script>
 

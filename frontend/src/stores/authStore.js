@@ -256,8 +256,15 @@ export const useAuthStore = defineStore('auth', {
 
       // Staff can never work outside their assigned branch — force it,
       // overriding any stale localStorage value (e.g. left over from a
-      // previous owner session on a shared device).
-      if (this.branch_id) this.setActiveBranch(this.branch_id)
+      // previous owner session on a shared device). An owner/multi-branch
+      // user has no single branch_id, so their own "default branch on
+      // login" preference (My account > Preferences) applies instead,
+      // taking precedence over whatever was last active in this browser.
+      if (this.branch_id) {
+        this.setActiveBranch(this.branch_id)
+      } else if (d.ui_preferences?.default_branch_id) {
+        this.setActiveBranch(d.ui_preferences.default_branch_id)
+      }
 
       this.unread_notifications_count = d.unread_notifications_count ?? 0
       this.mustChangePassword = d.must_change_password ?? false

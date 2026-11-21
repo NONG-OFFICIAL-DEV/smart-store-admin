@@ -142,6 +142,8 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::put('profile',  [AuthController::class, 'updateProfile']);
         Route::put('password', [AuthController::class, 'changePassword']);
         Route::put('email',    [AuthController::class, 'updateEmail']);
+        Route::post('sessions', [AuthController::class, 'sessions']);
+        Route::post('sessions/revoke-others', [AuthController::class, 'revokeOtherSessions']);
     });
 
     // Tenant self-service read — a tenant owner/staff must be able to view

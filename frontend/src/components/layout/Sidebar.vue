@@ -1,10 +1,12 @@
 <script setup>
   import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
   import { useTheme } from 'vuetify'
+  import { useI18n } from 'vue-i18n'
   import { useRouter, useRoute } from 'vue-router'
   import { useSidebarMenu } from '@/composables/useSidebarMenu'
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
   import { LOGOS } from '@/config/branding'
+  import { useUiPreferencesStore } from '@/stores/uiPreferencesStore'
   import SidebarFooter from './SidebarFooter.vue'
 
   const RAIL_WIDTH = 64
@@ -30,6 +32,8 @@
   const router = useRouter()
   const route = useRoute()
   const theme = useTheme()
+  const { t } = useI18n()
+  const uiPrefs = useUiPreferencesStore()
 
   const isDark = computed(() => theme.global.current.value.dark)
   // Logo shows in the sidebar for ALL layouts (it no longer lives in the AppBar)
@@ -39,9 +43,24 @@
     ['sidebar_only', 'pos_focus'].includes(props.variant)
   )
   const isTemporary = computed(() => props.variant === 'pos_focus')
+  // Only Sidebar-only can be collapsed by the user — Classic/Icon-rail's
+  // rail state is driven by the hamburger toggle (Layout.vue's own `rail`
+  // prop), and POS-focus's drawer is temporary, never collapsible.
+  const isSidebarOnly = computed(() => props.variant === 'sidebar_only')
 
-  // The rail never applies to the temporary POS-focus drawer
-  const isRail = computed(() => props.rail && !isTemporary.value)
+  // The rail never applies to the temporary POS-focus drawer. Sidebar-only
+  // sources its own collapse state from the per-user preference (persisted,
+  // restored synchronously — no flash) instead of the `rail` prop, which
+  // Layout.vue only ever wires up for Classic/Icon-rail.
+  const isRail = computed(() => {
+    if (isTemporary.value) return false
+    if (isSidebarOnly.value) return uiPrefs.sidebarOnlyCollapsed
+    return props.rail
+  })
+
+  function toggleSidebarCollapse() {
+    uiPrefs.setSidebarOnlyCollapsed(!uiPrefs.sidebarOnlyCollapsed)
+  }
 
   const brandLogo = computed(() => {
     if (isRail.value) return LOGOS.rail
@@ -86,6 +105,10 @@
 
   function onKeydown(e) {
     if (e.key === 'Escape') hideFlyout()
+    if (isSidebarOnly.value && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault()
+      toggleSidebarCollapse()
+    }
   }
 
   // Close the flyout when navigating, leaving rail mode, scrolling or resizing
@@ -145,6 +168,24 @@
           draggable="false"
         />
       </button>
+
+      <v-tooltip
+        v-if="isSidebarOnly"
+        location="end"
+        :text="isRail ? t('sidebar.expand_menu') : t('sidebar.collapse_menu')"
+      >
+        <template #activator="{ props: tip }">
+          <button
+            type="button"
+            v-bind="tip"
+            class="collapse-btn"
+            :aria-label="isRail ? t('sidebar.expand_menu') : t('sidebar.collapse_menu')"
+            @click="toggleSidebarCollapse"
+          >
+            <v-icon :icon="isRail ? 'mdi-dock-right' : 'mdi-dock-left'" size="18" />
+          </button>
+        </template>
+      </v-tooltip>
     </div>
 
     <!-- MENU -->
@@ -251,7 +292,13 @@
 
     <!-- Footer actions: Sidebar-only / POS-focus -->
     <template v-if="showChrome" #append>
-      <SidebarFooter :user="user" :role-name="roleName" :rail="isRail" />
+      <SidebarFooter
+        :user="user"
+        :bu-name="buName"
+        :branch-name="branchName"
+        :role-name="roleName"
+        :rail="isRail"
+      />
     </template>
   </v-navigation-drawer>
 
@@ -309,16 +356,19 @@
 <style scoped>
   /* ── Brand header ── */
   .sidebar-brand {
-    height: 64px; /* same height as the AppBar */
+    min-height: 64px; /* same height as the AppBar */
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 16px;
     border-bottom: 1px solid
       rgba(var(--v-border-color), var(--v-border-opacity));
   }
   .sidebar-brand--rail {
+    flex-direction: column;
     justify-content: center;
-    padding: 0;
+    gap: 8px;
+    padding: 10px 0;
   }
   .platform-logo-btn {
     border: 0;
@@ -330,6 +380,26 @@
     align-items: center;
   }
   .platform-logo-btn:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: 2px;
+  }
+  .collapse-btn {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: 9px;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    background: transparent;
+    color: rgba(var(--v-theme-on-surface), 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .collapse-btn:hover {
+    background: rgba(var(--v-theme-on-surface), 0.06);
+  }
+  .collapse-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
     outline-offset: 2px;
   }

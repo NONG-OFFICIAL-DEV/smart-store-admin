@@ -37,16 +37,22 @@
       @view-all="bell.goToNotifications"
     />
 
-    <!-- Avatar / user menu -->
-    <v-menu
-      v-model="userMenu"
-      rounded="xl"
-      min-width="230"
-      offset="8"
-      :close-on-content-click="false"
+    <!-- Customer display -->
+    <v-btn
+      v-if="customerDisplayEnabled"
+      icon
+      variant="text"
+      size="small"
+      :aria-label="t('settings_hub.customer_display.open_display')"
+      @click="openCustomerDisplay"
     >
+      <v-icon icon="mdi-monitor-share" size="20" />
+    </v-btn>
+
+    <!-- Avatar / user menu (Profile + Sign out) -->
+    <v-menu v-model="userMenu" rounded="xl" min-width="230" offset="8" :close-on-content-click="false">
       <template #activator="{ props: menuProps }">
-        <button type="button" class="user-btn" v-bind="menuProps">
+        <button type="button" class="user-btn" v-bind="menuProps" :aria-label="t('app_bar.account_menu')">
           <v-avatar :color="avatarColor" size="36" class="avatar-ring">
             <v-img v-if="user?.avatar_url" :src="user.avatar_url" cover />
             <span v-else class="text-caption font-weight-black text-white">
@@ -56,113 +62,14 @@
         </button>
       </template>
 
-      <v-card rounded="lg" elevation="1">
-        <v-card-text class="pa-0">
-          <!-- User info -->
-          <div class="px-4 pt-4 pb-3">
-            <div class="d-flex align-center gap-3">
-              <v-avatar :color="avatarColor" size="48" rounded="lg">
-                <v-img
-                  v-if="user?.avatar_url"
-                  :src="user.avatar_url"
-                  cover
-                />
-                <span
-                  v-else
-                  class="text-body-2 font-weight-black text-white"
-                >
-                  {{ initials }}
-                </span>
-              </v-avatar>
-              <div class="min-w-0 flex-1 overflow-hidden">
-                <div class="text-body-2 font-weight-bold text-truncate">
-                  {{ user?.first_name }} {{ user?.last_name }}
-                </div>
-                <div
-                  class="text-caption text-medium-emphasis text-truncate"
-                >
-                  {{ user?.email }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Badges -->
-            <div class="d-flex gap-1 flex-wrap mt-3">
-              <v-chip
-                v-if="branchName"
-                size="x-small"
-                variant="tonal"
-                color="primary"
-                rounded="lg"
-              >
-                <v-icon start size="10" icon="mdi-store-outline" />
-                {{ branchName }}
-              </v-chip>
-              <v-chip
-                v-if="buName"
-                size="x-small"
-                variant="tonal"
-                color="secondary"
-                rounded="lg"
-              >
-                {{ buName }}
-              </v-chip>
-              <v-chip
-                v-if="roleName"
-                size="x-small"
-                variant="tonal"
-                color="secondary"
-                rounded="lg"
-              >
-                <v-icon start size="10" icon="mdi-shield-account-outline" />
-                {{ roleName }}
-              </v-chip>
-            </div>
-          </div>
-
-          <v-divider />
-
-          <!-- Menu items -->
-          <div class="pa-2">
-            <v-list-item
-              v-for="(item, index) in menuItems"
-              :key="index"
-              :prepend-icon="item.icon"
-              :title="t(item.title)"
-              rounded="lg"
-              class="mb-1"
-              link
-              @click="item.action"
-            >
-              <template #append>
-                <v-icon size="14" color="medium-emphasis">
-                  mdi-chevron-right
-                </v-icon>
-              </template>
-            </v-list-item>
-          </div>
-
-          <v-divider />
-
-          <!-- Logout -->
-          <div class="pa-3">
-            <v-btn
-              block
-              variant="tonal"
-              rounded="lg"
-              color="error"
-              prepend-icon="mdi-logout"
-              @click="handleLogout"
-            >
-              {{ t('common.sign_out') || 'Sign Out' }}
-            </v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
+      <UserMenuCard
+        :user="user"
+        :initials="initials"
+        :avatar-color="avatarColor"
+        @profile-click="onProfileClick"
+        @logout="handleLogout"
+      />
     </v-menu>
-
-    <!-- Preferences Dialog -->
-    <PreferencesDialog v-model="prefDialog" />
 
     <!-- Cash Register panel -->
     <AppDialog
@@ -249,39 +156,19 @@
         </v-btn>
       </div>
     </AppDialog>
-
-    <!-- Keyboard Shortcuts panel -->
-    <AppDialog
-      v-model="shortcutsDialog"
-      :title="t('shortcuts.title')"
-      :max-width="360"
-      :persistent="false"
-    >
-      <div v-for="row in shortcutRows" :key="row.keys" class="d-flex justify-space-between align-center mb-3">
-        <span class="text-body-2">{{ row.label }}</span>
-        <kbd class="shortcut-key">{{ row.keys }}</kbd>
-      </div>
-
-      <template #actions>
-        <v-btn variant="tonal" rounded="lg" @click="shortcutsDialog = false">
-          {{ t('btn.close') }}
-        </v-btn>
-      </template>
-    </AppDialog>
   </div>
 </template>
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useAuthStore } from '@/stores/authStore'
-  import { useBranchStore } from '@/stores/branchStore'
-  import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import PreferencesDialog from '../common/PreferencesDialog.vue'
   import LanguageSwitch from '../common/LanguageSwitch.vue'
+  import UserMenuCard from './UserMenuCard.vue'
   import { useAvatar } from '@/composables/useAvatar'
   import { useOnlineStatus } from '@/composables/useOnlineStatus'
   import { useNotificationBell } from '@/composables/useNotificationBell'
+  import { useUserMenu } from '@/composables/useUserMenu'
   import { useLogout } from '@/composables/useLogout'
   import { useCashDrawerStore } from '@/stores/cashDrawerStore'
   import { useAppUtils, AppNotificationBell, AppDialog } from '@nong-official-dev/core'
@@ -291,12 +178,11 @@
   const { getInitials, getAvatarColor } = useAvatar()
   const { isOnline } = useOnlineStatus()
   const bell = useNotificationBell()
+  const { goToAccount, customerDisplayEnabled, openCustomerDisplay } = useUserMenu()
   const { logout } = useLogout()
 
   const authStore = useAuthStore()
-  const branchStore = useBranchStore()
   const cashDrawerStore = useCashDrawerStore()
-  const router = useRouter()
 
   const props = defineProps({
     user: Object,
@@ -305,13 +191,11 @@
     roleName: String
   })
 
-  // State
   const userMenu = ref(false)
-  const prefDialog = ref(false)
 
-  const openPreferences = () => {
+  function onProfileClick() {
     userMenu.value = false
-    prefDialog.value = true
+    goToAccount('profile')
   }
 
   // ── Cash register ──────────────────────────────────────────────────────
@@ -387,63 +271,6 @@
     }).format(value ?? 0)
   }
 
-  // ── Keyboard shortcuts ─────────────────────────────────────────────────
-  const shortcutsDialog = ref(false)
-  const shortcutRows = computed(() => [
-    { keys: '⌘/Ctrl K · F2', label: t('shortcuts.search') },
-    { keys: 'F10', label: t('shortcuts.checkout') },
-    { keys: 'Esc', label: t('shortcuts.close') }
-  ])
-
-  function openShortcuts() {
-    userMenu.value = false
-    shortcutsDialog.value = true
-  }
-
-  // Enabled per-branch (Settings > Customer Display), not tenant-wide — see
-  // ShopBranchSwitcher.vue, which fetches branchStore.branches (incl.
-  // customer_display_settings) for every role, staff included.
-  const customerDisplayEnabled = computed(
-    () =>
-      branchStore.branches.find(b => b.id === authStore.activeBranchId)
-        ?.customer_display_settings?.enabled === true
-  )
-
-  function openCustomerDisplay() {
-    userMenu.value = false
-    window.open('/customer-display', '_blank', 'noopener')
-  }
-
-  // Personal account actions only — Security and Billing are business/
-  // system-level and live in the sidebar (System group) instead, so the
-  // same destination isn't reachable from two differently-labeled menus.
-  const menuItems = computed(() => [
-    {
-      title: 'profile.title',
-      icon: 'mdi-account-circle-outline',
-      action: () => goToProfile()
-    },
-    {
-      title: 'app_bar.appearance',
-      icon: 'mdi-tune-variant',
-      action: () => openPreferences()
-    },
-    ...(customerDisplayEnabled.value
-      ? [
-          {
-            title: 'settings_hub.customer_display.open_display',
-            icon: 'mdi-monitor-share',
-            action: () => openCustomerDisplay()
-          }
-        ]
-      : []),
-    {
-      title: 'shortcuts.title',
-      icon: 'mdi-keyboard-outline',
-      action: () => openShortcuts()
-    }
-  ])
-
   // Avatar
   const initials = computed(() => getInitials(props.user, '?'))
 
@@ -464,12 +291,6 @@
   onMounted(() => {
     loadRegisterState()
   })
-
-  // Navigation
-  const goToProfile = () => {
-    userMenu.value = false
-    router.push({ name: 'profile' })
-  }
 
   // Logout
   const handleLogout = () => {

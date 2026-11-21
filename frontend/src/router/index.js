@@ -75,6 +75,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
       },
       {
+        path: '/account',
+        name: 'account',
+        component: () => import('@/views/account/Account.vue'),
+        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
+      },
+      {
         path: '/settings-security',
         name: 'settings-security',
         component: () => import('@/views/settings/Settings.vue'),

@@ -2,7 +2,8 @@
   "lang": {
     "en": "អង់គ្លេស",
     "km": "ខ្មែរ",
-    "zh": "ចិន"
+    "zh": "ចិន",
+    "change": "ប្តូរភាសា"
   },
   "logout": {
     "confirm_title": "ចាកចេញ?",
@@ -156,12 +157,59 @@
     "appearance": "រូបរាង",
     "online": "អនឡាញ",
     "offline": "គ្មានអ៊ីនធឺណិត",
+    "alerts": "ការជូនដំណឹង",
+    "account_menu": "ម៉ឺនុយគណនី",
     "lang_compact": "EN · ខ្មែរ",
     "select_branch": "ជ្រើសរើសសាខា",
     "current_shop": "ហាងបច្ចុប្បន្ន",
     "switch_branch": "ប្តូរសាខា",
     "branch_open": "បើក",
     "branch_closed": "បិទ"
+  },
+  "account": {
+    "title": "គណនីរបស់ខ្ញុំ",
+    "subtitle": "គ្រប់គ្រងប្រវត្តិរូប ចំណូលចិត្ត និងសុវត្ថិភាពរបស់អ្នក។",
+    "tabs": {
+      "profile": "ប្រវត្តិរូប",
+      "preferences": "ចំណូលចិត្ត",
+      "keyboard": "ក្តារចុច",
+      "security": "សុវត្ថិភាព"
+    },
+    "profile": {
+      "info_title": "ព័ត៌មានប្រវត្តិរូប",
+      "upload_photo": "បញ្ចូលរូបភាព",
+      "photo_hint": "PNG, JPG ឬ WEBP អតិបរមា ៥ MB",
+      "photo_type_error": "សូមជ្រើសរើសរូបភាព PNG, JPG ឬ WEBP។",
+      "photo_size_error": "រូបភាពត្រូវមានទំហំតិចជាង ៥ MB។",
+      "first_name": "នាមខ្លួន",
+      "last_name": "នាមត្រកូល",
+      "phone": "ទូរស័ព្ទ",
+      "email": "អ៊ីមែល",
+      "email_readonly_note": "នេះគឺជាអ៊ីមែលចូលប្រព័ន្ធរបស់អ្នក — ប្តូរវាពីការកំណត់សុវត្ថិភាព។",
+      "saved": "ប្រវត្តិរូបត្រូវបានកែប្រែ។",
+      "save_failed": "មិនអាចកែប្រែប្រវត្តិរូបបានទេ។",
+      "password_strength_hint": "យ៉ាងហោចណាស់ ៨ តួអក្សរ មានអក្សរធំ អក្សរតូច និងលេខ"
+    },
+    "preferences": {
+      "default_branch": "សាខាលំនាំដើមពេលចូលប្រព័ន្ធ",
+      "default_branch_hint": "សាខាមួយណាដែលអ្នកចង់ចូលភ្លាមៗបន្ទាប់ពីចូលប្រព័ន្ធ។"
+    },
+    "keyboard": {
+      "general": "ទូទៅ",
+      "quick_sale": "លក់រហ័ស"
+    },
+    "security": {
+      "title": "សម័យកាលកំពុងប្រើប្រាស់",
+      "sign_out_others": "ចាកចេញពីឧបករណ៍ផ្សេងទៀត",
+      "sign_out_others_confirm": "រាល់ឧបករណ៍ផ្សេងទៀតដែលកំពុងចូលគណនីរបស់អ្នកនឹងត្រូវបានចាកចេញ។",
+      "sign_out_others_success": "បានចាកចេញពីឧបករណ៍ផ្សេងទៀត។",
+      "sign_out_others_failed": "មិនអាចចាកចេញពីឧបករណ៍ផ្សេងទៀតបានទេ។",
+      "this_device": "ឧបករណ៍នេះ",
+      "unknown_device": "ឧបករណ៍មិនស្គាល់",
+      "last_active": "សកម្មចុងក្រោយ",
+      "no_sessions": "មិនមានសម័យកាលកំពុងប្រើប្រាស់ទេ។",
+      "load_failed": "មិនអាចផ្ទុកសម័យកាលបានទេ។"
+    }
   },
   "preferences": {
     "title": "ជម្រើស",
@@ -357,7 +405,12 @@
     "title": "គន្លឹះក្តារចុច",
     "search": "ផ្តោតលើការស្វែងរក",
     "checkout": "ទូទាត់",
-    "close": "បិទប្រអប់"
+    "close": "បិទប្រអប់",
+    "toggle_sidebar": "បង្រួម/ពង្រីកម៉ឺនុយចំហៀង"
+  },
+  "sidebar": {
+    "collapse_menu": "បង្រួមម៉ឺនុយ",
+    "expand_menu": "ពង្រីកម៉ឺនុយ"
   },
   "forgot_password": {
     "tagline": "សង្គ្រោះគណនី",
@@ -800,7 +853,8 @@
     "latitude_range": "ត្រូវតែស្ថិតនៅចន្លោះ -90 និង 90",
     "longitude_range": "ត្រូវតែស្ថិតនៅចន្លោះ -180 និង 180",
     "password_complexity": "ត្រូវមានអក្សរធំ អក្សរតូច និងលេខយ៉ាងហោចណាស់មួយ",
-    "password_mismatch": "ពាក្យសម្ងាត់មិនត្រូវគ្នា"
+    "password_mismatch": "ពាក្យសម្ងាត់មិនត្រូវគ្នា",
+    "password_min_length": "ត្រូវតែមានយ៉ាងហោចណាស់ ៨ តួអក្សរ"
   },
   "table": {
     "no_data": "មិនមានទិន្នន័យ",

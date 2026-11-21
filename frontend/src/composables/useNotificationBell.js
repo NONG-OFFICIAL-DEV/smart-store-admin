@@ -27,6 +27,11 @@ export function useNotificationBell() {
   const router = useRouter()
 
   const bellRef = ref(null)
+  // Tracked independently of <AppNotificationBell>'s own internal badge —
+  // that component owns its count entirely internally with no exposed slot/
+  // prop for it, so a custom activator (see SidebarFooter.vue's plain
+  // <button>) needs its own copy of the same count to render its own badge.
+  const unreadCount = ref(0)
 
   async function fetchRecentNotifications({ perPage }) {
     const { data } = await getAllNotificationsApi({ perPage })
@@ -38,19 +43,32 @@ export function useNotificationBell() {
     return data.data.count
   }
 
+  async function refreshUnreadCount() {
+    try {
+      unreadCount.value = await fetchUnreadNotificationCount()
+    } catch {
+      // leave the last known count on a transient failure
+    }
+  }
+
   const goToNotifications = () => router.push('/notifications')
 
   // Live push — the router guard's fetchMe() call already connects Echo
   // before any layout mounts, so a live instance should already exist here.
   let notificationChannel = null
+  let pollHandle = null
 
   onMounted(() => {
+    refreshUnreadCount()
+    pollHandle = window.setInterval(refreshUnreadCount, POLL_FALLBACK_MS)
+
     const echo = getEcho()
     const userId = authStore.me?.id
     if (echo && userId) {
       notificationChannel = echo.private(`App.Models.User.${userId}`)
       notificationChannel.listen('.notification.created', () => {
         bellRef.value?.refresh()
+        refreshUnreadCount()
       })
     }
   })
@@ -59,10 +77,12 @@ export function useNotificationBell() {
     if (notificationChannel) {
       notificationChannel.stopListening('.notification.created')
     }
+    window.clearInterval(pollHandle)
   })
 
   return {
     bellRef,
+    unreadCount,
     bellProps: {
       fetchRecent: fetchRecentNotifications,
       fetchUnreadCount: fetchUnreadNotificationCount,
@@ -76,6 +96,10 @@ export function useNotificationBell() {
       viewAllText: t('btn.view_all'),
       pollIntervalMs: POLL_FALLBACK_MS
     },
-    goToNotifications
+    goToNotifications,
+    // So a custom panel (FooterNotificationsMenu.vue) can refresh the badge
+    // immediately after marking something read, instead of waiting for the
+    // next poll tick.
+    refreshUnreadCount
   }
 }

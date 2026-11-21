@@ -2,7 +2,8 @@
   "lang": {
     "en": "English",
     "km": "Khmer",
-    "zh": "Chinese"
+    "zh": "Chinese",
+    "change": "Change language"
   },
   "logout": {
     "confirm_title": "Log out?",
@@ -156,12 +157,59 @@
     "appearance": "Appearance",
     "online": "Online",
     "offline": "Offline",
+    "alerts": "Alerts",
+    "account_menu": "Account menu",
     "lang_compact": "EN · ខ្មែរ",
     "select_branch": "Select branch",
     "current_shop": "Current shop",
     "switch_branch": "Switch branch",
     "branch_open": "Open",
     "branch_closed": "Closed"
+  },
+  "account": {
+    "title": "My account",
+    "subtitle": "Manage your profile, preferences, and security.",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "keyboard": "Keyboard",
+      "security": "Security"
+    },
+    "profile": {
+      "info_title": "Profile information",
+      "upload_photo": "Upload photo",
+      "photo_hint": "PNG, JPG or WEBP, max 5 MB",
+      "photo_type_error": "Please choose a PNG, JPG, or WEBP image.",
+      "photo_size_error": "Image must be 5 MB or smaller.",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "email_readonly_note": "This is your login email — change it from Security settings.",
+      "saved": "Profile updated.",
+      "save_failed": "Failed to update profile.",
+      "password_strength_hint": "At least 8 characters, with upper & lower case letters and a number"
+    },
+    "preferences": {
+      "default_branch": "Default branch on login",
+      "default_branch_hint": "Which branch to land on right after you log in."
+    },
+    "keyboard": {
+      "general": "General",
+      "quick_sale": "Quick Sale"
+    },
+    "security": {
+      "title": "Active sessions",
+      "sign_out_others": "Sign out of other devices",
+      "sign_out_others_confirm": "Every other device currently signed in to your account will be signed out.",
+      "sign_out_others_success": "Signed out of other devices.",
+      "sign_out_others_failed": "Failed to sign out other devices.",
+      "this_device": "This device",
+      "unknown_device": "Unknown device",
+      "last_active": "Last active",
+      "no_sessions": "No active sessions.",
+      "load_failed": "Failed to load sessions."
+    }
   },
   "preferences": {
     "title": "Preferences",
@@ -355,7 +403,12 @@
     "title": "Keyboard",
     "search": "Focus search",
     "checkout": "Checkout",
-    "close": "Close dialog"
+    "close": "Close dialog",
+    "toggle_sidebar": "Collapse/expand sidebar"
+  },
+  "sidebar": {
+    "collapse_menu": "Collapse menu",
+    "expand_menu": "Expand menu"
   },
   "forgot_password": {
     "tagline": "ACCOUNT RECOVERY",
@@ -805,7 +858,8 @@
     "latitude_range": "Must be between -90 and 90",
     "longitude_range": "Must be between -180 and 180",
     "password_complexity": "Must include an uppercase letter, a lowercase letter, and a number",
-    "password_mismatch": "Passwords do not match"
+    "password_mismatch": "Passwords do not match",
+    "password_min_length": "Must be at least 8 characters"
   },
   "table": {
     "no_data": "No data available",

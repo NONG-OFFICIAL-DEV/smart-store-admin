@@ -24,7 +24,15 @@ function loadCached() {
     layout: normalizeLayout(parsed.layout),
     theme: parsed.theme || localStorage.getItem('theme') || 'light',
     accent: normalizeAccent(parsed.accent || localStorage.getItem('accent')),
-    density: normalizeDensity(parsed.density || localStorage.getItem('density'))
+    density: normalizeDensity(parsed.density || localStorage.getItem('density')),
+    // Which branch to land on right after login (My account > Preferences) —
+    // only meaningful for an owner/multi-branch user; staff are always
+    // forced onto their one assigned branch regardless (see authStore).
+    defaultBranchId: parsed.defaultBranchId ?? null,
+    // Sidebar-only layout's own collapse/expand state (Ctrl/Cmd+B) — read
+    // synchronously here so Sidebar.vue never flashes expanded-then-collapses
+    // on load, same as every other preference in this bag.
+    sidebarOnlyCollapsed: parsed.sidebarOnlyCollapsed ?? false
   }
 }
 
@@ -43,7 +51,14 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
     persistLocally() {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ layout: this.layout, theme: this.theme, accent: this.accent, density: this.density })
+        JSON.stringify({
+          layout: this.layout,
+          theme: this.theme,
+          accent: this.accent,
+          density: this.density,
+          defaultBranchId: this.defaultBranchId,
+          sidebarOnlyCollapsed: this.sidebarOnlyCollapsed
+        })
       )
       // Legacy standalone keys — PreferencesDialog/AuthLayout/App.vue's
       // Ctrl+Shift+L shortcut still read 'theme'/'density' directly today
@@ -82,6 +97,14 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
       appDensity.value = this.density
       this.persistAndSync()
     },
+    setDefaultBranch(branchId) {
+      this.defaultBranchId = branchId || null
+      this.persistAndSync()
+    },
+    setSidebarOnlyCollapsed(value) {
+      this.sidebarOnlyCollapsed = !!value
+      this.persistAndSync()
+    },
 
     // Fire-and-forget — a failed save just means the pick stays
     // local-only until the next successful change; it never blocks the UI
@@ -90,7 +113,14 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
       this.persistLocally()
       authService
         .updatePreferences({
-          ui_preferences: { layout: this.layout, theme: this.theme, accent: this.accent, density: this.density }
+          ui_preferences: {
+            layout: this.layout,
+            theme: this.theme,
+            accent: this.accent,
+            density: this.density,
+            default_branch_id: this.defaultBranchId,
+            sidebar_only_collapsed: this.sidebarOnlyCollapsed
+          }
         })
         .catch(() => {})
     },
@@ -106,9 +136,18 @@ export const useUiPreferencesStore = defineStore('uiPreferences', {
         layout: normalizeLayout(serverPrefs.layout ?? this.layout),
         theme: serverPrefs.theme ?? this.theme,
         accent: normalizeAccent(serverPrefs.accent ?? this.accent),
-        density: normalizeDensity(serverPrefs.density ?? this.density)
+        density: normalizeDensity(serverPrefs.density ?? this.density),
+        defaultBranchId: serverPrefs.default_branch_id ?? this.defaultBranchId,
+        sidebarOnlyCollapsed: serverPrefs.sidebar_only_collapsed ?? this.sidebarOnlyCollapsed
       }
-      const current = { layout: this.layout, theme: this.theme, accent: this.accent, density: this.density }
+      const current = {
+        layout: this.layout,
+        theme: this.theme,
+        accent: this.accent,
+        density: this.density,
+        defaultBranchId: this.defaultBranchId,
+        sidebarOnlyCollapsed: this.sidebarOnlyCollapsed
+      }
       const changed = JSON.stringify(next) !== JSON.stringify(current)
 
       Object.assign(this, next)
