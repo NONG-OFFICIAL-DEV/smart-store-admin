@@ -285,6 +285,7 @@ class OrderController extends Controller
             'items.modifiers',
             'statusHistory',
             'diningTable',
+            'customer',
         ])
             ->where('table_id', $tableId)
             // Coffee/Mart POS sales are recorded 'completed' the instant
@@ -413,13 +414,15 @@ class OrderController extends Controller
             $validated = $request->validate([
                 'payment_method' => 'required|in:cash,card,qr,transfer',
                 'cash_tendered'  => 'nullable|numeric|min:0',
+                'redemption_code' => 'nullable|string|max:8',
             ]);
 
             try {
                 $receipt = $this->tableSessions->paySession(
                     $order->table_session_id,
                     $validated,
-                    auth()->user()?->staff?->id
+                    auth()->user()?->staff?->id,
+                    auth()->user()
                 );
             } catch (\App\Exceptions\PaySessionException $e) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], $e->getCode());
@@ -569,6 +572,11 @@ class OrderController extends Controller
             'table' => $order->relationLoaded('diningTable') && $order->diningTable ? [
                 'id'     => $order->diningTable->id,
                 'number' => $order->diningTable->table_number,
+            ] : null,
+            'customer' => $order->relationLoaded('customer') && $order->customer ? [
+                'id'             => $order->customer->id,
+                'name'           => trim("{$order->customer->first_name} {$order->customer->last_name}"),
+                'loyalty_points' => $order->customer->loyalty_points,
             ] : null,
             'subtotal'               => (float) $order->subtotal,
             'discount_amount'        => (float) $order->discount_amount,

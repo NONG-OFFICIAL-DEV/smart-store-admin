@@ -264,6 +264,7 @@ function buildTotals(r) {
 // ASCII text → raw charCodeAt bytes
 // ─────────────────────────────────────────────────────────────────────────────
 function buildBytes(r, money) {
+  const authStore = useAuthStore()
   const { items, subtotal, discount, tax, serviceCharge, total, cash, change, payLbl } = buildTotals(r)
 
   const bytes = []
@@ -311,8 +312,12 @@ function buildBytes(r, money) {
     { label: 'Order #:', value: r.order_number ?? '-' },
     { label: 'Date:', value: r.printed_at ?? r.date ?? new Date().toLocaleString() }
   ]
-  if (r.cashier) infoRows.push({ label: 'Cashier:', value: r.cashier })
-  if (r.order_type) infoRows.push({ label: 'Type:', value: ORDER_TYPE_LABEL[r.order_type] ?? r.order_type })
+  if (r.cashier && authStore.posSettings?.show_cashier_name) {
+    infoRows.push({ label: 'Cashier:', value: r.cashier })
+  }
+  if (r.order_type && authStore.posSettings?.show_order_type) {
+    infoRows.push({ label: 'Type:', value: ORDER_TYPE_LABEL[r.order_type] ?? r.order_type })
+  }
   if (r.table_number) infoRows.push({ label: 'Table:', value: String(r.table_number) })
   if (r.customer_name) infoRows.push({ label: 'Customer:', value: r.customer_name })
   b(buildHeaderInfoImage(infoRows))
@@ -376,6 +381,23 @@ function buildBytes(r, money) {
     }
   }
 
+  // ── LOYALTY ── only present when a customer was attached to the sale.
+  if (r.loyalty_stamps_earned != null) {
+    t(line())
+    b(totalsRowToEscPosImage('Stamps earned / ពិន្ទុទទួលបាន:', '+' + r.loyalty_stamps_earned))
+    if (r.loyalty_new_balance != null) {
+      b(totalsRowToEscPosImage('New balance / សមតុល្យថ្មី:', String(r.loyalty_new_balance)))
+    }
+  }
+
+  // ── QUEUE NUMBER (large, just above the footer) ──
+  if (r.queue_number_display && authStore.posSettings?.show_queue_number) {
+    t(line())
+    b([E, 0x61, 0x01]) // center
+    img(r.queue_number_display, { bold: true, fontSize: 60, align: 'center' })
+    img('លេខរងចាំ / Ticket No.', { fontSize: 18, align: 'center' })
+  }
+
   // ── FOOTER ──
   t(line())
   b([E, 0x61, 0x01]) // center
@@ -426,6 +448,7 @@ const FONT_STACK = 'Hanuman, "Noto Sans Khmer", Arial, sans-serif'
 // just rendered as pixels instead of bytes, so Khmer and ASCII are handled
 // identically (no more hasKhmer() branching needed for this path).
 function buildReceiptPng(r, money) {
+  const authStore = useAuthStore()
   const { items, subtotal, discount, tax, serviceCharge, total, cash, change, payLbl } = buildTotals(r)
   const measure = document.createElement('canvas').getContext('2d')
   const ops = []
@@ -516,8 +539,8 @@ function buildReceiptPng(r, money) {
   addDivider()
   addRow('Order #:', r.order_number ?? '-')
   addRow('Date:', r.printed_at ?? r.date ?? new Date().toLocaleString())
-  if (r.cashier) addRow('Cashier:', r.cashier)
-  if (r.order_type) addRow('Type:', ORDER_TYPE_LABEL[r.order_type] ?? r.order_type)
+  if (r.cashier && authStore.posSettings?.show_cashier_name) addRow('Cashier:', r.cashier)
+  if (r.order_type && authStore.posSettings?.show_order_type) addRow('Type:', ORDER_TYPE_LABEL[r.order_type] ?? r.order_type)
   if (r.table_number) addRow('Table:', String(r.table_number))
   if (r.customer_name) addRow('Customer:', r.customer_name)
   addDivider()
@@ -555,6 +578,20 @@ function buildReceiptPng(r, money) {
     addRow('Payment / បង់:', payLbl)
     if (cash > 0) addRow('Cash / ទទួល:', money(cash))
     if (change > 0) addRow('Change / អាប:', money(change), { bold: true })
+  }
+
+  // ── LOYALTY ──
+  if (r.loyalty_stamps_earned != null) {
+    addDivider()
+    addRow('Stamps earned / ពិន្ទុទទួលបាន:', '+' + r.loyalty_stamps_earned)
+    if (r.loyalty_new_balance != null) addRow('New balance / សមតុល្យថ្មី:', String(r.loyalty_new_balance))
+  }
+
+  // ── QUEUE NUMBER (large, just above the footer) ──
+  if (r.queue_number_display && authStore.posSettings?.show_queue_number) {
+    addDivider()
+    addCentered(r.queue_number_display, { bold: true, fontSize: 60 })
+    addCentered('លេខរងចាំ / Ticket No.', { fontSize: 18 })
   }
 
   // ── FOOTER ──
@@ -670,6 +707,8 @@ const PRINT_IFRAME_STYLE = `
   .row.total .label, .row.total .value { font-weight: 700; font-size: 14px; }
   .item { width: 100%; max-width: 100%; margin-bottom: 6px; }
   .item-note { font-size: 10px; margin-top: 1px; }
+  .queue-number { font-size: 36px; font-weight: 800; line-height: 1.1; margin-top: 4px; }
+  .queue-label { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
 `
 
 // Mirrors PosReceiptContent.vue's template 1:1 (same i18n keys, same
@@ -705,10 +744,14 @@ function buildReceiptHtml(r, mode) {
 
   body += '<hr>'
   body += rowHtml(t('pos.receipt.order_number'), r.order_number ?? '-')
-  if (r.queue_number_display) body += rowHtml(t('pos.receipt.queue_number'), r.queue_number_display)
+  if (r.order_type && authStore.posSettings?.show_order_type) {
+    body += rowHtml(t('pos.receipt.order_type'), t(`pos.cart.order_type.${r.order_type}`))
+  }
   if (r.table_number) body += rowHtml(t('pos.receipt.table'), r.table_number)
   if (r.customer_name) body += rowHtml(t('pos.receipt.customer'), r.customer_name)
-  if (r.cashier) body += rowHtml(t('pos.receipt.cashier'), r.cashier)
+  if (r.cashier && authStore.posSettings?.show_cashier_name) {
+    body += rowHtml(t('pos.receipt.cashier'), r.cashier)
+  }
   body += rowHtml(t('pos.receipt.date'), r.date)
   body += '<hr>'
 
@@ -750,6 +793,17 @@ function buildReceiptHtml(r, mode) {
   } else if (r.payment_method) {
     body += '<hr>'
     body += rowHtml(t('pos.receipt.payment_method'), String(r.payment_method).toUpperCase())
+  }
+
+  if (r.loyalty_stamps_earned != null) {
+    body += '<hr>'
+    body += rowHtml(t('pos.receipt.stamps_earned'), `+${r.loyalty_stamps_earned}`)
+    if (r.loyalty_new_balance != null) body += rowHtml(t('pos.receipt.new_balance'), String(r.loyalty_new_balance))
+  }
+
+  if (r.queue_number_display && authStore.posSettings?.show_queue_number) {
+    body += '<hr>'
+    body += `<div class="center"><div class="queue-number">${escapeHtml(r.queue_number_display)}</div><div class="queue-label">លេខរងចាំ / Ticket No.</div></div>`
   }
 
   return `<!doctype html><html><head><meta charset="utf-8">
@@ -806,6 +860,239 @@ export async function printReceiptBrowser(receipt, mode) {
   // Removed on a delay rather than immediately — some browsers tear down
   // an iframe's print job if it's detached from the document too soon
   // after calling print().
+  setTimeout(() => iframe.remove(), 1000)
+  return true
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Kitchen/barista ticket — items + customizations only, no prices, no
+// payment/loyalty section, no "Thank you" footer (not customer-facing).
+// Consumes CoffeePOSorderController::buildOrderTicket()'s payload shape:
+// { order_number, queue_number_display, order_type, table_number, cashier,
+//   time, date, notes, items: [{ name, quantity, customizations, note }] }.
+// Shares the same low-level canvas/ESC-POS helpers as the receipt above.
+// ─────────────────────────────────────────────────────────────────────────────
+function buildTicketBytes(tk) {
+  const bytes = []
+  const b = arr => bytes.push(...arr)
+  const t = str => {
+    for (let i = 0; i < str.length; i++) bytes.push(str.charCodeAt(i) & 0xff)
+  }
+  const img = (text, opts = {}) => b(textToEscPosImage(text, opts))
+
+  const E = 0x1b
+  const G = 0x1d
+
+  b([E, 0x40]) // INIT
+  b([E, 0x61, 0x01]) // center
+  img('KITCHEN TICKET', { bold: true, fontSize: 30, align: 'center' })
+  t(dLine())
+
+  if (tk.queue_number_display) {
+    img(tk.queue_number_display, { bold: true, fontSize: 60, align: 'center' })
+    img('លេខរងចាំ / Ticket No.', { fontSize: 18, align: 'center' })
+    t(dLine())
+  }
+
+  b([E, 0x61, 0x00]) // left
+  const infoRows = [
+    { label: 'Order #:', value: tk.order_number ?? '-' },
+    { label: 'Date:', value: `${tk.date ?? ''} ${tk.time ?? ''}`.trim() }
+  ]
+  if (tk.order_type) infoRows.push({ label: 'Type:', value: ORDER_TYPE_LABEL[tk.order_type] ?? tk.order_type })
+  if (tk.table_number) infoRows.push({ label: 'Table:', value: String(tk.table_number) })
+  b(buildHeaderInfoImage(infoRows))
+  t(line())
+
+  for (const item of tk.items ?? []) {
+    img(`${item.quantity} x ${item.name}`, { bold: true, fontSize: 26 })
+    const custLine = (item.customizations ?? [])
+      .map(c => (c.label ? `${c.label}: ${c.value}` : c.value))
+      .join(' · ')
+    if (custLine) img('  ' + custLine, { fontSize: 18 })
+    if (item.note) img('  Note: ' + item.note, { fontSize: 18 })
+    t(line())
+  }
+
+  if (tk.notes) {
+    img('Order note: ' + tk.notes, { fontSize: 20 })
+    t(line())
+  }
+
+  t('\n\n\n')
+  b([G, 0x56, 0x41, 0x05]) // cut
+  return new Uint8Array(bytes)
+}
+
+function buildTicketPng(tk) {
+  const measure = document.createElement('canvas').getContext('2d')
+  const ops = []
+
+  const addCentered = (text, { bold = false, fontSize = 20 } = {}) => {
+    if (!text) return
+    const lines = wrapLines(measure, text, fontSize, bold)
+    const lineH = fontSize + 10
+    ops.push({
+      height: lines.length * lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACK}`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        lines.forEach((ln, i) => ctx.fillText(ln, PAPER_WIDTH_PX / 2, y + i * lineH + 2))
+      }
+    })
+  }
+
+  const addLeft = (text, { fontSize = 20, bold = false } = {}) => {
+    if (!text) return
+    const lineH = fontSize + 10
+    ops.push({
+      height: lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACK}`
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'top'
+        ctx.fillText(text, 4, y + 2)
+      }
+    })
+  }
+
+  const addRow = (label, value, { fontSize = 20, marginTop = 8 } = {}) => {
+    const lineH = fontSize + marginTop + 10
+    ops.push({
+      height: lineH,
+      draw: (ctx, y) => {
+        ctx.font = `${fontSize}px ${FONT_STACK}`
+        ctx.textBaseline = 'bottom'
+        const drawY = y + lineH - 5
+        ctx.textAlign = 'left'
+        ctx.fillText(label, 4, drawY)
+        ctx.textAlign = 'right'
+        ctx.fillText(value, PAPER_WIDTH_PX - 4, drawY)
+      }
+    })
+  }
+
+  const addDivider = () => {
+    const h = 16
+    ops.push({
+      height: h,
+      draw: (ctx, y) => {
+        ctx.fillStyle = '#000'
+        ctx.fillRect(4, y + 7, PAPER_WIDTH_PX - 8, 2)
+      }
+    })
+  }
+
+  addCentered('KITCHEN TICKET', { bold: true, fontSize: 30 })
+  addDivider()
+  if (tk.queue_number_display) {
+    addCentered(tk.queue_number_display, { bold: true, fontSize: 60 })
+    addCentered('លេខរងចាំ / Ticket No.', { fontSize: 18 })
+    addDivider()
+  }
+  addRow('Order #:', tk.order_number ?? '-')
+  addRow('Date:', `${tk.date ?? ''} ${tk.time ?? ''}`.trim())
+  if (tk.order_type) addRow('Type:', ORDER_TYPE_LABEL[tk.order_type] ?? tk.order_type)
+  if (tk.table_number) addRow('Table:', String(tk.table_number))
+  addDivider()
+
+  for (const item of tk.items ?? []) {
+    addLeft(`${item.quantity} x ${item.name}`, { bold: true, fontSize: 26 })
+    const custLine = (item.customizations ?? [])
+      .map(c => (c.label ? `${c.label}: ${c.value}` : c.value))
+      .join(' · ')
+    if (custLine) addLeft('  ' + custLine, { fontSize: 18 })
+    if (item.note) addLeft('  Note: ' + item.note, { fontSize: 18 })
+    addDivider()
+  }
+
+  if (tk.notes) {
+    addLeft('Order note: ' + tk.notes, { fontSize: 20 })
+    addDivider()
+  }
+
+  const PAD = 20
+  const totalHeight = PAD * 2 + ops.reduce((sum, op) => sum + op.height, 0)
+  const canvas = document.createElement('canvas')
+  canvas.width = PAPER_WIDTH_PX
+  canvas.height = Math.max(1, totalHeight)
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = '#000'
+  let y = PAD
+  for (const op of ops) {
+    op.draw(ctx, y)
+    y += op.height
+  }
+  return canvas.toDataURL('image/png').split(',')[1]
+}
+
+function buildTicketHtml(tk) {
+  let body = '<div class="center"><div class="title">KITCHEN TICKET</div></div><hr>'
+  if (tk.queue_number_display) {
+    body += `<div class="center"><div class="queue-number">${escapeHtml(tk.queue_number_display)}</div><div class="queue-label">លេខរងចាំ / Ticket No.</div></div><hr>`
+  }
+  body += rowHtml('Order #:', tk.order_number ?? '-')
+  body += rowHtml('Date:', `${tk.date ?? ''} ${tk.time ?? ''}`.trim())
+  if (tk.order_type) body += rowHtml('Type:', ORDER_TYPE_LABEL[tk.order_type] ?? tk.order_type)
+  if (tk.table_number) body += rowHtml('Table:', tk.table_number)
+  body += '<hr>'
+
+  for (const item of tk.items ?? []) {
+    body += '<div class="item">'
+    body += `<div class="name">${item.quantity} × ${escapeHtml(item.name)}</div>`
+    for (const c of item.customizations ?? []) {
+      const text = c.label ? `${c.label}: ${c.value}` : c.value
+      body += `<div class="item-note muted">${escapeHtml(text)}</div>`
+    }
+    if (item.note) body += `<div class="item-note muted">Note: ${escapeHtml(item.note)}</div>`
+    body += '</div>'
+  }
+
+  if (tk.notes) {
+    body += `<hr><div class="muted">Order note: ${escapeHtml(tk.notes)}</div>`
+  }
+
+  return `<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&family=Noto+Sans+Khmer:wght@400;500;700&display=swap">
+<style>${PRINT_IFRAME_STYLE}</style>
+</head><body>${body}</body></html>`
+}
+
+// Browser/iframe fallback for the kitchen ticket — mirrors
+// printReceiptBrowser() exactly, just pointed at buildTicketHtml().
+export async function printTicketBrowser(ticket) {
+  if (!ticket) return false
+
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.right = '0'
+  iframe.style.bottom = '0'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = '0'
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentDocument
+  doc.open()
+  doc.write(buildTicketHtml(ticket))
+  doc.close()
+
+  await new Promise(resolve => {
+    if (doc.readyState === 'complete') resolve()
+    else iframe.addEventListener('load', resolve, { once: true })
+  })
+
+  try {
+    if (doc.fonts?.ready) await doc.fonts.ready
+  } catch (_) {
+    // Font-loading failure shouldn't block printing.
+  }
+
+  iframe.contentWindow.focus()
+  iframe.contentWindow.print()
   setTimeout(() => iframe.remove(), 1000)
   return true
 }
@@ -912,6 +1199,92 @@ export function useReceipt() {
       { type: 'raw', format: 'command', data: '\x1B\x64\x05\x1D\x56\x00' } // feed 5 + full cut
     ])
     return true
+  }
+
+  // ── Print kitchen ticket via WebUSB ───────────────────────────────────────
+  async function printUsbTicket(ticket, _retry = false) {
+    if (!usbConnected.value || !usbDevice.value) {
+      const reconnected = await autoConnectUsb({ usbDevice, usbConnected, printMethod })
+      if (!reconnected) {
+        error.value = 'not_connected'
+        return false
+      }
+    }
+    const bytes = buildTicketBytes(ticket)
+    const CHUNK = 64
+    try {
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        await usbDevice.value.dev.transferOut(usbDevice.value.endpoint.endpointNumber, bytes.slice(i, i + CHUNK))
+      }
+      return true
+    } catch (e) {
+      usbConnected.value = false
+      usbDevice.value = null
+      if (!_retry) {
+        console.warn('[useReceipt] USB error (ticket), retrying once...', e.message)
+        await new Promise(r => setTimeout(r, 600))
+        return printUsbTicket(ticket, true)
+      }
+      error.value = 'disconnected'
+      return false
+    }
+  }
+
+  // ── Print kitchen ticket via QZ Tray ──────────────────────────────────────
+  async function printQzTicket(ticket, printerName) {
+    const qz = await getQz()
+    if (!qz) throw new Error('QZ Tray not loaded. Make sure qz-tray is installed.')
+    if (!qz.websocket.isActive()) await qz.websocket.connect()
+    const printer = await qz.printers.find(printerName)
+    const config = qz.configs.create(printer)
+    const png = buildTicketPng(ticket)
+    await qz.print(config, [
+      { type: 'raw', format: 'command', data: '\x1B\x40' },
+      {
+        type: 'raw',
+        format: 'image',
+        flavor: 'base64',
+        data: png,
+        options: { language: 'ESCPOS', dotDensity: 'double' }
+      },
+      { type: 'raw', format: 'command', data: '\x1B\x64\x05\x1D\x56\x00' }
+    ])
+    return true
+  }
+
+  // ── Auto-detect and print a kitchen/barista ticket ────────────────────────
+  // Same USB→QZ auto-detect as print(), kept separate since a ticket (no
+  // prices/payment) is a different document from the customer receipt.
+  const printTicket = async (ticket, printerName) => {
+    if (!ticket) {
+      error.value = 'No ticket data'
+      return false
+    }
+    printing.value = true
+    error.value = null
+    try {
+      if (usbSupported) {
+        printMethod.value = 'usb'
+        if (await printUsbTicket(ticket)) return true
+        error.value = null
+      }
+      if (isAndroid()) {
+        error.value = 'not_connected'
+        return false
+      }
+      if (!printerName) {
+        error.value = 'no_printer_configured'
+        return false
+      }
+      printMethod.value = 'qz'
+      return await printQzTicket(ticket, printerName)
+    } catch (e) {
+      error.value = e.message ?? 'Print failed'
+      console.error('[useReceipt]', e)
+      return false
+    } finally {
+      printing.value = false
+    }
   }
 
   // ── Diagnostic: isolate raw-command text vs. image rendering through QZ ──
@@ -1023,6 +1396,7 @@ export function useReceipt() {
     usbConnected,
     usbSupported,
     print,
+    printTicket,
     checkConnection,
     connectUsb,
     disconnectUsb,

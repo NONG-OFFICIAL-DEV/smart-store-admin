@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\TelegramLinkToken;
 use App\Models\TelegramSetting;
 use App\Models\User;
@@ -61,6 +62,38 @@ class TelegramService
         ]);
 
         return $user;
+    }
+
+    /**
+     * Customer-facing counterpart of generateLinkUrl() — same one-time
+     * deep-link flow, matched back by TelegramPoll::handleStart() via
+     * customer_id instead of user_id.
+     */
+    public function generateCustomerLinkUrl(Customer $customer): string
+    {
+        $username = TelegramSetting::username();
+
+        TelegramLinkToken::where('customer_id', $customer->id)
+            ->whereNull('used_at')
+            ->delete();
+
+        $token = TelegramLinkToken::create([
+            'customer_id' => $customer->id,
+            'token' => Str::random(32),
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        return "https://t.me/{$username}?start={$token->token}";
+    }
+
+    public function unlinkCustomer(Customer $customer): Customer
+    {
+        $customer->update([
+            'telegram_chat_id' => null,
+            'notify_telegram' => false,
+        ]);
+
+        return $customer;
     }
 
     /**

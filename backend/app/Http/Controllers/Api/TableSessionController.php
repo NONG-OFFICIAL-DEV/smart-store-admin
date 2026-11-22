@@ -27,13 +27,17 @@ class TableSessionController extends Controller
             // staff-entered, never required. Stored as the payment's
             // gateway_transaction_id (see TableSessionService::paySession()).
             'reference'      => 'nullable|string|max:200',
+            // A reward code the customer showed from the Mini App's Active
+            // QR screen — resolved and confirmed inside paySession() itself.
+            'redemption_code' => 'nullable|string|max:8',
         ]);
 
         try {
             $receipt = $this->tableSessions->paySession(
                 $tableSession->id,
                 $validated,
-                auth()->user()?->staff?->id
+                auth()->user()?->staff?->id,
+                auth()->user()
             );
         } catch (PaySessionException $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], $e->getCode());

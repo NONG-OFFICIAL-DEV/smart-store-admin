@@ -75,7 +75,9 @@ class TelegramPoll extends Command
             return;
         }
 
-        $pending->user->update([
+        $linked = $pending->user ?? $pending->customer;
+
+        $linked?->update([
             'telegram_chat_id' => $chatId,
             'notify_telegram' => true,
         ]);

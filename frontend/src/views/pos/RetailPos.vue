@@ -77,12 +77,16 @@
         :customers="customerOptions"
         :customer-id="posStore.customerId"
         :customer-name="posStore.customerName"
+        :loyalty-points="attachedCustomerLoyaltyPoints"
         :show-notes="showNotes"
         :note="posStore.note"
         @search-customer="onSearchCustomer"
         @update-customer="posStore.setCustomer"
         @update-note="posStore.setNote"
+        @open-redeem="redeemDialogOpen = true"
       />
+
+      <LoyaltyRedeemDialog v-model="redeemDialogOpen" @applied="onRedemptionApplied" />
 
       <div class="pos-page__workspace flex-grow-1 d-flex ga-2">
       <div class="pos-page__products flex-grow-1">
@@ -108,14 +112,18 @@
           ref="cartPanelRef"
           :items="posStore.items"
           :subtotal="posStore.subtotal"
+          :discount-amount="posStore.discountAmount"
           :loading="submitting"
           :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
           :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
+          :qr-image-url="branchCdSettings.merchant_qr_image_url"
           @update-qty="posStore.updateQty"
           @remove="posStore.removeItem"
           @clear="posStore.clear"
           @checkout="submitOrder"
-          @qr-open="openQrPending"
+          @checkout-opened="onCheckoutOpened"
+          @checkout-cancelled="onCheckoutCancelled"
+          @remove-redemption="posStore.setRedemption(null)"
         />
       </div>
       </div>
@@ -130,7 +138,7 @@
       <v-badge :content="posStore.itemCount" color="white" inline class="me-2" />
       <span class="text-body-1 font-weight-medium">{{ t('pos.cart.view_order') }}</span>
       <v-spacer />
-      <span class="text-h6 font-weight-black">{{ formatMoney(posStore.subtotal) }}</span>
+      <span class="text-h6 font-weight-black">{{ formatMoney(posStore.payableTotal) }}</span>
     </div>
 
     <v-bottom-sheet v-if="xs" v-model="mobileCartOpen">
@@ -138,30 +146,26 @@
         class="pos-page__mobile-cart"
         :items="posStore.items"
         :subtotal="posStore.subtotal"
+        :discount-amount="posStore.discountAmount"
         :loading="submitting"
         :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
         :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
+        :qr-image-url="branchCdSettings.merchant_qr_image_url"
         @update-qty="posStore.updateQty"
         @remove="posStore.removeItem"
         @clear="posStore.clear"
         @checkout="onMobileCheckout"
-        @qr-open="openQrPending"
+        @checkout-opened="onCheckoutOpened"
+        @checkout-cancelled="onCheckoutCancelled"
+        @remove-redemption="posStore.setRedemption(null)"
       />
     </v-bottom-sheet>
 
     <PosReceiptDialog
-      ref="receiptDialogRef"
       v-model="receiptOpen"
       :receipt="receipt"
       :printer-name="activeBranchPrinterName"
-      :qr-pending="qrPending"
-      :qr-image-url="branchCdSettings.merchant_qr_image_url"
-      :qr-total="posStore.subtotal"
-      :qr-items="posStore.items"
-      :submitting="submitting"
       @close="receiptOpen = false"
-      @confirm="onQrConfirmed"
-      @cancel="onQrCancelled"
     />
 
     <PosProductCustomizeDialog
@@ -173,7 +177,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useDisplay } from 'vuetify'
   import { useAuthStore } from '@/stores/authStore'
@@ -186,10 +190,12 @@
     submitRetailOrderApi
   } from '@/api/posService'
   import { getAllCustomersApi } from '@/api/customerService'
+  import { confirmLoyaltyRedemptionApi } from '@/api/loyaltyPosService'
   import { AppDialog, AppToolbar } from '@nong-official-dev/core'
   import PosOrderOptionsBar from '@/components/pos/PosOrderOptionsBar.vue'
   import PosProductGrid from '@/components/pos/PosProductGrid.vue'
   import PosCartPanel from '@/components/pos/PosCartPanel.vue'
+  import LoyaltyRedeemDialog from '@/components/pos/LoyaltyRedeemDialog.vue'
   import PosReceiptDialog from '@/components/pos/PosReceiptDialog.vue'
   import PosProductCustomizeDialog from '@/components/pos/PosProductCustomizeDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
@@ -279,22 +285,22 @@
   const receiptOpen = ref(false)
   const receipt = ref(null)
   const submitting = ref(false)
-  const receiptDialogRef = ref(null)
-  // True while the Receipt dialog is showing the QR-confirm content (amount
-  // + QR code + "Confirm & Print"/"Confirm & New Sale") instead of an
-  // actual printed receipt — flips false once the order submits, swapping
-  // the SAME open dialog over to the normal receipt view.
-  const qrPending = ref(false)
-  // Which combined action the cashier picked on the QR-pending screen —
-  // read once the order actually submits (see submitOrder's success path)
-  // so one click both confirms AND immediately prints/closes, instead of
-  // a separate "Confirm" click followed by a separate "Print"/"New sale" click.
-  const qrConfirmAction = ref(null)
 
   const customerOptions = ref([])
   async function onSearchCustomer(search) {
     const { data } = await getAllCustomersApi({ search: search || undefined, perPage: 20 })
     customerOptions.value = data.data
+  }
+
+  // CustomerResource already includes loyalty_points — reusing the search
+  // result instead of a separate lookup once a customer is attached.
+  const attachedCustomerLoyaltyPoints = computed(
+    () => customerOptions.value.find(c => c.id === posStore.customerId)?.loyalty_points ?? null
+  )
+
+  const redeemDialogOpen = ref(false)
+  function onRedemptionApplied(redemption) {
+    posStore.setRedemption(redemption)
   }
 
   const normalizedProducts = computed(() =>
@@ -430,14 +436,12 @@
     })
   }
 
-  // Opens the Receipt dialog in its QR-pending stage — amount + QR code +
-  // "Confirm receive" — and pushes the same QR screen to the customer
-  // display, both the instant the cashier picks QR, before the order even
-  // exists. The dialog stays open and later swaps to the real receipt (see
-  // onQrConfirmed) rather than closing and reopening a second dialog.
-  function openQrPending() {
-    qrPending.value = true
-    receiptOpen.value = true
+  // Pushes the QR screen to the customer display the instant the cashier
+  // picks QR, before the order even exists — independent of the cashier's
+  // own checkout dialog (PosCartPanel owns opening/closing that for every
+  // payment method now). A no-op for the other three methods.
+  function onCheckoutOpened({ payment_method }) {
+    if (payment_method !== 'qr') return
     customerDisplay.publish(
       buildCustomerDisplayState({
         state: 'pay_qr',
@@ -450,18 +454,18 @@
     )
   }
 
-  function onQrConfirmed(action) {
-    qrConfirmAction.value = action
-    submitOrder({ payment_method: 'qr', cash_tendered: undefined })
-  }
-
-  function onQrCancelled() {
-    qrPending.value = false
-    receiptOpen.value = false
+  // Checkout dialog dismissed without confirming, for any payment method —
+  // revert the customer display back to the normal cart mirror (a no-op for
+  // cash/card/pay_later, which never published anything else to begin with).
+  function onCheckoutCancelled() {
     publishCartState()
   }
 
   async function submitOrder({ payment_method, cash_tendered }) {
+    // Captured before posStore.clear() below wipes it — the redemption
+    // can only be confirmed once the order it applies to actually exists.
+    const redemption = posStore.redemption
+
     submitting.value = true
     try {
       const { data } = await submitRetailOrderApi({
@@ -470,6 +474,7 @@
         cash_tendered,
         customer_type: customerType.value,
         customer_id: posStore.customerId || undefined,
+        discount_amount: posStore.discountAmount || undefined,
         notes: posStore.note || undefined,
         items: posStore.items.map(i => ({
           product_id: i.product_id,
@@ -483,22 +488,6 @@
       if (payment_method !== 'pay_later') {
         receipt.value = data.data.receipt
         receiptOpen.value = true
-      }
-      // The QR-pending view (items + QR + total) never swaps to a
-      // different "receipt" layout — one click both confirms AND
-      // immediately prints/closes, with no visible change in between.
-      // print() still uses the real `receipt` set just above; closing
-      // afterward is what actually ends the QR dialog, not a qrPending flip.
-      if (payment_method === 'qr') {
-        ;(async () => {
-          if (qrConfirmAction.value === 'print') {
-            await nextTick()
-            await receiptDialogRef.value?.print()
-          }
-          receiptOpen.value = false
-          qrPending.value = false
-        })()
-        qrConfirmAction.value = null
       }
 
       const receiptData = data.data.receipt
@@ -522,6 +511,22 @@
         })
       )
 
+      // The reward's discount already landed on this order's
+      // discount_amount above — this just marks the redemption as
+      // consumed and links it back to the order it paid for. A failure
+      // here surfaces as a toast for staff to handle manually rather than
+      // silently losing track of it; the order itself is already placed.
+      if (redemption) {
+        try {
+          await confirmLoyaltyRedemptionApi(redemption.code, {
+            order_id: data.data.id,
+            branch_id: branchId.value
+          })
+        } catch (e) {
+          notif(e?.response?.data?.message || t('pos.loyalty.confirm_failed'), { type: 'error' })
+        }
+      }
+
       posStore.clear()
       notif(t('pos.checkout.success'), { type: 'success' })
 
@@ -538,12 +543,11 @@
         suppressCartPublish.value = false
       }, delaySeconds * 1000)
     } catch (err) {
-      if (payment_method === 'qr') {
-        qrPending.value = false
-        qrConfirmAction.value = null
-        receiptOpen.value = false
-        publishCartState()
-      }
+      // The order never happened — if the customer display was mid-QR, put
+      // it back to the normal cart mirror rather than leaving it stuck on a
+      // QR screen for a payment that didn't go through (a no-op revert for
+      // the other methods, which never changed the customer display here).
+      publishCartState()
       notif(
         err.response?.data?.message ?? err.response?.data?.errors?.[0] ?? t('pos.checkout.failed'),
         { type: 'error' }

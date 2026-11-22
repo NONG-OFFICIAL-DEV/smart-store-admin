@@ -117,9 +117,24 @@
 
     <v-divider />
     <div :class="touch ? 'pa-4' : 'pa-3'">
-      <div class="d-flex justify-space-between text-body-1 mb-3">
+      <div class="d-flex justify-space-between text-body-1" :class="discountAmount > 0 ? 'mb-1' : 'mb-3'">
         <span class="font-weight-medium">{{ $t('pos.cart.subtotal') }}</span>
         <span class="font-weight-bold">{{ formatMoney(subtotal) }}</span>
+      </div>
+      <div v-if="discountAmount > 0" class="d-flex justify-space-between text-body-2 mb-3 text-amber-darken-2">
+        <span class="d-flex align-center">
+          {{ $t('pos.loyalty.discount_line') }}
+          <v-btn
+            icon="mdi-close"
+            size="x-small"
+            variant="text"
+            density="compact"
+            class="ml-1"
+            :aria-label="$t('pos.loyalty.remove_reward')"
+            @click="$emit('remove-redemption')"
+          />
+        </span>
+        <span class="font-weight-bold">-{{ formatMoney(discountAmount) }}</span>
       </div>
 
       <!-- Payment method — right here, not a separate dialog, so checkout
@@ -159,16 +174,19 @@
       >
         <v-icon icon="mdi-check-circle-outline" class="me-2" />
         <span class="flex-grow-1 text-start">{{ checkoutLabel }}</span>
-        <span v-if="items.length" class="font-weight-black">{{ formatMoney(subtotal) }}</span>
+        <span v-if="items.length" class="font-weight-black">{{ formatMoney(payableTotal) }}</span>
       </v-btn>
     </div>
 
-    <!-- Cash entry happens in its own dialog, same pattern as the
-         table-session Payment dialog, instead of inline in the cart. -->
-    <PosCashPaymentDialog
-      v-model="cashDialogOpen"
-      :total="subtotal"
-      @confirm="onCashConfirm"
+    <!-- One dialog for every payment method — same header/footer chrome
+         regardless of which method was picked, body content swaps inside
+         (see PosCheckoutDialog.vue). -->
+    <PosCheckoutDialog
+      v-model="checkoutDialogOpen"
+      :payment-method="paymentMethod"
+      :total="payableTotal"
+      :qr-image-url="qrImageUrl"
+      @confirm="onDialogConfirm"
     />
   </v-card>
 </template>
@@ -177,7 +195,7 @@
   import { ref, computed, watch } from 'vue'
   import { useDisplay } from 'vuetify'
   import { useI18n } from 'vue-i18n'
-  import PosCashPaymentDialog from './PosCashPaymentDialog.vue'
+  import PosCheckoutDialog from './PosCheckoutDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useTouchDevice } from '@/composables/useTouchDevice.js'
 
@@ -201,6 +219,9 @@
   const props = defineProps({
     items: { type: Array, default: () => [] },
     subtotal: { type: Number, default: 0 },
+    // A loyalty reward applied via LoyaltyRedeemDialog.vue — owned by the
+    // caller's posStore so it survives the desktop/mobile cart split.
+    discountAmount: { type: Number, default: 0 },
     showNotes: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     // Which methods show at all (Settings > POS), and which one pre-selects.
@@ -209,12 +230,16 @@
       default: () => ['cash', 'card', 'qr', 'pay_later']
     },
     defaultPaymentMethod: { type: String, default: 'cash' },
-    // Synchronous pre-flight check run before ANY payment dialog opens
-    // (cash, qr) or an order submits — return false to block checkout
-    // entirely. Owned by the caller since it's business-specific (e.g.
-    // FoodPos requires a table for dine-in; RetailPos has no such concept)
-    // — this component just gates on whatever the caller decides.
-    beforeCheckout: { type: Function, default: () => true }
+    // Synchronous pre-flight check run before the checkout dialog opens or
+    // an order submits — return false to block checkout entirely. Owned by
+    // the caller since it's business-specific (e.g. FoodPos requires a
+    // table for dine-in; RetailPos has no such concept) — this component
+    // just gates on whatever the caller decides.
+    beforeCheckout: { type: Function, default: () => true },
+    // The tenant's static merchant QR image (Settings → Customer display) —
+    // only shown when paymentMethod is 'qr', but owned by the caller since
+    // it comes from branch data this component doesn't otherwise need.
+    qrImageUrl: { type: String, default: null }
   })
 
   const { mdAndDown: touch } = useDisplay()
@@ -225,8 +250,12 @@
     'remove',
     'clear',
     'checkout',
-    'qr-open'
+    'checkout-opened',
+    'checkout-cancelled',
+    'remove-redemption'
   ])
+
+  const payableTotal = computed(() => Math.max(0, props.subtotal - props.discountAmount))
 
   const paymentMethod = ref(props.defaultPaymentMethod)
 
@@ -263,16 +292,15 @@
     len => {
       if (len === 0) {
         paymentMethod.value = props.defaultPaymentMethod
-        cashDialogOpen.value = false
+        checkoutDialogOpen.value = false
       }
     }
   )
 
-  // Cash amount entry happens in its own dialog (PosCashPaymentDialog),
-  // same pattern as the table-session Payment dialog — Received field +
-  // quick denomination chips + a live Change due summary, rather than an
-  // inline field in the cart column.
-  const cashDialogOpen = ref(false)
+  // Every payment method confirms through the same dialog (PosCheckoutDialog)
+  // — body content swaps inside based on paymentMethod, but opening/closing
+  // it is owned here alongside the method picker above.
+  const checkoutDialogOpen = ref(false)
 
   const canCheckout = computed(() => props.items.length > 0)
 
@@ -284,24 +312,33 @@
 
   function onCheckout() {
     if (!props.beforeCheckout()) return
-    if (paymentMethod.value === 'cash') {
-      cashDialogOpen.value = true
-      return
-    }
-    if (paymentMethod.value === 'qr') {
-      // No local dialog here — the parent page owns the QR-confirm step
-      // (it's the same Receipt dialog, just shown pre-submission) since it
-      // also owns the customer-display publisher and the actual order
-      // submission.
-      emit('qr-open')
-      return
-    }
-    emit('checkout', { payment_method: paymentMethod.value, cash_tendered: undefined })
+    checkoutDialogOpen.value = true
+    // Side-channel only (no UI here) — the parent page owns the
+    // customer-display publisher, and for 'qr' it needs to push the QR
+    // screen to the customer display the instant the method is picked,
+    // before the order even exists.
+    emit('checkout-opened', { payment_method: paymentMethod.value })
   }
 
-  function onCashConfirm(cashTendered) {
-    emit('checkout', { payment_method: 'cash', cash_tendered: cashTendered })
+  // Set synchronously inside onDialogConfirm, read (and cleared) by the
+  // checkoutDialogOpen watcher right below — distinguishes "closed because
+  // the cashier confirmed" from "closed because they dismissed it" so
+  // 'checkout-cancelled' only fires for the latter.
+  let justConfirmed = false
+
+  function onDialogConfirm(cashTendered) {
+    justConfirmed = true
+    emit('checkout', { payment_method: paymentMethod.value, cash_tendered: cashTendered })
   }
+
+  watch(checkoutDialogOpen, open => {
+    if (open) return
+    if (justConfirmed) {
+      justConfirmed = false
+      return
+    }
+    emit('checkout-cancelled')
+  })
 
   defineExpose({ submitCheckout: onCheckout })
 </script>

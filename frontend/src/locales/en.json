@@ -220,10 +220,22 @@
     "language": "Language",
     "layout": "Layout",
     "layouts": {
-      "classic": { "label": "Classic", "hint": "Top bar + full menu. Good for owners on a desktop." },
-      "sidebar_only": { "label": "Sidebar only", "hint": "No top bar, more room for products." },
-      "icon_rail": { "label": "Icon rail", "hint": "Top bar + icon-only sidebar. Good for smaller laptops." },
-      "pos_focus": { "label": "POS focus", "hint": "No sidebar, no top bar. Best for cashiers on a tablet." }
+      "classic": {
+        "label": "Classic",
+        "hint": "Top bar + full menu. Good for owners on a desktop."
+      },
+      "sidebar_only": {
+        "label": "Sidebar only",
+        "hint": "No top bar, more room for products."
+      },
+      "icon_rail": {
+        "label": "Icon rail",
+        "hint": "Top bar + icon-only sidebar. Good for smaller laptops."
+      },
+      "pos_focus": {
+        "label": "POS focus",
+        "hint": "No sidebar, no top bar. Best for cashiers on a tablet."
+      }
     },
     "theme": "Theme",
     "light": "Light",
@@ -1723,7 +1735,62 @@
     "subtitle": "Manage your customer list and loyalty program",
     "tabs": {
       "customers": "Customers",
+      "rewards": "Rewards",
       "loyalty": "Loyalty & Promotions"
+    }
+  },
+  "loyalty_rewards": {
+    "title": "Rewards",
+    "subtitle": "Manage the rewards customers can redeem with their points",
+    "search_placeholder": "Search rewards",
+    "add_reward": "Add reward",
+    "points_cost_chip": "{points} pts",
+    "all_branches": "All branches",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "no_results": "No rewards match your search",
+    "empty": "No rewards yet",
+    "empty_sub": "Add your first reward so customers can redeem their points for it",
+    "drawer": {
+      "add_title": "Add Reward",
+      "edit_title": "Edit Reward",
+      "subtitle": "What a customer can redeem their stamps/points for",
+      "name_label": "Reward name",
+      "name_km_label": "Reward name (Khmer)",
+      "description_label": "Description",
+      "description_km_label": "Description (Khmer)",
+      "points_cost_label": "Points cost",
+      "points_cost_hint": "How many points a customer needs to redeem this",
+      "branch_label": "Available at",
+      "branch_hint": "Leave empty for all branches",
+      "all_branches": "All branches",
+      "type_label": "Reward type",
+      "type_hint": "What redeeming this reward actually gives the customer",
+      "type": {
+        "discount_amount": "Fixed discount",
+        "discount_percent": "Percentage discount",
+        "free_item": "Free item"
+      },
+      "discount_amount_label": "Discount amount",
+      "discount_percent_label": "Discount percent",
+      "free_product_label": "Free product",
+      "valid_from_label": "Valid from",
+      "valid_until_label": "Valid until",
+      "is_active_label": "Active",
+      "is_active_hint": "Inactive rewards are hidden from customers but kept for history",
+      "save": "Save reward",
+      "error_name_required": "Reward name is required.",
+      "error_points_required": "Points cost must be at least 1.",
+      "error_discount_value_required": "Enter a discount value for this reward type.",
+      "error_free_product_required": "Choose which product this reward gives for free."
+    },
+    "messages": {
+      "saved": "Reward saved successfully",
+      "delete_title": "Delete Reward",
+      "delete_message": "Are you sure you want to delete \"{name}\"?",
+      "deleted": "Reward deleted"
     }
   },
   "settings_hub": {
@@ -1736,13 +1803,38 @@
       "printer": "Printer"
     },
     "menu": {
-      "business": { "title": "Business", "subtitle": "Name, logo, color" },
-      "currency": { "title": "Currency", "subtitle": "Exchange rate, riel" },
-      "branches": { "title": "Branches", "subtitle": "Locations, phone" },
-      "pos": { "title": "POS & payments", "subtitle": "Order types, methods" },
-      "printer": { "title": "Printer", "subtitle": "Receipt printer" },
-      "kitchen": { "title": "Kitchen", "subtitle": "Ticket workflow" },
-      "customer_display": { "title": "Customer display", "subtitle": "Second screen, pairing" }
+      "business": {
+        "title": "Business",
+        "subtitle": "Name, logo, color"
+      },
+      "currency": {
+        "title": "Currency",
+        "subtitle": "Exchange rate, riel"
+      },
+      "branches": {
+        "title": "Branches",
+        "subtitle": "Locations, phone"
+      },
+      "pos": {
+        "title": "POS & payments",
+        "subtitle": "Order types, methods"
+      },
+      "printer": {
+        "title": "Printer",
+        "subtitle": "Receipt printer"
+      },
+      "kitchen": {
+        "title": "Kitchen",
+        "subtitle": "Ticket workflow"
+      },
+      "customer_display": {
+        "title": "Customer display",
+        "subtitle": "Second screen, pairing"
+      },
+      "receipt_content": {
+        "title": "Receipt content",
+        "subtitle": "What prints on the receipt"
+      }
     },
     "section_select_label": "Section",
     "subtitle_all_branches": "Applies to all branches.",
@@ -1785,6 +1877,24 @@
     "pos_show_mobile_menu_orders_tables_hint": "Carousel of new e-menu orders on the Tables screen.",
     "pos_mobile_menu_order_sound": "Order Sound",
     "pos_mobile_menu_order_sound_hint": "Play a sound for new e-menu orders.",
+    "pos_loyalty": "Loyalty",
+    "pos_loyalty_earning_type": "Earning rule",
+    "pos_loyalty_earning_per_order": "Per completed order",
+    "pos_loyalty_earning_per_currency": "Per amount spent",
+    "pos_loyalty_rate_per_order": "Stamps per order",
+    "pos_loyalty_rate_per_order_hint": "How many stamps a customer earns per completed order.",
+    "pos_loyalty_rate_per_currency": "Spend per stamp",
+    "pos_loyalty_rate_per_currency_hint": "How much a customer must spend to earn one stamp.",
+    "pos_loyalty_notifications": "Bot notifications",
+    "pos_loyalty_notify_stamps_earned": "Stamps earned",
+    "pos_loyalty_notify_reward_ready": "Reward ready to redeem",
+    "pos_loyalty_notify_reward_expiring": "Reward expiring soon",
+    "pos_loyalty_notify_birthday": "Birthday gift",
+    "pos_loyalty_join_qr_title": "Join QR code",
+    "pos_loyalty_join_qr_hint": "Print this and display it at the counter — customers scan it with Telegram to join your rewards program.",
+    "pos_loyalty_join_qr_not_configured": "No Telegram bot is configured yet — ask a platform admin to set one up first.",
+    "pos_loyalty_join_qr_print": "Print",
+    "pos_loyalty_join_qr_caption": "Scan with Telegram to join our rewards program",
     "pos_payment_methods": "Payment Methods",
     "payment_table": {
       "method": "Method",
@@ -1862,7 +1972,22 @@
       "unpair_title": "Unpair device?",
       "unpair_body": "\"{name}\" will stop receiving order updates and will need to be paired again.",
       "unpair_failed": "Couldn't unpair that device."
-    }
+    },
+    "receipt_content": {
+      "helper": "Choose what prints after checkout, and what appears on the printed receipt. These apply to all print methods (USB, network printer, browser print).",
+      "printing_heading": "Printing",
+      "fields_heading": "Receipt fields"
+    },
+    "pos_print_customer_receipt": "Customer receipt",
+    "pos_print_customer_receipt_hint": "Print a customer-facing receipt after checkout",
+    "pos_print_kitchen_ticket": "Kitchen/Barista ticket",
+    "pos_print_kitchen_ticket_hint": "Print a kitchen prep ticket after checkout — items only, no prices",
+    "pos_show_queue_number": "Queue number",
+    "pos_show_queue_number_hint": "Print the daily queue number on the receipt",
+    "pos_show_cashier_name": "Cashier name",
+    "pos_show_cashier_name_hint": "Print the name of the staff member who processed the order",
+    "pos_show_order_type": "Order type",
+    "pos_show_order_type_hint": "Print \"Dine In / Takeaway / Delivery\" on the receipt"
   },
   "staff": {
     "title": "Staff",
@@ -2770,13 +2895,12 @@
       },
       "cash_tendered": "Cash tendered",
       "change": "Change due",
-      "cash_dialog_title": "Cash payment",
-      "cash_dialog_confirm": "Confirm & complete sale",
-      "qr_dialog_title": "QR payment",
+      "dialog_title": "Confirm Payment",
+      "dialog_confirm": "Confirm",
       "qr_dialog_hint": "Shown on the customer display too — wait for them to scan and pay before confirming.",
       "qr_dialog_not_configured": "No QR image set up for this branch (Settings → Customer display).",
-      "qr_dialog_confirm_print": "Confirm & Print",
-      "qr_dialog_confirm_new_sale": "Confirm & New Sale",
+      "card_dialog_hint": "Confirm once the card payment has gone through.",
+      "pay_later_dialog_hint": "This will be recorded as pay later — nothing is collected now.",
       "submit": "Complete sale",
       "success": "Sale completed.",
       "failed": "Could not complete the sale. Please try again."
@@ -2786,6 +2910,7 @@
       "order_number": "Order #",
       "queue_number": "Queue #",
       "table": "Table",
+      "order_type": "Order type",
       "customer": "Customer",
       "cashier": "Cashier",
       "date": "Date",
@@ -2797,9 +2922,31 @@
       "payment_method": "Payment method",
       "cash_tendered": "Cash tendered",
       "change_given": "Change given",
+      "stamps_earned": "Stamps earned",
+      "new_balance": "New balance",
       "unpaid": "Unpaid — to be settled from the Orders page",
       "print": "Print",
       "new_sale": "New sale"
+    },
+    "loyalty": {
+      "balance_chip": "{points} pts",
+      "redeem_chip": "Redeem",
+      "discount_line": "Reward applied: -{amount}",
+      "remove_reward": "Remove reward",
+      "confirm_failed": "The order was placed, but the reward couldn't be confirmed. Please redeem it again or handle the discount manually.",
+      "reward_label": "Reward",
+      "apply": "Apply reward",
+      "redeem_title": "Redeem a reward",
+      "stop_scan": "Stop scanning",
+      "code_label": "Reward code",
+      "code_placeholder": "e.g. A1B2C3",
+      "check_code": "Check code",
+      "scan_qr": "Scan QR",
+      "error_already_used": "This reward code has already been used.",
+      "error_expired": "This reward code has expired.",
+      "error_cancelled": "This reward code was cancelled.",
+      "error_not_valid": "This reward code is no longer valid.",
+      "error_not_found": "No matching reward found for this code."
     }
   },
   "promotions": {

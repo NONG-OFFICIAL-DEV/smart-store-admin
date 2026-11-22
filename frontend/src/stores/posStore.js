@@ -26,13 +26,40 @@ export const usePosStore = defineStore('pos', {
 
     // Order-level note (distinct from a per-item note) — optional, tenant-
     // configurable (Settings > POS > Order Notes).
-    note: ''
+    note: '',
+
+    // A reward looked up via LoyaltyRedeemDialog.vue, not yet confirmed
+    // server-side — { code, reward: {id, name, points_cost}, discount:
+    // {type, amount|percent|free_product_id} }. Confirmed only once the
+    // order this discount actually landed on is created (see submitOrder()
+    // in FoodPos.vue/RetailPos.vue) — requesting it never re-deducts the
+    // customer's points, that already happened when they tapped "Use now"
+    // in the Mini App.
+    redemption: null
   }),
 
   getters: {
     itemCount: state => state.items.reduce((sum, i) => sum + i.qty, 0),
     subtotal: state =>
-      state.items.reduce((sum, i) => sum + i.unit_price * i.qty, 0)
+      state.items.reduce((sum, i) => sum + i.unit_price * i.qty, 0),
+
+    // What the redeemed reward is actually worth against this cart right
+    // now — a free_item reward (or one with no monetary type configured)
+    // has no numeric effect here; the cashier removes/comps that line
+    // themselves before checkout.
+    discountAmount() {
+      if (!this.redemption?.discount) return 0
+      const { type, amount, percent } = this.redemption.discount
+      if (type === 'discount_amount') return Math.min(Number(amount) || 0, this.subtotal)
+      if (type === 'discount_percent') {
+        return Math.round(this.subtotal * (Number(percent) || 0)) / 100
+      }
+      return 0
+    },
+
+    payableTotal() {
+      return Math.max(0, this.subtotal - this.discountAmount)
+    }
   },
 
   actions: {
@@ -77,6 +104,14 @@ export const usePosStore = defineStore('pos', {
     setCustomer(customerId, customerName = null) {
       this.customerId = customerId
       this.customerName = customerId ? customerName : null
+      // A redeemed reward belongs to whoever was attached when it was
+      // looked up — switching (or clearing) the customer drops it rather
+      // than silently applying someone else's reward to this sale.
+      this.redemption = null
+    },
+
+    setRedemption(redemption) {
+      this.redemption = redemption
     },
 
     setNote(note) {
@@ -85,6 +120,7 @@ export const usePosStore = defineStore('pos', {
 
     clear() {
       this.items = []
+      this.redemption = null
       this.orderType = 'dine_in'
       this.tableId = null
       this.customerId = null

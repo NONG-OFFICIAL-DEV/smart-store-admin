@@ -289,6 +289,130 @@
 
           <v-divider class="mb-5" />
 
+          <div class="mb-5">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <div class="text-body-2 font-weight-bold">
+                {{ t('settings_hub.pos_loyalty') }}
+              </div>
+              <v-switch
+                v-model="loyaltyForm.enabled"
+                color="primary"
+                hide-details
+                inset
+                density="compact"
+                :disabled="!canEdit || saving"
+              />
+            </div>
+
+            <template v-if="loyaltyForm.enabled">
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <v-select
+                    v-model="loyaltyForm.earning_type"
+                    :items="[
+                      { value: 'per_order', title: t('settings_hub.pos_loyalty_earning_per_order') },
+                      { value: 'per_currency', title: t('settings_hub.pos_loyalty_earning_per_currency') }
+                    ]"
+                    item-title="title"
+                    item-value="value"
+                    :label="t('settings_hub.pos_loyalty_earning_type')"
+                    :disabled="!canEdit || saving"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                    hide-details
+                  />
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    v-model.number="loyaltyForm.earning_rate"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :label="
+                      loyaltyForm.earning_type === 'per_currency'
+                        ? t('settings_hub.pos_loyalty_rate_per_currency')
+                        : t('settings_hub.pos_loyalty_rate_per_order')
+                    "
+                    :hint="
+                      loyaltyForm.earning_type === 'per_currency'
+                        ? t('settings_hub.pos_loyalty_rate_per_currency_hint')
+                        : t('settings_hub.pos_loyalty_rate_per_order_hint')
+                    "
+                    persistent-hint
+                    :disabled="!canEdit || saving"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                  />
+                </v-col>
+              </v-row>
+
+              <div class="text-body-2 font-weight-medium mt-4 mb-2">
+                {{ t('settings_hub.pos_loyalty_notifications') }}
+              </div>
+              <v-row dense>
+                <v-col
+                  v-for="opt in loyaltyNotifyOptions"
+                  :key="opt.key"
+                  cols="12"
+                  sm="6"
+                  class="d-flex align-center justify-space-between pa-2"
+                >
+                  <span class="text-body-2">{{ opt.label }}</span>
+                  <v-switch
+                    v-model="loyaltyForm[opt.key]"
+                    color="primary"
+                    hide-details
+                    inset
+                    density="compact"
+                    :disabled="!canEdit || saving"
+                  />
+                </v-col>
+              </v-row>
+
+              <div class="text-body-2 font-weight-medium mt-4 mb-2">
+                {{ t('settings_hub.pos_loyalty_join_qr_title') }}
+              </div>
+              <v-card variant="tonal" rounded="lg" class="pa-4">
+                <div class="d-flex flex-wrap align-center ga-4">
+                  <div v-if="joinQrDataUrl" class="join-qr-preview">
+                    <v-img :src="joinQrDataUrl" width="120" height="120" />
+                  </div>
+                  <v-icon v-else icon="mdi-qrcode-remove" size="48" class="text-medium-emphasis" />
+                  <div class="flex-grow-1" style="min-width: 200px">
+                    <div class="text-body-2">
+                      {{ t('settings_hub.pos_loyalty_join_qr_hint') }}
+                    </div>
+                    <div v-if="!joinQrDataUrl" class="text-caption text-warning mt-1">
+                      {{ t('settings_hub.pos_loyalty_join_qr_not_configured') }}
+                    </div>
+                  </div>
+                  <v-btn
+                    variant="tonal"
+                    rounded="lg"
+                    prepend-icon="mdi-download-outline"
+                    :disabled="!joinQrDataUrl"
+                    @click="downloadJoinQr"
+                  >
+                    {{ t('btn.download') }}
+                  </v-btn>
+                  <v-btn
+                    variant="tonal"
+                    rounded="lg"
+                    prepend-icon="mdi-printer-outline"
+                    :disabled="!joinQrDataUrl"
+                    @click="printJoinQr"
+                  >
+                    {{ t('settings_hub.pos_loyalty_join_qr_print') }}
+                  </v-btn>
+                </div>
+              </v-card>
+            </template>
+          </div>
+
+          <v-divider class="mb-5" />
+
           <div class="text-body-2 font-weight-bold mb-2">
             {{ t('settings_hub.pos_payment_methods') }}
           </div>
@@ -506,6 +630,77 @@
               </v-btn>
             </div>
           </template>
+        </v-card>
+
+        <!-- ── Receipt content ──────────────────────────────────────────── -->
+        <v-card v-else-if="section === 'receipt_content'" rounded="lg" class="pa-6">
+          <div class="text-body-2 text-medium-emphasis mb-5">
+            {{ t('settings_hub.receipt_content.helper') }}
+          </div>
+
+          <div class="text-body-2 font-weight-bold mb-3">
+            {{ t('settings_hub.receipt_content.printing_heading') }}
+          </div>
+          <v-row dense class="mb-5">
+            <v-col
+              v-for="opt in printDocumentOptions"
+              :key="opt.key"
+              cols="12"
+              sm="6"
+              class="d-flex align-start justify-space-between ga-3"
+            >
+              <div class="flex-grow-1" style="min-width: 0">
+                <div class="text-body-2 font-weight-medium">
+                  {{ opt.label }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ opt.hint }}
+                </div>
+              </div>
+              <v-switch
+                v-model="form.pos_settings[opt.key]"
+                :disabled="!canEdit || saving"
+                color="teal"
+                hide-details
+                density="compact"
+                class="flex-shrink-0 mt-1 me-6"
+              />
+              <v-divider vertical class="align-self-stretch" />
+            </v-col>
+          </v-row>
+
+          <v-divider class="mb-5" />
+
+          <div class="text-body-2 font-weight-bold mb-3">
+            {{ t('settings_hub.receipt_content.fields_heading') }}
+          </div>
+          <v-row dense>
+            <v-col
+              v-for="opt in receiptContentOptions"
+              :key="opt.key"
+              cols="12"
+              sm="6"
+              class="d-flex align-start justify-space-between ga-3"
+            >
+              <div class="flex-grow-1" style="min-width: 0">
+                <div class="text-body-2 font-weight-medium">
+                  {{ opt.label }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ opt.hint }}
+                </div>
+              </div>
+              <v-switch
+                v-model="form.pos_settings[opt.key]"
+                :disabled="!canEdit || saving"
+                color="teal"
+                hide-details
+                density="compact"
+                class="flex-shrink-0 mt-1 me-6"
+              />
+              <v-divider vertical class="align-self-stretch" />
+            </v-col>
+          </v-row>
         </v-card>
 
         <!-- ── Kitchen ticket workflow (per branch) ───────────────────── -->
@@ -906,6 +1101,8 @@
   import { useReceipt } from '@/utils/printReceipt'
   import { useSettingsForm } from '@/composables/useSettingsForm'
   import { getTenantByIdApi, updateTenantProfileApi } from '@/api/tenantService'
+  import { getLoyaltySettingsApi, updateLoyaltySettingsApi } from '@/api/loyaltySettingService'
+  import { useQrCodeImage } from '@/composables/useQrCode'
   import { updateBranchApi } from '@/api/branchService'
   import {
     getCustomerDisplayDevicesApi,
@@ -947,6 +1144,7 @@
       { key: 'branches', icon: 'mdi-source-branch' },
       { key: 'pos', icon: 'mdi-point-of-sale' },
       { key: 'printer', icon: 'mdi-printer-outline' },
+      { key: 'receipt_content', icon: 'mdi-receipt-text-outline' },
       authStore.isFood ? { key: 'kitchen', icon: 'mdi-chef-hat' } : null,
       { key: 'customer_display', icon: 'mdi-monitor-share' }
     ].filter(Boolean)
@@ -991,9 +1189,93 @@
       khr_rounding: 100,
       show_mobile_menu_orders: true,
       show_mobile_menu_orders_tables: true,
-      mobile_menu_order_sound: true
+      mobile_menu_order_sound: true,
+      show_queue_number: true,
+      show_cashier_name: true,
+      show_order_type: true,
+      print_customer_receipt: true,
+      print_kitchen_ticket: false
     }
   }
+
+  // Loyalty's own earning-rule/notification settings live in a dedicated
+  // loyalty_settings table/endpoint now (one row per tenant), not
+  // tenant.pos_settings — LoyaltyObserver stopped reading
+  // pos_settings.loyalty_points_per_order entirely once this table was
+  // introduced, so that old field would otherwise just silently do nothing.
+  const DEFAULT_LOYALTY_FORM = {
+    enabled: true,
+    earning_type: 'per_order',
+    earning_rate: 1,
+    notify_stamps_earned: true,
+    notify_reward_ready: true,
+    notify_reward_expiring: true,
+    notify_birthday: true
+  }
+  const loyaltyForm = ref({ ...DEFAULT_LOYALTY_FORM })
+  const loyaltyOriginal = ref({ ...DEFAULT_LOYALTY_FORM })
+
+  const dirtyLoyalty = computed(
+    () => JSON.stringify(loyaltyForm.value) !== JSON.stringify(loyaltyOriginal.value)
+  )
+
+  async function loadLoyaltySettings() {
+    const res = await getLoyaltySettingsApi().catch(() => null)
+    if (!res) return
+    loyaltyForm.value = { ...DEFAULT_LOYALTY_FORM, ...res.data.data }
+    loyaltyOriginal.value = { ...loyaltyForm.value }
+  }
+
+  // Built server-side (LoyaltySettingController@buildJoinUrl) — null until
+  // a platform bot username is configured, since this tenant user has no
+  // route to that superadmin-only setting to build the link itself.
+  const joinQrPayload = computed(() => loyaltyForm.value.join_url ?? null)
+  const { dataUrl: joinQrDataUrl } = useQrCodeImage(joinQrPayload)
+
+  function printJoinQr() {
+    if (!joinQrDataUrl.value) return
+    const win = window.open('', '_blank', 'width=420,height=620')
+    if (!win) return
+
+    const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c])
+
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8">
+<title>${escapeHtml(form.name)} — ${escapeHtml(t('settings_hub.pos_loyalty_join_qr_title'))}</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 32px 16px; }
+  img { width: 280px; height: 280px; }
+  h2 { margin: 16px 0 4px; }
+  p { color: #555; font-size: 13px; }
+</style>
+</head><body>
+  <h2>${escapeHtml(form.name)}</h2>
+  <img src="${joinQrDataUrl.value}" />
+  <p>${escapeHtml(t('settings_hub.pos_loyalty_join_qr_caption'))}</p>
+</body></html>`)
+    win.document.close()
+    win.onload = () => {
+      win.print()
+      win.close()
+    }
+  }
+
+  function downloadJoinQr() {
+    if (!joinQrDataUrl.value) return
+    const slug = (form.name || 'loyalty').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const link = document.createElement('a')
+    link.href = joinQrDataUrl.value
+    link.download = `${slug || 'loyalty'}-join-qr.png`
+    link.click()
+  }
+
+  const loyaltyNotifyOptions = computed(() => [
+    { key: 'notify_stamps_earned', label: t('settings_hub.pos_loyalty_notify_stamps_earned') },
+    { key: 'notify_reward_ready', label: t('settings_hub.pos_loyalty_notify_reward_ready') },
+    { key: 'notify_reward_expiring', label: t('settings_hub.pos_loyalty_notify_reward_expiring') },
+    { key: 'notify_birthday', label: t('settings_hub.pos_loyalty_notify_birthday') }
+  ])
 
   // ONE shared reactive form + original baseline for the whole page's
   // Business/Currency/POS fields — see composables/useSettingsForm.js.
@@ -1094,6 +1376,37 @@
     }
   ])
 
+  const printDocumentOptions = computed(() => [
+    {
+      key: 'print_customer_receipt',
+      label: t('settings_hub.pos_print_customer_receipt'),
+      hint: t('settings_hub.pos_print_customer_receipt_hint')
+    },
+    {
+      key: 'print_kitchen_ticket',
+      label: t('settings_hub.pos_print_kitchen_ticket'),
+      hint: t('settings_hub.pos_print_kitchen_ticket_hint')
+    }
+  ])
+
+  const receiptContentOptions = computed(() => [
+    {
+      key: 'show_queue_number',
+      label: t('settings_hub.pos_show_queue_number'),
+      hint: t('settings_hub.pos_show_queue_number_hint')
+    },
+    {
+      key: 'show_cashier_name',
+      label: t('settings_hub.pos_show_cashier_name'),
+      hint: t('settings_hub.pos_show_cashier_name_hint')
+    },
+    {
+      key: 'show_order_type',
+      label: t('settings_hub.pos_show_order_type'),
+      hint: t('settings_hub.pos_show_order_type_hint')
+    }
+  ])
+
   const paymentMethodOptions = computed(() => [
     { value: 'cash', label: t('pos.checkout.methods.cash') },
     { value: 'card', label: t('pos.checkout.methods.card') },
@@ -1181,7 +1494,8 @@
       dirtyLogo.value ||
       dirtyPrinter.value ||
       dirtyKitchen.value ||
-      dirtyCustomerDisplay.value
+      dirtyCustomerDisplay.value ||
+      dirtyLoyalty.value
   )
 
   // Informational grouping of which section(s) actually changed — Save
@@ -1195,6 +1509,7 @@
     if (dirtyPrinter.value) sections.push('printer')
     if (dirtyKitchen.value) sections.push('kitchen')
     if (dirtyCustomerDisplay.value) sections.push('customer_display')
+    if (dirtyLoyalty.value) sections.push('pos')
     return sections
   })
 
@@ -1266,7 +1581,12 @@
         show_mobile_menu_orders_tables:
           tenant.pos_settings?.show_mobile_menu_orders_tables !== false,
         mobile_menu_order_sound:
-          tenant.pos_settings?.mobile_menu_order_sound !== false
+          tenant.pos_settings?.mobile_menu_order_sound !== false,
+        show_queue_number: tenant.pos_settings?.show_queue_number !== false,
+        show_cashier_name: tenant.pos_settings?.show_cashier_name !== false,
+        show_order_type: tenant.pos_settings?.show_order_type !== false,
+        print_customer_receipt: tenant.pos_settings?.print_customer_receipt !== false,
+        print_kitchen_ticket: tenant.pos_settings?.print_kitchen_ticket === true
       }
     })
   }
@@ -1282,6 +1602,7 @@
     cdPromoPreview.value = cdForm.value.promo_image_url
     cdQrFile.value = null
     cdQrPreview.value = cdForm.value.merchant_qr_image_url
+    loyaltyForm.value = { ...loyaltyOriginal.value }
   }
 
   // Sections render via v-if/v-else-if — only the currently visible one has
@@ -1376,6 +1697,12 @@
           cdQrFile.value = null
           cdQrPreview.value = cdForm.value.merchant_qr_image_url
         }
+      }
+
+      if (dirtyLoyalty.value) {
+        const res = await updateLoyaltySettingsApi(loyaltyForm.value)
+        loyaltyForm.value = { ...DEFAULT_LOYALTY_FORM, ...res.data.data }
+        loyaltyOriginal.value = { ...loyaltyForm.value }
       }
 
       notif(t('settings_hub.saved'), { type: 'success' })
@@ -1790,6 +2117,7 @@
   onMounted(() => {
     window.addEventListener('beforeunload', handleBeforeUnload)
     loadTenant()
+    loadLoyaltySettings()
     if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
   })
   onUnmounted(() => {

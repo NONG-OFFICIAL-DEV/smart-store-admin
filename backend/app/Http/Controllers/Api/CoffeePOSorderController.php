@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\KitchenDisplayTicket;
+use App\Models\LoyaltyTransaction;
 use App\Models\ModifierGroup;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -314,6 +315,22 @@ class CoffeePOSorderController extends Controller
 
             $order->load('items');
 
+            // LoyaltyObserver::created() (fired synchronously inside
+            // Order::create() above, since this order is inserted already
+            // 'completed') already credited the customer in the DB — but
+            // the $customer instance captured earlier in this method is a
+            // separate, now-stale object. Re-fetch its balance and the
+            // stamps this exact order just earned straight from the ledger
+            // so the receipt reflects reality rather than the pre-award
+            // snapshot.
+            $stampsEarned = 0;
+            if ($customer && ! $payLater) {
+                $customer->refresh();
+                $stampsEarned = (int) (LoyaltyTransaction::where('order_id', $order->id)
+                    ->where('type', 'earn')
+                    ->value('points') ?? 0);
+            }
+
             return response()->json([
                 'success' => true,
                 'data'    => [
@@ -340,7 +357,8 @@ class CoffeePOSorderController extends Controller
                         $cashier,
                         $itemsData,   // carry customizations from memory
                         $table,
-                        $customer
+                        $customer,
+                        $stampsEarned
                     ),
                 ],
             ], 201);
@@ -400,12 +418,13 @@ class CoffeePOSorderController extends Controller
         $cashier,
         array $itemsData,
         ?Table $table = null,
-        ?Customer $customer = null
+        ?Customer $customer = null,
+        int $stampsEarned = 0
     ): array {
         return [
             'order_ticket' => $this->buildOrderTicket($order, $cashier, $itemsData, $table),
             'queue_ticket' => $this->buildQueueTicket($order),
-            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier, $itemsData, $table, $customer),
+            'receipt'      => $this->buildReceipt($order, $payment, $branch, $cashier, $itemsData, $table, $customer, $stampsEarned),
         ];
     }
 
@@ -455,7 +474,8 @@ class CoffeePOSorderController extends Controller
         $cashier,
         array $itemsData,
         ?Table $table = null,
-        ?Customer $customer = null
+        ?Customer $customer = null,
+        int $stampsEarned = 0
     ): array {
         return [
             'type'                 => 'receipt',
@@ -465,6 +485,8 @@ class CoffeePOSorderController extends Controller
             'order_type'           => $order->order_type,
             'table_number'         => $table?->table_number,
             'customer_name'        => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
+            'loyalty_stamps_earned' => $customer ? $stampsEarned : null,
+            'loyalty_new_balance'   => $customer?->loyalty_points,
             'branch_name'          => $branch->name,
             'branch_address'       => $branch->address ?? null,
             'branch_phone'         => $branch->phone   ?? null,

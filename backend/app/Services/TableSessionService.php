@@ -3,10 +3,14 @@
 namespace App\Services;
 
 use App\Exceptions\PaySessionException;
+use App\Models\Customer;
+use App\Models\LoyaltyRedemption;
+use App\Models\LoyaltyTransaction;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Table;
 use App\Models\TableSession;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +34,10 @@ use Illuminate\Support\Facades\DB;
 // ─────────────────────────────────────────────────────────────────────────────
 class TableSessionService
 {
+    public function __construct(private LoyaltyRedemptionService $redemptions)
+    {
+    }
+
     // Same "still open" rule as the old openOrdersForTable() query (not
     // cancelled/refunded, not yet paid) — a session has nothing left owing
     // once every one of its orders fails this check.
@@ -178,9 +186,9 @@ class TableSessionService
     // receipt data (items merged, totals, payment, paid_at) straight from
     // this response — callers must not re-fetch, there'll be nothing open
     // left to fetch once this returns.
-    public function paySession(string $sessionId, array $paymentData, ?string $staffId = null): array
+    public function paySession(string $sessionId, array $paymentData, ?string $staffId = null, ?User $staffUser = null): array
     {
-        return DB::transaction(function () use ($sessionId, $paymentData, $staffId) {
+        return DB::transaction(function () use ($sessionId, $paymentData, $staffId, $staffUser) {
             $session = TableSession::lockForUpdate()->find($sessionId);
             if (!$session) {
                 throw new \RuntimeException('Session not found.');
@@ -200,13 +208,34 @@ class TableSessionService
             }
 
             $total = (float) $orders->sum('total_amount');
-            $cashTendered = (float) ($paymentData['cash_tendered'] ?? $total);
 
-            if ($paymentData['payment_method'] === 'cash' && $cashTendered < $total) {
+            // A reward redeemed at bill-payment time can't rewrite an
+            // order's own discount_amount (those orders already exist) —
+            // it discounts the payment total instead. Resolved and
+            // confirmed inside this same transaction so a failed payment
+            // never leaves a reward marked used with nothing actually paid.
+            $redemption = null;
+            $discountAmount = 0.0;
+            if (!empty($paymentData['redemption_code'])) {
+                if (!$staffUser) {
+                    throw new PaySessionException('A staff login is required to redeem a reward.');
+                }
+
+                [$redemption, $discountAmount] = $this->resolveRedemptionDiscount(
+                    $paymentData['redemption_code'],
+                    $session->branch->tenant_id,
+                    $total
+                );
+            }
+
+            $payableTotal = max(0, $total - $discountAmount);
+            $cashTendered = (float) ($paymentData['cash_tendered'] ?? $payableTotal);
+
+            if ($paymentData['payment_method'] === 'cash' && $cashTendered < $payableTotal) {
                 throw new PaySessionException('Cash tendered is less than the session total.');
             }
 
-            $changeGiven = $paymentData['payment_method'] === 'cash' ? max(0, $cashTendered - $total) : null;
+            $changeGiven = $paymentData['payment_method'] === 'cash' ? max(0, $cashTendered - $payableTotal) : null;
             $requestedMethod = $paymentData['payment_method'];
             // Same request vocabulary as OrderController::settlePayment()
             // (cash/card/qr/transfer) mapped onto payments.payment_method's
@@ -224,14 +253,27 @@ class TableSessionService
             // gateway reference is meant to be used for.
             $reference = $paymentData['reference'] ?? null;
 
-            $orders->each(function (Order $order, int $index) use ($session, $requestedMethod, $paymentMethod, $changeGiven, $branchId, $staffId, $orders, $exchangeRate, $reference) {
+            // Walking from the last order backwards so each one absorbs as
+            // much of the discount as it can cover — guarantees no payment
+            // row ever goes negative while the sum collected still lands
+            // exactly on $payableTotal, regardless of how the discount
+            // compares to any single order's own total.
+            $remainingDiscount = $discountAmount;
+            $paymentAmounts = [];
+            foreach ($orders->reverse() as $order) {
+                $take = min($remainingDiscount, (float) $order->total_amount);
+                $paymentAmounts[$order->id] = (float) $order->total_amount - $take;
+                $remainingDiscount -= $take;
+            }
+
+            $orders->each(function (Order $order, int $index) use ($session, $requestedMethod, $paymentMethod, $changeGiven, $branchId, $staffId, $orders, $exchangeRate, $reference, $paymentAmounts) {
                 Payment::create([
                     'order_id'         => $order->id,
                     'table_session_id' => $session->id,
                     'branch_id'        => $branchId,
                     'staff_id'         => $staffId,
                     'payment_method'   => $paymentMethod,
-                    'amount'           => $order->total_amount,
+                    'amount'           => $paymentAmounts[$order->id],
                     // The customer only hands back/receives one amount of
                     // change for the whole bill — recorded once, on the
                     // last order processed, rather than split/duplicated
@@ -251,6 +293,23 @@ class TableSessionService
                 Order::updateStatus($order->id, 'completed', $staffId, 'Session payment');
             });
 
+            if ($redemption) {
+                $this->redemptions->confirm($redemption, $staffUser, $orders->last()->id, $branchId);
+            }
+
+            // Same customer_id across every order in a session in
+            // practice (attached once when the tab was opened) — the
+            // ledger entries this payment just triggered (via
+            // Order::updateStatus() above flipping each order to
+            // 'completed', which LoyaltyObserver hooks on updated()) are
+            // looked up fresh rather than recomputed, same approach as
+            // the Quick Sale receipts.
+            $customerId = $orders->first(fn (Order $o) => $o->customer_id)?->customer_id;
+            $customer = $customerId ? Customer::find($customerId) : null;
+            $stampsEarned = $customer
+                ? (int) LoyaltyTransaction::whereIn('order_id', $orders->pluck('id'))->where('type', 'earn')->sum('points')
+                : 0;
+
             // Tapping Pay here is staff explicitly closing out the table's
             // whole tab (unlike an order paid in full at Quick Sale
             // checkout, which never does this — see
@@ -269,15 +328,57 @@ class TableSessionService
                 ],
                 ...$this->summarize($orders),
                 'payment' => [
-                    'method'        => $paymentMethod,
-                    'cash_tendered' => $cashTendered,
-                    'change_given'  => (float) ($changeGiven ?? 0),
-                    'exchange_rate' => $exchangeRate,
-                    'reference'     => $reference,
+                    'method'          => $paymentMethod,
+                    'cash_tendered'   => $cashTendered,
+                    'change_given'    => (float) ($changeGiven ?? 0),
+                    'exchange_rate'   => $exchangeRate,
+                    'reference'       => $reference,
+                    'discount_amount' => $discountAmount,
                     'paid_at'       => now(),
                 ],
+                'customer' => $customer ? [
+                    'id'                    => $customer->id,
+                    'name'                  => trim("{$customer->first_name} {$customer->last_name}"),
+                    'loyalty_stamps_earned' => $stampsEarned,
+                    'loyalty_new_balance'   => $customer->loyalty_points,
+                ] : null,
             ];
         });
+    }
+
+    /**
+     * @return array{0: LoyaltyRedemption, 1: float}
+     */
+    private function resolveRedemptionDiscount(string $code, string $tenantId, float $total): array
+    {
+        $redemption = $this->redemptions->findByCode($code);
+
+        if (!$redemption || $redemption->tenant_id !== $tenantId) {
+            throw new PaySessionException('This reward code is not valid at this shop.');
+        }
+
+        if ($redemption->status !== 'pending') {
+            throw new PaySessionException(match ($redemption->status) {
+                'redeemed' => 'This reward code has already been used.',
+                'expired' => 'This reward code has expired.',
+                'cancelled' => 'This reward code was cancelled.',
+                default => 'This reward code is no longer valid.',
+            });
+        }
+
+        $instruction = $this->redemptions->discountInstruction($redemption->reward);
+
+        $discountAmount = match ($instruction['type']) {
+            'discount_amount' => $instruction['amount'],
+            'discount_percent' => round($total * $instruction['percent'] / 100, 2),
+            // free_item (or a reward with no monetary type configured) has
+            // no numeric effect on the bill here — the cashier removes the
+            // free item from the order/bill themselves; this just confirms
+            // the redemption so it can't be reused.
+            default => 0.0,
+        };
+
+        return [$redemption, min(max(0, $discountAmount), $total)];
     }
 
     // Staff explicitly marking a table anything other than "occupied"

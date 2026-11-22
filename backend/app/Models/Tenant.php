@@ -64,6 +64,19 @@ class Tenant extends BaseModel
         // independent toggle so a tenant can enable it on one screen but
         // not the other. mobile_menu_order_sound above is shared by both.
         'show_mobile_menu_orders_tables' => true,
+        // How many loyalty points/stamps a customer earns per completed
+        // order — surfaced to an owner as a plain number, not hardcoded.
+        'loyalty_points_per_order' => 1,
+        // Receipt-content toggles — what prints on the receipt itself,
+        // independent of printer connectivity settings.
+        'show_queue_number' => true,
+        'show_cashier_name' => true,
+        'show_order_type' => true,
+        // Which document(s) print after Food POS checkout — independent of
+        // the receipt-content toggles above (those control what's ON the
+        // receipt; these control whether each document prints at all).
+        'print_customer_receipt' => true,
+        'print_kitchen_ticket' => false,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

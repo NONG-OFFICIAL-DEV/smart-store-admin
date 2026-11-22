@@ -6,8 +6,9 @@ namespace App\Models;
 // TelegramLinkToken
 // ══════════════════════════════════════════════════════════════════════════════
 // One-time deep-link token (t.me/<bot>?start=<token>) that matches an
-// incoming Telegram chat to a specific user — without it, TelegramPoll
-// would have no way to tell WHICH user just said /start.
+// incoming Telegram chat to a specific user or customer — without it,
+// TelegramPoll would have no way to tell WHO just said /start. Exactly one
+// of user_id/customer_id is set per row (enforced in TelegramService).
 
 class TelegramLinkToken extends BaseModel
 {
@@ -15,6 +16,7 @@ class TelegramLinkToken extends BaseModel
 
     protected $fillable = [
         'user_id',
+        'customer_id',
         'token',
         'expires_at',
         'used_at',
@@ -28,5 +30,10 @@ class TelegramLinkToken extends BaseModel
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

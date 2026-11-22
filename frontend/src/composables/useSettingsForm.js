@@ -1,12 +1,26 @@
 import { reactive, ref, computed, toRaw } from 'vue'
 
-// structuredClone() throws DataCloneError on a Vue reactive Proxy (and
-// ref(object) auto-wraps its value reactively too) — toRaw() unwraps back
-// to the plain target first. Vue only wraps nested plain objects lazily on
-// property access rather than mutating them in place, so the raw target is
-// already deeply plain — one toRaw() at the top is enough.
-function deepClone(value) {
+// structuredClone() throws DataCloneError on a Vue reactive Proxy. A single
+// top-level toRaw() isn't always enough: a caller that builds a plain object
+// via `{ ...reactiveItem }` reads each property through the Proxy's get trap,
+// which lazily wraps nested arrays/objects — the spread then bakes that
+// nested Proxy in as a literal property value, so it survives even after the
+// outer object is unwrapped. Recursing with toRaw() at every level handles
+// both cases.
+function toRawDeep(value) {
   const raw = toRaw(value)
+  if (Array.isArray(raw)) return raw.map(toRawDeep)
+  if (raw && typeof raw === 'object' && raw.constructor === Object) {
+    return Object.keys(raw).reduce((acc, key) => {
+      acc[key] = toRawDeep(raw[key])
+      return acc
+    }, {})
+  }
+  return raw
+}
+
+function deepClone(value) {
+  const raw = toRawDeep(value)
   return typeof structuredClone === 'function' ? structuredClone(raw) : JSON.parse(JSON.stringify(raw))
 }
 

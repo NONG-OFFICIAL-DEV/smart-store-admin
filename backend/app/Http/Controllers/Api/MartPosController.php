@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\LoyaltyTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
@@ -252,6 +253,17 @@ class MartPosController extends Controller
 
             $order->load('items');
 
+            // Same staleness as CoffeePOSorderController: LoyaltyObserver
+            // already credited the customer during Order::create() above,
+            // but this $customer object was fetched before that happened.
+            $stampsEarned = 0;
+            if ($customer && ! $payLater) {
+                $customer->refresh();
+                $stampsEarned = (int) (LoyaltyTransaction::where('order_id', $order->id)
+                    ->where('type', 'earn')
+                    ->value('points') ?? 0);
+            }
+
             return response()->json([
                 'success' => true,
                 'data'    => [
@@ -268,7 +280,7 @@ class MartPosController extends Controller
                     'payment_id'     => $payment?->id,
                     'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
                     'items'          => $order->items,
-                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType, $customer),
+                    'receipt'        => $this->buildReceipt($order, $payment, $branch, $orderCustomerType, $customer, $stampsEarned),
                 ],
             ], 201);
         });
@@ -371,7 +383,7 @@ class MartPosController extends Controller
         return response()->json(['success' => true, 'data' => $categories]);
     }
 
-    private function buildReceipt(Order $order, ?Payment $payment, Branch $branch, string $customerType, ?Customer $customer = null): array
+    private function buildReceipt(Order $order, ?Payment $payment, Branch $branch, string $customerType, ?Customer $customer = null, int $stampsEarned = 0): array
     {
         return [
             'order_number'   => $order->order_number,
@@ -381,6 +393,8 @@ class MartPosController extends Controller
             'cashier'        => auth()->user()?->full_name,
             'customer_type'  => $customerType,
             'customer_name'  => $customer ? trim("{$customer->first_name} {$customer->last_name}") : null,
+            'loyalty_stamps_earned' => $customer ? $stampsEarned : null,
+            'loyalty_new_balance'   => $customer?->loyalty_points,
             'date'           => now()->toDateTimeString(),
             'items'          => $order->items->map(fn($i) => [
                 'name'        => $i->product_name,

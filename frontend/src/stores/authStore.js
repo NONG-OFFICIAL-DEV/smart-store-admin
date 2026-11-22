@@ -43,7 +43,12 @@ export const useAuthStore = defineStore('auth', {
       table_payment_methods: ['cash', 'card'],
       default_table_payment_method: 'cash',
       khr_exchange_rate: 4100,
-      khr_rounding: 100
+      khr_rounding: 100,
+      show_queue_number: true,
+      show_cashier_name: true,
+      show_order_type: true,
+      print_customer_receipt: true,
+      print_kitchen_ticket: false
     },
 
     branch_id:   null,

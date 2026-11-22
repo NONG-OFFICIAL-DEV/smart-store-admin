@@ -81,6 +81,15 @@ class UpdateTenantProfileRequest extends FormRequest
             'pos_settings.mobile_menu_order_sound' => 'boolean',
             // Same carousel, shown on the Tables page instead.
             'pos_settings.show_mobile_menu_orders_tables' => 'boolean',
+            // How many loyalty points/stamps a customer earns per completed order.
+            'pos_settings.loyalty_points_per_order' => 'nullable|integer|min:0|max:100',
+            // Receipt-content toggles.
+            'pos_settings.show_queue_number' => 'boolean',
+            'pos_settings.show_cashier_name' => 'boolean',
+            'pos_settings.show_order_type' => 'boolean',
+            // Which document(s) print after Food POS checkout.
+            'pos_settings.print_customer_receipt' => 'boolean',
+            'pos_settings.print_kitchen_ticket' => 'boolean',
         ];
     }
 

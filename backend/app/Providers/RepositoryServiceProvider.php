@@ -19,6 +19,7 @@ use App\Repositories\Contracts\IngredientRepositoryInterface;
 use App\Repositories\Contracts\InventoryStockRepositoryInterface;
 use App\Repositories\Contracts\InventoryTransactionRepositoryInterface;
 use App\Repositories\Contracts\KitchenDisplayTicketRepositoryInterface;
+use App\Repositories\Contracts\LoyaltyRewardRepositoryInterface;
 use App\Repositories\Contracts\LoyaltyTransactionRepositoryInterface;
 use App\Repositories\Contracts\MartPurchaseOrderRepositoryInterface;
 use App\Repositories\Contracts\MenuRepositoryInterface;
@@ -61,6 +62,7 @@ use App\Repositories\Eloquent\IngredientRepository;
 use App\Repositories\Eloquent\InventoryStockRepository;
 use App\Repositories\Eloquent\InventoryTransactionRepository;
 use App\Repositories\Eloquent\KitchenDisplayTicketRepository;
+use App\Repositories\Eloquent\LoyaltyRewardRepository;
 use App\Repositories\Eloquent\LoyaltyTransactionRepository;
 use App\Repositories\Eloquent\MartPurchaseOrderRepository;
 use App\Repositories\Eloquent\MenuRepository;
@@ -131,6 +133,7 @@ class RepositoryServiceProvider extends ServiceProvider
         InventoryTransactionRepositoryInterface::class => InventoryTransactionRepository::class,
         KitchenDisplayTicketRepositoryInterface::class => KitchenDisplayTicketRepository::class,
         LoyaltyTransactionRepositoryInterface::class => LoyaltyTransactionRepository::class,
+        LoyaltyRewardRepositoryInterface::class => LoyaltyRewardRepository::class,
         NotificationRepositoryInterface::class => NotificationRepository::class,
         BusinessTypeRepositoryInterface::class => BusinessTypeRepository::class,
         PlanRepositoryInterface::class => PlanRepository::class,

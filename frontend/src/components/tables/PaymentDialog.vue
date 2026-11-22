@@ -19,9 +19,58 @@
       {{ t('tables.payment.subtitle', { number: table?.table_number, orders: orders.length }) }}
     </div>
 
+    <!-- ── Customer / Loyalty ─────────────────────────────────────────── -->
+    <div v-if="attachedCustomer" class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
+      <div class="d-flex align-center ga-2">
+        <v-icon icon="mdi-account-outline" size="18" />
+        <span class="text-body-2 font-weight-medium">{{ attachedCustomer.name }}</span>
+      </div>
+      <div class="d-flex align-center ga-2">
+        <template v-if="!redemption">
+          <v-chip
+            v-if="attachedCustomer.loyalty_points != null"
+            variant="tonal"
+            color="amber-darken-2"
+            size="small"
+            rounded="lg"
+            prepend-icon="mdi-star-four-points-outline"
+          >
+            {{ t('pos.loyalty.balance_chip', { points: attachedCustomer.loyalty_points }) }}
+          </v-chip>
+          <v-chip
+            variant="tonal"
+            color="primary"
+            size="small"
+            rounded="lg"
+            prepend-icon="mdi-qrcode-scan"
+            @click="redeemDialogOpen = true"
+          >
+            {{ t('pos.loyalty.redeem_chip') }}
+          </v-chip>
+        </template>
+        <v-chip
+          v-else
+          variant="tonal"
+          color="success"
+          size="small"
+          rounded="lg"
+          closable
+          @click:close="redemption = null"
+        >
+          {{ redemption.reward.name }}
+        </v-chip>
+      </div>
+    </div>
+
     <!-- ── Total ──────────────────────────────────────────────────────── -->
     <div class="text-center mb-5">
-      <div class="text-h4 font-weight-bold">{{ formatBase(total) }}</div>
+      <div v-if="discountAmount > 0" class="text-body-2 text-medium-emphasis text-decoration-line-through">
+        {{ formatBase(total) }}
+      </div>
+      <div class="text-h4 font-weight-bold">{{ formatBase(payableTotal) }}</div>
+      <div v-if="discountAmount > 0" class="text-caption text-success mt-1">
+        {{ t('pos.loyalty.discount_line', { amount: formatBase(discountAmount) }) }}
+      </div>
     </div>
 
     <!-- ── Method picker ──────────────────────────────────────────────── -->
@@ -127,7 +176,7 @@
     <!-- ── Card ───────────────────────────────────────────────────────── -->
     <template v-else-if="method === 'card'">
       <div class="text-center text-body-1 font-weight-medium mb-4">
-        {{ t('tables.payment.charge_card', { amount: formatBase(total) }) }}
+        {{ t('tables.payment.charge_card', { amount: formatBase(payableTotal) }) }}
       </div>
       <v-text-field
         v-model="reference"
@@ -166,6 +215,8 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <LoyaltyRedeemDialog v-model="redeemDialogOpen" @applied="onRedemptionApplied" />
 </template>
 
 <script setup>
@@ -182,6 +233,7 @@
   import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import { paySessionApi } from '@/api/tableService'
   import NumPad from '@/components/shared/NumPad.vue'
+  import LoyaltyRedeemDialog from '@/components/pos/LoyaltyRedeemDialog.vue'
 
   const { t } = useI18n()
   const { smAndDown } = useDisplay()
@@ -233,6 +285,20 @@
   const saving = ref(false)
   const paidReceiptData = ref(null)
   const numpadOpen = ref(false)
+  const redeemDialogOpen = ref(false)
+  const redemption = ref(null)
+
+  // Whichever unpaid order carries the attached customer — same customer
+  // for the whole session in practice (attached once at order creation),
+  // and the backend now eager-loads/serializes it per order (OrderController
+  // ::formatOrder()).
+  const attachedCustomer = computed(
+    () => props.orders.find(o => o.customer)?.customer ?? null
+  )
+
+  function onRedemptionApplied(applied) {
+    redemption.value = applied
+  }
 
   watch(
     () => props.modelValue,
@@ -250,6 +316,7 @@
       received.value = total.value || null
       reference.value = ''
       paidReceiptData.value = null
+      redemption.value = null
     }
   )
 
@@ -277,6 +344,15 @@
   })
   const total = computed(() => totals.value.total)
 
+  const discountAmount = computed(() => {
+    if (!redemption.value?.discount) return 0
+    const { type, amount, percent } = redemption.value.discount
+    if (type === 'discount_amount') return Math.min(Number(amount) || 0, total.value)
+    if (type === 'discount_percent') return roundMoney(total.value * (Number(percent) || 0) / 100)
+    return 0
+  })
+  const payableTotal = computed(() => Math.max(0, total.value - discountAmount.value))
+
   // Quick buttons add to what's already keyed in — staff tap one chip per
   // bill/note the customer actually hands over, same as a real cash drawer.
   // Denominations match the tenant's own base currency (never assume USD).
@@ -291,7 +367,7 @@
 
   function applyQuickButton(btn) {
     if (btn.type === 'exact') {
-      received.value = total.value
+      received.value = payableTotal.value
     } else if (btn.type === 'add') {
       received.value = Number(received.value ?? 0) + btn.amount
     } else if (btn.type === 'clear') {
@@ -299,10 +375,10 @@
     }
   }
 
-  const diff = computed(() => Number(received.value ?? 0) - total.value)
+  const diff = computed(() => Number(received.value ?? 0) - payableTotal.value)
 
   const canConfirm = computed(() => {
-    if (method.value === 'cash') return Number(received.value ?? 0) >= total.value
+    if (method.value === 'cash') return Number(received.value ?? 0) >= payableTotal.value
     return true
   })
 
@@ -329,6 +405,9 @@
       branch_address: activeBranch.value?.address_line1,
       branch_phone: activeBranch.value?.phone,
       cashier: props.orders[0]?.cashier,
+      customer_name: receipt.customer?.name ?? attachedCustomer.value?.name,
+      loyalty_stamps_earned: receipt.customer?.loyalty_stamps_earned,
+      loyalty_new_balance: receipt.customer?.loyalty_new_balance,
       date: formatDateTime(receipt.payment?.paid_at ?? new Date()),
       items: receipt.items.map(i => ({
         name: i.product_name,
@@ -337,10 +416,13 @@
         total_price: i.total_price
       })),
       subtotal: receipt.subtotal,
-      discount: receipt.discount,
+      // Folds the reward's bill-time discount into the same single
+      // "Discount" line the receipt already prints for order-level
+      // discounts — total adjusted to match what was actually collected.
+      discount: receipt.discount + (receipt.payment?.discount_amount || 0),
       tax: receipt.tax,
       service_charge: receipt.service_charge,
-      total: receipt.total,
+      total: receipt.total - (receipt.payment?.discount_amount || 0),
       payment_method: receipt.payment?.method,
       cash_tendered: receipt.payment?.cash_tendered,
       change_given: receipt.payment?.change_given,
@@ -380,7 +462,8 @@
       const res = await paySessionApi(sessionId, {
         payment_method: method.value,
         cash_tendered: method.value === 'cash' ? Number(received.value ?? 0) : undefined,
-        reference: method.value !== 'cash' ? (reference.value || undefined) : undefined
+        reference: method.value !== 'cash' ? (reference.value || undefined) : undefined,
+        redemption_code: redemption.value?.code ?? undefined
       })
       receipt = res.data.data
     } catch (err) {

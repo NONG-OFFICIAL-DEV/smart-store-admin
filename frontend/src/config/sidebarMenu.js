@@ -217,6 +217,13 @@ export const SIDEBAR_MENU = [
         permission: 'customers.manage'
       },
       {
+        key: 'customers-rewards',
+        titleKey: 'customers_hub.tabs.rewards',
+        icon: 'mdi-gift-outline',
+        path: '/customers/rewards',
+        permission: 'customers.manage'
+      },
+      {
         key: 'customers-loyalty',
         titleKey: 'customers_hub.tabs.loyalty',
         icon: 'mdi-star-outline',

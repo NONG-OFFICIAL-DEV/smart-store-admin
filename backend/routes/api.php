@@ -55,6 +55,11 @@ use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CustomerAddressController;
 use App\Http\Controllers\Api\LoyaltyTransactionController;
+use App\Http\Controllers\Api\LoyaltyRewardController;
+use App\Http\Controllers\Api\LoyaltyRedemptionController;
+use App\Http\Controllers\Api\LoyaltyMiniAppController;
+use App\Http\Controllers\Api\LoyaltyCardController;
+use App\Http\Controllers\Api\LoyaltySettingController;
 
 // ── Promotions ─────────────────────────────────────────────────────────────
 use App\Http\Controllers\Api\PromotionController;
@@ -519,6 +524,22 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         // ── Loyalty Transactions ──────────────────────────────────────────────
         Route::apiResource('loyalty-transactions', LoyaltyTransactionController::class)
             ->only(['index', 'show']);
+
+        // ── Loyalty Rewards (catalog) ───────────────────────────────────────────
+        Route::apiResource('loyalty-rewards', LoyaltyRewardController::class);
+
+        // ── Loyalty Redemptions (cashier confirms a Mini App request) ───────────
+        Route::get('loyalty-redemptions/{code}', [LoyaltyRedemptionController::class, 'show']);
+        Route::post('loyalty-redemptions/{code}/confirm', [LoyaltyRedemptionController::class, 'confirm']);
+
+        // ── Loyalty Card (cashier scans the Mini App's rotating QR) ─────────────
+        Route::post('loyalty-card/resolve', [LoyaltyCardController::class, 'resolve']);
+
+        // ── Loyalty Settings (earning rule + notification toggles) ──────────────
+        Route::prefix('loyalty-settings')->group(function () {
+            Route::get('/', [LoyaltySettingController::class, 'show']);
+            Route::put('/', [LoyaltySettingController::class, 'update']);
+        });
     });
     Route::prefix('customers/{customer}')->group(function () {
         Route::get('orders',  [OrderController::class, 'byCustomer']);
@@ -688,4 +709,17 @@ Route::prefix('v1/public')->group(function () {
         ->middleware('throttle:60,1');
     Route::post('customer-display/broadcasting-auth', [CustomerDisplayController::class, 'broadcastingAuth'])
         ->middleware('throttle:120,1');
+
+    // Loyalty-card Telegram Mini App — identity comes from Telegram's own
+    // signed initData (see TelegramInitDataValidator), not a staff JWT.
+    Route::prefix('loyalty/{tenantSlug}')->middleware('throttle:60,1')->group(function () {
+        Route::get('me', [LoyaltyMiniAppController::class, 'me']);
+        Route::post('join', [LoyaltyMiniAppController::class, 'join']);
+        Route::get('card-token', [LoyaltyMiniAppController::class, 'cardToken']);
+        Route::get('rewards', [LoyaltyMiniAppController::class, 'rewards']);
+        Route::get('history', [LoyaltyMiniAppController::class, 'history']);
+        Route::post('redeem', [LoyaltyMiniAppController::class, 'redeem']);
+        Route::get('redeem/{code}', [LoyaltyMiniAppController::class, 'redemptionStatus']);
+        Route::post('redeem/{code}/cancel', [LoyaltyMiniAppController::class, 'cancelRedemption']);
+    });
 });

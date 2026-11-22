@@ -15,3 +15,9 @@ Schedule::command('telegram:fetch-updates')->everyMinute();
 // a forgotten ticket (any status) past 12h auto-serves instead of sitting
 // there indefinitely. See AutoServeStaleKitchenTickets.
 Schedule::command('kitchen:auto-serve-stale')->hourly();
+
+// See NotifyLoyaltyRewardsExpiring/NotifyLoyaltyBirthdays — both no-op
+// quietly (no bot token, no matching rewards/birthdays) when the tenant
+// hasn't set anything up yet.
+Schedule::command('loyalty:notify-rewards-expiring')->dailyAt('09:00');
+Schedule::command('loyalty:notify-birthdays')->dailyAt('09:00');

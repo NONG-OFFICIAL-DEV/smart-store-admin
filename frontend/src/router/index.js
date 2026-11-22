@@ -166,6 +166,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', permission: 'customers.manage' }
       },
       {
+        path: '/customers/rewards',
+        name: 'customers-rewards',
+        component: () => import('@/views/customers/LoyaltyRewards.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: 'customers.manage' }
+      },
+      {
         path: '/customers/loyalty',
         name: 'customers-loyalty',
         component: () => import('@/views/loyalty/Loyalty.vue'),

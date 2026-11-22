@@ -29,9 +29,9 @@
       <span>{{ $t('pos.receipt.order_number') }}</span>
       <span class="font-weight-medium">{{ receipt.order_number }}</span>
     </div>
-    <div v-if="receipt.queue_number_display" class="d-flex justify-space-between text-caption mb-1">
-      <span>{{ $t('pos.receipt.queue_number') }}</span>
-      <span class="font-weight-medium">{{ receipt.queue_number_display }}</span>
+    <div v-if="receipt.order_type && authStore.posSettings?.show_order_type" class="d-flex justify-space-between text-caption mb-1">
+      <span>{{ $t('pos.receipt.order_type') }}</span>
+      <span class="font-weight-medium">{{ $t(`pos.cart.order_type.${receipt.order_type}`) }}</span>
     </div>
     <div v-if="receipt.table_number" class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.table') }}</span>
@@ -41,7 +41,7 @@
       <span>{{ $t('pos.receipt.customer') }}</span>
       <span class="font-weight-medium">{{ receipt.customer_name }}</span>
     </div>
-    <div v-if="receipt.cashier" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.cashier && authStore.posSettings?.show_cashier_name" class="d-flex justify-space-between text-caption mb-1">
       <span>{{ $t('pos.receipt.cashier') }}</span>
       <span class="font-weight-medium">{{ receipt.cashier }}</span>
     </div>
@@ -147,6 +147,14 @@
       <div class="d-flex justify-space-between text-caption">
         <span>{{ $t('pos.receipt.payment_method') }}</span>
         <span class="text-uppercase">{{ receipt.payment_method }}</span>
+      </div>
+    </template>
+
+    <template v-if="receipt.queue_number_display && authStore.posSettings?.show_queue_number">
+      <v-divider class="my-3" />
+      <div class="text-center">
+        <div class="text-h3 font-weight-bold">{{ receipt.queue_number_display }}</div>
+        <div class="text-caption text-medium-emphasis">លេខរងចាំ / Ticket No.</div>
       </div>
     </template>
   </div>

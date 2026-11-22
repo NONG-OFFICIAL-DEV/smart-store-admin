@@ -38,6 +38,32 @@
       </v-card>
     </v-menu>
 
+    <!-- Once a customer is attached: their stamp balance (read straight off
+         the already-fetched customer record, no extra request) and a
+         Redeem trigger for a code/QR shown from their Mini App. -->
+    <v-chip
+      v-if="showCustomer && customerId && loyaltyPoints != null"
+      variant="tonal"
+      color="amber-darken-2"
+      rounded="lg"
+      :size="touch ? 'default' : 'small'"
+      prepend-icon="mdi-star-four-points-outline"
+    >
+      {{ $t('pos.loyalty.balance_chip', { points: loyaltyPoints }) }}
+    </v-chip>
+
+    <v-chip
+      v-if="showCustomer && customerId"
+      variant="tonal"
+      color="primary"
+      rounded="lg"
+      :size="touch ? 'default' : 'small'"
+      prepend-icon="mdi-qrcode-scan"
+      @click="$emit('open-redeem')"
+    >
+      {{ $t('pos.loyalty.redeem_chip') }}
+    </v-chip>
+
     <!-- Order note — compact trigger, opens a small popover for the text. -->
     <v-menu v-if="showNotes" :close-on-content-click="false" location="bottom end">
       <template #activator="{ props }">
@@ -84,6 +110,10 @@
     customers: { type: Array, default: () => [] },
     customerId: { type: String, default: null },
     customerName: { type: String, default: null },
+    // The attached customer's current stamp balance — passed down rather
+    // than fetched here, since the customer search result already carries
+    // it (CustomerResource includes loyalty_points).
+    loyaltyPoints: { type: Number, default: null },
     showNotes: { type: Boolean, default: false },
     note: { type: String, default: '' }
   })
@@ -91,7 +121,8 @@
   const emit = defineEmits([
     'search-customer',
     'update-customer',
-    'update-note'
+    'update-note',
+    'open-redeem'
   ])
 
   const hasAnyControl = computed(() => props.showCustomer || props.showNotes)

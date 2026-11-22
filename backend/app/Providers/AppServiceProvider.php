@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Observers\ActivityLogObserver;
+use App\Observers\LoyaltyObserver;
 use App\Observers\NotificationObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Broadcast;
@@ -47,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         ProductVariant::observe(ActivityLogObserver::class);
         Shift::observe(ActivityLogObserver::class);
         Notification::observe(NotificationObserver::class);
+        Order::observe(LoyaltyObserver::class);
 
         // Registered under 'api' prefix + jwt.auth (not the default `web`
         // middleware Broadcast::routes() uses with no args) — this app has

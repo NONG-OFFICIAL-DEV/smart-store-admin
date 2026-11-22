@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Models\Customer;
 use App\Models\TelegramLinkToken;
 use App\Models\Tenant;
 use App\Models\User;
@@ -71,6 +72,45 @@ class TelegramPollTest extends TestCase
         $owner->refresh();
         $this->assertSame('999888', $owner->telegram_chat_id);
         $this->assertTrue($owner->notify_telegram);
+        $this->assertNotNull($link->refresh()->used_at);
+    }
+
+    public function test_a_valid_start_token_links_the_chat_to_the_right_customer(): void
+    {
+        config(['services.telegram.bot_token' => 'fake-token']);
+        [$tenant] = $this->makeTenantWithOwner('TenantCustomer');
+
+        $customer = Customer::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'Alex',
+        ]);
+
+        $link = TelegramLinkToken::create([
+            'customer_id' => $customer->id,
+            'token' => 'cust123',
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        Http::fake([
+            'api.telegram.org/*/getUpdates*' => Http::response([
+                'result' => [
+                    [
+                        'update_id' => 1,
+                        'message' => [
+                            'chat' => ['id' => 777666],
+                            'text' => '/start cust123',
+                        ],
+                    ],
+                ],
+            ]),
+            'api.telegram.org/*/sendMessage*' => Http::response(['ok' => true]),
+        ]);
+
+        $this->artisan('telegram:fetch-updates')->assertSuccessful();
+
+        $customer->refresh();
+        $this->assertSame('777666', $customer->telegram_chat_id);
+        $this->assertTrue($customer->notify_telegram);
         $this->assertNotNull($link->refresh()->used_at);
     }
 
