@@ -804,42 +804,60 @@
           <v-divider class="mb-5" />
 
           <div class="text-body-2 font-weight-bold mb-3">
-            {{ t('settings_hub.customer_display.promo_title') }}
+            {{ t('settings_hub.customer_display.posters_title') }}
           </div>
-          <v-row dense class="mb-2">
-            <v-col cols="12" sm="4">
-              <ProductImageUpload
-                v-model:image-file="cdPromoFile"
-                v-model:image-preview="cdPromoPreview"
-                compact
-                :title="t('settings_hub.customer_display.promo_image')"
+          <div class="d-flex flex-wrap ga-3 mb-2">
+            <div
+              v-for="(url, i) in cdForm.posters"
+              :key="'saved-' + i"
+              class="cd-poster-thumb"
+            >
+              <img :src="url" />
+              <v-btn
+                v-if="canEdit"
+                icon="mdi-close"
+                size="x-small"
+                variant="flat"
+                color="error"
+                class="cd-poster-thumb__remove"
+                @click="removeSavedPoster(i)"
               />
-            </v-col>
-            <v-col cols="12" sm="8">
-              <v-text-field
-                v-model="cdForm.promo_title"
-                :label="t('settings_hub.customer_display.promo_title_label')"
-                :disabled="!canEdit || saving"
-                variant="outlined"
-                density="compact"
-                rounded="lg"
-                class="mb-3"
-                hide-details
+            </div>
+            <div
+              v-for="(preview, i) in cdPosterPreviews"
+              :key="'new-' + i"
+              class="cd-poster-thumb"
+            >
+              <img v-if="preview" :src="preview" />
+              <v-progress-circular v-else indeterminate size="20" width="2" color="teal" />
+              <v-btn
+                v-if="canEdit"
+                icon="mdi-close"
+                size="x-small"
+                variant="flat"
+                color="error"
+                class="cd-poster-thumb__remove"
+                @click="removeNewPoster(i)"
               />
-              <v-textarea
-                v-model="cdForm.promo_subtitle"
-                :label="t('settings_hub.customer_display.promo_subtitle_label')"
-                :disabled="!canEdit || saving"
-                variant="outlined"
-                density="compact"
-                rounded="lg"
-                rows="2"
-                hide-details
-              />
-            </v-col>
-          </v-row>
+            </div>
+            <div
+              v-if="canEdit"
+              class="cd-poster-thumb cd-poster-thumb--add"
+              @click="posterInputRef?.click()"
+            >
+              <v-icon icon="mdi-image-plus-outline" size="26" color="grey-lighten-1" />
+            </div>
+            <input
+              ref="posterInputRef"
+              type="file"
+              accept="image/*"
+              multiple
+              class="d-none"
+              @change="e => { addPosterFiles(e.target.files); e.target.value = '' }"
+            />
+          </div>
           <div class="text-caption text-medium-emphasis mb-5">
-            {{ t('settings_hub.customer_display.promo_hint') }}
+            {{ t('settings_hub.customer_display.posters_hint') }}
           </div>
 
           <v-divider class="mb-5" />
@@ -1597,9 +1615,9 @@
     printerNameInput.value = selectedBranch.value?.printer_name ?? ''
     kitchenTicketEnabledInput.value = selectedBranch.value?.kitchen_ticket_enabled ?? true
     kitchenAutoServeHoursInput.value = selectedBranch.value?.kitchen_auto_serve_hours ?? 12
-    cdForm.value = { ...cdOriginal.value }
-    cdPromoFile.value = null
-    cdPromoPreview.value = cdForm.value.promo_image_url
+    cdForm.value = { ...cdOriginal.value, posters: [...cdOriginal.value.posters] }
+    cdPosterFiles.value = []
+    cdPosterPreviews.value = []
     cdQrFile.value = null
     cdQrPreview.value = cdForm.value.merchant_qr_image_url
     loyaltyForm.value = { ...loyaltyOriginal.value }
@@ -1670,13 +1688,16 @@
 
       if (dirtyCustomerDisplay.value && selectedBranch.value) {
         // Same multipart-when-a-file-is-attached pattern as the tenant
-        // logo above — a new promo/QR image always wins over whatever
-        // URL is already stored (see BranchController::update()).
+        // logo above — newly-picked poster files/a new QR image always
+        // append onto (posters) or replace (QR) whatever's already stored
+        // (see BranchController::update()). cdForm.posters here is only
+        // ever the retained/reordered list of ALREADY-saved poster URLs —
+        // new files travel separately as customer_display_poster_images[].
         let body = { customer_display_settings: cdForm.value }
-        if (cdPromoFile.value || cdQrFile.value) {
+        if (cdPosterFiles.value.length || cdQrFile.value) {
           const fd = new FormData()
           fd.append('customer_display_settings', JSON.stringify(cdForm.value))
-          if (cdPromoFile.value) fd.append('customer_display_promo_image', cdPromoFile.value)
+          cdPosterFiles.value.forEach(f => fd.append('customer_display_poster_images[]', f))
           if (cdQrFile.value) fd.append('customer_display_qr_image', cdQrFile.value)
           body = fd
         }
@@ -1684,16 +1705,16 @@
         await branchStore.fetchBranches({ perPage: -1 })
 
         // Re-baseline from what the server actually persisted (not just
-        // cdForm as we sent it) — a new upload comes back with a fresh
-        // promo/QR image_url that cdForm never had, and without this the
-        // dirty check keeps comparing against the pre-save snapshot and
-        // the leave-guard fires forever after a successful save.
+        // cdForm as we sent it) — new poster uploads come back with fresh
+        // URLs cdForm never had, and without this the dirty check keeps
+        // comparing against the pre-save snapshot and the leave-guard
+        // fires forever after a successful save.
         const saved = res?.data?.data?.customer_display_settings
         if (saved) {
-          cdForm.value = { ...DEFAULT_CD_SETTINGS, ...saved }
-          cdOriginal.value = { ...cdForm.value }
-          cdPromoFile.value = null
-          cdPromoPreview.value = cdForm.value.promo_image_url
+          cdForm.value = { ...DEFAULT_CD_SETTINGS, ...saved, posters: [...(saved.posters ?? [])] }
+          cdOriginal.value = { ...cdForm.value, posters: [...cdForm.value.posters] }
+          cdPosterFiles.value = []
+          cdPosterPreviews.value = []
           cdQrFile.value = null
           cdQrPreview.value = cdForm.value.merchant_qr_image_url
         }
@@ -1821,17 +1842,22 @@
   // ── Customer display section (per branch, like Printer above) ──────────
   const DEFAULT_CD_SETTINGS = {
     enabled: false,
-    promo_image_url: null,
-    promo_title: null,
-    promo_subtitle: null,
+    posters: [],
     wifi_text: null,
     thank_you_delay_seconds: 10,
     merchant_qr_image_url: null
   }
-  const cdForm = ref({ ...DEFAULT_CD_SETTINGS })
-  const cdOriginal = ref({ ...DEFAULT_CD_SETTINGS })
-  const cdPromoFile = ref(null)
-  const cdPromoPreview = ref(null)
+  const cdForm = ref({ ...DEFAULT_CD_SETTINGS, posters: [] })
+  const cdOriginal = ref({ ...DEFAULT_CD_SETTINGS, posters: [] })
+  // Newly-picked poster files (not yet uploaded) — kept separate from
+  // cdForm.posters (which only ever holds already-saved URLs the tenant can
+  // reorder/remove) since a File can't round-trip through JSON.stringify
+  // for the dirty-check below. Preview slots are pre-allocated at a fixed
+  // index so an out-of-order FileReader resolution never scrambles which
+  // thumbnail belongs to which file.
+  const cdPosterFiles = ref([])
+  const cdPosterPreviews = ref([])
+  const posterInputRef = ref(null)
   const cdQrFile = ref(null)
   const cdQrPreview = ref(null)
   const pairedDevices = ref([])
@@ -1844,6 +1870,33 @@
     { value: 10, title: '10s' },
     { value: 15, title: '15s' }
   ]
+
+  function addPosterFiles(fileList) {
+    const files = Array.from(fileList || [])
+    for (const f of files) {
+      if (f.size > 5 * 1024 * 1024) {
+        notif(t('products.image.tooLarge'), { type: 'error', color: 'error' })
+        continue
+      }
+      const idx = cdPosterFiles.value.length
+      cdPosterFiles.value.push(f)
+      cdPosterPreviews.value.push(null)
+      const reader = new FileReader()
+      reader.onload = () => {
+        cdPosterPreviews.value[idx] = reader.result
+      }
+      reader.readAsDataURL(f)
+    }
+  }
+
+  function removeSavedPoster(index) {
+    cdForm.value.posters.splice(index, 1)
+  }
+
+  function removeNewPoster(index) {
+    cdPosterFiles.value.splice(index, 1)
+    cdPosterPreviews.value.splice(index, 1)
+  }
 
   function formatPairedAt(iso) {
     if (!iso) return ''
@@ -1949,10 +2002,15 @@
     () => selectedBranch.value?.id,
     () => {
       const settings = selectedBranch.value?.customer_display_settings ?? {}
-      cdForm.value = { ...DEFAULT_CD_SETTINGS, ...settings }
-      cdOriginal.value = { ...cdForm.value }
-      cdPromoFile.value = null
-      cdPromoPreview.value = cdForm.value.promo_image_url
+      // posters needs its own [...] copy on BOTH sides — a bare {...settings}
+      // spread only shallow-copies, so cdForm.posters and cdOriginal.posters
+      // would otherwise be the SAME array reference and a later
+      // cdForm.posters.splice() (removing a poster) would silently mutate
+      // cdOriginal too, permanently hiding that edit from the dirty check.
+      cdForm.value = { ...DEFAULT_CD_SETTINGS, ...settings, posters: [...(settings.posters ?? [])] }
+      cdOriginal.value = { ...cdForm.value, posters: [...cdForm.value.posters] }
+      cdPosterFiles.value = []
+      cdPosterPreviews.value = []
       cdQrFile.value = null
       cdQrPreview.value = cdForm.value.merchant_qr_image_url
       fetchPairedDevices()
@@ -1962,7 +2020,7 @@
 
   const dirtyCustomerDisplay = computed(
     () =>
-      !!cdPromoFile.value ||
+      !!cdPosterFiles.value.length ||
       !!cdQrFile.value ||
       JSON.stringify(cdForm.value) !== JSON.stringify(cdOriginal.value)
   )
@@ -2124,3 +2182,41 @@
     window.removeEventListener('beforeunload', handleBeforeUnload)
   })
 </script>
+
+<style scoped>
+.cd-poster-thumb {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cd-poster-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cd-poster-thumb__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.cd-poster-thumb--add {
+  border: 2px dashed rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cd-poster-thumb--add:hover {
+  border-color: rgb(var(--v-theme-primary));
+  background: rgba(var(--v-theme-primary), 0.03);
+}
+</style>

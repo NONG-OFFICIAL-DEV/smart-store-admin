@@ -65,7 +65,7 @@ class BranchController extends Controller
         // whatever's already in $validated (or, failing that, the branch's
         // current settings) rather than assigned bare, so a file upload
         // alone never wipes the other customer_display_settings keys.
-        if ($request->hasFile('customer_display_promo_image') || $request->hasFile('customer_display_qr_image')) {
+        if ($request->hasFile('customer_display_poster_images') || $request->hasFile('customer_display_qr_image')) {
             $settings = $validated['customer_display_settings'] ?? $branch->customer_display_settings ?? [];
 
             // Storage::url() (no disk specified) resolves against
@@ -77,9 +77,13 @@ class BranchController extends Controller
             // string concat (env('APP_URL').'/storage'), always absolute —
             // ask for it explicitly rather than relying on whichever disk
             // happens to be default.
-            if ($request->hasFile('customer_display_promo_image')) {
-                $path = $request->file('customer_display_promo_image')->store('customer-display', 'public');
-                $settings['promo_image_url'] = Storage::disk('public')->url($path);
+            if ($request->hasFile('customer_display_poster_images')) {
+                $posters = $settings['posters'] ?? [];
+                foreach ($request->file('customer_display_poster_images') as $file) {
+                    $path = $file->store('customer-display', 'public');
+                    $posters[] = Storage::disk('public')->url($path);
+                }
+                $settings['posters'] = $posters;
             }
             if ($request->hasFile('customer_display_qr_image')) {
                 $path = $request->file('customer_display_qr_image')->store('customer-display', 'public');

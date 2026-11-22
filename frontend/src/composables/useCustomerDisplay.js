@@ -113,13 +113,14 @@ export function buildCustomerDisplayState({
     totalUsd: Math.round(totalUsd * 100) / 100,
     totalKhr: Math.round(totalKhr),
     payment: resolvedPayment,
-    // Idle-screen promo + Wi-Fi — sent on every state, not just idle, so
-    // the display always has them ready without a separate fetch.
-    promo: {
-      imageUrl: cd.promo_image_url ?? null,
-      title: cd.promo_title ?? null,
-      subtitle: cd.promo_subtitle ?? null
-    },
+    // Rotating poster images + Wi-Fi — sent on every state, not just idle,
+    // so the display always has them ready without a separate fetch (the
+    // poster carousel never stops, even mid-order/mid-payment).
+    // branchSettings is reactive (a computed off the active branch), so
+    // cd.posters is itself a reactive-wrapped array — spreading it into a
+    // plain array is required, otherwise postMessage()'s structured clone
+    // throws DataCloneError on the embedded Proxy.
+    posters: Array.isArray(cd.posters) ? [...cd.posters] : [],
     wifiText: cd.wifi_text ?? null
   }
 }

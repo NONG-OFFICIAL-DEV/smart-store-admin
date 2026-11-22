@@ -62,19 +62,22 @@ class UpdateBranchRequest extends FormRequest
             'kitchen_auto_serve_hours' => ['nullable', 'integer', 'min:1', 'max:72'],
 
             // Second-screen customer-facing display — per branch (different
-            // locations want different WiFi text/promos). Images are
-            // uploaded as separate multipart files (see BranchController::
-            // update()), promo_image_url/merchant_qr_image_url here are the
-            // resulting URLs, not the uploads themselves.
+            // locations want different WiFi text/posters). `posters` is the
+            // list of already-uploaded poster image URLs the tenant kept/
+            // reordered (edited client-side); newly-picked files arrive
+            // separately as customer_display_poster_images[] and get
+            // appended onto that list server-side (see BranchController::
+            // update()) rather than replacing it, so adding one poster never
+            // wipes the others.
             'customer_display_settings' => ['sometimes', 'array'],
             'customer_display_settings.enabled' => ['boolean'],
-            'customer_display_settings.promo_image_url' => ['nullable', 'string', 'max:2048'],
-            'customer_display_settings.promo_title' => ['nullable', 'string', 'max:120'],
-            'customer_display_settings.promo_subtitle' => ['nullable', 'string', 'max:200'],
+            'customer_display_settings.posters' => ['sometimes', 'array'],
+            'customer_display_settings.posters.*' => ['string', 'max:2048'],
             'customer_display_settings.wifi_text' => ['nullable', 'string', 'max:120'],
             'customer_display_settings.thank_you_delay_seconds' => ['nullable', 'in:5,10,15'],
             'customer_display_settings.merchant_qr_image_url' => ['nullable', 'string', 'max:2048'],
-            'customer_display_promo_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'customer_display_poster_images' => ['nullable', 'array'],
+            'customer_display_poster_images.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
             'customer_display_qr_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ];
     }

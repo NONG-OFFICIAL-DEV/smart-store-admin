@@ -21,48 +21,31 @@
         Reconnecting&hellip;
       </div>
 
-      <transition name="cd-fade" mode="out-in">
-        <IdleScreen
-          v-if="displayState.state === 'idle'"
-          key="idle"
-          :logo-url="displayState.logoUrl"
-          :wifi-text="displayState.wifiText"
-          :promo="displayState.promo"
-        />
-        <OrderScreen
-          v-else-if="displayState.state === 'order'"
-          key="order"
-          :logo-url="displayState.logoUrl"
-          :table-name="displayState.tableName"
-          :items="displayState.items"
-          :item-count="displayState.itemCount"
-          :subtotal="displayState.subtotal"
-          :discount="displayState.discount"
-          :total-usd="displayState.totalUsd"
-          :total-khr="displayState.totalKhr"
-          :currency="displayState.currency"
-        />
-        <PayQrScreen
-          v-else-if="displayState.state === 'pay_qr'"
-          key="pay_qr"
-          :total-usd="displayState.totalUsd"
-          :total-khr="displayState.totalKhr"
-          :payment="displayState.payment"
-        />
-        <ThanksScreen
-          v-else-if="displayState.state === 'thanks'"
-          key="thanks"
-          :order-number="displayState.orderNumber"
-          :payment="displayState.payment"
-        />
-        <IdleScreen
-          v-else
-          key="fallback"
-          :logo-url="displayState.logoUrl"
-          :wifi-text="displayState.wifiText"
-          :promo="displayState.promo"
-        />
-      </transition>
+      <!-- Single persistent split layout — the poster carousel on the left
+           NEVER unmounts/flickers when the order state changes; only
+           OrderPanel's own inner content area swaps (items / QR / thanks),
+           see OrderPanel.vue's own <transition>. -->
+      <div class="cd-split">
+        <section class="cd-split__poster">
+          <PosterCarousel :posters="displayState.posters ?? []" />
+        </section>
+        <section class="cd-split__panel">
+          <OrderPanel
+            :branch-name="displayState.branchName"
+            :wifi-text="displayState.wifiText"
+            :state="displayState.state"
+            :table-name="displayState.tableName"
+            :order-number="displayState.orderNumber"
+            :items="displayState.items ?? []"
+            :subtotal="displayState.subtotal ?? 0"
+            :discount="displayState.discount ?? 0"
+            :total-usd="displayState.totalUsd ?? 0"
+            :total-khr="displayState.totalKhr ?? 0"
+            :currency="displayState.currency"
+            :payment="displayState.payment"
+          />
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -70,10 +53,8 @@
 <script setup>
 import { useCustomerDisplayReceiver } from '@/composables/useCustomerDisplay'
 import { useCustomerDisplayDeviceBehavior } from '@/composables/useCustomerDisplayDeviceBehavior'
-import IdleScreen from '@/components/customer-display/IdleScreen.vue'
-import OrderScreen from '@/components/customer-display/OrderScreen.vue'
-import PayQrScreen from '@/components/customer-display/PayQrScreen.vue'
-import ThanksScreen from '@/components/customer-display/ThanksScreen.vue'
+import PosterCarousel from '@/components/customer-display/PosterCarousel.vue'
+import OrderPanel from '@/components/customer-display/OrderPanel.vue'
 
 const { mode, pairingCode, connectionStatus, displayState, receivedViaBroadcast } =
   useCustomerDisplayReceiver()
@@ -141,13 +122,23 @@ const { cursorHidden } = useCustomerDisplayDeviceBehavior()
   letter-spacing: 0.15em;
 }
 
-.cd-fade-enter-active,
-.cd-fade-leave-active {
-  transition: opacity 0.2s ease;
+/* Persistent split layout — left poster carousel never unmounts; only
+   OrderPanel's own inner content swaps (see OrderPanel.vue). */
+.cd-split {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
 
-.cd-fade-enter-from,
-.cd-fade-leave-to {
-  opacity: 0;
+.cd-split__poster {
+  flex: 0 0 60%;
+  min-width: 0;
+}
+
+.cd-split__panel {
+  flex: 0 0 40%;
+  min-width: 0;
+  border-left: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: -10px 0 25px -5px rgba(15, 23, 42, 0.04);
 }
 </style>
