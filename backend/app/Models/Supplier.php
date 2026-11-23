@@ -15,8 +15,13 @@ class Supplier extends BaseModel
         'email', 'address', 'is_active',
     ];
 
+    // $timestamps = false (no updated_at column) also disables Eloquent's
+    // automatic created_at => Carbon casting, which normally only kicks in
+    // when timestamps are enabled — cast it explicitly instead, or
+    // SupplierResource's ->toIso8601String() call fails on a raw string.
     protected $casts = [
         'is_active' => 'boolean',
+        'created_at' => 'datetime',
     ];
 
     public function tenant()

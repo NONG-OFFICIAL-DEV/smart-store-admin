@@ -8,100 +8,89 @@
     <v-form ref="formRef">
       <!-- Basic Info -->
       <div class="form-section">
-            <div class="form-section-label">
-              <v-icon icon="mdi-information-outline" size="13" class="mr-1" />
-              {{ $t('suppliers.dialog.basic_info') }}
-            </div>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.name"
-                  :label="$t('suppliers.form.name') + ' *'"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="[r.required]"
-                  prepend-inner-icon="mdi-domain"
-                  maxlength="150"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.contact_person"
-                  :label="$t('suppliers.form.contact_person')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-account-outline"
-                  maxlength="100"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.phone"
-                  :label="$t('suppliers.form.phone')"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="[r.phone]"
-                  prepend-inner-icon="mdi-phone-outline"
-                  maxlength="30"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.email"
-                  :label="$t('suppliers.form.email')"
-                  type="email"
-                  variant="outlined"
-                  rounded="lg"
-                  :rules="[r.email]"
-                  prepend-inner-icon="mdi-email-outline"
-                  maxlength="255"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="form.address"
-                  :label="$t('suppliers.form.address')"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-map-marker-outline"
-                />
-              </v-col>
-            </v-row>
-          </div>
+        <v-row dense>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="form.name"
+              :label="$t('suppliers.form.name') + ' *'"
+              variant="outlined"
+              rounded="lg"
+              :rules="[r.required]"
+              prepend-inner-icon="mdi-domain"
+              maxlength="150"
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="form.contact_person"
+              :label="$t('suppliers.form.contact_person')"
+              variant="outlined"
+              rounded="lg"
+              prepend-inner-icon="mdi-account-outline"
+              maxlength="100"
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="form.phone"
+              :label="$t('suppliers.form.phone')"
+              variant="outlined"
+              rounded="lg"
+              :rules="[r.phone]"
+              prepend-inner-icon="mdi-phone-outline"
+              maxlength="30"
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="form.email"
+              :label="$t('suppliers.form.email')"
+              type="email"
+              variant="outlined"
+              rounded="lg"
+              :rules="[r.email]"
+              prepend-inner-icon="mdi-email-outline"
+              maxlength="255"
+            />
+          </v-col>
+          <v-col cols="12">
+            <v-text-field
+              v-model="form.address"
+              :label="$t('suppliers.form.address')"
+              variant="outlined"
+              rounded="lg"
+              prepend-inner-icon="mdi-map-marker-outline"
+            />
+          </v-col>
+        </v-row>
+      </div>
 
-          <v-divider />
-
-          <!-- Settings -->
-          <div class="form-section">
-            <div class="form-section-label">
-              <v-icon icon="mdi-cog-outline" size="13" class="mr-1" />
-              {{ $t('suppliers.dialog.settings') }}
-            </div>
-            <v-row dense>
-              <v-col cols="12" class="d-flex align-center">
-                <v-card
-                  rounded="lg"
-                  border
-                  elevation="0"
-                  class="px-3 py-2 d-flex align-center justify-space-between w-100"
-                >
-                  <div>
-                    <div class="text-body-2 font-weight-medium">{{ $t('status.active') }}</div>
-                    <div class="text-caption text-grey">
-                      {{ $t('suppliers.form.active_hint') }}
-                    </div>
-                  </div>
-                  <v-switch
-                    v-model="form.is_active"
-                    color="success"
-                    inset
-                    hide-details
-                    density="compact"
-                  />
-                </v-card>
-              </v-col>
-            </v-row>
-          </div>
+        <v-row dense>
+          <v-col cols="12" class="d-flex align-center">
+            <v-card
+              rounded="lg"
+              border
+              elevation="0"
+              class="px-3 py-2 d-flex align-center justify-space-between w-100"
+            >
+              <div>
+                <div class="text-body-2 font-weight-medium">
+                  {{ $t('status.active') }}
+                </div>
+                <div class="text-caption text-grey">
+                  {{ $t('suppliers.form.active_hint') }}
+                </div>
+              </div>
+              <v-switch
+                v-model="form.is_active"
+                color="success"
+                inset
+                hide-details
+                density="compact"
+              />
+            </v-card>
+          </v-col>
+        </v-row>
     </v-form>
 
     <template #actions="{ loading }">
@@ -177,7 +166,8 @@
   const r = {
     required: v => !!v || t('form.required'),
     email: v => !v || /.+@.+\..+/.test(v) || t('validation.email'),
-    phone: v => !v || /^[+\d\s().-]+$/.test(v) || t('suppliers.validation.invalid_phone')
+    phone: v =>
+      !v || /^[+\d\s().-]+$/.test(v) || t('suppliers.validation.invalid_phone')
   }
 
   // ── Submit ─────────────────────────────────────────────────────────────────────
@@ -211,19 +201,6 @@
 </script>
 
 <style scoped>
-  .form-section {
-    padding: 16px 20px;
-  }
-  .form-section-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: rgb(var(--v-theme-primary));
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-  }
   .w-100 {
     width: 100%;
   }
