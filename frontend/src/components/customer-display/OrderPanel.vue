@@ -112,10 +112,6 @@
         <img :src="appLogo" class="cd-app-logo" alt="" />
       </div>
     </transition>
-
-    <footer v-if="wifiText" class="cd-panel__footer">
-      <span class="cd-panel__wifi-icon">&#128246;</span>{{ wifiText }}
-    </footer>
   </div>
 </template>
 

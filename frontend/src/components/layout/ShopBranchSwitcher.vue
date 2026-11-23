@@ -184,9 +184,9 @@
         </div>
 
         <div v-if="canManage" class="switcher-footer">
-          <button type="button" class="footer-btn footer-btn--outlined" @click="goManageBranches">
+          <v-btn block variant="outlined" class="text-none" rounded="lg" @click="goManageBranches">
             {{ t('shop_switcher.manage_branches') }}
-          </button>
+          </v-btn>
         </div>
       </div>
     </v-menu>
@@ -469,25 +469,6 @@
     gap: 8px;
     padding: 8px;
     border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  }
-  .footer-btn {
-    flex: 1;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: 10px;
-    font: 600 13px inherit;
-    cursor: pointer;
-  }
-  .footer-btn--outlined {
-    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-    background: transparent;
-    color: rgb(var(--v-theme-on-surface));
-  }
-  .footer-btn--outlined:hover {
-    background: rgba(var(--v-theme-on-surface), 0.05);
   }
   .footer-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
