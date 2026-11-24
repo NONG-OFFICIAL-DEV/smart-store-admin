@@ -3,7 +3,6 @@
     v-model="model"
     :max-width="440"
     :fullscreen="smAndDown"
-    :location="smAndDown ? undefined : 'top'"
     :persistent="saving"
     scrollable
   >

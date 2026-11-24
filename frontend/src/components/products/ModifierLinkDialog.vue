@@ -3,7 +3,6 @@
     :model-value="modelValue"
     :max-width="480"
     :fullscreen="smAndDown"
-    :location="smAndDown ? undefined : 'top'"
     scrollable
     @update:model-value="close"
   >

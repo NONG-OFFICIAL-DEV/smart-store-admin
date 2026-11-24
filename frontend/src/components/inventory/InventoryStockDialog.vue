@@ -270,9 +270,6 @@
 </script>
 
 <style scoped>
-  .form-section {
-    padding: 16px 20px;
-  }
   .form-section-label {
     font-size: 0.68rem;
     font-weight: 700;

@@ -46,7 +46,9 @@ const savedAccent = normalizeAccent(localStorage.getItem('accent'))
 function resolveInitialThemeName(mode) {
   if (mode === 'dark') return 'dark'
   if (mode === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
   }
   return 'light'
 }
@@ -68,7 +70,7 @@ const DENSITY_FIELDS = [
 
 const vuetify = createVuetify({
   display: { mobileBreakpoint: 'sm' },
-  components: {...components, ...labs },
+  components: { ...components, ...labs },
   directives,
   defaults: {
     VSelect: { density: 'comfortable', variant: 'outlined', color: 'primary' },
@@ -153,7 +155,8 @@ const vuetify = createVuetify({
       en: 'en-GB',
       km: 'km-KH'
     }
-  }
+  },
+  display: { mobileBreakpoint: 'sm' }
 })
 
 watch(
