@@ -6,7 +6,7 @@
     :loading="loading"
   >
     <v-form ref="formRef">
-      <v-row dense>
+      <v-row density="compact">
             <!-- Branch -->
             <v-col cols="12">
               <v-select
@@ -66,7 +66,7 @@
                 <template #item="{ props, item }">
                   <v-list-item v-bind="props">
                     <template #prepend>
-                      <v-icon :icon="item.raw.icon" size="18" class="mr-2" />
+                      <v-icon :icon="item.icon" size="18" class="mr-2" />
                     </template>
                   </v-list-item>
                 </template>
@@ -93,7 +93,7 @@
             <template v-if="form.floor_plan_id">
               <v-col cols="12">
                 <v-divider class="mb-2 mt-1" />
-                <p class="text-caption text-medium-emphasis">
+                <p class="text-body-small text-medium-emphasis">
                   <v-icon
                     icon="mdi-map-marker-outline"
                     size="14"

@@ -7,7 +7,7 @@
   >
         <v-form ref="formRef">
           <!-- Type selector -->
-          <div class="text-caption font-weight-bold text-medium-emphasis mb-2">
+          <div class="text-body-small font-weight-bold text-medium-emphasis mb-2">
             {{ t('stock.adjust.type') }}
           </div>
           <div class="d-flex gap-2 flex-wrap mb-3">
@@ -31,16 +31,16 @@
             variant="tonal"
             density="compact"
             rounded="lg"
-            class="mb-4 text-caption"
+            class="mb-4 text-body-small"
           >
             {{ t(currentType?.descKey ?? '') }}
           </v-alert>
 
-          <v-row dense>
+          <v-row density="compact">
             <!-- Branch -->
             <v-col cols="12" sm="6">
               <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+                class="text-body-medium font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{ t('stock.adjust.branch') }}
                 <span class="text-error">*</span>
@@ -61,7 +61,7 @@
             <!-- Product -->
             <v-col cols="12" sm="6">
               <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+                class="text-body-medium font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{ t('stock.adjust.product') }}
                 <span class="text-error">*</span>
@@ -85,7 +85,7 @@
             <!-- Unit -->
             <v-col v-if="availableUnits.length > 0" cols="12" sm="6">
               <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+                class="text-body-medium font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{ t('stock.adjust.unit') }}
               </label>
@@ -106,7 +106,7 @@
             <!-- Quantity -->
             <v-col cols="12" :sm="availableUnits.length > 0 ? 6 : 12">
               <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+                class="text-body-medium font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{
                   form.movement_type === 'count'
@@ -127,7 +127,7 @@
               />
               <p
                 v-if="form.movement_type === 'count'"
-                class="text-caption text-grey mt-1 ml-1"
+                class="text-body-small text-grey mt-1 ml-1"
               >
                 {{ t('stock.adjust.count_hint') }}
               </p>
@@ -150,7 +150,7 @@
             <!-- Notes -->
             <v-col cols="12">
               <label
-                class="text-body-2 font-weight-medium text-grey-darken-2 mb-1 d-block"
+                class="text-body-medium font-weight-medium text-grey-darken-2 mb-1 d-block"
               >
                 {{ t('stock.adjust.notes') }}
               </label>

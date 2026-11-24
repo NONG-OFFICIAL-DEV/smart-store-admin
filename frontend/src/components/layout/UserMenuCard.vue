@@ -6,15 +6,15 @@
         <div class="d-flex align-center gap-3">
           <v-avatar :color="avatarColor" size="48" rounded="lg">
             <v-img v-if="user?.avatar_url" :src="user.avatar_url" cover />
-            <span v-else class="text-body-2 font-weight-black text-white">
+            <span v-else class="text-body-medium font-weight-black text-white">
               {{ initials }}
             </span>
           </v-avatar>
           <div class="min-w-0 flex-1 overflow-hidden">
-            <div class="text-body-2 font-weight-bold text-truncate">
+            <div class="text-body-medium font-weight-bold text-truncate">
               {{ user?.first_name }} {{ user?.last_name }}
             </div>
-            <div class="text-caption text-medium-emphasis text-truncate">
+            <div class="text-body-small text-medium-emphasis text-truncate">
               {{ user?.email }}
             </div>
           </div>

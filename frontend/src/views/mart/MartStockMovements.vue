@@ -27,8 +27,8 @@
     </AppPageHeader>
     <!-- <div class="d-flex align-center justify-space-between mb-6">
       <div>
-        <h1 class="text-h5 font-weight-bold">Stock Movements</h1>
-        <p class="text-caption text-medium-emphasis mt-1">
+        <h1 class="text-headline-small font-weight-bold">Stock Movements</h1>
+        <p class="text-body-small text-medium-emphasis mt-1">
           Full stock ledger history
         </p>
       </div>
@@ -44,16 +44,16 @@
     </div> -->
 
     <!-- Summary cards -->
-    <v-row dense class="mb-5">
+    <v-row density="compact" class="mb-5">
       <v-col v-for="s in summaryCards" :key="s.label" cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ s.label }}</span>
+            <span class="text-body-small text-medium-emphasis">{{ s.label }}</span>
             <v-avatar size="28" :color="s.color" variant="tonal" rounded="lg">
               <v-icon :icon="s.icon" size="14" />
             </v-avatar>
           </div>
-          <div class="text-h6 font-weight-black" :class="`text-${s.color}`">
+          <div class="text-title-large font-weight-black" :class="`text-${s.color}`">
             {{ s.value }}
           </div>
         </v-card>
@@ -63,7 +63,7 @@
     <!-- Filters -->
     <v-card rounded="lg" border elevation="0" class="mb-4">
       <v-card-text class="pa-4">
-        <v-row dense align="center">
+        <v-row density="compact" align="center">
           <!-- Product filter -->
           <v-col cols="12" sm="3">
             <v-autocomplete
@@ -142,8 +142,8 @@
       >
         <!-- Date -->
         <template #item.created_at="{ item }">
-          <div class="text-body-2">{{ fmtDate(item.created_at) }}</div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-medium">{{ fmtDate(item.created_at) }}</div>
+          <div class="text-body-small text-medium-emphasis">
             {{ fmtTime(item.created_at) }}
           </div>
         </template>
@@ -169,10 +169,10 @@
               />
             </v-avatar>
             <div>
-              <div class="text-body-2 font-weight-medium">
+              <div class="text-body-medium font-weight-medium">
                 {{ item.product?.name ?? '—' }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.product?.sku ?? '' }}
               </div>
             </div>
@@ -195,7 +195,7 @@
         <!-- Quantity -->
         <template #item.quantity="{ item }">
           <span
-            class="font-weight-black text-body-2"
+            class="font-weight-black text-body-medium"
             :class="item.quantity > 0 ? 'text-success' : 'text-error'"
           >
             {{ item.quantity > 0 ? '+' : '' }}{{ item.quantity }}
@@ -204,7 +204,7 @@
 
         <!-- Before → After -->
         <template #item.qty_before="{ item }">
-          <div class="d-flex align-center gap-1 text-body-2">
+          <div class="d-flex align-center gap-1 text-body-medium">
             <span class="text-medium-emphasis">{{ item.qty_before }}</span>
             <v-icon icon="mdi-arrow-right" size="12" color="grey" />
             <span class="font-weight-bold">{{ item.qty_after }}</span>
@@ -213,17 +213,17 @@
 
         <!-- Reference -->
         <template #item.reference="{ item }">
-          <div v-if="item.reference_type" class="text-caption">
+          <div v-if="item.reference_type" class="text-body-small">
             <v-chip size="x-small" rounded="lg" variant="tonal" color="grey">
               {{ item.reference_type }}
             </v-chip>
           </div>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Staff -->
         <template #item.staff="{ item }">
-          <span class="text-caption">
+          <span class="text-body-small">
             {{ item.staff?.user?.first_name ?? '—' }}
           </span>
         </template>
@@ -231,7 +231,7 @@
         <!-- Notes -->
         <template #item.notes="{ item }">
           <span
-            class="text-caption text-medium-emphasis text-truncate"
+            class="text-body-small text-medium-emphasis text-truncate"
             style="max-width: 160px; display: block"
           >
             {{ item.notes ?? '—' }}

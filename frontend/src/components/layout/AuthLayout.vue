@@ -13,7 +13,7 @@
             <v-icon icon="mdi-store-outline" size="22" color="white" />
           </div>
           <span
-            class="text-h6 font-weight-black"
+            class="text-title-large font-weight-black"
             style="letter-spacing: -0.3px"
           >
             {{ t('app.name') }}
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="text-caption mt-auto left-footer-text">
+        <div class="text-body-small mt-auto left-footer-text">
           © {{ new Date().getFullYear() }} {{ t('app.footer') }}
         </div>
       </v-col>
@@ -41,7 +41,7 @@
             <div class="brand-icon-wrapper-sm mr-2">
               <v-icon icon="mdi-store-outline" size="16" color="white" />
             </div>
-            <span class="text-body-1 font-weight-black">
+            <span class="text-body-large font-weight-black">
               {{ t('app.name') }}
             </span>
           </div>

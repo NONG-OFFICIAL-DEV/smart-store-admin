@@ -46,7 +46,7 @@
 
             <v-list-item-subtitle>
               <div v-if="reward.description" class="text-truncate">{{ reward.description }}</div>
-              <div class="text-caption">
+              <div class="text-body-small">
                 {{ reward.branches?.length ? reward.branches.map(b => b.name).join(', ') : t('loyalty_rewards.all_branches') }}
               </div>
             </v-list-item-subtitle>
@@ -86,7 +86,7 @@
       <div v-else class="pa-8 text-center text-medium-emphasis">
         <v-icon icon="mdi-gift-outline" size="36" class="mb-2" />
         <div>{{ search ? t('loyalty_rewards.no_results') : t('loyalty_rewards.empty') }}</div>
-        <div v-if="!search" class="text-caption">{{ t('loyalty_rewards.empty_sub') }}</div>
+        <div v-if="!search" class="text-body-small">{{ t('loyalty_rewards.empty_sub') }}</div>
       </div>
     </v-card>
 
@@ -98,9 +98,8 @@
   import { ref, computed, onMounted } from 'vue'
   import { useLoyaltyRewardStore } from '@/stores/loyaltyRewardStore'
   import { usePermission } from '@/composables/usePermission'
-  import { useAppUtils } from '@nong-official-dev/core'
+  import { useAppUtils, AppToolbar } from '@nong-official-dev/core'
   import LoyaltyRewardDrawer from '@/components/loyalty/LoyaltyRewardDrawer.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()
 

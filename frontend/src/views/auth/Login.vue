@@ -20,7 +20,7 @@
           <div class="feature-check mr-3">
             <v-icon icon="mdi-check" size="13" color="white" />
           </div>
-          <span class="text-body-2 font-weight-medium feature-text">
+          <span class="text-body-medium font-weight-medium feature-text">
             {{ f }}
           </span>
         </div>
@@ -51,13 +51,13 @@
           class="mb-6 rounded-lg"
           border="start"
         >
-          <span class="text-body-2">{{ errors.general }}</span>
+          <span class="text-body-medium">{{ errors.general }}</span>
         </v-alert>
       </v-slide-y-transition>
 
       <v-form class="fade-in" @submit.prevent="handleVerifyTwoFactor">
         <template v-if="!useRecoveryCode">
-          <label class="text-caption ml-1">
+          <label class="text-body-small ml-1">
             {{ t('login.two_factor.code') }}
           </label>
           <v-otp-input
@@ -71,7 +71,7 @@
           />
         </template>
         <template v-else>
-          <label class="text-caption ml-1">
+          <label class="text-body-small ml-1">
             {{ t('login.two_factor.recovery_code') }}
           </label>
           <v-text-field
@@ -101,13 +101,13 @@
 
         <div class="d-flex justify-space-between mt-4">
           <a
-            class="text-caption text-primary cursor-pointer"
+            class="text-body-small text-primary cursor-pointer"
             @click="backToLogin"
           >
             {{ t('login.two_factor.back_to_login') }}
           </a>
           <a
-            class="text-caption text-primary cursor-pointer"
+            class="text-body-small text-primary cursor-pointer"
             @click="toggleRecoveryCode"
           >
             {{
@@ -140,12 +140,12 @@
           class="mb-6 rounded-lg"
           border="start"
         >
-          <span class="text-body-2">{{ errors.general }}</span>
+          <span class="text-body-medium">{{ errors.general }}</span>
         </v-alert>
       </v-slide-y-transition>
 
       <v-form ref="formRef" class="fade-in" @submit.prevent="handleLogin">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12">
             <v-text-field
               v-model="email"
@@ -196,7 +196,7 @@
         <div class="text-end mt-0 mb-3">
           <router-link
             :to="{ name: 'ForgotPassword' }"
-            class="text-body-2 text-primary font-weight-medium auth-link"
+            class="text-body-medium text-primary font-weight-medium auth-link"
           >
             {{ t('login.forgot_password') }}
           </router-link>
@@ -214,7 +214,7 @@
           {{ t('login.signIn') }}
         </v-btn>
 
-        <div class="text-center mt-6 text-caption">
+        <div class="text-center mt-6 text-body-small">
           {{ t('login.no_account') }}
           <router-link
             :to="{ name: 'Register' }"

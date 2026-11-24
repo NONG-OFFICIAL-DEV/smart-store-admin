@@ -28,18 +28,18 @@
                     <v-icon size="16">mdi-store-outline</v-icon>
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-medium">
-                  {{ item.raw.name }}
+                <v-list-item-title class="text-body-medium font-weight-medium">
+                  {{ item.name }}
                 </v-list-item-title>
                 <v-list-item-subtitle class="d-flex align-center gap-1 mt-1">
                   <v-chip
-                    v-if="item.raw.branch_type?.name"
+                    v-if="item.branch_type?.name"
                     size="x-small"
                     variant="tonal"
                     color="primary"
                     rounded="lg"
                   >
-                    {{ item.raw.branch_type.name }}
+                    {{ item.branch_type.name }}
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>

@@ -5,28 +5,28 @@
       :subtitle="t('orders_admin.subtitle')"
     />
 
-    <v-row v-if="stats" dense class="mb-4">
+    <v-row v-if="stats" density="compact" class="mb-4">
       <v-col cols="6" sm="3">
         <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-small text-medium-emphasis">
             {{ t('orders_admin.stats.total_orders') }}
           </div>
-          <div class="text-h6 font-weight-bold">{{ stats.total_orders }}</div>
+          <div class="text-title-large font-weight-bold">{{ stats.total_orders }}</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
         <v-card rounded="lg" border elevation="0" class="pa-4">
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-small text-medium-emphasis">
             {{ t('orders_admin.stats.total_revenue') }}
           </div>
-          <div class="text-h6 font-weight-bold">
+          <div class="text-title-large font-weight-bold">
             {{ format(stats.total_revenue) }}
           </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <v-row dense align="center" class="mb-2">
+    <v-row density="compact" align="center" class="mb-2">
       <v-col cols="6" sm="3">
         <v-select
           v-model="filters.status"
@@ -75,32 +75,32 @@
         :item-label="t('orders_admin.title')"
       >
         <template #item.order_number="{ item }">
-          <div class="text-body-2 font-weight-medium">
+          <div class="text-body-medium font-weight-medium">
             {{ item.order_number }}
           </div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-small text-medium-emphasis">
             {{ formatDateTime(item.created_at) }}
           </div>
         </template>
 
         <template #item.customer="{ item }">
-          <span class="text-body-2">
+          <span class="text-body-medium">
             {{ item.customer?.name ?? t('orders_admin.walk_in') }}
           </span>
         </template>
 
         <template #item.order_type="{ item }">
-          <span class="text-body-2 text-capitalize">
+          <span class="text-body-medium text-capitalize">
             {{ (item.order_type ?? '').replace('_', ' ') }}
           </span>
         </template>
 
         <template #item.items_count="{ item }">
-          <span class="text-body-2">{{ item.items?.length ?? 0 }}</span>
+          <span class="text-body-medium">{{ item.items?.length ?? 0 }}</span>
         </template>
 
         <template #item.total_amount="{ item }">
-          <span class="text-body-2 font-weight-bold">
+          <span class="text-body-medium font-weight-bold">
             {{ format(item.total_amount) }}
           </span>
         </template>
@@ -110,7 +110,7 @@
         </template>
 
         <template #item.payment_method="{ item }">
-          <span class="text-body-2 text-uppercase">
+          <span class="text-body-medium text-uppercase">
             {{
               item.payments?.[0]?.payment_method ?? item.payment_method ?? '—'
             }}
@@ -134,7 +134,7 @@
               color="grey-lighten-1"
               class="mb-2"
             />
-            <p class="text-body-2 text-medium-emphasis">
+            <p class="text-body-medium text-medium-emphasis">
               {{ t('orders_admin.empty') }}
             </p>
           </div>
@@ -149,7 +149,7 @@
       :loading="detailLoading"
     >
       <template v-if="detailOrder">
-        <div class="d-flex justify-space-between text-body-2 mb-2">
+        <div class="d-flex justify-space-between text-body-medium mb-2">
           <span class="text-medium-emphasis">
             {{ t('orders_admin.detail.status') }}
           </span>
@@ -161,7 +161,7 @@
         </div>
         <div
           v-if="detailOrder.table"
-          class="d-flex justify-space-between text-body-2 mb-2"
+          class="d-flex justify-space-between text-body-medium mb-2"
         >
           <span class="text-medium-emphasis">
             {{ t('orders_admin.detail.table') }}
@@ -172,7 +172,7 @@
         <div
           v-for="item in detailOrder.items"
           :key="item.id"
-          class="d-flex justify-space-between text-body-2 mb-1"
+          class="d-flex justify-space-between text-body-medium mb-1"
         >
           <span>{{ item.quantity }} × {{ item.product_name }}</span>
           <span class="font-weight-medium">
@@ -180,7 +180,7 @@
           </span>
         </div>
         <v-divider class="my-2" />
-        <div class="d-flex justify-space-between text-body-1 font-weight-bold">
+        <div class="d-flex justify-space-between text-body-large font-weight-bold">
           <span>{{ t('orders_admin.detail.total') }}</span>
           <span>{{ format(detailOrder.total_amount) }}</span>
         </div>

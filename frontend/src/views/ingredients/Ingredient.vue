@@ -33,7 +33,7 @@
     <v-expand-transition>
       <v-card v-if="showFilters" rounded="lg" border elevation="0" class="mb-4">
         <v-card-text class="pa-4">
-          <v-row dense align="center">
+          <v-row density="compact" align="center">
             <v-col cols="12" sm="4">
               <v-text-field
                 v-model="draft.search"
@@ -126,10 +126,10 @@
               <v-icon icon="mdi-flask-outline" size="16" />
             </v-avatar>
             <div>
-              <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
+              <div class="text-body-medium font-weight-bold">{{ item.name }}</div>
               <div
                 v-if="item.barcode"
-                class="text-caption text-medium-emphasis"
+                class="text-body-small text-medium-emphasis"
               >
                 {{ item.barcode }}
               </div>
@@ -148,7 +148,7 @@
           >
             {{ item.category }}
           </v-chip>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Unit -->
@@ -160,7 +160,7 @@
 
         <!-- Unit Cost -->
         <template #item.unit_cost="{ item }">
-          <span class="text-body-2">
+          <span class="text-body-medium">
             {{ item.unit_cost ? fmt(item.unit_cost) : '—' }}
           </span>
         </template>
@@ -168,10 +168,10 @@
         <!-- Reorder Point -->
         <template #item.reorder_point="{ item }">
           <div v-if="item.reorder_point">
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ item.reorder_point }} {{ item.unit }}
             </span>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{
                 $t('ingredients.reorder_qty', {
                   qty: item.reorder_quantity ?? '—'
@@ -179,15 +179,15 @@
               }}
             </div>
           </div>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Supplier -->
         <template #item.preferred_supplier="{ item }">
-          <span v-if="item.preferred_supplier" class="text-body-2">
+          <span v-if="item.preferred_supplier" class="text-body-medium">
             {{ item.preferred_supplier.name }}
           </span>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Status -->

@@ -18,11 +18,11 @@
         class="mb-4"
       />
       <div class="d-flex align-center justify-space-between mb-3">
-        <span class="text-body-2">{{ $t('status.active') }}</span>
+        <span class="text-body-medium">{{ $t('status.active') }}</span>
         <v-switch v-model="form.is_active" color="success" hide-details density="compact" inset />
       </div>
       <div class="d-flex align-center justify-space-between">
-        <span class="text-body-2">{{ $t('menus.list.default_badge') }}</span>
+        <span class="text-body-medium">{{ $t('menus.list.default_badge') }}</span>
         <v-switch v-model="form.is_default" color="primary" hide-details density="compact" inset />
       </div>
     </v-form>

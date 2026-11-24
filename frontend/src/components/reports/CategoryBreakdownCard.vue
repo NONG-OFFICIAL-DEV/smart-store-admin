@@ -1,7 +1,7 @@
 <template>
   <v-card rounded="xl" border elevation="0" class="fill-height category-card">
     <div class="card-header">
-      <span class="text-body-2 font-weight-bold">
+      <span class="text-body-medium font-weight-bold">
         {{ t('inventory_report.by_category', 'By Category') }}
       </span>
       <div class="bar-legend">
@@ -10,7 +10,7 @@
             class="legend-dot"
             :style="{ background: `rgb(var(--v-theme-${leg.color}))` }"
           />
-          <span class="text-caption text-medium-emphasis">{{ leg.label }}</span>
+          <span class="text-body-small text-medium-emphasis">{{ leg.label }}</span>
         </div>
       </div>
     </div>
@@ -23,7 +23,7 @@
           <!-- Row header -->
           <div class="cat-header">
             <div class="cat-name-wrap">
-              <span class="text-body-2 font-weight-medium cat-name">
+              <span class="text-body-medium font-weight-medium cat-name">
                 {{ cat.category }}
               </span>
               <v-chip
@@ -46,10 +46,10 @@
               </v-chip>
             </div>
             <div class="cat-meta">
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-body-small text-medium-emphasis">
                 {{ cat.count }} items
               </span>
-              <span class="text-caption font-weight-bold cat-value">
+              <span class="text-body-small font-weight-bold cat-value">
                 {{ format(cat.stock_value) }}
               </span>
             </div>
@@ -71,7 +71,7 @@
           </div>
         </div>
       </template>
-      <div v-else class="text-caption text-medium-emphasis text-center py-8">
+      <div v-else class="text-body-small text-medium-emphasis text-center py-8">
         No category data
       </div>
     </div>

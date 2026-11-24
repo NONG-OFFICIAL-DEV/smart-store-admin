@@ -16,7 +16,7 @@
         />
 
         <!-- Items table -->
-        <div class="text-caption font-weight-bold text-medium-emphasis mb-2">
+        <div class="text-body-small font-weight-bold text-medium-emphasis mb-2">
           {{ $t('order.items') }}
         </div>
         <div
@@ -26,10 +26,10 @@
         >
           <div class="d-flex align-center justify-space-between mb-2">
             <div>
-              <div class="text-body-2 font-weight-bold">
+              <div class="text-body-medium font-weight-bold">
                 {{ item.product_name }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.unit_name }} · {{ $t('po.ordered_colon') }} {{ item.quantity_ordered }} ·
                 {{ $t('po.already_received_colon') }} {{ item.quantity_received }}
               </div>
@@ -73,7 +73,7 @@
             </v-btn>
             <div
               v-if="remaining(item) <= 0"
-              class="text-caption text-success font-weight-bold"
+              class="text-body-small text-success font-weight-bold"
             >
               <v-icon icon="mdi-check-circle" size="14" class="mr-1" />
               {{ $t('po.fully_received') }}

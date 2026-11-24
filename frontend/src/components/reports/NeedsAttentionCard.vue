@@ -3,7 +3,7 @@
     <div class="card-header">
       <div class="title-wrap">
         <v-icon icon="mdi-alert-circle" color="warning" size="18" />
-        <span class="text-body-2 font-weight-bold">
+        <span class="text-body-medium font-weight-bold">
           {{ t('inventory_report.overview.needs_attention', 'Needs Attention') }}
         </span>
         <v-chip size="x-small" color="warning" variant="tonal" rounded="pill">
@@ -43,7 +43,7 @@
 
     <div v-else class="all-good">
       <v-icon icon="mdi-check-circle" size="16" color="success" />
-      <span class="text-caption font-weight-medium text-success">
+      <span class="text-body-small font-weight-medium text-success">
         {{ t('inventory_report.overview.all_stocked', 'All products are well-stocked') }}
       </span>
     </div>

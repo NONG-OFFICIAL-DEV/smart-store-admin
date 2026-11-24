@@ -73,7 +73,7 @@
     :loading="saving"
     @update:model-value="emit('update:modelValue', $event)"
   >
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="6">
             <v-select
               v-model="form.promotion_id"

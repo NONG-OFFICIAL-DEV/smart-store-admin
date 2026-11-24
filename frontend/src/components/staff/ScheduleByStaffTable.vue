@@ -13,11 +13,11 @@
           <td>
             <div class="d-flex align-center py-2">
               <v-avatar :color="avatarColor(item.full_name)" size="32" variant="tonal" class="mr-3" rounded="sm">
-                <span class="text-caption font-weight-black">{{ initials(item.full_name) }}</span>
+                <span class="text-body-small font-weight-black">{{ initials(item.full_name) }}</span>
               </v-avatar>
               <div>
-                <div class="text-body-2 font-weight-bold">{{ item.full_name }}</div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-medium font-weight-bold">{{ item.full_name }}</div>
+                <div class="text-body-small text-medium-emphasis">
                   {{ item.role_name }} · {{ t('staff.schedule.hours_this_week', { hours: weeklyHours(item.id) }) }}
                 </div>
               </div>

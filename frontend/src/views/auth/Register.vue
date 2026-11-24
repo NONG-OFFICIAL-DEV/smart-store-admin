@@ -28,12 +28,12 @@
         class="mb-6 rounded-lg"
         border="start"
       >
-        <span class="text-body-2">{{ errors.general }}</span>
+        <span class="text-body-medium">{{ errors.general }}</span>
       </v-alert>
     </v-slide-y-transition>
 
     <v-form ref="formRef" class="fade-in" @submit.prevent="handleRegister">
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="6">
           <v-text-field
             v-model="form.owner_first_name"
@@ -67,7 +67,7 @@
           </v-text-field>
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="6">
           <v-text-field
             v-model="form.name"
@@ -106,7 +106,7 @@
           </v-select>
         </v-col>
       </v-row>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <v-text-field
             v-model="form.owner_email"
@@ -158,7 +158,7 @@
         {{ t('register.create_account') }}
       </v-btn>
 
-      <div class="text-center mt-6 text-caption">
+      <div class="text-center mt-6 text-body-small">
         {{ t('register.have_account') }}
         <router-link
           :to="{ name: 'Login' }"

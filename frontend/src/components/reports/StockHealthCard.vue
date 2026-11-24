@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="xl" border elevation="0" class="pa-5 fill-height">
-    <div class="text-body-2 font-weight-bold mb-4">
+    <div class="text-body-medium font-weight-bold mb-4">
       {{ t('inventory_report.overview.stock_health', 'Stock Health') }}
     </div>
 
@@ -16,10 +16,10 @@
         <div v-for="leg in legend" :key="leg.key" class="legend-row">
           <div class="legend-left">
             <span class="legend-dot" :style="{ background: `rgb(var(--v-theme-${leg.color}))` }" />
-            <span class="text-body-2">{{ leg.label }}</span>
+            <span class="text-body-medium">{{ leg.label }}</span>
           </div>
           <div class="legend-right">
-            <span class="text-body-2 font-weight-black" :class="`text-${leg.color}`">
+            <span class="text-body-medium font-weight-black" :class="`text-${leg.color}`">
               {{ leg.count }}
             </span>
             <v-chip

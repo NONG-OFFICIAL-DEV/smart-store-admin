@@ -19,7 +19,7 @@
           </v-avatar>
           <div class="flex-grow-1" style="min-width: 220px">
             <div class="d-flex align-center flex-wrap ga-2">
-              <span class="text-subtitle-1 font-weight-bold">
+              <span class="text-body-large font-weight-bold">
                 {{ item.name }}
               </span>
               <v-chip
@@ -34,10 +34,10 @@
                 size="x-small"
               />
             </div>
-            <div class="text-caption text-medium-emphasis mt-1">
+            <div class="text-body-small text-medium-emphasis mt-1">
               {{ discountSummary(item) }} · {{ dateWindowLabel(item) }}
             </div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{
                 t('promotions.card.usage_label', { usage: usageSummary(item) })
               }}
@@ -87,14 +87,14 @@
                   size="16"
                   class="text-medium-emphasis"
                 />
-                <span class="text-body-2 font-weight-medium">
+                <span class="text-body-medium font-weight-medium">
                   {{ c.code || '—' }}
                 </span>
               </div>
-              <div class="text-body-2 coupon-row__col">
+              <div class="text-body-medium coupon-row__col">
                 {{ couponUsageLabel(c) }}
               </div>
-              <div class="text-body-2 coupon-row__col">
+              <div class="text-body-medium coupon-row__col">
                 {{ couponExpiresLabel(c) }}
               </div>
               <div class="d-flex align-center ga-2 coupon-row__col">
@@ -102,7 +102,7 @@
                   class="status-dot"
                   :class="`status-dot--${couponStatus(c).state}`"
                 />
-                <span class="text-body-2 text-medium-emphasis">
+                <span class="text-body-medium text-medium-emphasis">
                   {{ couponStatus(c).label }}
                 </span>
               </div>

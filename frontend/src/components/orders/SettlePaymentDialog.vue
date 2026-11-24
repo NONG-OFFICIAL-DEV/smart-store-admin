@@ -5,12 +5,12 @@
     :max-width="420"
     :persistent="false"
   >
-    <div v-if="order" class="d-flex justify-space-between text-body-1 font-weight-bold mb-4">
+    <div v-if="order" class="d-flex justify-space-between text-body-large font-weight-bold mb-4">
       <span>{{ t('orders_admin.settle.amount_due') }}</span>
       <span>{{ format(order.total_amount) }}</span>
     </div>
 
-    <div class="text-caption text-medium-emphasis mb-1">
+    <div class="text-body-small text-medium-emphasis mb-1">
       {{ t('pos.checkout.payment_method') }}
     </div>
     <v-btn-toggle
@@ -46,7 +46,7 @@
         class="mb-2"
         @update:model-value="cashTendered = $event === '' ? null : Number($event)"
       />
-      <div class="d-flex justify-space-between text-body-2 mb-2">
+      <div class="d-flex justify-space-between text-body-medium mb-2">
         <span class="text-medium-emphasis">{{ t('pos.checkout.change') }}</span>
         <span class="font-weight-bold" :class="changeDue < 0 ? 'text-error' : 'text-success'">
           {{ format(changeDue) }}

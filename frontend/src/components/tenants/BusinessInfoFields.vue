@@ -1,5 +1,5 @@
 <template>
-  <v-row dense>
+  <v-row density="compact">
     <v-col cols="12" sm="8">
       <v-text-field
         :model-value="name"
@@ -62,13 +62,13 @@
         <template #item="{ props: p, item }">
           <v-list-item v-bind="p">
             <template #append>
-              <span class="text-caption text-medium-emphasis">{{ item.raw.code }}</span>
+              <span class="text-body-small text-medium-emphasis">{{ item.code }}</span>
             </template>
           </v-list-item>
         </template>
         <template #selection="{ item }">
           <div class="d-flex align-center ga-2">
-            <span class="text-body-2">{{ item.raw.name }}</span>
+            <span class="text-body-medium">{{ item.name }}</span>
           </div>
         </template>
       </v-select>

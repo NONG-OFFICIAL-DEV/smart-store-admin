@@ -8,7 +8,7 @@
     <v-form ref="formRef">
       <!-- Basic Info -->
       <div class="form-section">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <v-text-field
               v-model="form.name"
@@ -65,7 +65,7 @@
         </v-row>
       </div>
 
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" class="d-flex align-center">
             <v-card
               rounded="lg"
@@ -74,10 +74,10 @@
               class="px-3 py-2 d-flex align-center justify-space-between w-100"
             >
               <div>
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ $t('status.active') }}
                 </div>
-                <div class="text-caption text-grey">
+                <div class="text-body-small text-grey">
                   {{ $t('suppliers.form.active_hint') }}
                 </div>
               </div>

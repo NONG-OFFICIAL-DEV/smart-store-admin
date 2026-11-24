@@ -9,25 +9,25 @@
       <div>
         <!-- ── Info Row ──────────────────────────────────────────────────── -->
         <div class="pa-5 pb-4">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="6" sm="3">
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ t('form.type') }}
               </div>
-              <div class="text-body-2 font-weight-medium capitalize">
+              <div class="text-body-medium font-weight-medium capitalize">
                 {{ order.order_type?.replace('_', ' ') ?? '—' }}
               </div>
             </v-col>
             <v-col cols="6" sm="3">
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ t('customers.table.customer') }}
               </div>
-              <div class="text-body-2 font-weight-medium">
+              <div class="text-body-medium font-weight-medium">
                 {{ order.customer?.name ?? t('customers.source.walk_in') }}
               </div>
               <div
                 v-if="order.customer?.phone"
-                class="text-caption text-medium-emphasis"
+                class="text-body-small text-medium-emphasis"
               >
                 {{ order.customer.phone }}
               </div>
@@ -50,7 +50,7 @@
         <!-- ── Order Items ───────────────────────────────────────────────── -->
         <div class="pa-5 pb-3">
           <div
-            class="text-caption text-medium-emphasis font-weight-bold mb-3 text-uppercase"
+            class="text-body-small text-medium-emphasis font-weight-bold mb-3 text-uppercase"
           >
             {{ t('order.items') }}
           </div>
@@ -65,22 +65,22 @@
                 <v-icon v-else icon="mdi-food" size="18" />
               </v-avatar>
               <div>
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ item.product_name }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ formatBase(item.unit_price) }} × {{ item.quantity }}
                   <span v-if="item.unit_name">({{ item.unit_name }})</span>
                 </div>
-                <div v-if="item.modifiers?.length" class="text-caption text-medium-emphasis">
+                <div v-if="item.modifiers?.length" class="text-body-small text-medium-emphasis">
                   {{ item.modifiers.map(m => m.name).join(', ') }}
                 </div>
-                <div v-if="item.notes" class="text-caption text-info">
+                <div v-if="item.notes" class="text-body-small text-info">
                   {{ t('order.note_prefix') }} {{ item.notes }}
                 </div>
               </div>
             </div>
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-medium font-weight-bold">
               {{ formatBase(item.total_price) }}
             </div>
           </div>
@@ -91,10 +91,10 @@
         <!-- ── Totals ────────────────────────────────────────────────────── -->
         <div class="pa-5 pt-4">
           <div class="d-flex justify-space-between mb-2">
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('order.subtotal') }}
             </span>
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ formatBase(combinedTotals.subtotal) }}
             </span>
           </div>
@@ -102,10 +102,10 @@
             v-if="combinedTotals.discount > 0"
             class="d-flex justify-space-between mb-2"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('order.discount') }}
             </span>
-            <span class="text-body-2 text-error">
+            <span class="text-body-medium text-error">
               -{{ formatBase(combinedTotals.discount) }}
             </span>
           </div>
@@ -113,10 +113,10 @@
             v-if="combinedTotals.tax > 0"
             class="d-flex justify-space-between mb-2"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('order.tax') }}
             </span>
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ formatBase(combinedTotals.tax) }}
             </span>
           </div>
@@ -124,19 +124,19 @@
             v-if="combinedTotals.serviceCharge > 0"
             class="d-flex justify-space-between mb-2"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('branches.detail.service_charge') }}
             </span>
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ formatBase(combinedTotals.serviceCharge) }}
             </span>
           </div>
           <v-divider class="my-3" />
           <div class="d-flex justify-space-between">
-            <span class="text-body-1 font-weight-bold">
+            <span class="text-body-large font-weight-bold">
               {{ t('order.total') }}
             </span>
-            <div class="text-body-1 font-weight-bold text-primary">
+            <div class="text-body-large font-weight-bold text-primary">
               {{ formatBase(combinedTotals.total) }}
             </div>
           </div>
@@ -144,10 +144,10 @@
             v-if="order.amount_tendered"
             class="d-flex justify-space-between mt-2"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('pos.cash_tendered') }}
             </span>
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ formatBase(order.amount_tendered) }}
             </span>
           </div>
@@ -155,10 +155,10 @@
             v-if="order.change_amount"
             class="d-flex justify-space-between mt-1"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('pos.change') }}
             </span>
-            <span class="text-body-2 text-success">
+            <span class="text-body-medium text-success">
               {{ formatBase(order.change_amount) }}
             </span>
           </div>

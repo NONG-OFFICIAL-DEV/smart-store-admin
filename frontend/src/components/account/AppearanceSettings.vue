@@ -8,7 +8,7 @@
           <v-icon size="16" color="primary">mdi-view-dashboard-outline</v-icon>
           <span class="section-label">{{ t('preferences.layout') }}</span>
         </div>
-        <v-row dense>
+        <v-row density="compact">
           <v-col v-for="opt in layoutOptions" :key="opt.value" cols="6">
             <v-card
               :variant="prefs.layout === opt.value ? 'tonal' : 'outlined'"
@@ -30,8 +30,8 @@
                     <div class="thumb-content" />
                   </div>
                 </div>
-                <div class="text-body-2 font-weight-bold mt-2">{{ opt.label }}</div>
-                <div class="text-caption text-medium-emphasis">{{ opt.hint }}</div>
+                <div class="text-body-medium font-weight-bold mt-2">{{ opt.label }}</div>
+                <div class="text-body-small text-medium-emphasis">{{ opt.hint }}</div>
               </v-card-text>
             </v-card>
           </v-col>
@@ -58,7 +58,7 @@
           >
             <v-card-text class="pa-3 text-center">
               <v-icon :icon="th.icon" size="22" class="mb-1" />
-              <div class="text-caption font-weight-medium">{{ th.label }}</div>
+              <div class="text-body-small font-weight-medium">{{ th.label }}</div>
             </v-card-text>
           </v-card>
         </div>
@@ -124,7 +124,7 @@
 
     <!-- ── Live preview ─────────────────────────────────────────────────── -->
     <v-col cols="12" md="5">
-      <div class="preview-label text-caption text-medium-emphasis font-weight-medium mb-2">
+      <div class="preview-label text-body-small text-medium-emphasis font-weight-medium mb-2">
         {{ t('preferences.preview') }}
       </div>
       <div class="preview-shell" :class="`preview-shell--${prefs.layout}`">

@@ -7,11 +7,10 @@
   import { useShiftStore } from '@/stores/shiftStore'
   import { getAllStaffApi } from '@/api/staffService'
   import { shiftAssignmentService } from '@/api/shiftAssignmentService'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppToolbar } from '@nong-official-dev/core'
   import StaffDialogForm from '@/components/staff/StaffDialogForm.vue'
   import ScheduleTab from '@/components/staff/ScheduleTab.vue'
   import ManageShiftsDrawer from '@/components/staff/ManageShiftsDrawer.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
   import { useI18n } from 'vue-i18n'
   import { useAvatar, AVATAR_HEX_PALETTE } from '@/composables/useAvatar'
   import {
@@ -234,14 +233,14 @@
     </AppToolbar>
 
     <!-- ── Summary ────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
+    <v-row density="compact" class="mb-4">
       <v-col cols="12" sm="6" md="3">
         <v-card variant="outlined" rounded="lg">
           <v-card-text>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ t('staff.page.summary.on_shift_now') }}
             </div>
-            <div class="text-h5 font-weight-bold mt-1">
+            <div class="text-headline-small font-weight-bold mt-1">
               {{ onShiftNowCount }}
             </div>
           </v-card-text>
@@ -250,10 +249,10 @@
       <v-col cols="12" sm="6" md="3">
         <v-card variant="outlined" rounded="lg">
           <v-card-text>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ t('staff.page.summary.scheduled_today') }}
             </div>
-            <div class="text-h5 font-weight-bold mt-1">
+            <div class="text-headline-small font-weight-bold mt-1">
               {{ scheduledTodayCount }}
             </div>
           </v-card-text>
@@ -262,10 +261,10 @@
       <v-col cols="12" sm="6" md="3">
         <v-card variant="outlined" rounded="lg">
           <v-card-text>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ t('staff.page.summary.absent_this_week') }}
             </div>
-            <div class="text-h5 font-weight-bold mt-1">
+            <div class="text-headline-small font-weight-bold mt-1">
               {{ absentThisWeekCount }}
             </div>
           </v-card-text>
@@ -274,10 +273,10 @@
       <v-col cols="12" sm="6" md="3">
         <v-card variant="outlined" rounded="lg">
           <v-card-text>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ t('staff.page.summary.active_staff') }}
             </div>
-            <div class="text-h5 font-weight-bold mt-1">
+            <div class="text-headline-small font-weight-bold mt-1">
               {{ activeStaffCount }}
             </div>
           </v-card-text>
@@ -365,15 +364,15 @@
                     class="mr-3"
                     rounded="sm"
                   >
-                    <span class="text-caption font-weight-black">
+                    <span class="text-body-small font-weight-black">
                       {{ initials(item.full_name) }}
                     </span>
                   </v-avatar>
                   <div>
-                    <div class="text-body-2 font-weight-bold">
+                    <div class="text-body-medium font-weight-bold">
                       {{ item.full_name }}
                     </div>
-                    <div class="text-caption text-medium-emphasis">
+                    <div class="text-body-small text-medium-emphasis">
                       {{ item.employee_code }} · {{ item.phone }}
                     </div>
                   </div>

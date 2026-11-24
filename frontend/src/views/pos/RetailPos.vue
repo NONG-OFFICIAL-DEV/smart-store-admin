@@ -53,7 +53,7 @@
       <div class="d-flex flex-column flex-sm-row align-start align-sm-center ga-3">
         <div>
           <div class="font-weight-medium">{{ t('pos.no_branch.title') }}</div>
-          <div class="text-caption">{{ t('pos.no_branch.subtitle') }}</div>
+          <div class="text-body-small">{{ t('pos.no_branch.subtitle') }}</div>
         </div>
         <v-spacer />
         <v-btn
@@ -136,9 +136,9 @@
       @click="mobileCartOpen = true"
     >
       <v-badge :content="posStore.itemCount" color="white" inline class="me-2" />
-      <span class="text-body-1 font-weight-medium">{{ t('pos.cart.view_order') }}</span>
+      <span class="text-body-large font-weight-medium">{{ t('pos.cart.view_order') }}</span>
       <v-spacer />
-      <span class="text-h6 font-weight-black">{{ formatMoney(posStore.payableTotal) }}</span>
+      <span class="text-title-large font-weight-black">{{ formatMoney(posStore.payableTotal) }}</span>
     </div>
 
     <v-bottom-sheet v-if="xs" v-model="mobileCartOpen">

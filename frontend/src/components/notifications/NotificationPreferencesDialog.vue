@@ -7,7 +7,7 @@
     <div class="d-flex align-center justify-space-between py-2">
       <div>
         <div class="font-weight-medium">{{ $t('notification.system_channel') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ $t('notification.system_channel_desc') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ $t('notification.system_channel_desc') }}</div>
       </div>
       <v-switch
         v-model="notifySystem"
@@ -24,7 +24,7 @@
     <div class="d-flex align-center justify-space-between py-2">
       <div>
         <div class="font-weight-medium">{{ $t('notification.email_channel') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ $t('notification.email_channel_desc') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ $t('notification.email_channel_desc') }}</div>
       </div>
       <v-switch
         v-model="notifyEmail"
@@ -46,7 +46,7 @@
             {{ $t('notification.telegram_linked') }}
           </v-chip>
         </div>
-        <div class="text-caption text-medium-emphasis">{{ $t('notification.telegram_channel_desc') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ $t('notification.telegram_channel_desc') }}</div>
       </div>
       <div class="d-flex align-center ga-2">
         <v-switch

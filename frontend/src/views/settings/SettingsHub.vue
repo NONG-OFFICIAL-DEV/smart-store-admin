@@ -66,7 +66,7 @@
           />
 
           <v-form ref="formRef" :disabled="!canEdit || saving">
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="form.name"
@@ -103,7 +103,7 @@
             class="mb-5"
             :text="t('settings_hub.owner_only')"
           />
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12" sm="4">
               <v-select
                 v-model="form.currency"
@@ -150,14 +150,14 @@
             rounded="lg"
             class="pa-4 mt-2 d-flex align-center justify-space-between flex-wrap ga-2"
           >
-            <span class="text-body-2 text-medium-emphasis">
+            <span class="text-body-medium text-medium-emphasis">
               {{ t('settings_hub.currency_preview_label') }}
             </span>
-            <span class="text-body-1 font-weight-bold">
+            <span class="text-body-large font-weight-bold">
               {{ currencyPreviewText }}
             </span>
           </v-sheet>
-          <p class="text-caption text-medium-emphasis mt-3 mb-0">
+          <p class="text-body-small text-medium-emphasis mt-3 mb-0">
             {{ t('settings_hub.currency_preview_note') }}
           </p>
         </v-card>
@@ -179,15 +179,15 @@
             :text="t('settings_hub.owner_only')"
           />
 
-          <p class="text-caption text-medium-emphasis mb-4">
+          <p class="text-body-small text-medium-emphasis mb-4">
             {{ t('settings_hub.pos_settings_helper') }}
           </p>
 
           <div class="mb-5">
-            <div class="text-body-2 font-weight-bold mb-3">
+            <div class="text-body-medium font-weight-bold mb-3">
               {{ t('settings_hub.pos_order_types') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col
                 v-for="ot in orderTypeOptions"
                 :key="ot.value"
@@ -196,17 +196,17 @@
                 class="d-flex align-start justify-space-between ga-3"
               >
                 <div class="flex-grow-1" style="min-width: 0">
-                  <div class="text-body-2 font-weight-medium">
+                  <div class="text-body-medium font-weight-medium">
                     {{ ot.label }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ ot.hint }}
                   </div>
                 </div>
                 <v-switch
                   :model-value="isOrderTypeEnabled(ot.value)"
                   :disabled="!canEdit || saving"
-                  color="teal"
+                  color="primary"
                   hide-details
                   density="compact"
                   class="flex-shrink-0 mt-1 me-6"
@@ -220,10 +220,10 @@
           <v-divider class="mb-5" />
 
           <div class="mb-5">
-            <div class="text-body-2 font-weight-bold mb-3">
+            <div class="text-body-medium font-weight-bold mb-3">
               {{ t('settings_hub.pos_order_options') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col
                 v-for="opt in orderOptionOptions"
                 :key="opt.key"
@@ -232,17 +232,17 @@
                 class="d-flex align-start justify-space-between ga-3"
               >
                 <div class="flex-grow-1" style="min-width: 0">
-                  <div class="text-body-2 font-weight-medium">
+                  <div class="text-body-medium font-weight-medium">
                     {{ opt.label }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ opt.hint }}
                   </div>
                 </div>
                 <v-switch
                   v-model="form.pos_settings[opt.key]"
                   :disabled="!canEdit || saving"
-                  color="teal"
+                  color="primary"
                   hide-details
                   density="compact"
                   class="flex-shrink-0 mt-1 me-6"
@@ -255,10 +255,10 @@
           <v-divider class="mb-5" />
 
           <div class="mb-5">
-            <div class="text-body-2 font-weight-bold mb-3">
+            <div class="text-body-medium font-weight-bold mb-3">
               {{ t('settings_hub.pos_order_management') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col
                 v-for="opt in orderManagementOptions"
                 :key="opt.key"
@@ -267,17 +267,17 @@
                 class="d-flex align-start justify-space-between ga-3"
               >
                 <div class="flex-grow-1" style="min-width: 0">
-                  <div class="text-body-2 font-weight-medium">
+                  <div class="text-body-medium font-weight-medium">
                     {{ opt.label }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ opt.hint }}
                   </div>
                 </div>
                 <v-switch
                   v-model="form.pos_settings[opt.key]"
                   :disabled="!canEdit || saving"
-                  color="teal"
+                  color="primary"
                   hide-details
                   density="compact"
                   class="flex-shrink-0 mt-1 me-6"
@@ -291,7 +291,7 @@
 
           <div class="mb-5">
             <div class="d-flex align-center justify-space-between mb-3">
-              <div class="text-body-2 font-weight-bold">
+              <div class="text-body-medium font-weight-bold">
                 {{ t('settings_hub.pos_loyalty') }}
               </div>
               <v-switch
@@ -305,7 +305,7 @@
             </div>
 
             <template v-if="loyaltyForm.enabled">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col cols="12" sm="6">
                   <v-select
                     v-model="loyaltyForm.earning_type"
@@ -348,10 +348,10 @@
                 </v-col>
               </v-row>
 
-              <div class="text-body-2 font-weight-medium mt-4 mb-2">
+              <div class="text-body-medium font-weight-medium mt-4 mb-2">
                 {{ t('settings_hub.pos_loyalty_notifications') }}
               </div>
-              <v-row dense>
+              <v-row density="compact">
                 <v-col
                   v-for="opt in loyaltyNotifyOptions"
                   :key="opt.key"
@@ -359,19 +359,20 @@
                   sm="6"
                   class="d-flex align-center justify-space-between pa-2"
                 >
-                  <span class="text-body-2">{{ opt.label }}</span>
+                  <span class="text-body-medium">{{ opt.label }}</span>
                   <v-switch
                     v-model="loyaltyForm[opt.key]"
                     color="primary"
                     hide-details
                     inset
                     density="compact"
+                    size="small"
                     :disabled="!canEdit || saving"
                   />
                 </v-col>
               </v-row>
 
-              <div class="text-body-2 font-weight-medium mt-4 mb-2">
+              <div class="text-body-medium font-weight-medium mt-4 mb-2">
                 {{ t('settings_hub.pos_loyalty_join_qr_title') }}
               </div>
               <v-card variant="tonal" rounded="lg" class="pa-4">
@@ -381,10 +382,10 @@
                   </div>
                   <v-icon v-else icon="mdi-qrcode-remove" size="48" class="text-medium-emphasis" />
                   <div class="flex-grow-1" style="min-width: 200px">
-                    <div class="text-body-2">
+                    <div class="text-body-medium">
                       {{ t('settings_hub.pos_loyalty_join_qr_hint') }}
                     </div>
-                    <div v-if="!joinQrDataUrl" class="text-caption text-warning mt-1">
+                    <div v-if="!joinQrDataUrl" class="text-body-small text-warning mt-1">
                       {{ t('settings_hub.pos_loyalty_join_qr_not_configured') }}
                     </div>
                   </div>
@@ -413,7 +414,7 @@
 
           <v-divider class="mb-5" />
 
-          <div class="text-body-2 font-weight-bold mb-2">
+          <div class="text-body-medium font-weight-bold mb-2">
             {{ t('settings_hub.pos_payment_methods') }}
           </div>
           <v-table density="comfortable" class="mb-3 border rounded-lg">
@@ -446,7 +447,7 @@
                 <td class="text-center">
                   <span
                     v-if="pm.value === 'pay_later'"
-                    class="text-caption text-medium-emphasis"
+                    class="text-body-small text-medium-emphasis"
                   >
                     {{ t('settings_hub.payment_table.not_used') }}
                   </span>
@@ -464,7 +465,7 @@
                 </td>
               </tr>
               <tr>
-                <td class="text-body-2 font-weight-medium">
+                <td class="text-body-medium font-weight-medium">
                   {{ t('settings_hub.payment_table.default_method') }}
                 </td>
                 <td class="py-2">
@@ -509,15 +510,15 @@
 
         <!-- ── Printer ───────────────────────────────────────────────── -->
         <v-card v-else-if="section === 'printer'" rounded="lg" class="pa-6">
-          <div class="text-body-2 text-medium-emphasis mb-5">
+          <div class="text-body-medium text-medium-emphasis mb-5">
             {{ t('settings_hub.printer.helper') }}
           </div>
 
           <template v-if="usbSupported">
-            <div class="text-body-2 font-weight-bold mb-2">
+            <div class="text-body-medium font-weight-bold mb-2">
               {{ t('settings_hub.printer.usb_section') }}
             </div>
-            <div class="text-caption text-medium-emphasis mb-3">
+            <div class="text-body-small text-medium-emphasis mb-3">
               {{ t('settings_hub.printer.usb_hint') }}
             </div>
             <div
@@ -554,10 +555,10 @@
               </v-btn>
             </div>
             <v-divider class="mb-5" />
-            <div class="text-body-2 font-weight-bold mb-2">
+            <div class="text-body-medium font-weight-bold mb-2">
               {{ t('settings_hub.printer.qz_section') }}
             </div>
-            <div class="text-caption text-medium-emphasis mb-3">
+            <div class="text-body-small text-medium-emphasis mb-3">
               {{ t('settings_hub.printer.qz_hint') }}
             </div>
           </template>
@@ -634,14 +635,14 @@
 
         <!-- ── Receipt content ──────────────────────────────────────────── -->
         <v-card v-else-if="section === 'receipt_content'" rounded="lg" class="pa-6">
-          <div class="text-body-2 text-medium-emphasis mb-5">
+          <div class="text-body-medium text-medium-emphasis mb-5">
             {{ t('settings_hub.receipt_content.helper') }}
           </div>
 
-          <div class="text-body-2 font-weight-bold mb-3">
+          <div class="text-body-medium font-weight-bold mb-3">
             {{ t('settings_hub.receipt_content.printing_heading') }}
           </div>
-          <v-row dense class="mb-5">
+          <v-row density="compact" class="mb-5">
             <v-col
               v-for="opt in printDocumentOptions"
               :key="opt.key"
@@ -650,17 +651,17 @@
               class="d-flex align-start justify-space-between ga-3"
             >
               <div class="flex-grow-1" style="min-width: 0">
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ opt.label }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ opt.hint }}
                 </div>
               </div>
               <v-switch
                 v-model="form.pos_settings[opt.key]"
                 :disabled="!canEdit || saving"
-                color="teal"
+                color="primary"
                 hide-details
                 density="compact"
                 class="flex-shrink-0 mt-1 me-6"
@@ -671,10 +672,10 @@
 
           <v-divider class="mb-5" />
 
-          <div class="text-body-2 font-weight-bold mb-3">
+          <div class="text-body-medium font-weight-bold mb-3">
             {{ t('settings_hub.receipt_content.fields_heading') }}
           </div>
-          <v-row dense>
+          <v-row density="compact">
             <v-col
               v-for="opt in receiptContentOptions"
               :key="opt.key"
@@ -683,17 +684,17 @@
               class="d-flex align-start justify-space-between ga-3"
             >
               <div class="flex-grow-1" style="min-width: 0">
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ opt.label }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ opt.hint }}
                 </div>
               </div>
               <v-switch
                 v-model="form.pos_settings[opt.key]"
                 :disabled="!canEdit || saving"
-                color="teal"
+                color="primary"
                 hide-details
                 density="compact"
                 class="flex-shrink-0 mt-1 me-6"
@@ -715,23 +716,23 @@
             :text="t('settings_hub.owner_only')"
           />
 
-          <div v-if="!selectedBranch" class="text-caption text-medium-emphasis">
+          <div v-if="!selectedBranch" class="text-body-small text-medium-emphasis">
             {{ t('settings_hub.kitchen.no_branch_hint') }}
           </div>
           <template v-else>
             <div class="d-flex align-start justify-space-between ga-3">
               <div class="flex-grow-1" style="min-width: 0">
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ t('settings_hub.kitchen.enabled') }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ t('settings_hub.kitchen.enabled_hint') }}
                 </div>
               </div>
               <v-switch
                 v-model="kitchenTicketEnabledInput"
                 :disabled="!canEdit || saving"
-                color="teal"
+                color="primary"
                 hide-details
                 density="compact"
                 class="flex-shrink-0 mt-1"
@@ -751,10 +752,10 @@
 
             <v-divider class="my-5" />
 
-            <div class="text-body-2 font-weight-medium mb-1">
+            <div class="text-body-medium font-weight-medium mb-1">
               {{ t('settings_hub.kitchen.auto_serve_hours') }}
             </div>
-            <div class="text-caption text-medium-emphasis mb-3">
+            <div class="text-body-small text-medium-emphasis mb-3">
               {{ t('settings_hub.kitchen.auto_serve_hours_hint') }}
             </div>
             <v-select
@@ -784,17 +785,17 @@
 
           <div class="d-flex align-start justify-space-between ga-3 mb-5">
             <div class="flex-grow-1" style="min-width: 0">
-              <div class="text-body-2 font-weight-medium">
+              <div class="text-body-medium font-weight-medium">
                 {{ t('settings_hub.customer_display.enabled') }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ t('settings_hub.customer_display.enabled_hint') }}
               </div>
             </div>
             <v-switch
               v-model="cdForm.enabled"
               :disabled="!canEdit || saving"
-              color="teal"
+              color="primary"
               hide-details
               density="compact"
               class="flex-shrink-0 mt-1"
@@ -803,7 +804,7 @@
 
           <v-divider class="mb-5" />
 
-          <div class="text-body-2 font-weight-bold mb-3">
+          <div class="text-body-medium font-weight-bold mb-3">
             {{ t('settings_hub.customer_display.posters_title') }}
           </div>
           <div class="d-flex flex-wrap ga-3 mb-2">
@@ -856,13 +857,13 @@
               @change="e => { addPosterFiles(e.target.files); e.target.value = '' }"
             />
           </div>
-          <div class="text-caption text-medium-emphasis mb-5">
+          <div class="text-body-small text-medium-emphasis mb-5">
             {{ t('settings_hub.customer_display.posters_hint') }}
           </div>
 
           <v-divider class="mb-5" />
 
-          <v-row dense class="mb-5">
+          <v-row density="compact" class="mb-5">
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="cdForm.wifi_text"
@@ -891,13 +892,13 @@
 
           <v-divider class="mb-5" />
 
-          <div class="text-body-2 font-weight-bold mb-1">
+          <div class="text-body-medium font-weight-bold mb-1">
             {{ t('settings_hub.customer_display.qr_image') }}
           </div>
-          <div class="text-caption text-medium-emphasis mb-3">
+          <div class="text-body-small text-medium-emphasis mb-3">
             {{ t('settings_hub.customer_display.qr_image_hint') }}
           </div>
-          <v-row dense class="mb-5">
+          <v-row density="compact" class="mb-5">
             <v-col cols="12" sm="4">
               <ProductImageUpload
                 v-model:image-file="cdQrFile"
@@ -911,7 +912,7 @@
           <v-divider class="mb-5" />
 
           <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-3">
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-medium font-weight-bold">
               {{ t('settings_hub.customer_display.paired_devices') }}
             </div>
             <div class="d-flex flex-wrap ga-2">
@@ -940,13 +941,13 @@
               </v-btn>
             </div>
           </div>
-          <div v-if="!selectedBranch" class="text-caption text-medium-emphasis">
+          <div v-if="!selectedBranch" class="text-body-small text-medium-emphasis">
             {{ t('settings_hub.customer_display.no_branch_hint') }}
           </div>
           <v-skeleton-loader v-else-if="loadingDevices" type="list-item-two-line" />
           <div
             v-else-if="!pairedDevices.length"
-            class="text-caption text-medium-emphasis"
+            class="text-body-small text-medium-emphasis"
           >
             {{ t('settings_hub.customer_display.no_devices') }}
           </div>
@@ -965,11 +966,11 @@
                     @keyup.enter="confirmRenameDevice(device)"
                     @keyup.esc="renamingDeviceId = null"
                   />
-                  <span v-else class="text-body-2 font-weight-medium">
+                  <span v-else class="text-body-medium font-weight-medium">
                     {{ device.device_name }}
                   </span>
                 </td>
-                <td class="text-caption text-medium-emphasis">
+                <td class="text-body-small text-medium-emphasis">
                   {{ t('settings_hub.customer_display.paired_at') }}
                   {{ formatPairedAt(device.paired_at) }}
                 </td>
@@ -1018,7 +1019,7 @@
           rounded="lg"
           class="pa-4 mt-4 d-flex flex-wrap align-center justify-space-between ga-3"
         >
-          <span class="text-caption text-medium-emphasis">
+          <span class="text-body-small text-medium-emphasis">
             {{ saveBarText }}
           </span>
           <div class="d-flex ga-2">
@@ -1131,7 +1132,7 @@
   import { useCustomerDisplayPublisher } from '@/composables/useCustomerDisplay'
   import Branch from '@/views/branches/Branch.vue'
   import ProductImageUpload from '@/components/products/ProductImageUpload.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const route = useRoute()

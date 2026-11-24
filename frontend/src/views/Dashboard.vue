@@ -22,7 +22,7 @@
     </div>
 
     <!-- ── KPI Row ────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-5">
+    <v-row density="compact" class="mb-5">
       <v-col v-for="(kpi, i) in kpis" :key="kpi.label" cols="6" sm="3">
         <v-card
           rounded="xl"
@@ -66,7 +66,7 @@
               </div>
               <div
                 :class="[
-                  'text-h5 font-weight-black',
+                  'text-headline-small font-weight-black',
                   i === 0 ? 'text-white' : ''
                 ]"
               >
@@ -74,7 +74,7 @@
               </div>
               <div
                 :class="[
-                  'text-caption mt-1',
+                  'text-body-small mt-1',
                   i === 0 ? 'text-white opacity-80' : 'text-medium-emphasis'
                 ]"
               >
@@ -82,7 +82,7 @@
               </div>
               <div
                 :class="[
-                  'text-caption mt-1',
+                  'text-body-small mt-1',
                   i === 0 ? 'text-white opacity-60' : 'text-disabled'
                 ]"
               >
@@ -98,7 +98,7 @@
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <!-- ── Revenue Chart ────────────────────────────────────────────────── -->
       <v-col cols="12" lg="8">
         <RevenueChart
@@ -110,10 +110,10 @@
           <v-card-title class="pa-5 pb-3">
             <div class="d-flex align-center justify-space-between">
               <div>
-                <div class="text-subtitle-1 font-weight-bold">
+                <div class="text-body-large font-weight-bold">
                   {{ $t('dashboard.branch_performance') }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ $t('dashboard.branch_performance_subtitle') }}
                 </div>
               </div>
@@ -155,7 +155,7 @@
                     <v-icon icon="mdi-store" size="18" color="white" />
                   </v-avatar>
                 </template>
-                <v-list-item-title class="font-weight-medium text-body-2">
+                <v-list-item-title class="font-weight-medium text-body-medium">
                   {{ branch.name }}
                   <v-chip
                     v-if="branch.rank === 1"
@@ -168,7 +168,7 @@
                     {{ $t('dashboard.top') }}
                   </v-chip>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
+                <v-list-item-subtitle class="text-body-small">
                   {{ branch.city }} ·
                   {{ t('dashboard.orders_today', { count: branch.orders }) }}
                 </v-list-item-subtitle>
@@ -176,7 +176,7 @@
                   <div class="d-flex align-center gap-4">
                     <div style="width: 100px">
                       <div class="d-flex justify-space-between mb-1">
-                        <span class="text-caption text-medium-emphasis">
+                        <span class="text-body-small text-medium-emphasis">
                           {{ branch.revenuePercent }}%
                         </span>
                       </div>
@@ -189,11 +189,11 @@
                       />
                     </div>
                     <div class="text-right" style="min-width: 80px">
-                      <div class="font-weight-bold text-body-2">
+                      <div class="font-weight-bold text-body-medium">
                         ${{ branch.revenue?.toLocaleString() }}
                       </div>
                       <div
-                        class="text-caption"
+                        class="text-body-small"
                         :class="
                           branch.growth >= 0 ? 'text-success' : 'text-error'
                         "
@@ -214,7 +214,7 @@
               </v-list-item>
               <div
                 v-if="!branches.length"
-                class="text-center py-6 text-medium-emphasis text-body-2"
+                class="text-center py-6 text-medium-emphasis text-body-medium"
               >
                 {{ $t('dashboard.no_branches') }}
               </div>
@@ -225,10 +225,10 @@
       <v-col cols="12" lg="4">
         <v-card rounded="xl" elevation="0" border>
           <v-card-title class="pa-5 pb-2">
-            <div class="text-subtitle-1 font-weight-bold">
+            <div class="text-body-large font-weight-bold">
               {{ $t('dashboard.quick_actions') }}
             </div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ $t('dashboard.quick_actions_subtitle') }}
             </div>
           </v-card-title>
@@ -241,7 +241,7 @@
                 :prepend-icon="action.icon"
                 :title="action.label"
                 :color="action.color"
-                class="mb-1 rounded-lg text-body-2 font-weight-semibold"
+                class="mb-1 rounded-lg text-body-medium font-weight-semibold"
                 link
                 @click="$router.push(action.route)"
               >
@@ -270,10 +270,10 @@
         <!-- ── Top Products ─────────────────────────────────────────────────── -->
         <v-card rounded="xl" elevation="0" border class="mt-4">
           <v-card-title class="pa-5 pb-3">
-            <div class="text-subtitle-1 font-weight-bold">
+            <div class="text-body-large font-weight-bold">
               {{ $t('dashboard.top_products') }}
             </div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ $t('dashboard.top_products_subtitle') }}
             </div>
           </v-card-title>
@@ -299,19 +299,19 @@
                     <v-icon v-else icon="mdi-package-variant" size="18" color="grey" />
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-medium">
+                <v-list-item-title class="text-body-medium font-weight-medium">
                   {{ product.name }}
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
+                <v-list-item-subtitle class="text-body-small">
                   {{ t('dashboard.units_sold', { count: product.sold }) }}
                 </v-list-item-subtitle>
                 <template #append>
-                  <span class="text-body-2 font-weight-bold">{{ format(product.revenue) }}</span>
+                  <span class="text-body-medium font-weight-bold">{{ format(product.revenue) }}</span>
                 </template>
               </v-list-item>
               <div
                 v-if="!store.topProducts.length"
-                class="text-center py-6 text-medium-emphasis text-body-2"
+                class="text-center py-6 text-medium-emphasis text-body-medium"
               >
                 {{ $t('dashboard.no_top_products') }}
               </div>
@@ -322,7 +322,7 @@
         <!-- ── Payment Methods ──────────────────────────────────────────────── -->
         <v-card rounded="xl" elevation="0" border class="mt-4">
           <v-card-title class="pa-5 pb-3">
-            <div class="text-subtitle-1 font-weight-bold">
+            <div class="text-body-large font-weight-bold">
               {{ $t('dashboard.payment_methods') }}
             </div>
           </v-card-title>
@@ -335,7 +335,7 @@
                 :key="row.method"
                 class="mb-3"
               >
-                <div class="d-flex justify-space-between text-body-2 mb-1">
+                <div class="d-flex justify-space-between text-body-medium mb-1">
                   <span class="text-capitalize">{{ row.method?.replace('_', ' ') }}</span>
                   <span class="font-weight-bold">{{ format(row.amount) }}</span>
                 </div>
@@ -348,7 +348,7 @@
                 />
               </div>
             </template>
-            <div v-else class="text-center py-4 text-medium-emphasis text-body-2">
+            <div v-else class="text-center py-4 text-medium-emphasis text-body-medium">
               {{ $t('dashboard.no_payments') }}
             </div>
           </v-card-text>

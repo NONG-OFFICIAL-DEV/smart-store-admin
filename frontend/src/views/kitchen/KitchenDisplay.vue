@@ -9,12 +9,12 @@
       {{ t('pos.select_branch') }}
     </v-alert>
 
-    <v-row v-else dense>
+    <v-row v-else density="compact">
       <v-col v-for="col in columns" :key="col.status" cols="12" md="4">
         <v-card rounded="lg" border elevation="0" class="kitchen-column">
           <div class="pa-3 d-flex align-center" :class="`bg-${col.color}`">
             <v-icon :icon="col.icon" class="me-2" />
-            <span class="text-body-1 font-weight-bold">{{ col.title }}</span>
+            <span class="text-body-large font-weight-bold">{{ col.title }}</span>
             <v-spacer />
             <v-chip size="small" variant="flat" color="white" class="font-weight-bold">
               {{ ticketsByStatus[col.status].length }}
@@ -45,7 +45,7 @@
               class="pa-3 mb-2"
             >
               <div class="d-flex justify-space-between align-start mb-1">
-                <span class="text-body-2 font-weight-bold">
+                <span class="text-body-medium font-weight-bold">
                   {{ orderLabel(ticket) }}
                 </span>
                 <v-chip size="x-small" :color="priorityColor(ticket.priority)" variant="tonal">
@@ -53,10 +53,10 @@
                 </v-chip>
               </div>
 
-              <div v-if="orderCache[ticket.order_id]?.table" class="text-caption text-medium-emphasis">
+              <div v-if="orderCache[ticket.order_id]?.table" class="text-body-small text-medium-emphasis">
                 {{ t('kitchen.table_prefix') }} {{ orderCache[ticket.order_id].table.number }}
               </div>
-              <div v-if="ticket.station" class="text-caption text-medium-emphasis">
+              <div v-if="ticket.station" class="text-body-small text-medium-emphasis">
                 {{ ticket.station }}
               </div>
 
@@ -64,7 +64,7 @@
               <div
                 v-for="item in orderCache[ticket.order_id]?.items ?? []"
                 :key="item.id"
-                class="text-caption mb-1"
+                class="text-body-small mb-1"
               >
                 <div class="d-flex justify-space-between">
                   <span class="font-weight-medium">{{ item.quantity }}× {{ item.product_name }}</span>
@@ -78,7 +78,7 @@
               </div>
 
               <div class="d-flex align-center justify-space-between mt-2">
-                <span class="text-caption font-weight-medium" :class="elapsedClass(ticket)">
+                <span class="text-body-small font-weight-medium" :class="elapsedClass(ticket)">
                   <v-icon icon="mdi-clock-outline" size="12" class="me-1" />
                   {{ elapsedLabel(ticket) }}
                 </span>
@@ -143,7 +143,7 @@
   import { markOrderServedApi } from '@/api/orderService'
   import { getEcho } from '@/utils/echo'
   import { playNewOrderSound } from '@/utils/playNewOrderSound'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()

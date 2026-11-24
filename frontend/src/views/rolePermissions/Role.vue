@@ -19,7 +19,7 @@
     </AppToolbar>
 
     <!-- ── Filters ────────────────────────────────────────────────────────────── -->
-    <v-row class="mb-2" dense>
+    <v-row class="mb-2" density="compact">
       <v-col cols="6" sm="3">
         <v-select
           v-model="filters.is_system"
@@ -51,7 +51,7 @@
         </template>
 
         <template #[`item.description`]="{ item }">
-          <span class="text-body-2 text-medium-emphasis">
+          <span class="text-body-medium text-medium-emphasis">
             {{ item.description || $t('roles.no_description') }}
           </span>
         </template>
@@ -71,7 +71,7 @@
             <v-chip v-if="(item.permissions?.length || 0) > 2" size="x-small" color="grey" variant="tonal" rounded="lg">
               {{ $t('roles.more_count', { n: item.permissions.length - 2 }) }}
             </v-chip>
-            <span v-if="!item.permissions?.length" class="text-caption text-medium-emphasis">
+            <span v-if="!item.permissions?.length" class="text-body-small text-medium-emphasis">
               {{ $t('roles.no_permissions_assigned') }}
             </span>
           </div>
@@ -127,8 +127,7 @@
   import { getAllRolesApi } from '@/api/roleService'
   import RoleFormDialog from '@/components/rolePermissions/RoleFormDialog.vue'
   import RolePermissionsDialog from '@/components/rolePermissions/RolePermissionsDialog.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
-  import { useAppUtils, AppTable } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppToolbar } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
 

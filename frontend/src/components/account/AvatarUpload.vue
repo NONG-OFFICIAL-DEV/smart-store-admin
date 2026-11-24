@@ -2,7 +2,7 @@
   <div class="d-flex align-center gap-4">
     <v-avatar size="72" :color="avatarColor" class="avatar-preview">
       <v-img v-if="previewUrl" :src="previewUrl" cover />
-      <span v-else class="text-h6 font-weight-black text-white">{{ initials }}</span>
+      <span v-else class="text-title-large font-weight-black text-white">{{ initials }}</span>
     </v-avatar>
 
     <div class="d-flex flex-column gap-2">
@@ -29,8 +29,8 @@
           {{ t('btn.remove') }}
         </v-btn>
       </div>
-      <span class="text-caption text-medium-emphasis">{{ t('account.profile.photo_hint') }}</span>
-      <span v-if="error" class="text-caption text-error">{{ error }}</span>
+      <span class="text-body-small text-medium-emphasis">{{ t('account.profile.photo_hint') }}</span>
+      <span v-if="error" class="text-body-small text-error">{{ error }}</span>
     </div>
 
     <input

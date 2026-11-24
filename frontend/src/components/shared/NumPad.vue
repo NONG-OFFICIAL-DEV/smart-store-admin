@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div class="text-h5 font-weight-black text-center mb-3">
+    <div class="text-headline-small font-weight-black text-center mb-3">
       {{ display }}
     </div>
-    <v-row dense>
+    <v-row density="compact">
       <v-col v-for="key in keys" :key="key.label" :cols="key.wide ? 12 : 4">
         <v-btn
           block
           height="56"
           variant="tonal"
           rounded="lg"
-          class="text-h6"
+          class="text-title-large"
           :disabled="key.disabled"
           @click="press(key)"
         >

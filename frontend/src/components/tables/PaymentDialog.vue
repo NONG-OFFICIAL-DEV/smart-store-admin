@@ -9,13 +9,13 @@
   >
     <v-card rounded="lg" class="d-flex flex-column" :style="{ maxHeight: `${availableHeight - 16}px` }">
       <v-card-title class="d-flex align-center justify-space-between pa-4 flex-grow-0">
-        <span class="text-h6">{{ t('tables.payment.title') }}</span>
+        <span class="text-title-large">{{ t('tables.payment.title') }}</span>
         <v-btn icon="mdi-close" variant="text" density="comfortable" :disabled="saving" @click="close" />
       </v-card-title>
       <v-divider />
 
       <v-card-text class="py-4 flex-grow-1" style="overflow-y: auto">
-    <div class="text-center text-caption text-medium-emphasis mb-4">
+    <div class="text-center text-body-small text-medium-emphasis mb-4">
       {{ t('tables.payment.subtitle', { number: table?.table_number, orders: orders.length }) }}
     </div>
 
@@ -23,7 +23,7 @@
     <div v-if="attachedCustomer" class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
       <div class="d-flex align-center ga-2">
         <v-icon icon="mdi-account-outline" size="18" />
-        <span class="text-body-2 font-weight-medium">{{ attachedCustomer.name }}</span>
+        <span class="text-body-medium font-weight-medium">{{ attachedCustomer.name }}</span>
       </div>
       <div class="d-flex align-center ga-2">
         <template v-if="!redemption">
@@ -64,11 +64,11 @@
 
     <!-- ── Total ──────────────────────────────────────────────────────── -->
     <div class="text-center mb-5">
-      <div v-if="discountAmount > 0" class="text-body-2 text-medium-emphasis text-decoration-line-through">
+      <div v-if="discountAmount > 0" class="text-body-medium text-medium-emphasis text-decoration-line-through">
         {{ formatBase(total) }}
       </div>
-      <div class="text-h4 font-weight-bold">{{ formatBase(payableTotal) }}</div>
-      <div v-if="discountAmount > 0" class="text-caption text-success mt-1">
+      <div class="text-headline-large font-weight-bold">{{ formatBase(payableTotal) }}</div>
+      <div v-if="discountAmount > 0" class="text-body-small text-success mt-1">
         {{ t('pos.loyalty.discount_line', { amount: formatBase(discountAmount) }) }}
       </div>
     </div>
@@ -151,20 +151,20 @@
       </div>
 
       <v-card flat rounded="lg" class="pa-3 mb-2 payment-summary-card">
-        <div class="d-flex justify-space-between text-body-2 mb-2">
+        <div class="d-flex justify-space-between text-body-medium mb-2">
           <span class="text-medium-emphasis">{{ t('tables.payment.received') }}</span>
           <span class="font-weight-medium">{{ formatBase(received ?? 0) }}</span>
         </div>
         <v-divider class="mb-2" />
         <div class="d-flex justify-space-between align-center">
           <span
-            class="text-body-2 font-weight-bold"
+            class="text-body-medium font-weight-bold"
             :class="diff >= 0 ? 'text-success' : 'text-warning'"
           >
             {{ diff >= 0 ? t('pos.change') : t('tables.payment.remaining') }}
           </span>
           <div
-            class="text-h6 font-weight-bold"
+            class="text-title-large font-weight-bold"
             :class="diff >= 0 ? 'text-success' : 'text-warning'"
           >
             {{ formatBase(Math.abs(diff)) }}
@@ -175,7 +175,7 @@
 
     <!-- ── Card ───────────────────────────────────────────────────────── -->
     <template v-else-if="method === 'card'">
-      <div class="text-center text-body-1 font-weight-medium mb-4">
+      <div class="text-center text-body-large font-weight-medium mb-4">
         {{ t('tables.payment.charge_card', { amount: formatBase(payableTotal) }) }}
       </div>
       <v-text-field
@@ -209,7 +209,7 @@
         >
           {{ t('tables.payment.confirm') }}
         </v-btn>
-        <div class="text-center text-caption text-medium-emphasis mt-2">
+        <div class="text-center text-body-small text-medium-emphasis mt-2">
           {{ t('tables.payment.confirm_hint', { number: table?.table_number }) }}
         </div>
       </v-card-actions>

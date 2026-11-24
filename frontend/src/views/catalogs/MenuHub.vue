@@ -30,7 +30,7 @@
   import { ref, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { usePermission } from '@/composables/usePermission'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
   import MenuCardList from '@/components/catalogs/MenuCardList.vue'
 
   const { t } = useI18n()

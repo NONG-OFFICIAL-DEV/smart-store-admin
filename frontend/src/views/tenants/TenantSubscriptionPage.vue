@@ -24,10 +24,10 @@
       <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
         <div class="d-flex align-center justify-space-between">
           <div>
-            <div class="text-h6">
+            <div class="text-title-large">
               {{ plan?.name ?? $t('subscription.no_active_plan') }}
             </div>
-            <div v-if="subscription" class="text-body-2 text-medium-emphasis">
+            <div v-if="subscription" class="text-body-medium text-medium-emphasis">
               ${{ cyclePrice }} / {{ activeBillingCycle?.label ?? 'â€”' }}
             </div>
           </div>
@@ -43,7 +43,7 @@
 
         <div
           v-if="subscription"
-          class="d-flex flex-wrap ga-4 mt-3 text-caption text-medium-emphasis"
+          class="d-flex flex-wrap ga-4 mt-3 text-body-small text-medium-emphasis"
         >
           <span>
             {{ $t('subscription.list.field.period_end') }}:
@@ -108,12 +108,12 @@
         </div>
       </v-card>
 
-      <v-row dense>
+      <v-row density="compact">
         <!--  LEFT: actions  -->
         <v-col cols="12" md="5">
           <!-- Change / assign plan -->
           <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
-            <div class="text-subtitle-1 font-weight-bold mb-3">
+            <div class="text-body-large font-weight-bold mb-3">
               {{
                 subscription
                   ? $t('subscription.list.change_plan')
@@ -154,10 +154,10 @@
 
           <!-- Record payment -->
           <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
-            <div class="text-subtitle-1 font-weight-bold mb-3">
+            <div class="text-body-large font-weight-bold mb-3">
               {{ $t('subscription.payment_dialog.title') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="8">
                 <v-text-field
                   v-model="paymentForm.amount_usd"
@@ -207,14 +207,14 @@
         <!--  RIGHT: history  -->
         <v-col cols="12" md="7">
           <v-card rounded="lg" border elevation="0" class="pa-5 mb-4">
-            <div class="text-subtitle-1 font-weight-bold mb-3">
+            <div class="text-body-large font-weight-bold mb-3">
               {{ $t('subscription.history.tabs.plan_history') }}
             </div>
             <PlanHistoryTable :history="planHistory" />
           </v-card>
 
           <v-card rounded="lg" border elevation="0" class="pa-5">
-            <div class="text-subtitle-1 font-weight-bold mb-3">
+            <div class="text-body-large font-weight-bold mb-3">
               {{ $t('subscription.history.tabs.payments') }}
             </div>
             <v-table density="compact">

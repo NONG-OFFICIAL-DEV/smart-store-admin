@@ -246,7 +246,7 @@
               />
             </v-avatar>
             <span
-              class="text-caption mt-1 text-center"
+              class="text-body-small mt-1 text-center"
               :class="
                 step >= s.value
                   ? 'text-primary font-weight-medium'
@@ -268,7 +268,7 @@
     <v-window v-model="step" class="py-2">
       <!-- STEP 1: BASICS -->
       <v-window-item :value="1">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12">
             <v-text-field
               v-model="form.name"
@@ -282,10 +282,10 @@
           </v-col>
 
           <v-col cols="12">
-            <div class="text-subtitle-2 font-weight-medium mb-2">
+            <div class="text-title-small font-weight-medium mb-2">
               {{ t('promotions.types.title') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col
                 v-for="opt in promoTypes"
                 :key="opt.value"
@@ -310,7 +310,7 @@
                     class="mb-1"
                   />
                   <span
-                    class="text-caption font-weight-medium"
+                    class="text-body-small font-weight-medium"
                     :class="form.type === opt.value ? 'text-white' : ''"
                   >
                     {{ opt.title }}
@@ -320,7 +320,7 @@
             </v-row>
             <div
               v-if="selectedTypeInfo"
-              class="text-caption text-medium-emphasis mt-2"
+              class="text-body-small text-medium-emphasis mt-2"
             >
               <v-icon
                 icon="mdi-information-outline"
@@ -332,7 +332,7 @@
           </v-col>
 
           <v-col cols="12">
-            <div class="text-subtitle-2 font-weight-medium mb-2">
+            <div class="text-title-small font-weight-medium mb-2">
               {{ t('promotions.form.applies_to') }}
             </div>
             <v-select
@@ -360,7 +360,7 @@
 
       <!-- STEP 2: RULES -->
       <v-window-item :value="2">
-        <v-row dense>
+        <v-row density="compact">
           <v-col v-if="showDiscountValue(form.type)" cols="12" sm="6">
             <v-text-field
               v-model.number="form.discount_value"
@@ -434,7 +434,7 @@
 
       <!-- STEP 3: SCHEDULE -->
       <v-window-item :value="3">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <AppDatePicker
               v-model="form.start_at"
@@ -460,10 +460,10 @@
             >
               <div class="d-flex align-center justify-space-between">
                 <div>
-                  <div class="text-subtitle-2 font-weight-medium">
+                  <div class="text-title-small font-weight-medium">
                     {{ $t('promotions.form.active') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ $t('promotions.form.active_hint') }}
                   </div>
                 </div>
@@ -479,7 +479,7 @@
 
           <!-- Review summary -->
           <v-col cols="12">
-            <div class="text-subtitle-2 font-weight-medium mb-2">
+            <div class="text-title-small font-weight-medium mb-2">
               {{ t('promotions.form.summary') }}
             </div>
             <v-card variant="outlined" rounded="lg" class="pa-3">

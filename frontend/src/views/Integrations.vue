@@ -8,7 +8,7 @@
     <!-- ── Telegram notifications ─────────────────────────────────────── -->
     <v-card rounded="lg" class="mb-4">
       <v-card-item>
-        <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
+        <h3 class="text-body-large font-weight-bold text-high-emphasis">
           {{ $t('integrations.telegram.title') }}
         </h3>
         <v-card-subtitle>
@@ -41,7 +41,7 @@
               <div class="d-flex align-center flex-wrap ga-3">
                 <div class="d-flex align-center ga-2">
                   <v-icon icon="mdi-check-circle" color="success" size="18" />
-                  <span class="text-body-2">
+                  <span class="text-body-medium">
                     {{
                       t('integrations.telegram.token_saved', {
                         preview: tokenPreview
@@ -86,7 +86,7 @@
               </v-btn>
               <span
                 v-if="testResult"
-                class="text-body-2"
+                class="text-body-medium"
                 :class="testResult.ok ? 'text-success' : 'text-error'"
               >
                 {{ testResult.message }}
@@ -101,7 +101,7 @@
                   {{ t('integrations.telegram.how_to_title') }}
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
-                  <ol class="text-body-2 text-medium-emphasis pl-4">
+                  <ol class="text-body-medium text-medium-emphasis pl-4">
                     <li class="mb-2">
                       {{ t('integrations.telegram.how_to_step1') }}
                     </li>
@@ -124,7 +124,7 @@
     <!-- ── E-Menu QR links ────────────────────────────────────────────── -->
     <v-card rounded="lg" class="mb-4">
       <v-card-item>
-        <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
+        <h3 class="text-body-large font-weight-bold text-high-emphasis">
           {{ $t('integrations.emenu.title') }}
         </h3>
         <v-card-subtitle>
@@ -147,13 +147,13 @@
               class="mb-4"
             />
 
-            <div class="text-caption text-medium-emphasis mb-1">
+            <div class="text-body-small text-medium-emphasis mb-1">
               {{ t('integrations.emenu.example_label') }}
             </div>
             <v-sheet
               color="grey-lighten-4"
               rounded="lg"
-              class="pa-3 text-body-2 font-weight-medium"
+              class="pa-3 text-body-medium font-weight-medium"
             >
               {{ exampleUrl }}
             </v-sheet>

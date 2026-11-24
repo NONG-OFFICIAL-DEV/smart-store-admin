@@ -4,7 +4,7 @@
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-3">
       <div class="d-flex align-center ga-1">
         <v-btn icon="mdi-chevron-left" variant="text" :aria-label="t('staff.schedule.prev_week')" @click="shiftWeek(-7)" />
-        <span class="text-body-1 font-weight-bold mx-1">{{ weekLabel }}</span>
+        <span class="text-body-large font-weight-bold mx-1">{{ weekLabel }}</span>
         <v-btn icon="mdi-chevron-right" variant="text" :aria-label="t('staff.schedule.next_week')" @click="shiftWeek(7)" />
         <v-btn variant="outlined" rounded="lg" size="small" class="ml-2" @click="goToday">
           {{ t('staff.schedule.today') }}

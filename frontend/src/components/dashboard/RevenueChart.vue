@@ -3,8 +3,8 @@
     <v-card-title class="pa-5 pb-3">
       <div class="d-flex align-center justify-space-between">
         <div>
-          <div class="text-subtitle-1 font-weight-bold">{{ $t('dashboard.revenue_overview.title') }}</div>
-          <div class="text-caption text-medium-emphasis">{{ $t('dashboard.revenue_overview.subtitle') }}</div>
+          <div class="text-body-large font-weight-bold">{{ $t('dashboard.revenue_overview.title') }}</div>
+          <div class="text-body-small text-medium-emphasis">{{ $t('dashboard.revenue_overview.subtitle') }}</div>
         </div>
         <v-btn-toggle
           v-model="chartMode"

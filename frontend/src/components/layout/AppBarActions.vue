@@ -42,7 +42,7 @@
           <template #prepend>
             <img :src="opt.flag" width="20" height="14" class="flag me-3" alt="" />
           </template>
-          <v-list-item-title class="text-body-2">{{ opt.label }}</v-list-item-title>
+          <v-list-item-title class="text-body-medium">{{ opt.label }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -95,11 +95,11 @@
       :loading="registerBusy"
     >
       <div v-if="registerOpen && !closing">
-        <div class="d-flex justify-space-between text-body-2 mb-2">
+        <div class="d-flex justify-space-between text-body-medium mb-2">
           <span class="text-medium-emphasis">{{ t('cash_register.opening_float') }}</span>
           <span class="font-weight-bold">{{ formatMoney(currentDrawer?.opening_float) }}</span>
         </div>
-        <div class="d-flex justify-space-between text-body-2 mb-4">
+        <div class="d-flex justify-space-between text-body-medium mb-4">
           <span class="text-medium-emphasis">{{ t('cash_register.opened_at') }}</span>
           <span class="font-weight-bold">{{ formatDateTime(currentDrawer?.opened_at) }}</span>
         </div>
@@ -150,7 +150,7 @@
       </div>
 
       <div v-else>
-        <p class="text-body-2 text-medium-emphasis mb-3">{{ t('cash_register.open_prompt') }}</p>
+        <p class="text-body-medium text-medium-emphasis mb-3">{{ t('cash_register.open_prompt') }}</p>
         <v-text-field
           v-model.number="openingFloat"
           type="number"

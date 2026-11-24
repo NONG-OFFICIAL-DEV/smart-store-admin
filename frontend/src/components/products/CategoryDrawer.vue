@@ -22,7 +22,7 @@
     />
 
     <!-- Name EN/KM -->
-    <v-row dense class="mb-2 py-2">
+    <v-row density="compact" class="mb-2 py-2">
       <v-col cols="12" sm="6">
         <v-text-field
           v-model="form.name"
@@ -53,7 +53,7 @@
          when nothing's picked, so this is left unselected by default
          rather than pre-selecting that fallback into every new category. -->
     <div class="mb-4">
-      <label class="text-body-2 font-weight-medium text-medium-emphasis mb-2 d-block">
+      <label class="text-body-medium font-weight-medium text-medium-emphasis mb-2 d-block">
         {{ t('categories.drawer.icon_label') }}
       </label>
       <div class="icon-picker">
@@ -76,16 +76,16 @@
 
     <div class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-3">
       <div>
-        <div class="text-body-2 font-weight-medium">{{ t('categories.drawer.show_on_pos') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ t('categories.drawer.show_on_pos_hint') }}</div>
+        <div class="text-body-medium font-weight-medium">{{ t('categories.drawer.show_on_pos') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ t('categories.drawer.show_on_pos_hint') }}</div>
       </div>
       <v-switch v-model="form.show_on_pos" color="primary" hide-details inset />
     </div>
 
     <div class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-4">
       <div>
-        <div class="text-body-2 font-weight-medium">{{ t('categories.drawer.show_on_emenu') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ t('categories.drawer.show_on_emenu_hint') }}</div>
+        <div class="text-body-medium font-weight-medium">{{ t('categories.drawer.show_on_emenu') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ t('categories.drawer.show_on_emenu_hint') }}</div>
       </div>
       <v-switch v-model="form.show_on_emenu" color="primary" hide-details inset />
     </div>
@@ -100,8 +100,8 @@
 
       <div class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-3">
         <div>
-          <div class="text-body-2 font-weight-medium">{{ t('categories.drawer.is_system_label') }}</div>
-          <div class="text-caption text-medium-emphasis">{{ t('categories.drawer.is_system_hint') }}</div>
+          <div class="text-body-medium font-weight-medium">{{ t('categories.drawer.is_system_label') }}</div>
+          <div class="text-body-small text-medium-emphasis">{{ t('categories.drawer.is_system_hint') }}</div>
         </div>
         <v-switch v-model="form.is_system" color="primary" hide-details inset />
       </div>

@@ -2,10 +2,10 @@
   <v-card class="pa-6" rounded="lg" elevation="0" border>
     <div class="d-flex align-center justify-space-between mb-4">
       <div>
-        <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
+        <h3 class="text-body-large font-weight-bold text-high-emphasis">
           {{ $t('two_factor.title') }}
         </h3>
-        <p class="text-caption text-medium-emphasis mb-0">
+        <p class="text-body-small text-medium-emphasis mb-0">
           {{ $t('two_factor.subtitle') }}
         </p>
       </div>
@@ -47,16 +47,16 @@
       :loading="confirming"
     >
       <div v-if="step === 'qr'" class="text-center">
-        <p class="text-body-2 text-medium-emphasis mb-4">
+        <p class="text-body-medium text-medium-emphasis mb-4">
           {{ $t('two_factor.scan_instructions') }}
         </p>
         <div class="qr-wrap mb-4" v-html="qrCodeSvg"></div>
-        <p class="text-caption text-medium-emphasis mb-1">{{ $t('two_factor.manual_entry') }}</p>
+        <p class="text-body-small text-medium-emphasis mb-1">{{ $t('two_factor.manual_entry') }}</p>
         <code class="secret-code">{{ secret }}</code>
       </div>
 
       <div v-else-if="step === 'confirm'">
-        <p class="text-body-2 text-medium-emphasis mb-4">
+        <p class="text-body-medium text-medium-emphasis mb-4">
           {{ $t('two_factor.enter_code_instructions') }}
         </p>
         <v-otp-input
@@ -66,7 +66,7 @@
           :error="!!confirmError"
           @finish="handleConfirm"
         />
-        <div v-if="confirmError" class="text-caption text-error mt-1">
+        <div v-if="confirmError" class="text-body-small text-error mt-1">
           {{ confirmError }}
         </div>
         <v-btn variant="text" size="small" class="mt-2 text-none" @click="step = 'qr'">

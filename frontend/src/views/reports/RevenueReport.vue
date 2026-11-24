@@ -38,11 +38,11 @@
         <!-- ── REVENUE ── -->
         <v-tabs-window-item value="revenue">
           <div class="pa-4">
-            <v-row dense class="mb-4">
+            <v-row density="compact" class="mb-4">
               <v-col cols="6" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('revenue_report.summary.total_revenue') }}
                     </span>
                     <v-avatar size="30" color="success" variant="tonal" rounded="lg">
@@ -55,7 +55,7 @@
               <v-col cols="6" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('revenue_report.summary.total_orders') }}
                     </span>
                     <v-avatar size="30" color="primary" variant="tonal" rounded="lg">
@@ -68,7 +68,7 @@
               <v-col cols="12" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('revenue_report.summary.avg_order_value') }}
                     </span>
                     <v-avatar size="30" color="info" variant="tonal" rounded="lg">
@@ -81,7 +81,7 @@
             </v-row>
 
             <v-card rounded="xl" border elevation="0" class="pa-5">
-              <div class="text-body-1 font-weight-bold mb-4">
+              <div class="text-body-large font-weight-bold mb-4">
                 {{ t('revenue_report.chart.title') }}
               </div>
               <div v-if="daily.length" style="height: 280px">
@@ -89,7 +89,7 @@
               </div>
               <div v-else class="d-flex flex-column align-center justify-center pa-10" style="gap: 8px">
                 <v-icon icon="mdi-chart-line" size="44" color="grey-lighten-1" />
-                <div class="text-body-2 text-medium-emphasis">{{ t('revenue_report.empty') }}</div>
+                <div class="text-body-medium text-medium-emphasis">{{ t('revenue_report.empty') }}</div>
               </div>
             </v-card>
           </div>
@@ -126,7 +126,7 @@
               <template #no-data>
                 <div class="d-flex flex-column align-center justify-center pa-10" style="gap: 8px">
                   <v-icon icon="mdi-account-off-outline" size="44" color="grey-lighten-1" />
-                  <div class="text-body-2 text-medium-emphasis">{{ t('revenue_report.empty') }}</div>
+                  <div class="text-body-medium text-medium-emphasis">{{ t('revenue_report.empty') }}</div>
                 </div>
               </template>
             </v-data-table>

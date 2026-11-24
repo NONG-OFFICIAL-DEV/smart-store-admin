@@ -17,7 +17,7 @@
     <!-- ── Filters — always visible, no toggle needed for just two selects ──── -->
     <v-card rounded="lg" border elevation="0" class="mb-4">
       <v-card-text class="pa-4">
-        <v-row dense align="center">
+        <v-row density="compact" align="center">
           <v-col cols="6" sm="3">
             <v-select
               v-model="filters.status"
@@ -58,15 +58,15 @@
       >
         <!-- PO Number -->
         <template #item.po_number="{ item }">
-          <div class="font-weight-bold text-body-2">{{ item.po_number }}</div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="font-weight-bold text-body-medium">{{ item.po_number }}</div>
+          <div class="text-body-small text-medium-emphasis">
             {{ item.branch?.name }}
           </div>
         </template>
 
         <!-- Supplier -->
         <template #item.supplier="{ item }">
-          <div class="text-body-2">{{ item.supplier?.name }}</div>
+          <div class="text-body-medium">{{ item.supplier?.name }}</div>
         </template>
 
         <!-- Items count -->
@@ -83,7 +83,7 @@
 
         <!-- Expected -->
         <template #item.expected_delivery="{ item }">
-          <span class="text-body-2">{{ fmtDate(item.expected_delivery ?? '—') }}</span>
+          <span class="text-body-medium">{{ fmtDate(item.expected_delivery ?? '—') }}</span>
         </template>
 
         <!-- Status -->
@@ -101,7 +101,7 @@
 
         <!-- Date -->
         <template #item.created_at="{ item }">
-          <div class="text-body-2">{{ fmtDate(item.created_at) }}</div>
+          <div class="text-body-medium">{{ fmtDate(item.created_at) }}</div>
         </template>
 
         <!-- Actions -->
@@ -202,8 +202,7 @@
   import { usePurchaseOrderStore } from '@/stores/purchaseOrderStore'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable, AppDialog } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppTable, AppDialog, AppToolbar } from '@nong-official-dev/core'
   import PurchaseOrderDetailDialog from '@/components/purchase-orders/PurchaseOrderDetailDialog.vue'
   import PurchaseOrderReceiveDialog from '@/components/purchase-orders/PurchaseOrderReceiveDialog.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'

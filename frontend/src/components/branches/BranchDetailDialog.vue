@@ -29,21 +29,21 @@
       </div>
 
       <div class="d-flex flex-column ga-2 mb-2">
-        <div v-if="fullAddress" class="d-flex align-center text-body-2">
+        <div v-if="fullAddress" class="d-flex align-center text-body-medium">
           <v-icon icon="mdi-map-marker-outline" size="16" color="primary" class="me-2" />
           {{ fullAddress }}
         </div>
-        <div v-if="store.branch.phone" class="d-flex align-center text-body-2">
+        <div v-if="store.branch.phone" class="d-flex align-center text-body-medium">
           <v-icon icon="mdi-phone-outline" size="16" color="primary" class="me-2" />
           {{ store.branch.phone }}
         </div>
-        <div v-if="store.branch.email" class="d-flex align-center text-body-2">
+        <div v-if="store.branch.email" class="d-flex align-center text-body-medium">
           <v-icon icon="mdi-email-outline" size="16" color="primary" class="me-2" />
           {{ store.branch.email }}
         </div>
         <div
           v-if="!fullAddress && !store.branch.phone && !store.branch.email"
-          class="text-caption text-medium-emphasis"
+          class="text-body-small text-medium-emphasis"
         >
           {{ $t('branches.detail.no_contact_info') }}
         </div>
@@ -51,14 +51,14 @@
 
       <template v-if="hasRates">
         <v-divider class="my-3" />
-        <v-row dense>
+        <v-row density="compact">
           <v-col v-if="Number(store.branch.tax_rate) > 0" cols="6">
-            <div class="text-caption text-medium-emphasis">{{ $t('form.tax_rate') }}</div>
-            <div class="text-body-2 font-weight-bold">{{ store.branch.tax_rate }}%</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('form.tax_rate') }}</div>
+            <div class="text-body-medium font-weight-bold">{{ store.branch.tax_rate }}%</div>
           </v-col>
           <v-col v-if="store.branch.service_charge_rate" cols="6">
-            <div class="text-caption text-medium-emphasis">{{ $t('branches.detail.service_charge') }}</div>
-            <div class="text-body-2 font-weight-bold">{{ store.branch.service_charge_rate }}%</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('branches.detail.service_charge') }}</div>
+            <div class="text-body-medium font-weight-bold">{{ store.branch.service_charge_rate }}%</div>
           </v-col>
         </v-row>
       </template>
@@ -67,21 +67,21 @@
 
       <!-- Today at a glance — the one thing not already visible on the
            branches table itself. -->
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="6">
           <v-card rounded="lg" elevation="0" border class="pa-3 text-center">
-            <div class="text-h6 font-weight-black text-primary">
+            <div class="text-title-large font-weight-black text-primary">
               {{ store.stats?.orders_today ?? 0 }}
             </div>
-            <div class="text-caption text-grey">{{ $t('branches.detail.orders_today') }}</div>
+            <div class="text-body-small text-grey">{{ $t('branches.detail.orders_today') }}</div>
           </v-card>
         </v-col>
         <v-col cols="6">
           <v-card rounded="lg" elevation="0" border class="pa-3 text-center">
-            <div class="text-h6 font-weight-black text-success">
+            <div class="text-title-large font-weight-black text-success">
               ${{ store.stats?.revenue_today ?? '0.00' }}
             </div>
-            <div class="text-caption text-grey">{{ $t('branches.detail.revenue_today') }}</div>
+            <div class="text-body-small text-grey">{{ $t('branches.detail.revenue_today') }}</div>
           </v-card>
         </v-col>
       </v-row>

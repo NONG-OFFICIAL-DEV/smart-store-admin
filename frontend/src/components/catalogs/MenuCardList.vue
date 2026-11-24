@@ -16,7 +16,7 @@
           </v-avatar>
           <div class="flex-grow-1" style="min-width: 180px">
             <div class="d-flex align-center flex-wrap ga-2">
-              <span class="text-subtitle-1 font-weight-bold">
+              <span class="text-body-large font-weight-bold">
                 {{ item.name }}
               </span>
               <v-chip
@@ -28,7 +28,7 @@
               >
                 {{ t('menus.list.default_badge') }}
               </v-chip>
-              <div class="text-caption text-medium-emphasis mt-1">
+              <div class="text-body-small text-medium-emphasis mt-1">
                 {{
                   branchCountFor(item.id)
                     ? t('menus.list.branches_count', {
@@ -88,7 +88,7 @@
                       size="16"
                       class="text-medium-emphasis"
                     />
-                    <span class="text-body-2">{{ a.branch?.name ?? '—' }}</span>
+                    <span class="text-body-medium">{{ a.branch?.name ?? '—' }}</span>
                   </div>
                   <div class="d-flex align-center ga-1 branch-row__col">
                     <v-icon
@@ -96,9 +96,9 @@
                       size="14"
                       class="text-medium-emphasis"
                     />
-                    <span class="text-body-2">{{ timeLabel(a) }}</span>
+                    <span class="text-body-medium">{{ timeLabel(a) }}</span>
                   </div>
-                  <div class="text-body-2 branch-row__col">
+                  <div class="text-body-medium branch-row__col">
                     {{ daysLabel(a.days_of_week) }}
                   </div>
                   <div class="d-flex align-center ga-2 branch-row__col">
@@ -106,7 +106,7 @@
                       class="status-dot"
                       :class="`status-dot--${liveStatus(a).state}`"
                     />
-                    <span class="text-body-2 text-medium-emphasis">
+                    <span class="text-body-medium text-medium-emphasis">
                       {{ liveStatus(a).label }}
                     </span>
                   </div>
@@ -146,7 +146,7 @@
             class="d-flex align-center ga-2 no-branches-warning pa-3 rounded-lg"
           >
             <v-icon icon="mdi-alert-outline" color="warning" size="18" />
-            <span class="text-body-2">
+            <span class="text-body-medium">
               {{ t('menus.card.no_branches_warning') }}
             </span>
           </div>

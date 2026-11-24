@@ -11,7 +11,7 @@
           <v-icon icon="mdi-account-circle-outline" size="13" class="mr-1" />
           {{ $t('tenant_create.steps.owner_account') }}
         </div>
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <v-text-field
               v-model="form.owner_first_name"

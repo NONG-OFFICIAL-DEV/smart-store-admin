@@ -9,7 +9,7 @@
   >
     <!-- ── Form ────────────────────────────────────────────────────────────── -->
     <v-form ref="formRef" @submit.prevent="handleSubmit">
-      <v-row dense>
+      <v-row density="compact">
         <!-- Branch — only one tenant branch exists, nothing to pick. -->
         <v-col v-if="hasSingleBranch" cols="12">
           <v-text-field
@@ -63,7 +63,7 @@
                 </template>
                 <template #append>
                   <v-chip
-                    v-if="item.raw?.is_default"
+                    v-if="item.is_default"
                     size="x-small"
                     color="primary"
                     variant="tonal"
@@ -79,7 +79,7 @@
         <!-- Divider -->
         <v-col cols="12">
           <v-divider class="my-1" />
-          <p class="text-caption text-medium-emphasis mt-2 mb-1">
+          <p class="text-body-small text-medium-emphasis mt-2 mb-1">
             <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
             {{ $t('menus.assign.time_window_hint') }}
           </p>
@@ -111,7 +111,7 @@
 
         <!-- Days of Week -->
         <v-col cols="12">
-          <div class="text-caption text-medium-emphasis mb-2">
+          <div class="text-body-small text-medium-emphasis mb-2">
             <v-icon icon="mdi-calendar-week" size="14" class="mr-1" />
             {{ $t('menus.assign.available_days_hint') }}
           </div>
@@ -129,7 +129,7 @@
               {{ $t(label) }}
             </v-btn>
           </div>
-          <p class="text-caption text-medium-emphasis mt-2">
+          <p class="text-body-small text-medium-emphasis mt-2">
             {{ $t('menus.assign.selected_days', { days: selectedDaysLabel }) }}
           </p>
         </v-col>

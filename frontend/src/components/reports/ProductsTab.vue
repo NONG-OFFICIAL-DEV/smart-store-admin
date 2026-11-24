@@ -2,7 +2,7 @@
   <div>
     <!-- Filters -->
     <div class="filter-bar">
-      <v-row dense align="center">
+      <v-row density="compact" align="center">
         <v-col cols="12" sm="5">
           <v-text-field
             :model-value="search"
@@ -58,8 +58,8 @@
             <v-icon v-else icon="mdi-package-variant" size="16" color="grey" />
           </v-avatar>
           <div>
-            <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-medium font-weight-bold">{{ item.name }}</div>
+            <div class="text-body-small text-medium-emphasis">
               {{ item.sku ?? '—' }}
             </div>
           </div>
@@ -67,7 +67,7 @@
       </template>
 
       <template #item.category="{ item }">
-        <span class="text-caption">{{ item.category ?? '—' }}</span>
+        <span class="text-body-small">{{ item.category ?? '—' }}</span>
       </template>
 
       <template #item.stock_quantity="{ item }">
@@ -78,7 +78,7 @@
           >
             {{ item.stock_quantity }}
           </span>
-          <span class="text-caption text-medium-emphasis">{{ item.unit }}</span>
+          <span class="text-body-small text-medium-emphasis">{{ item.unit }}</span>
         </div>
         <v-progress-linear
           v-if="item.reorder_level"
@@ -96,15 +96,15 @@
       </template>
 
       <template #item.reorder_level="{ item }">
-        <span class="text-body-2">{{ item.reorder_level ?? '—' }}</span>
+        <span class="text-body-medium">{{ item.reorder_level ?? '—' }}</span>
       </template>
 
       <template #item.cost_price="{ item }">
-        <span class="text-body-2">{{ format(item.cost_price) }}</span>
+        <span class="text-body-medium">{{ format(item.cost_price) }}</span>
       </template>
 
       <template #item.retail_price="{ item }">
-        <span class="text-body-2">{{ format(item.retail_price) }}</span>
+        <span class="text-body-medium">{{ format(item.retail_price) }}</span>
       </template>
 
       <template #item.stock_value="{ item }">
@@ -136,7 +136,7 @@
             size="48"
             color="grey-lighten-2"
           />
-          <div class="text-body-2 text-grey mt-2">{{$t('products.empty')}}</div>
+          <div class="text-body-medium text-grey mt-2">{{$t('products.empty')}}</div>
         </div>
       </template>
     </v-data-table>

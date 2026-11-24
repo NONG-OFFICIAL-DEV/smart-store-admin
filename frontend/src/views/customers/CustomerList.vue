@@ -6,8 +6,7 @@
   import CustomerDialog from '@/components/customers/CustomerDialog.vue'
   import CustomerAddressDialog from '@/components/customers/CustomerAddressDialog.vue'
   import CustomerDetailPanel from '@/components/customers/CustomerDetailPanel.vue'
-  import { useAppUtils, AppTable, AppStatusChip } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { useAppUtils, AppTable, AppStatusChip, AppToolbar } from '@nong-official-dev/core'
   import { useAvatar } from '@/composables/useAvatar'
 
   const { getInitials, getAvatarColor } = useAvatar()
@@ -188,12 +187,12 @@
           <div class="d-flex align-center gap-3 py-1" style="cursor: pointer" @click="openDetail(item)">
             <v-avatar :color="avatarColor(item)" size="36" class="me-2">
               <v-img v-if="item.avatar_url" :src="item.avatar_url" />
-              <span v-else class="text-caption font-weight-black text-white">
+              <span v-else class="text-body-small font-weight-black text-white">
                 {{ initials(item) }}
               </span>
             </v-avatar>
             <div>
-              <p class="text-body-2 font-weight-bold text-brown-darken-4 mb-0">
+              <p class="text-body-medium font-weight-bold text-brown-darken-4 mb-0">
                 {{ item.first_name }} {{ item.last_name }}
               </p>
             </div>
@@ -202,8 +201,8 @@
 
         <!-- Contact column -->
         <template #[`item.email`]="{ item }">
-          <p class="text-body-2 mb-0">{{ item.email ?? '—' }}</p>
-          <p class="text-caption text-medium-emphasis mb-0">
+          <p class="text-body-medium mb-0">{{ item.email ?? '—' }}</p>
+          <p class="text-body-small text-medium-emphasis mb-0">
             {{ item.phone ?? '—' }}
           </p>
         </template>
@@ -219,12 +218,12 @@
           >
             {{ item.source }}
           </v-chip>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Spent column -->
         <template #[`item.total_spent`]="{ item }">
-          <span class="text-body-2 font-weight-medium">
+          <span class="text-body-medium font-weight-medium">
             ${{ Number(item.total_spent ?? 0).toFixed(2) }}
           </span>
         </template>
@@ -233,7 +232,7 @@
         <template #[`item.loyalty_points`]="{ item }">
           <div class="d-flex align-center gap-1">
             <v-icon icon="mdi-star" size="14" color="amber-darken-2" />
-            <span class="text-body-2 font-weight-bold text-amber-darken-3">
+            <span class="text-body-medium font-weight-bold text-amber-darken-3">
               {{ item.loyalty_points ?? 0 }}
             </span>
           </div>

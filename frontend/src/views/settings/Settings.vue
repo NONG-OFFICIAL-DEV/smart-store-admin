@@ -11,10 +11,10 @@
              side (available to every authenticated user) -->
         <v-card class="pa-6" rounded="lg" elevation="0" border>
           <div class="mb-5">
-            <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
+            <h3 class="text-body-large font-weight-bold text-high-emphasis">
               {{ $t('profile.security_title') }}
             </h3>
-            <p class="text-caption text-medium-emphasis mb-0">
+            <p class="text-body-small text-medium-emphasis mb-0">
               {{ $t('profile.security_subtitle') }}
             </p>
           </div>
@@ -23,13 +23,13 @@
             <v-col cols="12" md="6">
               <div class="d-flex align-center ga-2 mb-4">
                 <v-icon size="18" color="primary">mdi-lock-outline</v-icon>
-                <span class="text-body-2 font-weight-bold text-high-emphasis">
+                <span class="text-body-medium font-weight-bold text-high-emphasis">
                   {{ $t('profile.change_password') }}
                 </span>
               </div>
 
               <v-form ref="passwordFormRef">
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="12">
                     <v-text-field
                       v-model="passwordForm.current_password"
@@ -90,13 +90,13 @@
             <v-col cols="12" md="6">
               <div class="d-flex align-center ga-2 mb-4">
                 <v-icon size="18" color="primary">mdi-email-outline</v-icon>
-                <span class="text-body-2 font-weight-bold text-high-emphasis">
+                <span class="text-body-medium font-weight-bold text-high-emphasis">
                   {{ $t('profile.change_email') }}
                 </span>
               </div>
 
               <v-form ref="emailFormRef">
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="12">
                     <v-text-field
                       v-model="emailForm.email"
@@ -160,7 +160,7 @@
   import { useAppUtils } from '@/composables/useAppUtils'
   import authService from '@/api/auth'
   import TwoFactorAuthSection from '@/components/common/TwoFactorAuthSection.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const authStore = useAuthStore()

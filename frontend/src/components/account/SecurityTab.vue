@@ -4,7 +4,7 @@
       <div class="d-flex align-center justify-space-between mb-4">
         <div class="d-flex align-center gap-2">
           <v-icon size="18" color="primary">mdi-devices</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('account.security.title') }}</span>
+          <span class="text-title-small font-weight-bold">{{ t('account.security.title') }}</span>
         </div>
         <v-btn
           size="small"
@@ -26,19 +26,19 @@
           <template #prepend>
             <v-icon icon="mdi-monitor-cellphone" size="20" class="me-3" />
           </template>
-          <v-list-item-title class="text-body-2 font-weight-medium d-flex align-center gap-2">
+          <v-list-item-title class="text-body-medium font-weight-medium d-flex align-center gap-2">
             {{ s.device_name || t('account.security.unknown_device') }}
             <v-chip v-if="s.is_current" size="x-small" color="success" variant="tonal" rounded="lg">
               {{ t('account.security.this_device') }}
             </v-chip>
           </v-list-item-title>
-          <v-list-item-subtitle class="text-caption">
+          <v-list-item-subtitle class="text-body-small">
             {{ s.ip_address }} · {{ t('account.security.last_active') }} {{ formatDateTime(s.last_used_at || s.created_at) }}
           </v-list-item-subtitle>
         </v-list-item>
 
         <v-list-item v-if="!sessions.length">
-          <v-list-item-title class="text-body-2 text-medium-emphasis">
+          <v-list-item-title class="text-body-medium text-medium-emphasis">
             {{ t('account.security.no_sessions') }}
           </v-list-item-title>
         </v-list-item>

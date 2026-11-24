@@ -25,7 +25,7 @@
     <v-window v-model="tab">
       <v-window-item value="products">
         <!-- ── Filters ────────────────────────────────────────────────────────── -->
-        <v-row dense align="center" class="mb-2 py-2">
+        <v-row density="compact" align="center" class="mb-2 py-2">
           <v-col cols="12" sm="3">
             <custom-select
               v-model="filterCategories"
@@ -108,7 +108,7 @@
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="font-weight-medium">{{ item.name }}</div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ formatBase(item.base_price) }}
                   </div>
                 </div>
@@ -165,17 +165,17 @@
 
             <!-- Price -->
             <template #item.base_price="{ item }">
-              <span class="text-body-2 font-weight-medium">
+              <span class="text-body-medium font-weight-medium">
                 {{ formatBase(item.base_price) }}
               </span>
             </template>
 
             <!-- Stock -->
             <template #item.stock_quantity="{ item }">
-              <span v-if="item.track_stock" class="text-body-2">
+              <span v-if="item.track_stock" class="text-body-medium">
                 {{ item.stock_quantity }}
               </span>
-              <span v-else class="text-body-2 text-medium-emphasis">—</span>
+              <span v-else class="text-body-medium text-medium-emphasis">—</span>
             </template>
 
             <!-- Stock status -->
@@ -186,7 +186,7 @@
                 :map="stockStatusMap"
                 size="small"
               />
-              <span v-else class="text-body-2 text-medium-emphasis">—</span>
+              <span v-else class="text-body-medium text-medium-emphasis">—</span>
             </template>
 
             <!-- Available -->
@@ -275,12 +275,11 @@
   import { useProductStore } from '@/stores/productStore'
   import { useCategoryStore } from '@/stores/categoryStore'
   import { useAuthStore } from '@/stores/authStore'
-  import { AppTable, AppStatusChip, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, AppStatusChip, useAppUtils, AppToolbar } from '@nong-official-dev/core'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import CategoriesTab from '@/views/products/CategoriesTab.vue'
   import OptionGroupsList from '@/views/products/OptionGroupsList.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
   import draggable from 'vuedraggable'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   

@@ -42,10 +42,10 @@
             color="grey-lighten-1"
             class="mb-2"
           />
-          <div class="text-body-2 text-grey font-weight-medium">
+          <div class="text-body-medium text-grey font-weight-medium">
             {{ dragHint || $t('products.image.dragHint') }}
           </div>
-          <div class="text-caption text-grey-lighten-1 mt-1">
+          <div class="text-body-small text-grey-lighten-1 mt-1">
             {{ formatHint || $t('products.image.formatHint') }}
           </div>
         </template>
@@ -120,10 +120,10 @@
       />
     </div>
     <div>
-      <div class="text-body-2 font-weight-medium">
+      <div class="text-body-medium font-weight-medium">
         {{ title || $t('products.cardTitle.productImage') }}
       </div>
-      <div class="text-caption text-medium-emphasis mb-1">
+      <div class="text-body-small text-medium-emphasis mb-1">
         {{ formatHint || $t('products.image.formatHint') }}
       </div>
       <div class="d-flex ga-2">

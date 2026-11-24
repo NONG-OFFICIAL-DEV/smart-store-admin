@@ -15,64 +15,64 @@
           >
             {{ $t(`po.status.${po.status}`) }}
           </v-chip>
-          <span class="text-caption text-medium-emphasis">
+          <span class="text-body-small text-medium-emphasis">
             {{ fmtDate(po.created_at) }}
           </span>
         </div>
 
         <!-- Meta -->
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <v-col cols="6">
-            <div class="text-caption text-medium-emphasis">{{ $t('form.supplier') }}</div>
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-small text-medium-emphasis">{{ $t('form.supplier') }}</div>
+            <div class="text-body-medium font-weight-bold">
               {{ po.supplier?.name }}
             </div>
           </v-col>
           <v-col cols="6">
-            <div class="text-caption text-medium-emphasis">{{ $t('form.branch') }}</div>
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-small text-medium-emphasis">{{ $t('form.branch') }}</div>
+            <div class="text-body-medium font-weight-bold">
               {{ po.branch?.name }}
             </div>
           </v-col>
           <v-col cols="6">
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ $t('form.expected_delivery') }}
             </div>
-            <div class="text-body-2">{{ fmtDate(po.expected_delivery) }}</div>
+            <div class="text-body-medium">{{ fmtDate(po.expected_delivery) }}</div>
           </v-col>
           <v-col cols="6">
-            <div class="text-caption text-medium-emphasis">{{ $t('po.total_amount') }}</div>
-            <div class="text-body-2 font-weight-black text-primary">
+            <div class="text-body-small text-medium-emphasis">{{ $t('po.total_amount') }}</div>
+            <div class="text-body-medium font-weight-black text-primary">
               {{ fmt(po.total_amount) }}
             </div>
           </v-col>
           <v-col v-if="po.notes" cols="12">
-            <div class="text-caption text-medium-emphasis">{{ $t('form.notes') }}</div>
-            <div class="text-body-2">{{ po.notes }}</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('form.notes') }}</div>
+            <div class="text-body-medium">{{ po.notes }}</div>
           </v-col>
         </v-row>
 
         <v-divider class="mb-4" />
 
         <!-- Items -->
-        <div class="text-caption font-weight-bold text-medium-emphasis mb-3">
+        <div class="text-body-small font-weight-bold text-medium-emphasis mb-3">
           {{ $t('po.order_items') }}
         </div>
         <div v-for="item in po.items" :key="item.id" class="detail-item mb-2">
           <div class="d-flex align-center justify-space-between">
             <div class="flex-grow-1">
-              <div class="text-body-2 font-weight-bold">
+              <div class="text-body-medium font-weight-bold">
                 {{ item.product_name }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.unit_name }} · {{ fmt(item.unit_cost) }}{{ $t('po.per_unit_suffix') }}
               </div>
             </div>
             <div class="text-right ml-4">
-              <div class="text-body-2 font-weight-bold">
+              <div class="text-body-medium font-weight-bold">
                 {{ fmt(item.total_cost) }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ $t('po.received_progress', { received: item.quantity_received, ordered: item.quantity_ordered }) }}
               </div>
             </div>

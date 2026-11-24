@@ -4,12 +4,12 @@
       <!-- Amount due -->
       <div class="amount-block">
         <div
-          class="text-caption text-medium-emphasis font-weight-medium amount-label"
+          class="text-body-small text-medium-emphasis font-weight-medium amount-label"
         >
           {{$t('subscription.amount_due')}}
         </div>
         <div
-          class="text-h6 font-weight-bold text-indigo-darken-2 mt-1 amount-value"
+          class="text-title-large font-weight-bold text-indigo-darken-2 mt-1 amount-value"
         >
           {{ formattedAmount }}
         </div>

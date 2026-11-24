@@ -18,11 +18,11 @@
             </div>
             <div
               v-if="item.from_plan"
-              class="text-caption text-medium-emphasis"
+              class="text-body-small text-medium-emphasis"
             >
               {{ t('subscription.plan_history.from_prefix') }} {{ item.from_plan.name }}
             </div>
-            <div v-else class="text-caption text-success">{{ t('subscription.plan_history.initial_plan') }}</div>
+            <div v-else class="text-body-small text-success">{{ t('subscription.plan_history.initial_plan') }}</div>
           </div>
         </div>
       </template>
@@ -32,7 +32,7 @@
         <div class="font-weight-medium">
           {{ formatDate(item.changed_at || item.created_at) }}
         </div>
-        <div v-if="item.reason" class="text-caption text-medium-emphasis mt-1">
+        <div v-if="item.reason" class="text-body-small text-medium-emphasis mt-1">
           {{ item.reason }}
         </div>
       </template>
@@ -44,7 +44,7 @@
         </div>
         <div
           v-if="item.billing_cycle"
-          class="text-caption text-medium-emphasis"
+          class="text-body-small text-medium-emphasis"
         >
           / {{ item.billing_cycle.months }} {{ t('tenant_create.month_unit', item.billing_cycle.months) }}
           <span v-if="Number(item.billing_cycle.discount_percent) > 0">

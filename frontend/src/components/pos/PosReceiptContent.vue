@@ -1,11 +1,11 @@
 <template>
   <div v-if="receipt">
     <div class="text-center mb-3">
-      <div class="text-body-1 font-weight-bold">{{ receipt.branch_name }}</div>
-      <div v-if="receipt.branch_address" class="text-caption text-medium-emphasis">
+      <div class="text-body-large font-weight-bold">{{ receipt.branch_name }}</div>
+      <div v-if="receipt.branch_address" class="text-body-small text-medium-emphasis">
         {{ receipt.branch_address }}
       </div>
-      <div v-if="receipt.branch_phone" class="text-caption text-medium-emphasis">
+      <div v-if="receipt.branch_phone" class="text-body-small text-medium-emphasis">
         {{ receipt.branch_phone }}
       </div>
     </div>
@@ -15,37 +15,37 @@
          mode="receipt"); other consumers (POS checkout, historical order
          lookup) leave mode unset and get no banner, unchanged. -->
     <div v-if="mode === 'bill'" class="text-center mb-3">
-      <div class="text-body-1 font-weight-bold">BILL / វិក្កយបត្រ</div>
-      <div class="text-caption font-weight-bold">NOT PAID / មិនទាន់បង់</div>
+      <div class="text-body-large font-weight-bold">BILL / វិក្កយបត្រ</div>
+      <div class="text-body-small font-weight-bold">NOT PAID / មិនទាន់បង់</div>
     </div>
     <div v-else-if="mode === 'receipt'" class="text-center mb-3">
-      <div class="text-body-1 font-weight-bold">RECEIPT / បង្កាន់ដៃ</div>
-      <div class="text-caption font-weight-bold">PAID / បានបង់</div>
+      <div class="text-body-large font-weight-bold">RECEIPT / បង្កាន់ដៃ</div>
+      <div class="text-body-small font-weight-bold">PAID / បានបង់</div>
     </div>
 
     <v-divider class="mb-2" />
 
-    <div class="d-flex justify-space-between text-caption mb-1">
+    <div class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.order_number') }}</span>
       <span class="font-weight-medium">{{ receipt.order_number }}</span>
     </div>
-    <div v-if="receipt.order_type && authStore.posSettings?.show_order_type" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.order_type && authStore.posSettings?.show_order_type" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.order_type') }}</span>
       <span class="font-weight-medium">{{ $t(`pos.cart.order_type.${receipt.order_type}`) }}</span>
     </div>
-    <div v-if="receipt.table_number" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.table_number" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.table') }}</span>
       <span class="font-weight-medium">{{ receipt.table_number }}</span>
     </div>
-    <div v-if="receipt.customer_name" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.customer_name" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.customer') }}</span>
       <span class="font-weight-medium">{{ receipt.customer_name }}</span>
     </div>
-    <div v-if="receipt.cashier && authStore.posSettings?.show_cashier_name" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.cashier && authStore.posSettings?.show_cashier_name" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.cashier') }}</span>
       <span class="font-weight-medium">{{ receipt.cashier }}</span>
     </div>
-    <div class="d-flex justify-space-between text-caption mb-2">
+    <div class="d-flex justify-space-between text-body-small mb-2">
       <span>{{ $t('pos.receipt.date') }}</span>
       <span class="font-weight-medium">{{ receipt.date }}</span>
     </div>
@@ -53,15 +53,15 @@
     <v-divider class="mb-2" />
 
     <div v-for="(item, idx) in receipt.items" :key="idx" class="mb-2">
-      <div class="d-flex justify-space-between text-body-2">
+      <div class="d-flex justify-space-between text-body-medium">
         <span>{{ item.qty }} × {{ item.name }}</span>
         <span class="font-weight-medium">{{ formatBase(item.total_price) }}</span>
       </div>
-      <div v-if="item.note" class="text-caption text-medium-emphasis">{{ item.note }}</div>
+      <div v-if="item.note" class="text-body-small text-medium-emphasis">{{ item.note }}</div>
       <div
         v-for="(c, cIdx) in item.customizations"
         :key="cIdx"
-        class="text-caption text-medium-emphasis"
+        class="text-body-small text-medium-emphasis"
       >
         {{ c.label ? `${c.label}: ${c.value}` : c.value }}
       </div>
@@ -69,23 +69,23 @@
 
     <v-divider class="mb-2" />
 
-    <div class="d-flex justify-space-between text-caption mb-1">
+    <div class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.subtotal') }}</span>
       <span>{{ formatBase(receipt.subtotal) }}</span>
     </div>
-    <div v-if="receipt.discount" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.discount" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.discount') }}</span>
       <span>-{{ formatBase(receipt.discount) }}</span>
     </div>
-    <div v-if="receipt.tax" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.tax" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.tax') }}</span>
       <span>{{ formatBase(receipt.tax) }}</span>
     </div>
-    <div v-if="receipt.service_charge" class="d-flex justify-space-between text-caption mb-1">
+    <div v-if="receipt.service_charge" class="d-flex justify-space-between text-body-small mb-1">
       <span>{{ $t('pos.receipt.service_charge') }}</span>
       <span>{{ formatBase(receipt.service_charge) }}</span>
     </div>
-    <div class="d-flex justify-space-between text-body-1 font-weight-bold mt-2">
+    <div class="d-flex justify-space-between text-body-large font-weight-bold mt-2">
       <span>{{ $t('pos.receipt.total') }}</span>
       <span>{{ formatBase(receipt.total) }}</span>
     </div>
@@ -94,7 +94,7 @@
          Bill mode has no saved rate yet, so it uses today's live tenant
          setting; receipt mode uses the rate actually stamped on the
          payment, so a reprint stays correct even after the rate changes. -->
-    <div class="d-flex justify-space-between text-caption text-medium-emphasis">
+    <div class="d-flex justify-space-between text-body-small text-medium-emphasis">
       <span></span>
       <span>{{ formatOtherCurrency(receipt.total) }} · Rate: 1 USD = {{ rateDisplay }} ៛</span>
     </div>
@@ -107,44 +107,44 @@
     </template>
     <template v-else-if="receipt.payment_method === 'cash'">
       <v-divider class="my-2" />
-      <div class="d-flex justify-space-between text-caption mb-1">
+      <div class="d-flex justify-space-between text-body-small mb-1">
         <span>Cash / សាច់ប្រាក់</span>
         <span>{{ formatBase(receipt.total) }}</span>
       </div>
-      <div class="d-flex justify-space-between text-caption mb-1">
+      <div class="d-flex justify-space-between text-body-small mb-1">
         <span>{{ $t('pos.receipt.cash_tendered') }}</span>
         <span>{{ formatBase(receipt.cash_tendered) }}</span>
       </div>
-      <div class="d-flex justify-space-between text-caption">
+      <div class="d-flex justify-space-between text-body-small">
         <span>{{ $t('pos.receipt.change_given') }}</span>
         <span>{{ formatBase(receipt.change_given) }}</span>
       </div>
     </template>
     <template v-else-if="receipt.payment_method === 'qr_code' || receipt.payment_method === 'qr'">
       <v-divider class="my-2" />
-      <div class="d-flex justify-space-between text-caption mb-1">
+      <div class="d-flex justify-space-between text-body-small mb-1">
         <span>Paid by QR / បង់តាម QR</span>
         <span>{{ formatBase(receipt.total) }}</span>
       </div>
-      <div v-if="receipt.reference" class="d-flex justify-space-between text-caption">
+      <div v-if="receipt.reference" class="d-flex justify-space-between text-body-small">
         <span>Ref / លេខយោង</span>
         <span>{{ receipt.reference }}</span>
       </div>
     </template>
     <template v-else-if="receipt.payment_method === 'card'">
       <v-divider class="my-2" />
-      <div class="d-flex justify-space-between text-caption mb-1">
+      <div class="d-flex justify-space-between text-body-small mb-1">
         <span>Card / កាត</span>
         <span>{{ formatBase(receipt.total) }}</span>
       </div>
-      <div v-if="receipt.reference" class="d-flex justify-space-between text-caption">
+      <div v-if="receipt.reference" class="d-flex justify-space-between text-body-small">
         <span>Approval / លេខអនុម័ត</span>
         <span>{{ receipt.reference }}</span>
       </div>
     </template>
     <template v-else-if="receipt.payment_method">
       <v-divider class="my-2" />
-      <div class="d-flex justify-space-between text-caption">
+      <div class="d-flex justify-space-between text-body-small">
         <span>{{ $t('pos.receipt.payment_method') }}</span>
         <span class="text-uppercase">{{ receipt.payment_method }}</span>
       </div>
@@ -153,8 +153,8 @@
     <template v-if="receipt.queue_number_display && authStore.posSettings?.show_queue_number">
       <v-divider class="my-3" />
       <div class="text-center">
-        <div class="text-h3 font-weight-bold">{{ receipt.queue_number_display }}</div>
-        <div class="text-caption text-medium-emphasis">លេខរងចាំ / Ticket No.</div>
+        <div class="text-display-medium font-weight-bold">{{ receipt.queue_number_display }}</div>
+        <div class="text-body-small text-medium-emphasis">លេខរងចាំ / Ticket No.</div>
       </div>
     </template>
   </div>

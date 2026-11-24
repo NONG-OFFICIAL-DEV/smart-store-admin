@@ -1,7 +1,7 @@
 <template>
   <v-avatar :size="size" rounded="lg" :color="logoUrl ? undefined : 'primary'">
     <v-img v-if="logoUrl" :src="logoUrl" cover />
-    <span v-else class="text-caption font-weight-bold text-white">{{ initial }}</span>
+    <span v-else class="text-body-small font-weight-bold text-white">{{ initial }}</span>
   </v-avatar>
 </template>
 

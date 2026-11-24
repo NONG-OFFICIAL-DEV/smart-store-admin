@@ -72,7 +72,7 @@
         class="mb-4"
       />
 
-      <div class="text-body-2 font-weight-medium mb-2">{{ $t('branches.table.status') }}</div>
+      <div class="text-body-medium font-weight-medium mb-2">{{ $t('branches.table.status') }}</div>
       <v-btn-toggle
         v-model="form.status"
         mandatory

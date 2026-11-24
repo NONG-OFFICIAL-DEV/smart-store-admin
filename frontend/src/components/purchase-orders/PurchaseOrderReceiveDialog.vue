@@ -12,8 +12,8 @@
     <div v-for="item in receiveItems" :key="item.id" class="mb-4">
       <div class="d-flex align-center justify-space-between mb-1">
         <div>
-          <div class="text-body-2 font-weight-medium">{{ item.ingredient_name }}</div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-medium font-weight-medium">{{ item.ingredient_name }}</div>
+          <div class="text-body-small text-medium-emphasis">
             {{ $t('po.quantity_ordered') }}: {{ item.quantity_ordered }} | {{ $t('po.quantity_received') }}: {{ item.quantity_received }}
             | {{ $t('po.remaining') }}: {{ item.remaining }}
           </div>

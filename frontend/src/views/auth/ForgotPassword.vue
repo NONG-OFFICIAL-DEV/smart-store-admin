@@ -21,11 +21,11 @@
         class="mb-6 rounded-lg"
         border="start"
       >
-        <span class="text-body-2">{{ t('forgot_password.sent_message') }}</span>
+        <span class="text-body-medium">{{ t('forgot_password.sent_message') }}</span>
       </v-alert>
       <router-link
         :to="{ name: 'Login' }"
-        class="text-primary font-weight-medium text-body-2"
+        class="text-primary font-weight-medium text-body-medium"
       >
         {{ t('forgot_password.back_to_login') }}
       </router-link>
@@ -41,11 +41,11 @@
           class="mb-6 rounded-lg"
           border="start"
         >
-          <span class="text-body-2">{{ errors.general }}</span>
+          <span class="text-body-medium">{{ errors.general }}</span>
         </v-alert>
       </v-slide-y-transition>
 
-      <label class="text-caption ml-1">{{ t('login.email') }}</label>
+      <label class="text-body-small ml-1">{{ t('login.email') }}</label>
       <v-text-field
         v-model="email"
         :placeholder="t('login.emailPlaceholder')"
@@ -69,7 +69,7 @@
         {{ t('forgot_password.send_link') }}
       </v-btn>
 
-      <div class="text-center mt-6 text-caption">
+      <div class="text-center mt-6 text-body-small">
         <router-link
           :to="{ name: 'Login' }"
           class="text-primary font-weight-medium"

@@ -34,14 +34,13 @@
         >
           {{ tableButtonLabel }}
         </v-btn>
-
       </template>
     </AppToolbar>
 
     <v-bottom-sheet v-model="tableSheetOpen">
       <v-card rounded="t-xl">
         <div class="pa-4 d-flex align-center">
-          <span class="text-subtitle-1 font-weight-bold">
+          <span class="text-body-large font-weight-bold">
             {{ t('pos.cart.choose_table') }}
           </span>
           <v-spacer />
@@ -60,22 +59,26 @@
           />
         </div>
         <v-divider />
-        <v-row class="pa-4 ma-0" dense>
+        <v-row class="pa-4 ma-0" density="compact">
           <v-col v-for="tb in tableOptions" :key="tb.id" cols="4" sm="3" md="2">
             <v-card
-              :color="posStore.tableId === tb.id ? 'primary' : tableStatusColor(tb.status)"
+              :color="
+                posStore.tableId === tb.id
+                  ? 'primary'
+                  : tableStatusColor(tb.status)
+              "
               :variant="posStore.tableId === tb.id ? 'flat' : 'tonal'"
               rounded="lg"
               class="pa-3 text-center table-sheet-card"
               :class="{ 'table-sheet-card--disabled': !isTablePickable(tb) }"
               @click="isTablePickable(tb) && selectTable(tb.id)"
             >
-              <div class="text-h6 font-weight-bold">{{ tb.table_number }}</div>
-              <div class="d-flex align-center justify-center ga-1 text-caption">
+              <div class="text-title-large font-weight-bold">{{ tb.table_number }}</div>
+              <div class="d-flex align-center justify-center ga-1 text-body-small">
                 <v-icon icon="mdi-account-group-outline" size="14" />
                 {{ tb.capacity }}
               </div>
-              <div class="text-caption font-weight-medium mt-1">
+              <div class="text-body-small font-weight-medium mt-1">
                 {{ tableStatusLabel(tb.status) }}
               </div>
             </v-card>
@@ -108,7 +111,7 @@
         >
           <div>
             <div class="font-weight-medium">{{ t('pos.no_branch.title') }}</div>
-            <div class="text-caption">{{ t('pos.no_branch.subtitle') }}</div>
+            <div class="text-body-small">{{ t('pos.no_branch.subtitle') }}</div>
           </div>
           <v-spacer />
           <v-btn
@@ -141,7 +144,10 @@
           @open-redeem="redeemDialogOpen = true"
         />
 
-        <LoyaltyRedeemDialog v-model="redeemDialogOpen" @applied="onRedemptionApplied" />
+        <LoyaltyRedeemDialog
+          v-model="redeemDialogOpen"
+          @applied="onRedemptionApplied"
+        />
 
         <MobileOrdersCarousel
           v-if="showMobileOrders"
@@ -180,8 +186,17 @@
               :subtotal="posStore.subtotal"
               :discount-amount="posStore.discountAmount"
               :loading="submitting"
-              :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
-              :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
+              :payment-methods="
+                authStore.posSettings?.payment_methods ?? [
+                  'cash',
+                  'card',
+                  'qr',
+                  'pay_later'
+                ]
+              "
+              :default-payment-method="
+                authStore.posSettings?.default_payment_method ?? 'cash'
+              "
               :before-checkout="validateBeforeCheckout"
               :qr-image-url="branchCdSettings.merchant_qr_image_url"
               show-notes
@@ -210,11 +225,11 @@
           inline
           class="me-2"
         />
-        <span class="text-body-1 font-weight-medium">
+        <span class="text-body-large font-weight-medium">
           {{ t('pos.cart.view_order') }}
         </span>
         <v-spacer />
-        <span class="text-h6 font-weight-black">
+        <span class="text-title-large font-weight-black">
           {{ formatMoney(posStore.payableTotal) }}
         </span>
       </div>
@@ -226,8 +241,17 @@
           :subtotal="posStore.subtotal"
           :discount-amount="posStore.discountAmount"
           :loading="submitting"
-          :payment-methods="authStore.posSettings?.payment_methods ?? ['cash', 'card', 'qr', 'pay_later']"
-          :default-payment-method="authStore.posSettings?.default_payment_method ?? 'cash'"
+          :payment-methods="
+            authStore.posSettings?.payment_methods ?? [
+              'cash',
+              'card',
+              'qr',
+              'pay_later'
+            ]
+          "
+          :default-payment-method="
+            authStore.posSettings?.default_payment_method ?? 'cash'
+          "
           :before-checkout="validateBeforeCheckout"
           :qr-image-url="branchCdSettings.merchant_qr_image_url"
           show-notes
@@ -280,7 +304,7 @@
   import MobileOrdersCarousel from '@/components/pos/MobileOrdersCarousel.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useReceipt, printTicketBrowser } from '@/utils/printReceipt'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
   import {
     useCustomerDisplayPublisher,
     buildCustomerDisplayState
@@ -303,7 +327,9 @@
   const branchId = computed(() => authStore.activeBranchId)
 
   const activeBranchPrinterName = computed(
-    () => branchStore.branches.find(b => b.id === branchId.value)?.printer_name ?? null
+    () =>
+      branchStore.branches.find(b => b.id === branchId.value)?.printer_name ??
+      null
   )
   const productGridRef = ref(null)
   const cartPanelRef = ref(null)
@@ -367,7 +393,9 @@
     () => authStore.posSettings?.customer_selection ?? true
   )
   const showNotes = computed(() => authStore.posSettings?.order_notes ?? true)
-  const showMobileOrders = computed(() => authStore.posSettings?.show_mobile_menu_orders !== false)
+  const showMobileOrders = computed(
+    () => authStore.posSettings?.show_mobile_menu_orders !== false
+  )
 
   const categories = ref([])
   const rawProducts = ref([])
@@ -412,11 +440,17 @@
   // stomp 'thanks' with 'idle'.
   const suppressCartPublish = ref(false)
 
-  const activeBranch = computed(() => branchStore.branches.find(b => b.id === branchId.value))
+  const activeBranch = computed(() =>
+    branchStore.branches.find(b => b.id === branchId.value)
+  )
   const currentBranchName = computed(() => activeBranch.value?.name ?? '')
-  const branchCdSettings = computed(() => activeBranch.value?.customer_display_settings ?? {})
+  const branchCdSettings = computed(
+    () => activeBranch.value?.customer_display_settings ?? {}
+  )
   const currentTableName = computed(
-    () => tableOptions.value.find(tb => tb.id === posStore.tableId)?.table_number ?? null
+    () =>
+      tableOptions.value.find(tb => tb.id === posStore.tableId)?.table_number ??
+      null
   )
 
   function publishCartState() {
@@ -428,7 +462,8 @@
         posStore,
         branchName: currentBranchName.value,
         branchSettings: branchCdSettings.value,
-        tableName: posStore.orderType === 'dine_in' ? currentTableName.value : null
+        tableName:
+          posStore.orderType === 'dine_in' ? currentTableName.value : null
       })
     )
   }
@@ -454,7 +489,12 @@
   const isTablePickable = tb => ['available', 'occupied'].includes(tb.status)
 
   const tableStatusColor = status =>
-    ({ available: 'success', occupied: 'warning', reserved: 'grey', cleaning: 'grey' })[status] || 'grey'
+    ({
+      available: 'success',
+      occupied: 'warning',
+      reserved: 'grey',
+      cleaning: 'grey'
+    })[status] || 'grey'
 
   const tableStatusLabel = status =>
     ({
@@ -488,7 +528,9 @@
   // CustomerResource already includes loyalty_points — reusing the search
   // result instead of a separate lookup once a customer is attached.
   const attachedCustomerLoyaltyPoints = computed(
-    () => customerOptions.value.find(c => c.id === posStore.customerId)?.loyalty_points ?? null
+    () =>
+      customerOptions.value.find(c => c.id === posStore.customerId)
+        ?.loyalty_points ?? null
   )
 
   const redeemDialogOpen = ref(false)
@@ -660,7 +702,8 @@
         posStore,
         branchName: currentBranchName.value,
         branchSettings: branchCdSettings.value,
-        tableName: posStore.orderType === 'dine_in' ? currentTableName.value : null,
+        tableName:
+          posStore.orderType === 'dine_in' ? currentTableName.value : null,
         payment: { method: 'qr' }
       })
     )
@@ -729,7 +772,8 @@
       }
 
       const receiptData = data.data.prints.receipt
-      const delaySeconds = Number(branchCdSettings.value.thank_you_delay_seconds) || 10
+      const delaySeconds =
+        Number(branchCdSettings.value.thank_you_delay_seconds) || 10
 
       suppressCartPublish.value = true
       customerDisplay.publish(
@@ -740,7 +784,10 @@
           branchName: currentBranchName.value,
           branchSettings: branchCdSettings.value,
           orderNumber: receiptData.order_number,
-          totals: { totalUsd: receiptData.total, discount: receiptData.discount },
+          totals: {
+            totalUsd: receiptData.total,
+            discount: receiptData.discount
+          },
           payment: {
             method: receiptData.payment_method,
             paidBase: receiptData.cash_tendered,
@@ -763,7 +810,9 @@
             branch_id: branchId.value
           })
         } catch (e) {
-          notif(e?.response?.data?.message || t('pos.loyalty.confirm_failed'), { type: 'error' })
+          notif(e?.response?.data?.message || t('pos.loyalty.confirm_failed'), {
+            type: 'error'
+          })
         }
       }
 

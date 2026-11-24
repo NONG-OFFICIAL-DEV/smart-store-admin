@@ -20,7 +20,7 @@
           <v-breadcrumbs-item
             :to="item.to"
             :disabled="item.disabled || !item.to"
-            class="text-caption font-weight-bold px-0"
+            class="text-body-small font-weight-bold px-0"
             :class="{ 'text-primary': item.to && !item.disabled }"
           >
             {{ item.title }}
@@ -30,7 +30,7 @@
 
       <div class="d-flex align-center gap-2">
         <h2
-          class="text-h6 font-weight-black letter-spacing-tight text-truncate"
+          class="text-title-large font-weight-black letter-spacing-tight text-truncate"
         >
           {{ title }}
         </h2>

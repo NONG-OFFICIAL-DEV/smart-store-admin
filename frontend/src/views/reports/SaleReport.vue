@@ -74,7 +74,7 @@
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <v-tabs-window-item value="overview">
         <!-- KPI Cards (5) -->
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="4" md>
             <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
               <div class="d-flex align-center justify-space-between mb-3">
@@ -99,10 +99,10 @@
                 </v-chip>
               </div>
               <div class="kpi-value">{{ kpi.value }}</div>
-              <div class="text-caption text-medium-emphasis mt-1">
+              <div class="text-body-small text-medium-emphasis mt-1">
                 {{ kpi.label }}
               </div>
-              <div class="text-caption mt-1 kpi-prev">
+              <div class="text-body-small mt-1 kpi-prev">
                 {{ t('common.vs') }} {{ periodLabel(previousPeriod) }}:
                 {{ kpi.prev }}
               </div>
@@ -111,14 +111,14 @@
         </v-row>
 
         <!-- Order Type + Payment split (2-col) -->
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <!-- Order Type Breakdown -->
           <v-col cols="12" md="6">
             <v-card rounded="xl" border elevation="0" class="pa-5 h-100">
-              <div class="text-body-1 font-weight-bold mb-1">
+              <div class="text-body-large font-weight-bold mb-1">
                 {{ $t('order_report.order_types') }}
               </div>
-              <div class="text-caption text-medium-emphasis mb-4">
+              <div class="text-body-small text-medium-emphasis mb-4">
                 Distribution by type
               </div>
               <div
@@ -135,14 +135,14 @@
                     >
                       <v-icon :icon="ot.icon" size="13" />
                     </v-avatar>
-                    <span class="text-body-2" style="flex: 1">
+                    <span class="text-body-medium" style="flex: 1">
                       {{ ot.label }}
                     </span>
-                    <span class="text-caption font-weight-bold">
+                    <span class="text-body-small font-weight-bold">
                       {{ ot.count }}
                     </span>
                     <span
-                      class="text-caption text-medium-emphasis"
+                      class="text-body-small text-medium-emphasis"
                       style="min-width: 34px; text-align: right"
                     >
                       {{ ot.pct }}%
@@ -166,7 +166,7 @@
                   size="32"
                   color="grey-lighten-1"
                 />
-                <span class="text-caption text-disabled">No data</span>
+                <span class="text-body-small text-disabled">No data</span>
               </div>
             </v-card>
           </v-col>
@@ -180,10 +180,10 @@
               class="pa-5"
               style="height: 100%"
             >
-              <div class="text-body-1 font-weight-bold mb-1">
+              <div class="text-body-large font-weight-bold mb-1">
                 {{ t('order_report.payment_method') }}
               </div>
-              <div class="text-caption text-medium-emphasis mb-3">
+              <div class="text-body-small text-medium-emphasis mb-3">
                 {{ t('order_report.split_by_revenue') }}
               </div>
               <div class="d-flex align-center" style="gap: 16px">
@@ -198,7 +198,7 @@
                   <canvas ref="payDonutRef" />
                   <div class="donut-center-label">
                     <div
-                      class="text-caption font-weight-bold"
+                      class="text-body-small font-weight-bold"
                       style="line-height: 1.2"
                     >
                       {{ paymentStats.length }}
@@ -218,12 +218,12 @@
                       :style="`background:${payColors[i % payColors.length]}`"
                     />
                     <span
-                      class="text-caption text-medium-emphasis"
+                      class="text-body-small text-medium-emphasis"
                       style="flex: 1"
                     >
                       {{ item.label }}
                     </span>
-                    <span class="text-caption font-weight-bold">
+                    <span class="text-body-small font-weight-bold">
                       {{ format(item.revenue) }}
                     </span>
                     <v-chip
@@ -242,7 +242,7 @@
         </v-row>
 
         <!-- Quick insight strip -->
-        <v-row dense class="mb-2">
+        <v-row density="compact" class="mb-2">
           <v-col cols="12">
             <v-card rounded="xl" border elevation="0" class="pa-4">
               <div class="d-flex align-center flex-wrap" style="gap: 12px">
@@ -296,15 +296,15 @@
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <v-tabs-window-item value="charts">
         <!-- Revenue / Orders over time (full width) -->
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <v-col cols="12">
             <v-card rounded="xl" border elevation="0" class="pa-5">
               <div class="d-flex align-center justify-space-between mb-4">
                 <div>
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ t('order_report.revenue_over_time') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ periodLabel(period) }}
                   </div>
                 </div>
@@ -352,15 +352,15 @@
         </v-row>
 
         <!-- Hourly traffic (full width) -->
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <v-col cols="12">
             <v-card rounded="xl" border elevation="0" class="pa-5">
               <div class="d-flex align-center justify-space-between mb-2">
                 <div>
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ t('order_report.sales_by_time') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ t('order_report.orders_per_hour') }}
                   </div>
                 </div>
@@ -406,15 +406,15 @@
       <!-- TAB 3 · PRODUCTS                                                  -->
       <!-- ══════════════════════════════════════════════════════════════════ -->
       <v-tabs-window-item value="products">
-        <v-row dense class="mb-4">
+        <v-row density="compact" class="mb-4">
           <v-col cols="12">
             <v-card rounded="xl" border elevation="0" class="pa-5">
               <div class="d-flex align-center justify-space-between mb-5">
                 <div>
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ t('order_report.top_products') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ t('order_report.top_products_subtitle') }}
                   </div>
                 </div>
@@ -438,7 +438,7 @@
 
               <div v-if="topProducts.length > 0">
                 <!-- Top 3 podium -->
-                <v-row dense class="mb-4">
+                <v-row density="compact" class="mb-4">
                   <v-col
                     v-for="(product, i) in topProducts.slice(0, 3)"
                     :key="'top-' + product.name"
@@ -457,18 +457,18 @@
                         <span class="podium-medal">
                           {{ ['🥇', '🥈', '🥉'][i] }}
                         </span>
-                        <span class="text-body-2 font-weight-bold podium-name">
+                        <span class="text-body-medium font-weight-bold podium-name">
                           {{ product.name }}
                         </span>
                       </div>
-                      <div class="text-h6 font-weight-bold">
+                      <div class="text-title-large font-weight-bold">
                         {{
                           productMode === 'qty'
                             ? product.qty
                             : format(product.revenue)
                         }}
                       </div>
-                      <div class="text-caption text-medium-emphasis">
+                      <div class="text-body-small text-medium-emphasis">
                         {{
                           productMode === 'qty'
                             ? t('order_report.sold')
@@ -480,7 +480,7 @@
                 </v-row>
 
                 <!-- Remaining list -->
-                <v-row dense>
+                <v-row density="compact">
                   <v-col
                     v-for="(product, i) in topProducts.slice(3)"
                     :key="product.name"
@@ -490,13 +490,13 @@
                   >
                     <div class="d-flex align-center mb-1" style="gap: 8px">
                       <span
-                        class="text-caption font-weight-bold"
+                        class="text-body-small font-weight-bold"
                         style="width: 20px; text-align: right; opacity: 0.35"
                       >
                         {{ i + 4 }}
                       </span>
                       <span
-                        class="text-body-2"
+                        class="text-body-medium"
                         style="
                           flex: 1;
                           min-width: 0;
@@ -507,7 +507,7 @@
                       >
                         {{ product.name }}
                       </span>
-                      <span class="text-caption text-medium-emphasis">
+                      <span class="text-body-small text-medium-emphasis">
                         {{
                           productMode === 'qty'
                             ? product.qty + ' ' + t('order_report.sold')
@@ -535,10 +535,10 @@
                   size="44"
                   color="grey-lighten-1"
                 />
-                <div class="text-body-2 text-medium-emphasis">
+                <div class="text-body-medium text-medium-emphasis">
                   {{$t('products.empty')}}
                 </div>
-                <div class="text-caption text-disabled">
+                <div class="text-body-small text-disabled">
                   No orders were placed during this period
                 </div>
               </div>
@@ -555,7 +555,7 @@
         <v-expand-transition>
           <v-card v-if="showFilters" rounded="xl" elevation="0" class="mb-4">
             <v-card-text>
-              <v-row dense align="center">
+              <v-row density="compact" align="center">
                 <v-col cols="12" sm="4">
                   <v-text-field
                     v-model="filters.search"
@@ -673,10 +673,10 @@
                   <v-icon :icon="typeIcon(item.order_type)" size="14" />
                 </v-avatar>
                 <div>
-                  <div class="text-body-2 font-weight-bold">
+                  <div class="text-body-medium font-weight-bold">
                     {{ item.order_number }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ item.branch?.name }}
                   </div>
                 </div>
@@ -685,12 +685,12 @@
 
             <template #item.customer="{ item }">
               <div v-if="item.customer">
-                <div class="text-body-2">{{ item.customer.name }}</div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-medium">{{ item.customer.name }}</div>
+                <div class="text-body-small text-medium-emphasis">
                   {{ item.customer.phone }}
                 </div>
               </div>
-              <span v-else class="text-caption text-medium-emphasis">
+              <span v-else class="text-body-small text-medium-emphasis">
                 Walk-in
               </span>
             </template>
@@ -703,7 +703,7 @@
             </template>
 
             <template #item.total_amount="{ item }">
-              <span class="font-weight-bold text-body-2">
+              <span class="font-weight-bold text-body-medium">
                 {{ format(item.total_amount) }}
               </span>
             </template>
@@ -717,7 +717,7 @@
               >
                 {{ payLabel(getPaymentMethod(item)) }}
               </v-chip>
-              <span v-else class="text-caption text-medium-emphasis">—</span>
+              <span v-else class="text-body-small text-medium-emphasis">—</span>
             </template>
 
             <template #item.status="{ item }">
@@ -733,8 +733,8 @@
             </template>
 
             <template #item.created_at="{ item }">
-              <div class="text-body-2">{{ fmtDate(item.created_at) }}</div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-medium">{{ fmtDate(item.created_at) }}</div>
+              <div class="text-body-small text-medium-emphasis">
                 {{ fmtTime(item.created_at) }}
               </div>
             </template>

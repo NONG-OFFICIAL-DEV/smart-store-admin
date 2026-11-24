@@ -45,7 +45,7 @@
       <div class="pa-5 bg-primary">
         <div class="d-flex align-center justify-space-between mb-4">
           <span
-            class="text-caption font-weight-bold text-white opacity-70 text-uppercase"
+            class="text-body-small font-weight-bold text-white opacity-70 text-uppercase"
             style="letter-spacing: 0.08em"
           >
             {{ $t('customers.detail.profile_title') }}
@@ -66,18 +66,18 @@
             class="border-lg border-white me-3"
           >
             <v-img v-if="customer.avatar_url" :src="customer.avatar_url" />
-            <span v-else class="text-h6 font-weight-black text-white">
+            <span v-else class="text-title-large font-weight-black text-white">
               {{ initials(customer) }}
             </span>
           </v-avatar>
           <div>
-            <p class="text-h6 font-weight-black text-white mb-0">
+            <p class="text-title-large font-weight-black text-white mb-0">
               {{ customer.first_name }} {{ customer.last_name }}
             </p>
-            <p class="text-caption text-white opacity-70 mb-0">
+            <p class="text-body-small text-white opacity-70 mb-0">
               {{ customer.email ?? '—' }}
             </p>
-            <p class="text-caption text-white opacity-70">
+            <p class="text-body-small text-white opacity-70">
               {{ customer.phone ?? '—' }}
             </p>
           </div>
@@ -94,26 +94,26 @@
             class="pa-3 text-center"
             style="border-right: 1px solid rgba(255, 255, 255, 0.15)"
           >
-            <p class="text-h6 font-weight-black text-white mb-0">
+            <p class="text-title-large font-weight-black text-white mb-0">
               {{ customer.total_orders ?? 0 }}
             </p>
-            <p class="text-caption text-white opacity-60 mb-0">{{ $t('menu.orders') }}</p>
+            <p class="text-body-small text-white opacity-60 mb-0">{{ $t('menu.orders') }}</p>
           </v-col>
           <v-col
             cols="4"
             class="pa-3 text-center"
             style="border-right: 1px solid rgba(255, 255, 255, 0.15)"
           >
-            <p class="text-h6 font-weight-black text-white mb-0">
+            <p class="text-title-large font-weight-black text-white mb-0">
               ${{ Number(customer.total_spent ?? 0).toFixed(0) }}
             </p>
-            <p class="text-caption text-white opacity-60 mb-0">{{ $t('customers.detail.spent') }}</p>
+            <p class="text-body-small text-white opacity-60 mb-0">{{ $t('customers.detail.spent') }}</p>
           </v-col>
           <v-col cols="4" class="pa-3 text-center">
-            <p class="text-h6 font-weight-black text-amber-accent-2 mb-0">
+            <p class="text-title-large font-weight-black text-amber-accent-2 mb-0">
               {{ customer.loyalty_points ?? 0 }}
             </p>
-            <p class="text-caption text-white opacity-60 mb-0">{{ $t('customers.detail.points') }}</p>
+            <p class="text-body-small text-white opacity-60 mb-0">{{ $t('customers.detail.points') }}</p>
           </v-col>
         </v-row>
       </div>
@@ -123,7 +123,7 @@
         <!-- Details section -->
         <div class="d-flex align-center justify-space-between mb-3">
           <p
-            class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-0"
+            class="text-body-small font-weight-bold text-uppercase text-medium-emphasis mb-0"
             style="letter-spacing: 0.08em"
           >
             {{ $t('products.tab.details') }}
@@ -175,11 +175,11 @@
                 class="mr-3"
               />
             </template>
-            <v-list-item-title class="text-caption text-medium-emphasis">
+            <v-list-item-title class="text-body-small text-medium-emphasis">
               {{ row.label }}
             </v-list-item-title>
             <template #append>
-              <span class="text-body-2 font-weight-medium text-capitalize">
+              <span class="text-body-medium font-weight-medium text-capitalize">
                 {{ row.value }}
               </span>
             </template>
@@ -211,13 +211,13 @@
         <!-- Notes -->
         <div v-if="customer.notes" class="mb-5">
           <p
-            class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-2"
+            class="text-body-small font-weight-bold text-uppercase text-medium-emphasis mb-2"
             style="letter-spacing: 0.08em"
           >
             {{ $t('form.notes') }}
           </p>
           <v-card flat color="brown-lighten-5" rounded="xl" class="pa-3">
-            <p class="text-body-2 text-medium-emphasis mb-0">
+            <p class="text-body-medium text-medium-emphasis mb-0">
               {{ customer.notes }}
             </p>
           </v-card>
@@ -226,7 +226,7 @@
         <!-- Addresses -->
         <div class="d-flex align-center justify-space-between mb-3">
           <p
-            class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-0"
+            class="text-body-small font-weight-bold text-uppercase text-medium-emphasis mb-0"
             style="letter-spacing: 0.08em"
           >
             {{ $t('customers.detail.addresses_title') }}
@@ -250,7 +250,7 @@
             color="primary"
             class="mb-2"
           />
-          <p class="text-caption text-medium-emphasis">{{ $t('customers.detail.no_addresses') }}</p>
+          <p class="text-body-small text-medium-emphasis">{{ $t('customers.detail.no_addresses') }}</p>
         </div>
 
         <div v-else class="d-flex flex-column gap-3">
@@ -276,7 +276,7 @@
                       size="14"
                       :color="addr.is_default ? 'primary' : 'grey'"
                     />
-                    <span class="text-caption font-weight-bold text-capitalize">
+                    <span class="text-body-small font-weight-bold text-capitalize">
                       {{ addr.label ?? $t('form.address') }}
                     </span>
                     <v-chip
@@ -288,13 +288,13 @@
                       {{ $t('products.variant.default') }}
                     </v-chip>
                   </div>
-                  <p class="text-body-2 text-medium-emphasis mb-0">
+                  <p class="text-body-medium text-medium-emphasis mb-0">
                     {{ addr.address_line1 }}
                     <template v-if="addr.address_line2">
                       , {{ addr.address_line2 }}
                     </template>
                   </p>
-                  <p class="text-caption text-medium-emphasis mb-0">
+                  <p class="text-body-small text-medium-emphasis mb-0">
                     {{
                       [addr.city, addr.state, addr.postal_code]
                         .filter(Boolean)
@@ -303,7 +303,7 @@
                   </p>
                   <p
                     v-if="addr.country"
-                    class="text-caption text-medium-emphasis mb-0"
+                    class="text-body-small text-medium-emphasis mb-0"
                   >
                     {{ addr.country }}
                   </p>
@@ -343,7 +343,7 @@
           color="primary"
           class="mb-3"
         />
-        <p class="text-body-2 text-medium-emphasis">
+        <p class="text-body-medium text-medium-emphasis">
           {{ $t('customers.detail.empty_state') }}
         </p>
       </div>

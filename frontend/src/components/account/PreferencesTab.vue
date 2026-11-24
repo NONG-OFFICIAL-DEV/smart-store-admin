@@ -5,7 +5,7 @@
       <v-card-text class="pa-5">
         <div class="d-flex align-center gap-2 mb-4">
           <v-icon size="18" color="primary">mdi-translate</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('preferences.language') }}</span>
+          <span class="text-title-small font-weight-bold">{{ t('preferences.language') }}</span>
         </div>
         <div class="d-flex gap-2 flex-wrap">
           <v-btn
@@ -31,7 +31,7 @@
       <v-card-text class="pa-5">
         <div class="d-flex align-center gap-2 mb-4">
           <v-icon size="18" color="primary">mdi-tune-variant</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('app_bar.appearance') }}</span>
+          <span class="text-title-small font-weight-bold">{{ t('app_bar.appearance') }}</span>
         </div>
         <AppearanceSettings />
       </v-card-text>

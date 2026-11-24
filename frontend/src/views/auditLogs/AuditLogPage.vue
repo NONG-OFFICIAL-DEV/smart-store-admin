@@ -51,7 +51,7 @@
     </v-card>
 
     <!-- ── Filters ────────────────────────────────────────────────────────────── -->
-    <v-row dense class="mb-2">
+    <v-row density="compact" class="mb-2">
       <v-col cols="6" sm="3">
         <AppDatePicker v-model="filters.date_from" :label="$t('audit_log.start_date')" />
       </v-col>
@@ -65,10 +65,10 @@
       <AppTable :headers="headers" :fetch-fn="fetchLogs" :filters="filters" item-label="entries">
         <template #[`item.user_name`]="{ item }">
           <div class="d-flex flex-column">
-            <span class="text-body-2 font-weight-medium">
+            <span class="text-body-medium font-weight-medium">
               {{ item.user_name || '—' }}
             </span>
-            <span class="text-caption text-grey">{{ item.user_email }}</span>
+            <span class="text-body-small text-grey">{{ item.user_email }}</span>
           </div>
         </template>
 
@@ -79,9 +79,9 @@
         </template>
 
         <template #[`item.entity_type`]="{ item }">
-          <span v-if="item.entity_type" class="text-body-2">
+          <span v-if="item.entity_type" class="text-body-medium">
             {{ item.entity_type }}
-            <span v-if="item.entity_id" class="text-caption text-grey ms-1">
+            <span v-if="item.entity_id" class="text-body-small text-grey ms-1">
               #{{ item.entity_id.slice(0, 8) }}...
             </span>
           </span>
@@ -89,11 +89,11 @@
         </template>
 
         <template #[`item.ip_address`]="{ item }">
-          <span class="text-caption font-weight-mono">{{ item.ip_address || '—' }}</span>
+          <span class="text-body-small font-weight-mono">{{ item.ip_address || '—' }}</span>
         </template>
 
         <template #[`item.created_at`]="{ item }">
-          <span class="text-caption">{{ formatDateTime(item.created_at) }}</span>
+          <span class="text-body-small">{{ formatDateTime(item.created_at) }}</span>
         </template>
 
         <template #[`item.actions`]="{ item }">

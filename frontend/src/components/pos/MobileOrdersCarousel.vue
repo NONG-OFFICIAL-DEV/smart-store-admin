@@ -23,18 +23,18 @@
 
     <div v-if="loading && !tickets.length" class="d-flex align-center ga-2 py-2 px-1">
       <v-progress-circular indeterminate size="16" width="2" color="primary" />
-      <span class="text-caption text-medium-emphasis">{{ t('pos.mobile_orders.loading') }}</span>
+      <span class="text-body-small text-medium-emphasis">{{ t('pos.mobile_orders.loading') }}</span>
     </div>
 
     <div v-else-if="loadFailed" class="d-flex align-center ga-2 py-2 px-1">
-      <span class="text-caption text-error">{{ t('pos.mobile_orders.load_failed') }}</span>
+      <span class="text-body-small text-error">{{ t('pos.mobile_orders.load_failed') }}</span>
       <v-btn size="x-small" variant="text" color="primary" class="text-none" @click="loadTickets">
         {{ t('btn.retry') }}
       </v-btn>
     </div>
 
     <div v-else-if="!cards.length" class="py-2 px-1">
-      <span class="text-caption text-medium-emphasis">
+      <span class="text-body-small text-medium-emphasis">
         {{ sourceFilter === 'all' ? t('pos.mobile_orders.empty_all') : t('pos.mobile_orders.empty') }}
       </span>
     </div>
@@ -70,14 +70,14 @@
                 :icon="card.source === 'pos' ? 'mdi-point-of-sale' : 'mdi-cellphone'"
                 size="14"
               />
-              <span class="text-body-2 font-weight-bold text-truncate">{{ card.orderNumber }}</span>
+              <span class="text-body-medium font-weight-bold text-truncate">{{ card.orderNumber }}</span>
             </span>
             <v-chip size="x-small" :color="card.status.color" variant="flat">
               {{ card.status.label }}
             </v-chip>
           </div>
 
-          <div class="d-flex align-center ga-3 text-caption text-medium-emphasis mb-2">
+          <div class="d-flex align-center ga-3 text-body-small text-medium-emphasis mb-2">
             <span v-if="card.tableNumber" class="d-flex align-center ga-1">
               <v-icon icon="mdi-table-furniture" size="14" />
               {{ card.tableNumber }}

@@ -21,7 +21,7 @@
     />
 
     <!-- 1. Name EN/KM -->
-    <v-row dense class="mb-2 py-2">
+    <v-row density="compact" class="mb-2 py-2">
       <v-col cols="12" sm="6">
         <v-text-field
           v-model="form.name"
@@ -47,8 +47,8 @@
     </v-row>
 
     <!-- 2. How many can staff pick -->
-    <div class="text-body-2 font-weight-medium mt-4 mb-2">{{ t('modifiers.drawer.pick_label') }}</div>
-    <v-row dense>
+    <div class="text-body-medium font-weight-medium mt-4 mb-2">{{ t('modifiers.drawer.pick_label') }}</div>
+    <v-row density="compact">
       <v-col cols="6">
         <v-card
           variant="outlined"
@@ -63,9 +63,9 @@
               color="primary"
               size="20"
             />
-            <span class="text-body-2 font-weight-medium">{{ t('modifiers.drawer.pick_one') }}</span>
+            <span class="text-body-medium font-weight-medium">{{ t('modifiers.drawer.pick_one') }}</span>
           </div>
-          <div class="text-caption text-medium-emphasis">{{ t('modifiers.drawer.pick_one_hint') }}</div>
+          <div class="text-body-small text-medium-emphasis">{{ t('modifiers.drawer.pick_one_hint') }}</div>
         </v-card>
       </v-col>
       <v-col cols="6">
@@ -82,15 +82,15 @@
               color="primary"
               size="20"
             />
-            <span class="text-body-2 font-weight-medium">{{ t('modifiers.drawer.pick_several') }}</span>
+            <span class="text-body-medium font-weight-medium">{{ t('modifiers.drawer.pick_several') }}</span>
           </div>
-          <div class="text-caption text-medium-emphasis">{{ t('modifiers.drawer.pick_several_hint') }}</div>
+          <div class="text-body-small text-medium-emphasis">{{ t('modifiers.drawer.pick_several_hint') }}</div>
         </v-card>
       </v-col>
     </v-row>
 
     <div v-if="form.selection_type === 'multiple'" class="d-flex align-center justify-space-between mt-3 mb-2 px-1">
-      <span class="text-body-2">{{ t('modifiers.drawer.up_to_label') }}</span>
+      <span class="text-body-medium">{{ t('modifiers.drawer.up_to_label') }}</span>
       <div class="d-flex align-center ga-2">
         <v-btn
           icon="mdi-minus"
@@ -99,7 +99,7 @@
           :disabled="form.max_selections <= 2"
           @click="form.max_selections = Math.max(2, form.max_selections - 1)"
         />
-        <span class="text-body-1 font-weight-bold text-center" style="min-width: 1.5em">
+        <span class="text-body-large font-weight-bold text-center" style="min-width: 1.5em">
           {{ form.max_selections }}
         </span>
         <v-btn
@@ -109,7 +109,7 @@
           :disabled="form.max_selections >= 10"
           @click="form.max_selections = Math.min(10, form.max_selections + 1)"
         />
-        <span class="text-caption text-medium-emphasis">{{ t('modifiers.drawer.options_suffix') }}</span>
+        <span class="text-body-small text-medium-emphasis">{{ t('modifiers.drawer.options_suffix') }}</span>
       </div>
     </div>
 
@@ -118,8 +118,8 @@
     <!-- 3. Required -->
     <div class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-3">
       <div>
-        <div class="text-body-2 font-weight-medium">{{ t('modifiers.group.required_toggle') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ t('modifiers.drawer.required_hint') }}</div>
+        <div class="text-body-medium font-weight-medium">{{ t('modifiers.group.required_toggle') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ t('modifiers.drawer.required_hint') }}</div>
       </div>
       <v-switch v-model="form.is_required" color="primary" hide-details inset />
     </div>
@@ -130,27 +130,27 @@
       class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-4"
     >
       <div>
-        <div class="text-body-2 font-weight-medium">{{ t('modifiers.drawer.allow_custom_label') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ t('modifiers.drawer.allow_custom_hint') }}</div>
+        <div class="text-body-medium font-weight-medium">{{ t('modifiers.drawer.allow_custom_label') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ t('modifiers.drawer.allow_custom_hint') }}</div>
       </div>
       <v-switch v-model="form.allow_custom_value" color="primary" hide-details inset />
     </div>
 
     <!-- 5. Choices — inline, no separate dialog -->
-    <div class="text-body-2 font-weight-medium mb-2">{{ t('modifiers.drawer.choices_label') }}</div>
+    <div class="text-body-medium font-weight-medium mb-2">{{ t('modifiers.drawer.choices_label') }}</div>
 
     <div class="d-flex align-center ga-2 mb-1 px-1 choice-header">
       <span class="choice-drag-spacer" />
-      <span class="choice-name text-caption text-medium-emphasis font-weight-medium">
+      <span class="choice-name text-body-small text-medium-emphasis font-weight-medium">
         {{ t('modifiers.drawer.choice_header_name') }}
       </span>
-      <span class="choice-price text-caption text-medium-emphasis font-weight-medium">
+      <span class="choice-price text-body-small text-medium-emphasis font-weight-medium">
         {{ t('modifiers.drawer.choice_header_price') }}
       </span>
-      <span class="choice-flag text-caption text-medium-emphasis font-weight-medium">
+      <span class="choice-flag text-body-small text-medium-emphasis font-weight-medium">
         {{ t('modifiers.drawer.choice_header_default') }}
       </span>
-      <span class="choice-flag text-caption text-medium-emphasis font-weight-medium">
+      <span class="choice-flag text-body-small text-medium-emphasis font-weight-medium">
         {{ t('modifiers.drawer.choice_header_available') }}
       </span>
       <span class="choice-delete-spacer" />
@@ -238,7 +238,7 @@
     />
 
     <!-- 6. Preview -->
-    <div class="text-body-2 font-weight-medium mb-2">{{ t('modifiers.drawer.preview_label') }}</div>
+    <div class="text-body-medium font-weight-medium mb-2">{{ t('modifiers.drawer.preview_label') }}</div>
     <v-sheet rounded="lg" class="pa-3 bg-surface-light">
       <div class="d-flex align-center ga-2 mb-2 flex-wrap">
         <span class="font-weight-medium">{{ form.name || t('modifiers.drawer.untitled') }}</span>

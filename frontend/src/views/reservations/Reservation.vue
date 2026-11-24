@@ -1,12 +1,11 @@
 <template>
   <div>
     <v-container fluid class="pa-0">
-      <custom-title
-        icon="mdi-calendar-check-outline"
+      <AppToolbar
         :title="$t('menu.reservations')"
         :subtitle="$t('reservations.subtitle')"
       >
-        <template #right>
+        <template #actions>
           <v-btn
             color="primary"
             prepend-icon="mdi-calendar-plus"
@@ -18,12 +17,16 @@
             {{ $t('reservations.new') }}
           </v-btn>
         </template>
-      </custom-title>
+      </AppToolbar>
 
       <!-- Filters -->
-      <v-row dense align="center" class="mb-2">
+      <v-row density="compact" align="center" class="mb-2">
         <v-col cols="12" sm="6" md="3">
-          <AppDatePicker v-model="filters.date" :label="$t('form.date')" clearable />
+          <AppDatePicker
+            v-model="filters.date"
+            :label="$t('form.date')"
+            clearable
+          />
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-select
@@ -43,28 +46,15 @@
             v-model="filters.table_id"
             :items="tables"
             item-value="id"
+            :item-title="
+              tbl => $t('reservations.table_number', { n: tbl.table_number })
+            "
             :label="$t('reservations.field_table')"
             variant="outlined"
             rounded="lg"
             clearable
             prepend-inner-icon="mdi-table-chair"
-          >
-            <template #item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :title="
-                  $t('reservations.table_number', {
-                    n: item.raw.table_number
-                  })
-                "
-              />
-            </template>
-            <template #selection="{ item }">
-              {{
-                $t('reservations.table_number', { n: item.raw?.table_number })
-              }}
-            </template>
-          </v-select>
+          />
         </v-col>
       </v-row>
 
@@ -82,20 +72,30 @@
           <template #item.customer_name="{ item }">
             <div class="d-flex align-center ga-3">
               <v-avatar color="primary" variant="tonal" size="36" rounded="lg">
-                <span class="text-caption font-weight-bold">
+                <span class="text-body-small font-weight-bold">
                   {{ initials(item.customer_name) }}
                 </span>
               </v-avatar>
               <div>
                 <div class="d-flex align-center ga-1">
-                  <span class="text-body-2 font-weight-medium">{{ item.customer_name }}</span>
+                  <span class="text-body-medium font-weight-medium">
+                    {{ item.customer_name }}
+                  </span>
                   <v-tooltip v-if="item.notes" :text="item.notes">
                     <template #activator="{ props: tp }">
-                      <v-icon v-bind="tp" icon="mdi-note-text-outline" size="14" color="grey" />
+                      <v-icon
+                        v-bind="tp"
+                        icon="mdi-note-text-outline"
+                        size="14"
+                        color="grey"
+                      />
                     </template>
                   </v-tooltip>
                 </div>
-                <div v-if="item.customer_phone" class="text-caption text-grey">
+                <div
+                  v-if="item.customer_phone"
+                  class="text-body-small text-grey"
+                >
                   {{ item.customer_phone }}
                 </div>
               </div>
@@ -105,36 +105,55 @@
           <!-- Date & Time -->
           <template #item.reserved_at="{ item }">
             <div class="d-flex align-center ga-2">
-              <span class="text-body-2">{{ formatDateTime(item.reserved_at) }}</span>
+              <span class="text-body-medium">
+                {{ formatDateTime(item.reserved_at) }}
+              </span>
               <v-chip
                 :color="isPast(item.reserved_at) ? 'grey' : 'success'"
                 size="x-small"
                 variant="tonal"
               >
-                {{ isPast(item.reserved_at) ? $t('reservations.timing.past') : $t('reservations.timing.upcoming') }}
+                {{
+                  isPast(item.reserved_at)
+                    ? $t('reservations.timing.past')
+                    : $t('reservations.timing.upcoming')
+                }}
               </v-chip>
             </div>
-            <div v-if="item.duration_minutes" class="text-caption text-grey">
+            <div v-if="item.duration_minutes" class="text-body-small text-grey">
               {{ item.duration_minutes }}m
             </div>
           </template>
 
           <!-- Party -->
           <template #item.party_size="{ item }">
-            <span class="text-body-2">{{ item.party_size }} {{ $t('reservations.guests') }}</span>
+            <span class="text-body-medium">
+              {{ item.party_size }} {{ $t('reservations.guests') }}
+            </span>
           </template>
 
           <!-- Table -->
           <template #item.table="{ item }">
-            <v-chip v-if="item.table" size="small" variant="tonal" color="primary">
-              {{ $t('reservations.table_number', { n: item.table.table_number }) }}
+            <v-chip
+              v-if="item.table"
+              size="small"
+              variant="tonal"
+              color="primary"
+            >
+              {{
+                $t('reservations.table_number', { n: item.table.table_number })
+              }}
             </v-chip>
             <span v-else class="text-grey">—</span>
           </template>
 
           <!-- Status -->
           <template #item.status="{ item }">
-            <AppStatusChip :status="item.status" :map="reservationStatusMap" size="small" />
+            <AppStatusChip
+              :status="item.status"
+              :map="reservationStatusMap"
+              size="small"
+            />
           </template>
 
           <!-- Actions — status transitions live in one menu instead of a
@@ -144,7 +163,12 @@
             <div class="d-flex justify-end ga-1">
               <v-menu v-if="nextActions(item).length">
                 <template #activator="{ props: mp }">
-                  <v-btn v-bind="mp" icon="mdi-dots-vertical" size="small" variant="text" />
+                  <v-btn
+                    v-bind="mp"
+                    icon="mdi-dots-vertical"
+                    size="small"
+                    variant="text"
+                  />
                 </template>
                 <v-list density="compact">
                   <v-list-item
@@ -158,7 +182,12 @@
                   </v-list-item>
                 </v-list>
               </v-menu>
-              <v-btn icon="mdi-pencil-outline" size="small" variant="text" @click="openEdit(item)" />
+              <v-btn
+                icon="mdi-pencil-outline"
+                size="small"
+                variant="text"
+                @click="openEdit(item)"
+              />
               <v-btn
                 icon="mdi-delete-outline"
                 size="small"
@@ -178,10 +207,10 @@
                 color="grey-lighten-1"
                 class="mb-4"
               />
-              <p class="text-h6 text-medium-emphasis mb-1">
+              <p class="text-title-large text-medium-emphasis mb-1">
                 {{ $t('reservations.empty') }}
               </p>
-              <p class="text-body-2 text-grey mb-4">
+              <p class="text-body-medium text-grey mb-4">
                 {{ $t('reservations.empty_period') }}
               </p>
               <v-btn
@@ -217,7 +246,13 @@
   import { useReservationStore } from '@/stores/reservationStore'
   import { useTableStore } from '@/stores/tableStore'
   import ReservationFormDialog from '@/components/reservations/ReservationFormDialog.vue'
-  import { AppTable, AppStatusChip, AppDatePicker, useAppUtils } from '@nong-official-dev/core'
+  import {
+    AppTable,
+    AppStatusChip,
+    AppDatePicker,
+    useAppUtils,
+    AppToolbar
+  } from '@nong-official-dev/core'
   import { useDate } from '@/composables/useDate'
   import { useAvatar } from '@/composables/useAvatar'
   const { confirm, notif } = useAppUtils()
@@ -258,9 +293,21 @@
 
   // ── Table headers ─────────────────────────────────────────────────────────────
   const headers = [
-    { title: t('reservations.field.guest_name'), key: 'customer_name', sortable: true },
-    { title: t('reservations.field.reserved_at'), key: 'reserved_at', sortable: true },
-    { title: t('reservations.field.party_size'), key: 'party_size', sortable: true },
+    {
+      title: t('reservations.field.guest_name'),
+      key: 'customer_name',
+      sortable: true
+    },
+    {
+      title: t('reservations.field.reserved_at'),
+      key: 'reserved_at',
+      sortable: true
+    },
+    {
+      title: t('reservations.field.party_size'),
+      key: 'party_size',
+      sortable: true
+    },
     { title: t('reservations.field.table'), key: 'table', sortable: false },
     { title: t('form.status'), key: 'status', sortable: true },
     { title: '', key: 'actions', sortable: false, align: 'end' }
@@ -290,17 +337,42 @@
     switch (res.status) {
       case 'pending':
         return [
-          { status: 'confirmed', label: t('btn.confirm'), icon: 'mdi-check', color: 'success' },
-          { status: 'cancelled', label: t('btn.cancel'), icon: 'mdi-close', color: 'error' }
+          {
+            status: 'confirmed',
+            label: t('btn.confirm'),
+            icon: 'mdi-check',
+            color: 'success'
+          },
+          {
+            status: 'cancelled',
+            label: t('btn.cancel'),
+            icon: 'mdi-close',
+            color: 'error'
+          }
         ]
       case 'confirmed':
         return [
-          { status: 'seated', label: t('reservations.seat_now'), icon: 'mdi-seat', color: 'primary' },
-          { status: 'no_show', label: t('reservations.no_show'), icon: 'mdi-account-off', color: 'warning' }
+          {
+            status: 'seated',
+            label: t('reservations.seat_now'),
+            icon: 'mdi-seat',
+            color: 'primary'
+          },
+          {
+            status: 'no_show',
+            label: t('reservations.no_show'),
+            icon: 'mdi-account-off',
+            color: 'warning'
+          }
         ]
       case 'seated':
         return [
-          { status: 'completed', label: t('reservations.complete'), icon: 'mdi-check-all', color: 'grey' }
+          {
+            status: 'completed',
+            label: t('reservations.complete'),
+            icon: 'mdi-check-all',
+            color: 'grey'
+          }
         ]
       default:
         return []
@@ -356,9 +428,13 @@
           })
           tableRef.value?.refresh()
         } catch (err) {
-          notif(err.response?.data?.message ?? t('reservations.messages.delete_failed'), {
-            type: 'error'
-          })
+          notif(
+            err.response?.data?.message ??
+              t('reservations.messages.delete_failed'),
+            {
+              type: 'error'
+            }
+          )
         } finally {
           saving.value = false
         }
@@ -404,7 +480,6 @@
     no_show: { color: 'error', label: t('status.no_show') },
     cancelled: { color: 'grey', label: t('status.cancelled') }
   }
-
 
   onMounted(() => tableStore.fetchTables())
 </script>

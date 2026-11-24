@@ -71,7 +71,7 @@
                 class="calendar-event-chip px-2 py-1"
                 :style="{ cursor: 'pointer' }"
               >
-                <span class="text-caption font-weight-bold">{{ event.title }}</span>
+                <span class="text-body-small font-weight-bold">{{ event.title }}</span>
               </div>
             </template>
           </AssignmentQuickMenu>

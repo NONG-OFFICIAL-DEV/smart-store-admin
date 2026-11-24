@@ -10,17 +10,27 @@
       @update:model-value="handleUpdateModelValue"
     >
       <div class="d-flex flex-column h-100">
-        <div class="app-drawer__header d-flex align-start pa-5 pb-4 flex-shrink-0">
+        <div
+          class="app-drawer__header d-flex align-start pa-5 pb-4 flex-shrink-0"
+        >
           <div class="min-width-0">
-            <div class="text-subtitle-1 font-weight-bold">
+            <div class="text-body-large font-weight-bold">
               <slot name="title" />
             </div>
-            <div v-if="$slots.subtitle" class="text-caption text-medium-emphasis mt-1">
+            <div
+              v-if="$slots.subtitle"
+              class="text-label-medium text-medium-emphasis mt-1"
+            >
               <slot name="subtitle" />
             </div>
           </div>
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" size="small" @click="requestClose" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="requestClose"
+          />
         </div>
 
         <div class="app-drawer__body flex-grow-1 px-5 pb-5">
@@ -29,7 +39,9 @@
       </div>
 
       <template v-if="$slots.footer" #append>
-        <div class="app-drawer__footer pa-4 d-flex ga-2 bg-surface flex-shrink-0">
+        <div
+          class="app-drawer__footer pa-4 d-flex ga-2 bg-surface flex-shrink-0"
+        >
           <slot name="footer" />
         </div>
       </template>

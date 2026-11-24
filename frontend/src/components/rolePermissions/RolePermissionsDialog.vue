@@ -16,7 +16,7 @@
          every permission code; these pre-check a sensible bundle, still
          freely adjustable below before saving. -->
     <div class="d-flex align-center gap-2 flex-wrap px-4 pt-3">
-      <span class="text-caption text-medium-emphasis me-1">
+      <span class="text-body-small text-medium-emphasis me-1">
         {{ $t('roles.templates.label') }}
       </span>
       <v-chip
@@ -63,7 +63,7 @@
                 <v-icon icon="mdi-folder" size="13" class="mr-1" />
                 {{ groupName }}
               </v-chip>
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-body-small text-medium-emphasis">
                 {{ $t('roles.permissions_count', { n: group.length }) }}
               </span>
             </div>
@@ -77,7 +77,7 @@
             </v-btn>
           </div>
 
-          <v-row dense>
+          <v-row density="compact">
             <v-col v-for="perm in group" :key="perm.id" cols="12" sm="6">
               <v-card
                 rounded="lg"
@@ -100,10 +100,10 @@
                     class="me-2"
                   />
                   <div>
-                    <div class="text-body-2 font-weight-medium">
+                    <div class="text-body-medium font-weight-medium">
                       {{ perm.code }}
                     </div>
-                    <div class="text-caption text-medium-emphasis">
+                    <div class="text-body-small text-medium-emphasis">
                       {{ perm.description }}
                     </div>
                   </div>
@@ -118,7 +118,7 @@
       class="text-center py-8 text-medium-emphasis"
     >
       <v-icon icon="mdi-key-off" size="40" color="grey-lighten-2" />
-      <p class="text-body-2 mt-2">{{ $t('roles.no_permissions_found') }}</p>
+      <p class="text-body-medium mt-2">{{ $t('roles.no_permissions_found') }}</p>
     </div>
 
     <template #actions="{ loading }">

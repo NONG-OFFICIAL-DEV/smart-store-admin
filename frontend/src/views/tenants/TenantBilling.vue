@@ -103,7 +103,7 @@
   import PlanHistoryTable from '@/components/tenants/PlanHistoryTable.vue'
   import QRPaymentDialog from '@/components/tenants/QRPaymentDialog.vue'
   import UpgradeDialog from '@/components/tenants/UpgradeDialog.vue'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
 
   const tenantStore = useTenantStore()
   const authStore = useAuthStore()

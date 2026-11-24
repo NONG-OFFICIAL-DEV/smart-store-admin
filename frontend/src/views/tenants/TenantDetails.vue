@@ -53,15 +53,15 @@
       <div class="d-flex align-center flex-wrap ga-6">
         <div class="d-flex align-center">
           <v-avatar size="60" rounded="xl" color="primary" variant="tonal" class="me-4">
-            <span v-if="!tenant.logo_url" class="text-h5">
+            <span v-if="!tenant.logo_url" class="text-headline-small">
               {{ tenant.name?.[0]?.toUpperCase() }}
             </span>
             <v-img v-else :src="tenant.logo_url" cover />
           </v-avatar>
 
           <div>
-            <div class="text-h6 font-weight-bold">{{ tenant.name }}</div>
-            <div class="text-body-2 text-medium-emphasis">
+            <div class="text-title-large font-weight-bold">{{ tenant.name }}</div>
+            <div class="text-body-medium text-medium-emphasis">
               {{ tenant.slug }}.app.com
             </div>
             <div class="d-flex align-center flex-wrap ga-1 mt-1">
@@ -87,24 +87,24 @@
         <!-- Quick stats inline -->
         <div class="d-none d-sm-flex ga-3">
           <div class="text-center">
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-medium font-weight-bold">
               {{ tenant.branches?.length ?? 0 }}
             </div>
-            <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.branches') }}</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('tenant_profile.kpi.branches') }}</div>
           </div>
           <v-divider vertical class="mx-1" />
           <div class="text-center">
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-medium font-weight-bold">
               {{ plan?.seats ?? '—' }}
             </div>
-            <div class="text-caption text-medium-emphasis">{{ $t('tenant_details.seats_label') }}</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('tenant_details.seats_label') }}</div>
           </div>
           <v-divider vertical class="mx-1" />
           <div class="text-center">
-            <div class="text-body-2 font-weight-bold">
+            <div class="text-body-medium font-weight-bold">
               {{ plan?.products_limit ?? '∞' }}
             </div>
-            <div class="text-caption text-medium-emphasis">{{ $t('tenant_profile.kpi.products') }}</div>
+            <div class="text-body-small text-medium-emphasis">{{ $t('tenant_profile.kpi.products') }}</div>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@
                   <span class="detail-label">{{ $t('tenant_profile.businessDetails.businessType') }}</span>
                   <span class="detail-value d-flex align-center ga-2">
                     {{ tenant.business_type?.name }}
-                    <span class="text-caption text-medium-emphasis">({{ tenant.business_type?.code }})</span>
+                    <span class="text-body-small text-medium-emphasis">({{ tenant.business_type?.code }})</span>
                   </span>
                 </div>
                 <div class="detail-row border-b">
@@ -179,7 +179,7 @@
 
               <div class="d-flex align-center ga-3">
                 <v-avatar color="primary" variant="tonal" size="44" rounded="lg">
-                  <span class="text-body-1 font-weight-medium">
+                  <span class="text-body-large font-weight-medium">
                     {{ ownerInitials }}
                   </span>
                 </v-avatar>
@@ -187,8 +187,8 @@
                   <div class="font-weight-medium">
                     {{ tenant.owner?.first_name }} {{ tenant.owner?.last_name }}
                   </div>
-                  <div class="text-body-2 text-medium-emphasis">{{ tenant.owner?.email }}</div>
-                  <div v-if="tenant.owner?.phone" class="text-caption text-medium-emphasis">
+                  <div class="text-body-medium text-medium-emphasis">{{ tenant.owner?.email }}</div>
+                  <div v-if="tenant.owner?.phone" class="text-body-small text-medium-emphasis">
                     {{ tenant.owner?.phone }}
                   </div>
                 </div>
@@ -201,12 +201,12 @@
                 <v-icon size="48" color="grey-lighten-1">
                   mdi-store-off-outline
                 </v-icon>
-                <div class="text-body-2 text-medium-emphasis mt-3">
+                <div class="text-body-medium text-medium-emphasis mt-3">
                   {{ $t('tenant_details.no_branches') }}
                 </div>
               </div>
 
-              <v-row dense v-else>
+              <v-row density="compact" v-else>
                 <v-col
                   v-for="branch in tenant.branches"
                   :key="branch.id"
@@ -224,7 +224,7 @@
                         >
                           <v-icon size="16">mdi-storefront-outline</v-icon>
                         </v-avatar>
-                        <div class="text-body-2 font-weight-medium">
+                        <div class="text-body-medium font-weight-medium">
                           {{ branch.name }}
                         </div>
                       </div>
@@ -247,7 +247,7 @@
                     </div>
                     <div
                       v-if="branch.address_line1 || branch.city"
-                      class="text-caption text-medium-emphasis"
+                      class="text-body-small text-medium-emphasis"
                     >
                       <v-icon size="12" class="mr-1">
                         mdi-map-marker-outline
@@ -260,7 +260,7 @@
                     </div>
                     <div
                       v-if="branch.phone"
-                      class="text-caption text-medium-emphasis mt-1"
+                      class="text-body-small text-medium-emphasis mt-1"
                     >
                       <v-icon size="12" class="mr-1">mdi-phone-outline</v-icon>
                       {{ branch.phone }}
@@ -281,7 +281,7 @@
           <div class="section-label mb-3">{{ $t('tenant_details.tabs.subscription') }}</div>
 
           <div v-if="!subscription" class="text-center py-4">
-            <div class="text-body-2 text-medium-emphasis mb-3">
+            <div class="text-body-medium text-medium-emphasis mb-3">
               {{ $t('tenant_details.no_subscription') }}
             </div>
             <v-btn
@@ -298,13 +298,13 @@
 
           <template v-else>
             <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-body-2 text-medium-emphasis">{{ $t('subscription.plan.table.name') }}</span>
+              <span class="text-body-medium text-medium-emphasis">{{ $t('subscription.plan.table.name') }}</span>
               <v-chip size="x-small" :color="planColor" variant="tonal">
                 {{ plan?.name }}
               </v-chip>
             </div>
             <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-body-2 text-medium-emphasis">{{ $t('form.status') }}</span>
+              <span class="text-body-medium text-medium-emphasis">{{ $t('form.status') }}</span>
               <v-chip
                 size="x-small"
                 :color="subscriptionStatusColor"
@@ -314,8 +314,8 @@
               </v-chip>
             </div>
             <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-body-2 text-medium-emphasis">{{ $t('form.price') }}</span>
-              <span class="text-body-2 font-weight-medium">
+              <span class="text-body-medium text-medium-emphasis">{{ $t('form.price') }}</span>
+              <span class="text-body-medium font-weight-medium">
                 ${{ cyclePrice }}/{{
                   activeBillingCycle?.months > 1
                     ? activeBillingCycle.months + ' ' + $t('tenant_create.month_unit', 2)
@@ -324,7 +324,7 @@
               </span>
             </div>
             <div class="d-flex align-center justify-space-between mb-2">
-              <span class="text-body-2 text-medium-emphasis">{{ $t('tenant_details.billing_cycle_label') }}</span>
+              <span class="text-body-medium text-medium-emphasis">{{ $t('tenant_details.billing_cycle_label') }}</span>
               <v-chip size="x-small" color="primary" variant="tonal">
                 {{ activeBillingCycle?.label ?? '—' }}
                 <span
@@ -336,8 +336,8 @@
               </v-chip>
             </div>
             <div class="d-flex align-center justify-space-between">
-              <span class="text-body-2 text-medium-emphasis">{{ $t('tenant_details.renews_label') }}</span>
-              <span class="text-body-2 font-weight-medium">
+              <span class="text-body-medium text-medium-emphasis">{{ $t('tenant_details.renews_label') }}</span>
+              <span class="text-body-medium font-weight-medium">
                 {{
                   subscription?.current_period_end
                     ? formatDate(subscription.current_period_end)

@@ -53,18 +53,18 @@
         <v-tabs-window-item value="overview">
           <div class="pa-4">
             <!-- KPIs -->
-            <v-row dense class="mb-4">
+            <v-row density="compact" class="mb-4">
               <v-col cols="6" md="3">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('inventory_report.summary.total_products') }}
                     </span>
                     <v-avatar size="30" color="primary" variant="tonal" rounded="lg">
                       <v-icon icon="mdi-package-variant" size="15" />
                     </v-avatar>
                   </div>
-                  <div class="text-h4 font-weight-black text-primary mb-2">
+                  <div class="text-headline-large font-weight-black text-primary mb-2">
                     {{ report.summary?.total_products ?? 0 }}
                   </div>
                   <div class="d-flex flex-wrap gap-1">
@@ -78,39 +78,39 @@
               <v-col cols="6" md="3">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.cost_value') }}</span>
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.cost_value') }}</span>
                     <v-avatar size="30" color="indigo" variant="tonal" rounded="lg"><v-icon icon="mdi-cash-multiple" size="15" /></v-avatar>
                   </div>
                   <div class="kpi-value text-indigo mb-1">{{ format(report.summary?.total_cost_value) }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ t('inventory_report.summary.at_cost_price') }}</div>
+                  <div class="text-body-small text-medium-emphasis">{{ t('inventory_report.summary.at_cost_price') }}</div>
                 </v-card>
               </v-col>
 
               <v-col cols="6" md="3">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.retail_value') }}</span>
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.retail_value') }}</span>
                     <v-avatar size="30" color="teal" variant="tonal" rounded="lg"><v-icon icon="mdi-tag-outline" size="15" /></v-avatar>
                   </div>
                   <div class="kpi-value text-teal mb-1">{{ format(report.summary?.total_retail_value) }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ t('inventory_report.summary.at_selling_price') }}</div>
+                  <div class="text-body-small text-medium-emphasis">{{ t('inventory_report.summary.at_selling_price') }}</div>
                 </v-card>
               </v-col>
 
               <v-col cols="6" md="3">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.potential_profit') }}</span>
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">{{ t('inventory_report.summary.potential_profit') }}</span>
                     <v-avatar size="30" color="success" variant="tonal" rounded="lg"><v-icon icon="mdi-trending-up" size="15" /></v-avatar>
                   </div>
                   <div class="kpi-value text-success mb-1">{{ format(report.summary?.potential_profit) }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ t('inventory_report.summary.if_all_sold') }}</div>
+                  <div class="text-body-small text-medium-emphasis">{{ t('inventory_report.summary.if_all_sold') }}</div>
                 </v-card>
               </v-col>
             </v-row>
 
             <!-- Stock Health + Category -->
-            <v-row dense class="mb-4">
+            <v-row density="compact" class="mb-4">
               <v-col cols="12" md="5">
                 <StockHealthCard
                   :in-stock="report.summary?.in_stock ?? 0"

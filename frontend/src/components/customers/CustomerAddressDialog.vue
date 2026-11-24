@@ -74,7 +74,7 @@ const submit = async () => {
     @update:model-value="emit('update:modelValue', $event)"
   >
     <v-form ref="formRef" validate-on="submit">
-          <v-row dense>
+          <v-row density="compact">
 
             <v-col cols="12" sm="6">
               <v-combobox

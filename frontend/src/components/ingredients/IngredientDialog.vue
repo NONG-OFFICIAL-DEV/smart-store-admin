@@ -16,7 +16,7 @@
           <v-icon icon="mdi-information-outline" size="14" class="mr-1" />
           {{ $t('ingredients.section.basic_info') }}
         </div>
-        <v-row dense>
+        <v-row density="compact">
           <!-- Name -->
           <v-col cols="12" sm="8">
             <v-text-field
@@ -80,7 +80,7 @@
           <v-icon icon="mdi-currency-usd" size="14" class="mr-1" />
           {{ $t('ingredients.section.cost_reorder') }}
         </div>
-        <v-row dense>
+        <v-row density="compact">
           <!-- Unit Cost -->
           <v-col cols="12" sm="4">
             <v-text-field
@@ -147,7 +147,7 @@
           <v-icon icon="mdi-truck-outline" size="14" class="mr-1" />
           {{ $t('ingredients.section.supplier_status') }}
         </div>
-        <v-row dense>
+        <v-row density="compact">
           <!-- Preferred Supplier -->
           <v-col cols="12" sm="8">
             <v-select

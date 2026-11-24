@@ -101,7 +101,7 @@
     emit('update:modelValue', val)
 
     if (val && props.stock) {
-      const rawStock = props.stock.raw ?? props.stock
+      const rawStock = props.stock ?? props.stock
 
       form.value = {
         currentQty: Number(rawStock.quantity ?? 0),
@@ -165,7 +165,7 @@
   }
 
   function submit() {
-    const rawStock = props.stock.raw ?? props.stock
+    const rawStock = props.stock ?? props.stock
 
     emit('submitAction', {
       stockId: rawStock.product_id,

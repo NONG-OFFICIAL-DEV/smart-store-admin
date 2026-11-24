@@ -27,12 +27,12 @@
             variant="tonal"
             class="me-2"
           >
-            <span class="text-caption font-weight-bold">
+            <span class="text-body-small font-weight-bold">
               {{ item.name?.[0]?.toUpperCase() }}
             </span>
           </v-avatar>
         </template>
-        <v-list-item-title class="text-body-2 font-weight-medium">
+        <v-list-item-title class="text-body-medium font-weight-medium">
           {{ item.name }}
         </v-list-item-title>
         <v-list-item-subtitle>{{ item.code }}</v-list-item-subtitle>
@@ -77,7 +77,7 @@
 
       <v-list-item v-if="!store.businessTypes.length">
         <v-list-item-title
-          class="text-body-2 text-medium-emphasis text-center py-4"
+          class="text-body-medium text-medium-emphasis text-center py-4"
         >
           {{ $t('business_type.empty') }}
         </v-list-item-title>
@@ -96,7 +96,7 @@
       :loading="formLoading"
     >
       <v-form ref="formRef" @submit.prevent>
-        <v-row dense>
+        <v-row density="compact">
           <!-- Name -->
           <v-col cols="6">
             <v-text-field
@@ -129,7 +129,7 @@
             />
           </v-col>
         </v-row>
-        <v-row dense>
+        <v-row density="compact">
           <!-- Category -->
           <v-col cols="6">
             <v-select

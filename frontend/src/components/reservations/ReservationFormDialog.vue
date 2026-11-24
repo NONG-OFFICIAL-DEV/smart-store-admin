@@ -7,11 +7,11 @@
   >
     <div class="pb-4">
       <div class="d-flex align-center justify-space-between mb-2">
-        <span class="text-caption font-weight-medium text-medium-emphasis d-flex align-center ga-1">
+        <span class="text-body-small font-weight-medium text-medium-emphasis d-flex align-center ga-1">
           <v-icon :icon="steps[currentStep - 1].icon" size="14" />
           {{ steps[currentStep - 1].label }}
         </span>
-        <span class="text-caption text-medium-emphasis">
+        <span class="text-body-small text-medium-emphasis">
           {{ currentStep }} / {{ steps.length }}
         </span>
       </div>
@@ -27,7 +27,7 @@
       <!-- ════ Step 1 — Guest & Branch ════ -->
       <v-window-item :value="1">
         <v-form ref="step1Ref" class="mt-2">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12">
               <v-select
                 v-model="form.branch_id"
@@ -87,7 +87,7 @@
       <!-- ════ Step 2 — Table & Time ════ -->
       <v-window-item :value="2">
         <v-form ref="step2Ref" class="mt-2">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12">
               <v-select
                 v-model="form.table_id"
@@ -104,20 +104,20 @@
                 <template #item="{ props: p, item }">
                   <v-list-item
                     v-bind="p"
-                    :title="$t('reservations.table_n', { n: item.raw.table_number })"
+                    :title="$t('reservations.table_n', { n: item.table_number })"
                   >
                     <template #subtitle>
-                      <span class="text-caption">
-                        {{ item.raw.capacity }} {{ $t('reservations.seats') }} ·
-                        <span :style="{ color: statusBg(item.raw.status) }">
-                          {{ item.raw.status }}
+                      <span class="text-body-small">
+                        {{ item.capacity }} {{ $t('reservations.seats') }} ·
+                        <span :style="{ color: statusBg(item.status) }">
+                          {{ item.status }}
                         </span>
                       </span>
                     </template>
                   </v-list-item>
                 </template>
                 <template #selection="{ item }">
-                  {{ $t('reservations.table_selection', { number: item.raw?.table_number, capacity: item.raw?.capacity }) }}
+                  {{ $t('reservations.table_selection', { number: item?.table_number, capacity: item.raw?.capacity }) }}
                 </template>
               </v-select>
             </v-col>
@@ -195,7 +195,7 @@
       <!-- ════ Step 3 — Confirm ════ -->
       <v-window-item :value="3" class="mt-2">
         <v-form ref="step3Ref">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12" sm="6">
               <v-select
                 v-model="form.status"
@@ -223,7 +223,7 @@
 
             <v-col cols="12">
               <v-divider class="mb-3 mt-1" />
-              <p class="text-overline text-medium-emphasis mb-2">
+              <p class="text-label-medium text-medium-emphasis mb-2">
                 {{ $t('reservations.dialog.review') }}
               </p>
               <v-sheet rounded="lg" border class="pa-3">

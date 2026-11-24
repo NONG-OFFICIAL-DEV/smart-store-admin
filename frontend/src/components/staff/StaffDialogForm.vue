@@ -31,10 +31,10 @@
                 </span>
               </v-avatar>
               <div class="flex-grow-1">
-                <div class="text-body-2 font-weight-bold">
+                <div class="text-body-medium font-weight-bold">
                   {{ props.item?.full_name }}
                 </div>
-                <div class="text-caption text-grey">
+                <div class="text-body-small text-grey">
                   {{ props.item?.email }}
                 </div>
               </div>
@@ -51,7 +51,7 @@
               <v-icon icon="mdi-briefcase-outline" size="13" class="mr-1" />
               {{ $t('staff.section.employment') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.branch_id"
@@ -67,7 +67,7 @@
                   <template #item="{ props: p, item }">
                     <v-list-item
                       v-bind="p"
-                      :subtitle="item.raw?.city || ''"
+                      :subtitle="item?.city || ''"
                     />
                   </template>
                 </v-select>
@@ -164,7 +164,7 @@
               <v-icon icon="mdi-account-outline" size="13" class="mr-1" />
               {{ $t('staff.section.account_info') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="form.first_name"
@@ -244,7 +244,7 @@
               <v-icon icon="mdi-briefcase-outline" size="13" class="mr-1" />
               {{ $t('staff.section.employment_details') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.branch_id"
@@ -260,7 +260,7 @@
                   <template #item="{ props: p, item }">
                     <v-list-item
                       v-bind="p"
-                      :subtitle="item.raw?.city || ''"
+                      :subtitle="item?.city || ''"
                     />
                   </template>
                 </v-select>

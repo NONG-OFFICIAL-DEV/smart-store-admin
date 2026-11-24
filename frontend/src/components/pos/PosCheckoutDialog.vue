@@ -27,8 +27,8 @@
       <v-chip :prepend-icon="methodIcon" size="small" variant="tonal" color="primary" class="mb-2">
         {{ methodLabel }}
       </v-chip>
-      <div class="text-caption text-medium-emphasis mb-1">{{ $t('order.total') }}</div>
-      <div class="text-h4 font-weight-bold">{{ formatMoney(total) }}</div>
+      <div class="text-body-small text-medium-emphasis mb-1">{{ $t('order.total') }}</div>
+      <div class="text-headline-large font-weight-bold">{{ formatMoney(total) }}</div>
     </div>
 
     <template v-if="paymentMethod === 'cash'">
@@ -87,20 +87,20 @@
       </div>
 
       <v-card flat rounded="lg" class="pa-3 mb-2 pos-checkout-dialog__summary">
-        <div class="d-flex justify-space-between text-body-2 mb-2">
+        <div class="d-flex justify-space-between text-body-medium mb-2">
           <span class="text-medium-emphasis">{{ $t('tables.payment.received') }}</span>
           <span class="font-weight-medium">{{ formatMoney(received ?? 0) }}</span>
         </div>
         <v-divider class="mb-2" />
         <div class="d-flex justify-space-between align-center">
           <span
-            class="text-body-2 font-weight-bold"
+            class="text-body-medium font-weight-bold"
             :class="diff >= 0 ? 'text-success' : 'text-warning'"
           >
             {{ diff >= 0 ? $t('pos.checkout.change') : $t('tables.payment.remaining') }}
           </span>
           <div
-            class="text-h6 font-weight-bold"
+            class="text-title-large font-weight-bold"
             :class="diff >= 0 ? 'text-success' : 'text-warning'"
           >
             {{ formatMoney(Math.abs(diff)) }}
@@ -113,24 +113,24 @@
       <div class="d-flex flex-column align-center">
         <div class="pos-checkout-dialog__qr-box mb-2">
           <img v-if="qrImageUrl" :src="qrImageUrl" alt="QR code" class="pos-checkout-dialog__qr-image" />
-          <div v-else class="pos-checkout-dialog__qr-placeholder text-caption text-medium-emphasis">
+          <div v-else class="pos-checkout-dialog__qr-placeholder text-body-small text-medium-emphasis">
             {{ $t('pos.checkout.qr_dialog_not_configured') }}
           </div>
         </div>
-        <div class="text-caption text-medium-emphasis text-center" style="max-width: 260px">
+        <div class="text-body-small text-medium-emphasis text-center" style="max-width: 260px">
           {{ $t('pos.checkout.qr_dialog_hint') }}
         </div>
       </div>
     </template>
 
     <template v-else-if="paymentMethod === 'card'">
-      <p class="text-body-2 text-medium-emphasis text-center mb-0">
+      <p class="text-body-medium text-medium-emphasis text-center mb-0">
         {{ $t('pos.checkout.card_dialog_hint') }}
       </p>
     </template>
 
     <template v-else-if="paymentMethod === 'pay_later'">
-      <p class="text-body-2 text-medium-emphasis text-center mb-0">
+      <p class="text-body-medium text-medium-emphasis text-center mb-0">
         {{ $t('pos.checkout.pay_later_dialog_hint') }}
       </p>
     </template>

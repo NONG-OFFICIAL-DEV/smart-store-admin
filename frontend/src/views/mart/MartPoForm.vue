@@ -48,11 +48,11 @@
       <!-- ── Left: PO Details ───────────────────────────────────────────── -->
       <v-card rounded="xl" border elevation="0" class="mb-4">
         <v-card-title class="pa-5 pb-3">
-          <div class="text-body-1 font-weight-bold">{{ t('po.order_details') }}</div>
+          <div class="text-body-large font-weight-bold">{{ t('po.order_details') }}</div>
         </v-card-title>
         <v-divider />
         <v-card-text class="pa-5">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="3">
               <v-select
                 v-model="form.branch_id"
@@ -79,7 +79,7 @@
                 :rules="[r.required]"
               >
                 <template #no-data>
-                  <div class="pa-3 text-caption text-medium-emphasis">
+                  <div class="pa-3 text-body-small text-medium-emphasis">
                     {{ t('po.no_suppliers_found') }}
                   </div>
                 </template>
@@ -118,12 +118,12 @@
           </v-row>
         </v-card-text>
       </v-card>
-      <v-row dense>
+      <v-row density="compact">
         <!-- ── Right: Line Items ──────────────────────────────────────────── -->
         <v-col cols="12" lg="9">
           <v-card rounded="xl" border elevation="0">
             <div class="d-flex align-center justify-space-between pa-5 pb-3">
-              <div class="text-body-1 font-weight-bold">
+              <div class="text-body-large font-weight-bold">
                 {{ t('po.order_items') }}
                 <v-chip
                   size="x-small"
@@ -156,10 +156,10 @@
                 color="grey-lighten-1"
                 class="mb-3"
               />
-              <div class="text-body-1 font-weight-medium text-grey">
+              <div class="text-body-large font-weight-medium text-grey">
                 {{ t('po.no_items_yet') }}
               </div>
-              <p class="text-caption text-grey mb-4">
+              <p class="text-body-small text-grey mb-4">
                 {{ t('po.no_items_hint') }}
               </p>
               <v-btn
@@ -176,38 +176,38 @@
             <!-- Items -->
             <div v-else class="pa-4">
               <!-- Table header -->
-              <v-row dense class="px-2 mb-2">
+              <v-row density="compact" class="px-2 mb-2">
                 <v-col cols="12" sm="4">
                   <span
-                    class="text-caption font-weight-bold text-medium-emphasis"
+                    class="text-body-small font-weight-bold text-medium-emphasis"
                   >
                     {{t('po.header.product')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
-                    class="text-caption font-weight-bold text-medium-emphasis"
+                    class="text-body-small font-weight-bold text-medium-emphasis"
                   >
                     {{t('po.header.unit')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
-                    class="text-caption font-weight-bold text-medium-emphasis"
+                    class="text-body-small font-weight-bold text-medium-emphasis"
                   >
                     {{t('po.header.qty')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2">
                   <span
-                    class="text-caption font-weight-bold text-medium-emphasis"
+                    class="text-body-small font-weight-bold text-medium-emphasis"
                   >
                     {{t('po.header.unit_cost')}}
                   </span>
                 </v-col>
                 <v-col cols="6" sm="2" class="text-right">
                   <span
-                    class="text-caption font-weight-bold text-medium-emphasis"
+                    class="text-body-small font-weight-bold text-medium-emphasis"
                   >
                     {{t('po.header.total')}}
                   </span>
@@ -222,7 +222,7 @@
                 :key="i"
                 class="item-row mb-3 pa-3 rounded-lg border"
               >
-                <v-row dense align="center">
+                <v-row density="compact" align="center">
                   <!-- Product autocomplete -->
                   <v-col cols="12" sm="4">
                     <v-autocomplete
@@ -245,12 +245,12 @@
                               rounded="lg"
                               class="bg-grey-lighten-4 border mr-2"
                             >
-                              <v-img :src="p.raw?.image_url" cover />
+                              <v-img :src="p?.image_url" cover />
                             </v-avatar>
                           </template>
                           <template #subtitle>
-                            {{ t('stock.adjust.current_stock') }}: {{ p.raw?.stock_quantity ?? 0 }}
-                            {{ p.raw?.unit ?? 'pcs' }}
+                            {{ t('stock.adjust.current_stock') }}: {{ p?.stock_quantity ?? 0 }}
+                            {{ p?.unit ?? 'pcs' }}
                           </template>
                         </v-list-item>
                       </template>
@@ -304,7 +304,7 @@
                   <!-- Line total + remove -->
                   <v-col cols="6" sm="2">
                     <div class="d-flex align-center justify-end gap-2">
-                      <div class="text-body-2 font-weight-black text-primary">
+                      <div class="text-body-medium font-weight-black text-primary">
                         {{ format(item.quantity_ordered * item.unit_cost) }}
                       </div>
                       <v-btn
@@ -367,23 +367,23 @@
           <!-- Order Summary card -->
           <v-card rounded="xl" border elevation="0">
             <v-card-title class="pa-5 pb-3">
-              <div class="text-body-1 font-weight-bold">{{ t('po.summary') }}</div>
+              <div class="text-body-large font-weight-bold">{{ t('po.summary') }}</div>
             </v-card-title>
             <v-divider />
             <v-card-text class="pa-5">
               <div class="d-flex justify-space-between mb-2">
-                <span class="text-body-2 text-medium-emphasis">
+                <span class="text-body-medium text-medium-emphasis">
                   {{ t('po.total_items') }}
                 </span>
-                <span class="text-body-2 font-weight-bold">
+                <span class="text-body-medium font-weight-bold">
                   {{ form.items.length }}
                 </span>
               </div>
               <div class="d-flex justify-space-between mb-2">
-                <span class="text-body-2 text-medium-emphasis">
+                <span class="text-body-medium text-medium-emphasis">
                   {{ t('po.total_units') }}
                 </span>
-                <span class="text-body-2 font-weight-bold">
+                <span class="text-body-medium font-weight-bold">
                   {{
                     form.items.reduce(
                       (s, i) => s + (i.quantity_ordered || 0),
@@ -394,8 +394,8 @@
               </div>
               <v-divider class="my-3" />
               <div class="d-flex justify-space-between align-center">
-                <span class="text-body-1 font-weight-bold">{{ t('po.grand_total') }}</span>
-                <span class="text-h6 font-weight-black text-primary">
+                <span class="text-body-large font-weight-bold">{{ t('po.grand_total') }}</span>
+                <span class="text-title-large font-weight-black text-primary">
                   {{ format(orderTotal) }}
                 </span>
               </div>

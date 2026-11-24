@@ -7,7 +7,7 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
         <v-form ref="formRef">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12">
               <v-text-field
                 v-model="form.name"

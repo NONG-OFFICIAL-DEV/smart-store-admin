@@ -29,7 +29,7 @@
     <!-- ── Filters — always visible ──────────────────────────────────── -->
     <v-card rounded="lg" border elevation="0" class="mb-4">
       <v-card-text class="pa-4">
-        <v-row dense align="center">
+        <v-row density="compact" align="center">
           <v-col cols="12" sm="4" v-if="branchStore.branches?.length > 1">
             <v-select
               v-model="filters.branch_id"
@@ -81,10 +81,10 @@
         <!-- Ingredient -->
         <template #item.ingredient="{ item }">
           <div>
-            <div class="text-body-2 font-weight-medium">
+            <div class="text-body-medium font-weight-medium">
               {{ item.ingredient?.name ?? '—' }}
             </div>
-            <div class="text-caption text-grey">
+            <div class="text-body-small text-grey">
               {{ item.ingredient?.category ?? '' }}
             </div>
           </div>
@@ -92,19 +92,19 @@
 
         <!-- Branch -->
         <template #item.branch="{ item }">
-          <span class="text-body-2">{{ item.branch?.name ?? '—' }}</span>
+          <span class="text-body-medium">{{ item.branch?.name ?? '—' }}</span>
         </template>
 
         <!-- Quantity on hand -->
         <template #item.quantity_on_hand="{ item }">
           <div class="d-flex align-center gap-2">
             <span
-              class="text-body-2 font-weight-bold"
+              class="text-body-medium font-weight-bold"
               :class="stockColor(item)"
             >
               {{ item.quantity_on_hand }}
             </span>
-            <span class="text-caption text-grey">
+            <span class="text-body-small text-grey">
               {{ item.ingredient?.unit }}
             </span>
             <!-- Low stock badge -->
@@ -119,9 +119,9 @@
 
         <!-- Reserved -->
         <template #item.quantity_reserved="{ item }">
-          <span class="text-body-2">
+          <span class="text-body-medium">
             {{ item.quantity_reserved }}
-            <span class="text-caption text-grey">
+            <span class="text-body-small text-grey">
               {{ item.ingredient?.unit }}
             </span>
           </span>
@@ -129,14 +129,14 @@
 
         <!-- Reorder point -->
         <template #item.reorder_point="{ item }">
-          <span class="text-caption text-grey">
+          <span class="text-body-small text-grey">
             {{ item.ingredient?.reorder_point ?? '—' }}
           </span>
         </template>
 
         <!-- Last counted -->
         <template #item.last_counted_at="{ item }">
-          <span class="text-caption text-grey">
+          <span class="text-body-small text-grey">
             {{
               item.last_counted_at ? formatDate(item.last_counted_at) : $t('stock.management.never')
             }}
@@ -192,8 +192,7 @@
   import { useInventoryStockStore } from '@/stores/inventoryStockStore'
   import { useBranchStore } from '@/stores/branchStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppTable, AppToolbar } from '@nong-official-dev/core'
   import InventoryStockDialog from '@/components/inventory/InventoryStockDialog.vue'
   import { useDate } from '@/composables/useDate'
 

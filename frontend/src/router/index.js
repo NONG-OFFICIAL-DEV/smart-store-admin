@@ -489,16 +489,18 @@ const router = createRouter({
 // user should never land back on.
 const PUBLIC_AUTH_ROUTES = ['Login', 'Register', 'ForgotPassword', 'ResetPassword', 'CustomerDisplay']
 
-router.beforeEach(async (to, from, next) => {
+// Returning a route location redirects, `false` cancels, and `true`
+// (or nothing) lets the navigation continue — no `next()` callback.
+router.beforeEach(async (to, from) => {
   const { useAuthStore } = await import('@/stores/authStore')
   const authStore = useAuthStore()
   const token = localStorage.getItem('token')
 
   // ── 1. No token → force Login (except the other public auth routes) ───
   if (!token) {
-    authStore.$reset() // ← add this, clear stale state
-    if (PUBLIC_AUTH_ROUTES.includes(to.name)) return next()
-    return next({ name: 'Login' })
+    authStore.$reset() // clear stale state
+    if (PUBLIC_AUTH_ROUTES.includes(to.name)) return true
+    return { name: 'Login' }
   }
 
   // ── 2. Fetch user if not loaded ────────────────────────────────────────
@@ -507,37 +509,37 @@ router.beforeEach(async (to, from, next) => {
       await authStore.fetchMe()
     } catch {
       localStorage.removeItem('token')
-      if (PUBLIC_AUTH_ROUTES.includes(to.name)) return next()
-      return next({ name: 'Login' })
+      if (PUBLIC_AUTH_ROUTES.includes(to.name)) return true
+      return { name: 'Login' }
     }
   }
 
   // ── 3. Logged-in user hits Login → redirect by role ───────────────────
   if (to.name === 'Login') {
-    return next({ name: resolveHome(authStore) })
+    return { name: resolveHome(authStore) }
   }
 
   // ── 3b. Temporary password still active → force the change-password screen ─
   if (authStore.mustChangePassword && to.name !== 'ForcePasswordChange') {
-    return next({ name: 'ForcePasswordChange' })
+    return { name: 'ForcePasswordChange' }
   }
   if (!authStore.mustChangePassword && to.name === 'ForcePasswordChange') {
-    return next({ name: resolveHome(authStore) })
+    return { name: resolveHome(authStore) }
   }
 
   // ── 4. Unknown route → redirect by role ───────────────────────────────
   if (to.name === 'NotFound') {
-    return next({ name: resolveHome(authStore) })
+    return { name: resolveHome(authStore) }
   }
 
   // ── 5. Route requires a specific permission ────────────────────────────
   if (to.meta.permission && !authStore.can(to.meta.permission)) {
-    return next({ name: resolveHome(authStore) })
+    return { name: resolveHome(authStore) }
   }
 
   // ── 6. Route is admin-only ─────────────────────────────────────────────
   if (to.meta.adminOnly && !authStore.isSuperAdmin && !authStore.isOwner) {
-    return next({ name: resolveHome(authStore) })
+    return { name: resolveHome(authStore) }
   }
 
   // ── 6b. Super admin browsing tenant-owned business data ────────────────
@@ -550,7 +552,7 @@ router.beforeEach(async (to, from, next) => {
   // `superAdminAccessible: true` to be reachable by a super admin; any
   // route added later without it is tenant-territory by default.
   if (authStore.isSuperAdmin && !to.meta.superAdminAccessible) {
-    return next({ name: 'AccessDenied', query: { redirect: to.fullPath } })
+    return { name: 'AccessDenied', query: { redirect: to.fullPath } }
   }
 
   const detailToList =
@@ -567,7 +569,8 @@ router.beforeEach(async (to, from, next) => {
   } else {
     to.meta.transitionName = to.meta.transition || 'fade'
   }
-  next()
+
+  return true
 })
 
 // ── Helper: pick landing page based on role ────────────────────────────────

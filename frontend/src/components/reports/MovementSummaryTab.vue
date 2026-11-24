@@ -3,7 +3,7 @@
     <!-- Period pill -->
     <div class="period-row">
       <v-icon icon="mdi-calendar-range" color="primary" size="16" />
-      <span class="text-body-2 text-medium-emphasis">
+      <span class="text-body-medium text-medium-emphasis">
         {{ t('common.period', 'Period') }}:
       </span>
       <v-chip
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Movement cards -->
-    <v-row v-if="movements.length" dense class="mb-4">
+    <v-row v-if="movements.length" density="compact" class="mb-4">
       <v-col
         v-for="m in movements"
         :key="m.movement_type"
@@ -41,18 +41,18 @@
               <v-icon :icon="movementIcon(m.movement_type)" size="22" />
             </v-avatar>
             <div class="movement-info">
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ movementLabel(m.movement_type) }}
               </div>
-              <div class="text-body-1 font-weight-black">
+              <div class="text-body-large font-weight-black">
                 {{ Number(m.total_qty).toLocaleString() }}
                 <span
-                  class="text-caption text-medium-emphasis font-weight-regular"
+                  class="text-body-small text-medium-emphasis font-weight-regular"
                 >
                   units
                 </span>
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ m.count }}
                 {{ t('inventory_report.movement.transactions', 'txns') }}
               </div>
@@ -75,7 +75,7 @@
     <!-- Empty state -->
     <div v-if="!movements.length" class="empty-state">
       <v-icon icon="mdi-calendar-range" size="48" color="grey-lighten-2" />
-      <div class="text-body-2 text-medium-emphasis mt-2">
+      <div class="text-body-medium text-medium-emphasis mt-2">
         {{
           t(
             'inventory_report.movement.empty',
@@ -88,7 +88,7 @@
     <!-- Top movers table -->
     <v-card v-if="productMovements.length" rounded="xl" border elevation="0">
       <div class="table-header">
-        <span class="text-body-2 font-weight-bold">
+        <span class="text-body-medium font-weight-bold">
           {{ t('inventory_report.movement.top_move', 'Top Movers') }}
         </span>
         <v-chip size="small" color="primary" variant="tonal" rounded="pill">
@@ -118,7 +118,7 @@
                 color="grey"
               />
             </v-avatar>
-            <span class="text-body-2 font-weight-medium">
+            <span class="text-body-medium font-weight-medium">
               {{ item.product_name }}
             </span>
           </div>

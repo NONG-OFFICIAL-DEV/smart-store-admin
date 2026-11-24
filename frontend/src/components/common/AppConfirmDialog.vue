@@ -12,7 +12,7 @@
             <v-avatar :color="options.type" size="40" rounded="lg" variant="tonal" class="me-4">
               <v-icon :icon="resolvedIcon" size="20" />
             </v-avatar>
-            <div class="text-body-1 font-weight-bold">{{ title }}</div>
+            <div class="text-body-large font-weight-bold">{{ title }}</div>
           </div>
           <v-btn icon="mdi-close" size="small" variant="text" @click="cancel" />
         </div>
@@ -20,7 +20,7 @@
 
       <v-card-text v-show="!!message" class="px-5 pt-0 pb-4">
         <span v-html="message"></span>
-        <div class="text-caption text-medium-emphasis mt-2">
+        <div class="text-body-small text-medium-emphasis mt-2">
           {{ $t('common.action_cannot_be_undone') }}
         </div>
       </v-card-text>

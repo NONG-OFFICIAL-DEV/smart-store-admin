@@ -159,8 +159,8 @@
 
     <div class="d-flex align-center justify-space-between pa-3 rounded-lg bg-surface-light mb-2">
       <div>
-        <div class="text-body-2 font-weight-medium">{{ t('loyalty_rewards.drawer.is_active_label') }}</div>
-        <div class="text-caption text-medium-emphasis">{{ t('loyalty_rewards.drawer.is_active_hint') }}</div>
+        <div class="text-body-medium font-weight-medium">{{ t('loyalty_rewards.drawer.is_active_label') }}</div>
+        <div class="text-body-small text-medium-emphasis">{{ t('loyalty_rewards.drawer.is_active_hint') }}</div>
       </div>
       <v-switch v-model="form.is_active" color="primary" hide-details inset />
     </div>

@@ -40,7 +40,7 @@
 
       <span
         v-if="formError"
-        class="step-error text-caption text-error d-flex align-center mb-4"
+        class="step-error text-body-small text-error d-flex align-center mb-4"
       >
         <v-icon icon="mdi-alert-circle-outline" size="14" class="mr-1" />
         {{ formError }}
@@ -76,7 +76,7 @@
                       />
                       {{ $t('products.cardTitle.coreInformation') }}
                     </div>
-                    <v-row dense>
+                    <v-row density="compact">
                       <v-col cols="12" sm="6">
                         <v-text-field
                           v-model="form.name"
@@ -160,7 +160,7 @@
                       <v-icon icon="mdi-barcode-scan" size="12" class="mr-1" />
                       {{ $t('products.cardTitle.identifiers') }}
                     </div>
-                    <v-row dense>
+                    <v-row density="compact">
                       <v-col cols="12" sm="6">
                         <v-text-field
                           v-model="form.sku"
@@ -223,7 +223,7 @@
                     />
                     {{ $t('products.cardTitle.kitchenDetails') }}
                   </div>
-                  <v-row dense>
+                  <v-row density="compact">
                     <template v-if="resolvedBuCode === 'COFFEE_SHOP'">
                       <v-col cols="12" sm="6">
                         <v-select
@@ -304,7 +304,7 @@
                     </v-chip>
                   </div>
 
-                  <v-row dense class="mb-2">
+                  <v-row density="compact" class="mb-2">
                     <v-col cols="12" sm="6">
                       <v-text-field
                         v-model.number="form.base_price"
@@ -353,10 +353,10 @@
                   >
                     <div class="d-flex align-center justify-space-between mb-3">
                       <div>
-                        <div class="text-body-2 font-weight-medium">
+                        <div class="text-body-medium font-weight-medium">
                           {{ $t('products.variant.sizeTempMatrixTitle') }}
                         </div>
-                        <div class="text-caption text-grey">
+                        <div class="text-body-small text-grey">
                           {{ $t('products.variant.sizeTempMatrixHint') }}
                         </div>
                       </div>
@@ -372,16 +372,16 @@
                     </div>
 
                     <div v-if="form.variants.length" class="variants-grid mb-2">
-                      <div class="text-caption text-grey font-weight-medium">
+                      <div class="text-body-small text-grey font-weight-medium">
                         {{ $t('products.variant.sizeTemp') }}
                       </div>
                       <div
-                        class="text-caption text-grey font-weight-medium text-center"
+                        class="text-body-small text-grey font-weight-medium text-center"
                       >
                         {{ $t('products.variant.price') }}
                       </div>
                       <div
-                        class="text-caption text-grey font-weight-medium text-center"
+                        class="text-body-small text-grey font-weight-medium text-center"
                       >
                         {{ $t('products.variant.default') }}
                       </div>
@@ -432,26 +432,26 @@
                   <template v-else>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <div>
-                        <div class="text-body-2 font-weight-medium">
+                        <div class="text-body-medium font-weight-medium">
                           {{ $t('products.variant.optionVariants') }}
                         </div>
-                        <div class="text-caption text-grey">
+                        <div class="text-body-small text-grey">
                           {{ $t('products.variant.optionVariantsHint') }}
                         </div>
                       </div>
                     </div>
 
                     <div v-if="form.variants.length" class="variants-grid mb-2">
-                      <div class="text-caption text-grey font-weight-medium">
+                      <div class="text-body-small text-grey font-weight-medium">
                         {{ $t('products.variant.name') }}
                       </div>
                       <div
-                        class="text-caption text-grey font-weight-medium text-center"
+                        class="text-body-small text-grey font-weight-medium text-center"
                       >
                         {{ $t('products.variant.sellingPrice') }}
                       </div>
                       <div
-                        class="text-caption text-grey font-weight-medium text-center"
+                        class="text-body-small text-grey font-weight-medium text-center"
                       >
                         {{ $t('products.variant.default') }}
                       </div>
@@ -523,7 +523,7 @@
                     <template #prepend>
                       <v-icon icon="mdi-information-outline" size="14" />
                     </template>
-                    <span class="text-caption">
+                    <span class="text-body-small">
                       {{ $t('products.variant.noVariantsHint') }}
                     </span>
                   </v-alert>
@@ -540,7 +540,7 @@
                     <v-icon icon="mdi-warehouse" size="12" class="mr-1" />
                     {{ $t('products.cardTitle.inventoryAndStock') }}
                   </div>
-                  <v-row dense>
+                  <v-row density="compact">
                     <v-col cols="12" sm="4">
                       <v-text-field
                         v-model.number="form.stock_quantity"
@@ -620,7 +620,7 @@
                       {{ $t('unit.unit_count', form.units.length) }}
                     </v-chip>
                   </div>
-                  <div class="text-caption text-grey mb-4">
+                  <div class="text-body-small text-grey mb-4">
                     {{ $t('unit.subtitle_add') }}
                   </div>
 
@@ -663,7 +663,7 @@
                         >
                           {{ $t('unit.derived_unit_chip') }}
                         </v-chip>
-                        <span class="text-body-2 font-weight-medium">
+                        <span class="text-body-medium font-weight-medium">
                           {{
                             unit.unit_name ||
                             t('unit.unit_fallback_name', { n: i + 1 })
@@ -671,7 +671,7 @@
                         </span>
                         <span
                           v-if="isUnitCollapsed(i)"
-                          class="text-caption text-grey text-truncate"
+                          class="text-body-small text-grey text-truncate"
                         >
                           · {{ formatBase(unit.retail_price ?? 0) }} · ×{{
                             unit.qty_per_base
@@ -688,7 +688,7 @@
                       />
                     </div>
 
-                    <v-row v-if="!isUnitCollapsed(i)" dense>
+                    <v-row v-if="!isUnitCollapsed(i)" density="compact">
                       <v-col cols="12" sm="4">
                         <v-combobox
                           v-model="unit.unit_name"
@@ -710,11 +710,11 @@
                           <template #item="{ item, props: iProps }">
                             <v-list-item
                               v-bind="iProps"
-                              :subtitle="item.raw?.subtitle"
+                              :subtitle="item?.subtitle"
                             >
                               <template #append>
                                 <v-chip
-                                  v-if="item.raw?.source === 'db'"
+                                  v-if="item?.source === 'db'"
                                   size="x-small"
                                   color="primary"
                                   variant="tonal"
@@ -738,7 +738,7 @@
                           <!-- When user typed something not in list -->
                           <template #no-data>
                             <v-list-item>
-                              <v-list-item-title class="text-caption">
+                              <v-list-item-title class="text-body-small">
                                 {{ $t('unit.press_enter_before') }}
                                 <kbd>Enter</kbd>
                                 {{ $t('unit.press_enter_after') }} "
@@ -881,7 +881,7 @@
                   </v-btn>
                   <div
                     v-if="form.units.length === 0"
-                    class="text-caption text-error mt-2"
+                    class="text-body-small text-error mt-2"
                   >
                     <v-icon
                       icon="mdi-alert-circle-outline"
@@ -913,7 +913,7 @@
                   size="16"
                 />
               </template>
-              <span class="text-caption">
+              <span class="text-body-small">
                 <span v-if="isFoodProduct">{{ t('products.alert.food') }}</span>
                 <span v-else>{{ t('products.alert.retail') }}</span>
               </span>
@@ -950,41 +950,41 @@
                   </div>
                   <div class="d-flex flex-wrap" style="gap: 20px">
                     <div class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.productName') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ form.name || '—' }}
                       </div>
                     </div>
                     <div v-if="form.name_km" class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.productNameKm') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ form.name_km }}
                       </div>
                     </div>
                     <div class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.category') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ selectedCategoryName }}
                       </div>
                     </div>
                     <div v-if="isMartProduct && form.sku" class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.sku') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ form.sku }}
                       </div>
                     </div>
                   </div>
                   <div
                     v-if="form.description"
-                    class="review-description mt-4 pa-3 rounded-lg text-body-2 text-grey"
+                    class="review-description mt-4 pa-3 rounded-lg text-body-medium text-grey"
                   >
                     {{ form.description }}
                   </div>
@@ -1016,24 +1016,24 @@
                   </div>
                   <div class="d-flex flex-wrap" style="gap: 20px">
                     <div class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.basePrice') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ formatBase(form.base_price ?? 0) }}
                       </div>
                     </div>
                     <div v-if="form.cost_price" class="review-field">
-                      <div class="text-caption text-grey">
+                      <div class="text-body-small text-grey">
                         {{ t('products.field.costPrice') }}
                       </div>
-                      <div class="text-body-1 font-weight-medium">
+                      <div class="text-body-large font-weight-medium">
                         {{ formatBase(form.cost_price) }}
                       </div>
                     </div>
                   </div>
                   <div v-if="form.variants.length" class="mt-3">
-                    <div class="text-caption text-grey mb-1">
+                    <div class="text-body-small text-grey mb-1">
                       {{
                         t(
                           'products.variant.variantCount',
@@ -1088,7 +1088,7 @@
                       {{ t('products.review.edit') }}
                     </v-btn>
                   </div>
-                  <div class="text-caption text-grey mb-3">
+                  <div class="text-body-small text-grey mb-3">
                     {{
                       t('products.review.stockSummary', {
                         qty: form.stock_quantity ?? 0
@@ -1110,7 +1110,7 @@
                           />
                         </v-avatar>
                         <div>
-                          <div class="text-body-2 font-weight-medium">
+                          <div class="text-body-medium font-weight-medium">
                             {{ unit.unit_name || '—' }}
                           </div>
                           <v-chip
@@ -1124,7 +1124,7 @@
                           </v-chip>
                         </div>
                       </div>
-                      <span class="text-body-2 font-weight-bold">
+                      <span class="text-body-medium font-weight-bold">
                         {{ formatBase(unit.retail_price ?? 0) }}
                       </span>
                     </div>
@@ -1150,15 +1150,15 @@
                 />
                 <div v-else class="review-preview-placeholder">
                   <v-icon icon="mdi-image-outline" size="28" color="grey" />
-                  <span class="text-caption text-grey mt-1">
+                  <span class="text-body-small text-grey mt-1">
                     {{ t('products.review.noImage') }}
                   </span>
                 </div>
                 <v-card-text class="pa-4 text-center">
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ form.name || t('products.newTitle') }}
                   </div>
-                  <div class="text-caption text-grey">
+                  <div class="text-body-small text-grey">
                     {{ selectedCategoryName }}
                   </div>
                 </v-card-text>
@@ -1169,7 +1169,7 @@
                 rounded="lg"
                 density="compact"
               >
-                <span class="text-caption">
+                <span class="text-body-small">
                   {{ t('products.review.confirmHint') }}
                 </span>
               </v-alert>

@@ -7,7 +7,7 @@
     <v-card rounded="lg" border elevation="0" min-width="280">
       <v-card-text class="pb-2">
         <template v-if="isEdit">
-          <div class="text-caption text-medium-emphasis mb-1">
+          <div class="text-body-small text-medium-emphasis mb-1">
             {{ staff?.full_name }} · {{ dateLabel }}
           </div>
         </template>
@@ -45,16 +45,16 @@
           class="mb-3"
         >
           <template #item="{ props: itemProps, item: opt }">
-            <v-list-item v-bind="itemProps" :subtitle="shiftTimeLabel(opt.raw)">
+            <v-list-item v-bind="itemProps" :subtitle="shiftTimeLabel(opt)">
               <template #prepend>
-                <v-icon icon="mdi-circle" size="12" :color="opt.raw.color" />
+                <v-icon icon="mdi-circle" size="12" :color="opt.color" />
               </template>
             </v-list-item>
           </template>
         </v-select>
 
         <template v-if="isEdit">
-          <div class="text-caption text-medium-emphasis mb-1">
+          <div class="text-body-small text-medium-emphasis mb-1">
             {{ t('staff.schedule.menu.mark_attendance') }}
           </div>
           <v-btn-toggle v-model="attendance" color="primary" rounded="lg" density="comfortable" mandatory class="mb-2 w-100">

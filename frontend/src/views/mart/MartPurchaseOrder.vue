@@ -17,7 +17,7 @@
     <!-- Filters — always visible, just the one select -->
     <v-card rounded="lg" border elevation="0" class="mb-4">
       <v-card-text class="pa-4">
-        <v-row dense align="center">
+        <v-row density="compact" align="center">
           <v-col cols="6" sm="3">
             <v-select
               v-model="filters.status"
@@ -46,15 +46,15 @@
       >
         <!-- PO Number -->
         <template #item.po_number="{ item }">
-          <div class="font-weight-bold text-body-2">{{ item.po_number }}</div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="font-weight-bold text-body-medium">{{ item.po_number }}</div>
+          <div class="text-body-small text-medium-emphasis">
             {{ fmtDate(item.created_at) }}
           </div>
         </template>
 
         <!-- Supplier -->
         <template #item.supplier="{ item }">
-          <div class="text-body-2">{{ item.supplier?.name }}</div>
+          <div class="text-body-medium">{{ item.supplier?.name }}</div>
         </template>
 
         <!-- Items count -->
@@ -71,10 +71,10 @@
 
         <!-- Expected delivery -->
         <template #item.expected_delivery="{ item }">
-          <span v-if="item.expected_delivery" class="text-body-2">
+          <span v-if="item.expected_delivery" class="text-body-medium">
             {{ fmtDate(item.expected_delivery) }}
           </span>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Status -->
@@ -170,8 +170,7 @@
   import { ref, computed } from 'vue'
   import { useMartPurchaseOrderStore } from '@/stores/martPurchaseOrderStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable, AppDialog } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppTable, AppDialog, AppToolbar } from '@nong-official-dev/core'
   import MartPoReceiveDialog from '@/components/mart/MartPoReceiveDialog.vue'
   import MartPoDetailDialog from '@/components/mart/MartPoDetailDialog.vue'
   import { useRouter } from 'vue-router'

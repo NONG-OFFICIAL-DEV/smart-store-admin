@@ -79,7 +79,7 @@
             </div>
             <div
               :class="[
-                'text-h6 font-weight-black',
+                'text-title-large font-weight-black',
                 i === 0 ? 'text-white' : ''
               ]"
             >
@@ -87,7 +87,7 @@
             </div>
             <div
               :class="[
-                'text-caption mt-1',
+                'text-body-small mt-1',
                 i === 0 ? 'text-white opacity-80' : 'text-medium-emphasis'
               ]"
             >
@@ -96,7 +96,7 @@
             <div
               v-if="kpi.trend_label"
               :class="[
-                'text-caption',
+                'text-body-small',
                 i === 0 ? 'text-white opacity-60' : 'text-disabled'
               ]"
             >
@@ -108,7 +108,7 @@
     </div>
 
     <!-- ── Main row ───────────────────────────────────────────────────────── -->
-    <v-row dense>
+    <v-row density="compact">
       <!-- Left: MRR chart + top tenants -->
       <v-col cols="12" lg="8">
         <!-- MRR chart -->
@@ -116,10 +116,10 @@
           <v-card-title class="pa-5 pb-3">
             <div class="d-flex align-center justify-space-between">
               <div>
-                <div class="text-subtitle-1 font-weight-bold">
+                <div class="text-body-large font-weight-bold">
                   {{ $t('admin_dashboard.mrr_trend') }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ $t('admin_dashboard.mrr_trend_subtitle') }}
                 </div>
               </div>
@@ -215,7 +215,7 @@
                 </template>
 
                 <v-list-item-title
-                  class="font-weight-medium text-body-2 d-flex align-center flex-wrap gap-1"
+                  class="font-weight-medium text-body-medium d-flex align-center flex-wrap gap-1"
                 >
                   {{ tenant.name }}
                   <v-chip
@@ -236,7 +236,7 @@
                   </v-chip>
                 </v-list-item-title>
 
-                <v-list-item-subtitle class="text-caption">
+                <v-list-item-subtitle class="text-body-small">
                   <v-icon icon="mdi-tag-outline" size="12" class="mr-1" />
                   {{ tenant.plan_name }}
                   <template v-if="tenant.billing_label">
@@ -281,7 +281,7 @@
                   <div class="d-flex align-center gap-4">
                     <div style="width: 100px">
                       <div class="d-flex justify-space-between mb-1">
-                        <span class="text-caption text-medium-emphasis">
+                        <span class="text-body-small text-medium-emphasis">
                           {{ tenant.revenue_percent }}%
                         </span>
                       </div>
@@ -294,10 +294,10 @@
                       />
                     </div>
                     <div class="text-right" style="min-width: 80px">
-                      <div class="font-weight-bold text-body-2">
+                      <div class="font-weight-bold text-body-medium">
                         ${{ tenant.monthly_value?.toLocaleString() }}
                       </div>
-                      <div class="text-caption text-medium-emphasis">
+                      <div class="text-body-small text-medium-emphasis">
                         {{ $t('subscription.month_short') }}
                       </div>
                     </div>
@@ -306,7 +306,7 @@
               </v-list-item>
               <div
                 v-if="!topTenants.length"
-                class="text-center py-6 text-medium-emphasis text-body-2"
+                class="text-center py-6 text-medium-emphasis text-body-medium"
               >
                 {{ $t('admin_dashboard.no_tenants_found') }}
               </div>
@@ -342,10 +342,10 @@
                     <v-icon v-else icon="mdi-domain" size="18" color="white" />
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-medium">
+                <v-list-item-title class="text-body-medium font-weight-medium">
                   {{ tenant.name }}
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
+                <v-list-item-subtitle class="text-body-small">
                   {{ tenant.plan_name }} ·
                   <v-chip
                     :color="subscriptionStatusColor(tenant.status)"
@@ -356,14 +356,14 @@
                   </v-chip>
                 </v-list-item-subtitle>
                 <template #append>
-                  <span class="text-caption text-disabled">
+                  <span class="text-body-small text-disabled">
                     {{ tenant.created_at }}
                   </span>
                 </template>
               </v-list-item>
               <div
                 v-if="!recentTenants.length"
-                class="text-center py-4 text-caption text-medium-emphasis"
+                class="text-center py-4 text-body-small text-medium-emphasis"
               >
                 {{ $t('admin_dashboard.no_recent_tenants') }}
               </div>
@@ -379,10 +379,10 @@
           <v-card-title class="pa-5 pb-3">
             <div class="d-flex align-center justify-space-between">
               <div>
-                <div class="text-subtitle-1 font-weight-bold">
+                <div class="text-body-large font-weight-bold">
                   {{ $t('admin_dashboard.billing_plans') }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ $t('admin_dashboard.subscription_breakdown') }}
                 </div>
               </div>
@@ -451,7 +451,7 @@
                 class="mb-4"
                 icon="mdi-calendar-clock"
               >
-                <span class="text-caption">
+                <span class="text-body-small">
                   <strong>{{ billing.renewals_soon }}</strong>
                   {{ $t('admin_dashboard.renewals_due_suffix') }}
                 </span>
@@ -468,14 +468,14 @@
                     <v-avatar :color="rowColor(i)" size="24" rounded="sm">
                       <v-icon icon="mdi-tag-outline" size="13" color="white" />
                     </v-avatar>
-                    <span class="text-body-2 font-weight-medium">
+                    <span class="text-body-medium font-weight-medium">
                       {{ plan.plan_name }}
                     </span>
-                    <span class="text-caption text-medium-emphasis">
+                    <span class="text-body-small text-medium-emphasis">
                       ${{ plan.price_usd }}{{ $t('subscription.month_short') }}
                     </span>
                   </div>
-                  <span class="text-body-2 font-weight-bold text-success">
+                  <span class="text-body-medium font-weight-bold text-success">
                     ${{ plan.mrr_contribution?.toLocaleString() }}
                   </span>
                 </div>
@@ -489,7 +489,7 @@
               </div>
               <div
                 v-if="!billing.plans?.length"
-                class="text-center py-4 text-caption text-medium-emphasis"
+                class="text-center py-4 text-body-small text-medium-emphasis"
               >
                 {{ $t('admin_dashboard.no_plan_data') }}
               </div>

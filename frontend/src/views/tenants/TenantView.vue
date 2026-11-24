@@ -33,7 +33,7 @@
     />
 
     <!-- ── Filters ────────────────────────────────────────────────────────────── -->
-    <v-row dense align="center" class="mb-2">
+    <v-row density="compact" align="center" class="mb-2">
       <v-col cols="12" sm="3">
         <custom-select
           v-model="businessFiter"
@@ -101,13 +101,13 @@
               variant="tonal"
             >
               <v-img v-if="item.logo_url" :src="item.logo_url" cover />
-              <span v-else class="text-caption font-weight-bold">
+              <span v-else class="text-body-small font-weight-bold">
                 {{ item.name.charAt(0).toUpperCase() }}
               </span>
             </v-avatar>
             <div>
-              <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
-              <div class="text-caption text-grey">{{ item.slug }}</div>
+              <div class="text-body-medium font-weight-bold">{{ item.name }}</div>
+              <div class="text-body-small text-grey">{{ item.slug }}</div>
             </div>
           </div>
         </template>
@@ -121,13 +121,13 @@
               </span>
             </v-avatar>
             <div>
-              <div class="text-caption font-weight-medium">
+              <div class="text-body-small font-weight-medium">
                 {{ item.owner.first_name }} {{ item.owner.last_name }}
               </div>
-              <div class="text-caption text-grey">{{ item.owner.email }}</div>
+              <div class="text-body-small text-grey">{{ item.owner.email }}</div>
             </div>
           </div>
-          <span v-else class="text-grey text-caption">—</span>
+          <span v-else class="text-grey text-body-small">—</span>
         </template>
 
         <!-- BU Type -->
@@ -274,7 +274,7 @@
               color="grey-lighten-1"
               class="mb-3"
             />
-            <p class="text-h6 text-medium-emphasis mb-1">
+            <p class="text-title-large text-medium-emphasis mb-1">
               {{ $t('tenant_details.list.empty') }}
             </p>
             <v-btn

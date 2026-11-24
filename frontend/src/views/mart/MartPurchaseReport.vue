@@ -18,19 +18,19 @@
     />
 
     <!-- Summary cards -->
-    <v-row dense class="mb-5">
+    <v-row density="compact" class="mb-5">
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ t('purchase_report.summary.total_spent') }}</span>
+            <span class="text-body-small text-medium-emphasis">{{ t('purchase_report.summary.total_spent') }}</span>
             <v-avatar size="28" color="primary" variant="tonal" rounded="lg">
               <v-icon icon="mdi-cash-multiple" size="14" />
             </v-avatar>
           </div>
-          <div class="text-h5 font-weight-black text-primary">
+          <div class="text-headline-small font-weight-black text-primary">
             {{ format(report.summary?.total_spent) }}
           </div>
-          <div class="text-caption text-medium-emphasis mt-1">
+          <div class="text-body-small text-medium-emphasis mt-1">
             {{ report.summary?.total_pos ?? 0 }} {{ t('purchase_report.orders_suffix') }}
           </div>
         </v-card>
@@ -38,15 +38,15 @@
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ t('purchase_report.summary.avg_po') }}</span>
+            <span class="text-body-small text-medium-emphasis">{{ t('purchase_report.summary.avg_po') }}</span>
             <v-avatar size="28" color="indigo" variant="tonal" rounded="lg">
               <v-icon icon="mdi-calculator" size="14" />
             </v-avatar>
           </div>
-          <div class="text-h5 font-weight-black text-indigo">
+          <div class="text-headline-small font-weight-black text-indigo">
             {{ format(report.summary?.avg_po_value) }}
           </div>
-          <div class="text-caption text-medium-emphasis mt-1">
+          <div class="text-body-small text-medium-emphasis mt-1">
             {{ report.summary?.total_pos ?? 0 }} {{ t('purchase_report.orders_suffix') }}
           </div>
         </v-card>
@@ -54,15 +54,15 @@
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ t('purchase_report.summary.received') }}</span>
+            <span class="text-body-small text-medium-emphasis">{{ t('purchase_report.summary.received') }}</span>
             <v-avatar size="28" color="success" variant="tonal" rounded="lg">
               <v-icon icon="mdi-check-circle-outline" size="14" />
             </v-avatar>
           </div>
-          <div class="text-h5 font-weight-black text-success">
+          <div class="text-headline-small font-weight-black text-success">
             {{ report.summary?.received_count ?? 0 }}
           </div>
-          <div class="text-caption text-medium-emphasis mt-1">
+          <div class="text-body-small text-medium-emphasis mt-1">
             +{{ report.summary?.partial_count ?? 0 }} {{ t('purchase_report.partial_suffix') }}
           </div>
         </v-card>
@@ -70,26 +70,26 @@
       <v-col cols="6" sm="3">
         <v-card rounded="xl" border elevation="0" class="pa-4">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-medium-emphasis">{{ t('purchase_report.summary.pending') }}</span>
+            <span class="text-body-small text-medium-emphasis">{{ t('purchase_report.summary.pending') }}</span>
             <v-avatar size="28" color="warning" variant="tonal" rounded="lg">
               <v-icon icon="mdi-clock-outline" size="14" />
             </v-avatar>
           </div>
-          <div class="text-h5 font-weight-black text-warning">
+          <div class="text-headline-small font-weight-black text-warning">
             {{ report.summary?.pending_count ?? 0 }}
           </div>
-          <div class="text-caption text-medium-emphasis mt-1">
+          <div class="text-body-small text-medium-emphasis mt-1">
             {{ report.summary?.cancelled_count ?? 0 }} {{ t('purchase_report.cancelled_suffix') }}
           </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <!-- Spending chart -->
       <v-col cols="12" lg="8">
         <v-card rounded="xl" border elevation="0" class="mb-4">
-          <div class="pa-5 pb-3 text-body-1 font-weight-bold">
+          <div class="pa-5 pb-3 text-body-large font-weight-bold">
             {{ t('purchase_report.chart.spending') }}
           </div>
           <v-divider />
@@ -102,7 +102,7 @@
       <!-- By supplier -->
       <v-col cols="12" lg="4">
         <v-card rounded="xl" border elevation="0" class="mb-4">
-          <div class="pa-5 pb-3 text-body-1 font-weight-bold">{{ t('purchase_report.chart.by_supplier') }}</div>
+          <div class="pa-5 pb-3 text-body-large font-weight-bold">{{ t('purchase_report.chart.by_supplier') }}</div>
           <v-divider />
           <v-card-text class="pa-4">
             <div
@@ -117,19 +117,19 @@
                     color="primary"
                     variant="tonal"
                     rounded="lg"
-                    class="text-caption font-weight-black"
+                    class="text-body-small font-weight-black"
                   >
                     {{ i + 1 }}
                   </v-avatar>
-                  <span class="text-body-2 font-weight-medium">
+                  <span class="text-body-medium font-weight-medium">
                     {{ s.supplier_name }}
                   </span>
                 </div>
                 <div class="text-right">
-                  <div class="text-body-2 font-weight-bold">
+                  <div class="text-body-medium font-weight-bold">
                     {{ format(s.total_spent) }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ s.po_count }} {{ t('purchase_report.pos_suffix') }}
                   </div>
                 </div>
@@ -144,7 +144,7 @@
             </div>
             <div
               v-if="!report.by_supplier?.length"
-              class="text-caption text-medium-emphasis text-center py-6"
+              class="text-body-small text-medium-emphasis text-center py-6"
             >
               {{ t('table.no_data') }}
             </div>
@@ -153,11 +153,11 @@
       </v-col>
     </v-row>
 
-    <v-row dense>
+    <v-row density="compact">
       <!-- Top purchased products -->
       <v-col cols="12" lg="6">
         <v-card rounded="xl" border elevation="0">
-          <div class="pa-5 pb-3 text-body-1 font-weight-bold">
+          <div class="pa-5 pb-3 text-body-large font-weight-bold">
             {{ t('purchase_report.chart.top_products') }}
           </div>
           <v-divider />
@@ -169,12 +169,12 @@
             item-value="product_id"
           >
             <template #item.product_name="{ item }">
-              <span class="text-body-2 font-weight-medium">
+              <span class="text-body-medium font-weight-medium">
                 {{ item.product_name }}
               </span>
             </template>
             <template #item.total_ordered="{ item }">
-              <span class="text-body-2">{{ item.total_ordered }}</span>
+              <span class="text-body-medium">{{ item.total_ordered }}</span>
             </template>
             <template #item.total_received="{ item }">
               <v-chip
@@ -202,7 +202,7 @@
       <!-- Recent POs -->
       <v-col cols="12" lg="6">
         <v-card rounded="xl" border elevation="0">
-          <div class="pa-5 pb-3 text-body-1 font-weight-bold">
+          <div class="pa-5 pb-3 text-body-large font-weight-bold">
             {{ t('purchase_report.chart.recent_pos') }}
           </div>
           <v-divider />
@@ -214,7 +214,7 @@
             item-value="id"
           >
             <template #item.po_number="{ item }">
-              <span class="text-caption font-weight-bold">
+              <span class="text-body-small font-weight-bold">
                 {{ item.po_number }}
               </span>
             </template>
@@ -232,7 +232,7 @@
               </v-chip>
             </template>
             <template #item.created_at="{ item }">
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-body-small text-medium-emphasis">
                 {{ fmtDate(item.created_at) }}
               </span>
             </template>

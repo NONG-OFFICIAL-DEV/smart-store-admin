@@ -63,7 +63,7 @@
            for every fetch (initial load, branch switch, search), not just
            the first one, so a fast re-search never flashes "No products
            found" before the new results land. -->
-      <v-row v-if="loading" dense>
+      <v-row v-if="loading" density="compact">
         <v-col v-for="n in 10" :key="`skeleton-${n}`" cols="6" sm="4" md="3" lg="2">
           <div class="pos-card pos-card--skeleton">
             <div class="pos-card__image-wrap">
@@ -86,7 +86,7 @@
         {{ $t('pos.grid.no_products') }}
       </v-alert>
 
-      <v-row v-else dense>
+      <v-row v-else density="compact">
         <v-col v-for="product in products" :key="product.id" cols="6" sm="4" md="3" lg="2">
           <div
             class="pos-card"

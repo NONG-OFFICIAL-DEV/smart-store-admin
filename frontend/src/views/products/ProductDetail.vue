@@ -8,7 +8,7 @@
         :breadcrumbs="breadcrumbItems"
       >
         <template #title-after>
-          <span v-if="product.name_km" class="text-body-2 text-medium-emphasis">
+          <span v-if="product.name_km" class="text-body-medium text-medium-emphasis">
             · {{ product.name_km }}
           </span>
         </template>
@@ -101,7 +101,7 @@
 
                 <div class="d-flex flex-column" style="gap: 10px">
                   <div v-if="product.category?.name" class="meta-row">
-                    <span class="text-caption text-medium-emphasis">
+                    <span class="text-body-small text-medium-emphasis">
                       {{ t('products.field.category') }}
                     </span>
                     <v-chip size="x-small" variant="tonal" color="primary">
@@ -109,7 +109,7 @@
                     </v-chip>
                   </div>
                   <div class="meta-row">
-                    <span class="text-caption text-medium-emphasis">
+                    <span class="text-body-small text-medium-emphasis">
                       {{ t('products.detail.image_fit') }}
                     </span>
                     <v-btn-toggle
@@ -130,10 +130,10 @@
                   </div>
                   <v-divider class="my-1" />
                   <div class="d-flex justify-space-between align-center">
-                    <span class="text-caption text-medium-emphasis">
+                    <span class="text-body-small text-medium-emphasis">
                       {{ t('products.detail.price') }}
                     </span>
-                    <span class="text-h6 font-weight-bold text-primary">
+                    <span class="text-title-large font-weight-bold text-primary">
                       {{ priceDisplay }}
                     </span>
                   </div>
@@ -156,15 +156,15 @@
                 </div>
                 <div class="d-flex flex-column" style="gap: 10px">
                   <div class="d-flex justify-space-between align-center">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.cost_price') }}
                     </span>
-                    <span class="text-body-2">
+                    <span class="text-body-medium">
                       {{ format(product.cost_price) }}
                     </span>
                   </div>
                   <div class="d-flex justify-space-between align-center">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.margin') }}
                     </span>
                     <v-chip
@@ -207,7 +207,7 @@
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
                   <div v-if="product.preparation_time" class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.prep_time') }}
                     </span>
                     <v-chip
@@ -220,7 +220,7 @@
                     </v-chip>
                   </div>
                   <div v-if="product.shelf_life_hours" class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.shelf_life') }}
                     </span>
                     <v-chip
@@ -242,7 +242,7 @@
                 >
                   <v-divider class="my-3" />
                   <div v-if="product.cup_sizes?.length" class="mb-2">
-                    <p class="text-caption text-grey mb-2">
+                    <p class="text-body-small text-grey mb-2">
                       {{ t('products.detail.cup_sizes') }}
                     </p>
                     <div class="d-flex flex-wrap gap-1">
@@ -258,7 +258,7 @@
                     </div>
                   </div>
                   <div v-if="product.temperature_options?.length">
-                    <p class="text-caption text-grey mb-2">
+                    <p class="text-body-small text-grey mb-2">
                       {{ t('products.detail.temperature') }}
                     </p>
                     <div class="d-flex flex-wrap gap-1">
@@ -292,7 +292,7 @@
                 </div>
                 <div class="d-flex flex-column" style="gap: 8px">
                   <div class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.stock') }}
                     </span>
                     <v-chip
@@ -306,15 +306,15 @@
                     </v-chip>
                   </div>
                   <div v-if="product.reorder_level" class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.reorder_at') }}
                     </span>
-                    <span class="text-caption font-weight-medium">
+                    <span class="text-body-small font-weight-medium">
                       {{ product.reorder_level }}
                     </span>
                   </div>
                   <div class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.track_stock') }}
                     </span>
                     <v-icon
@@ -328,7 +328,7 @@
                     />
                   </div>
                   <div v-if="product.expiry_date" class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.expiry') }}
                     </span>
                     <v-chip
@@ -341,7 +341,7 @@
                     </v-chip>
                   </div>
                   <div v-if="product.supplier_code" class="meta-row">
-                    <span class="text-caption text-grey">
+                    <span class="text-body-small text-grey">
                       {{ t('products.detail.supplier_code') }}
                     </span>
                     <v-chip size="x-small" variant="outlined">
@@ -361,10 +361,10 @@
             <v-card v-if="isFoodProduct" border rounded="lg" class="mb-4">
               <div class="d-flex align-center justify-space-between pa-2 pb-3">
                 <div>
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ t('products.detail.sizes_title') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ t('products.detail.sizes_subtitle') }}
                   </div>
                 </div>
@@ -450,10 +450,10 @@
             <v-card v-if="isFoodProduct" border rounded="lg" class="mb-4">
               <div class="d-flex align-center justify-space-between pa-2 pb-3">
                 <div>
-                  <div class="text-body-1 font-weight-bold">
+                  <div class="text-body-large font-weight-bold">
                     {{ t('modifiers.options_tab.tab_label') }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
+                  <div class="text-body-small text-medium-emphasis">
                     {{ t('products.detail.options_subtitle') }}
                   </div>
                 </div>
@@ -535,7 +535,7 @@
                       </div>
                       <span
                         v-if="alsoUsedBy(group) > 0"
-                        class="text-caption text-medium-emphasis"
+                        class="text-body-small text-medium-emphasis"
                       >
                         {{
                           t('products.detail.also_used_by', alsoUsedBy(group), {

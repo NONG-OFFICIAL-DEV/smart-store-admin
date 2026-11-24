@@ -2,7 +2,7 @@
   <v-dialog v-model="model" :max-width="400" :fullscreen="smAndDown" scrollable>
     <v-card rounded="lg" class="d-flex flex-column">
       <v-card-title class="d-flex align-center justify-space-between pa-4 flex-grow-0">
-        <span class="text-h6">{{ t('pos.loyalty.redeem_title') }}</span>
+        <span class="text-title-large">{{ t('pos.loyalty.redeem_title') }}</span>
         <v-btn icon="mdi-close" variant="text" density="comfortable" @click="close" />
       </v-card-title>
       <v-divider />
@@ -13,9 +13,9 @@
         <!-- Reward found and still pending — preview + Apply -->
         <template v-if="preview">
           <v-card variant="tonal" color="primary" rounded="lg" class="pa-3 mb-4">
-            <div class="text-caption text-medium-emphasis">{{ t('pos.loyalty.reward_label') }}</div>
-            <div class="text-body-1 font-weight-bold">{{ preview.reward.name }}</div>
-            <div class="text-caption mt-1">
+            <div class="text-body-small text-medium-emphasis">{{ t('pos.loyalty.reward_label') }}</div>
+            <div class="text-body-large font-weight-bold">{{ preview.reward.name }}</div>
+            <div class="text-body-small mt-1">
               {{ t('loyalty_rewards.points_cost_chip', { points: preview.reward.points_cost }) }}
             </div>
           </v-card>

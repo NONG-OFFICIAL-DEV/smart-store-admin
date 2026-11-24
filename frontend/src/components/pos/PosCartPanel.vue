@@ -2,7 +2,7 @@
   <v-card rounded="lg" border elevation="0" class="d-flex flex-column pos-cart">
     <div class="pa-3 d-flex align-center">
       <v-icon icon="mdi-cart-outline" class="me-2" />
-      <span class="text-body-1 font-weight-bold">{{ $t('pos.cart.title') }}</span>
+      <span class="text-body-large font-weight-bold">{{ $t('pos.cart.title') }}</span>
       <v-spacer />
       <v-btn
         v-if="items.length"
@@ -19,10 +19,10 @@
     <div class="pos-cart__items flex-grow-1">
       <div v-if="!items.length" class="pos-cart__empty pa-6 text-center">
         <v-icon icon="mdi-cart-outline" size="40" color="grey-lighten-1" />
-        <div class="text-body-2 font-weight-bold mt-3">
+        <div class="text-body-medium font-weight-bold mt-3">
           {{ $t('pos.cart.empty_title') }}
         </div>
-        <div class="text-caption text-medium-emphasis mt-1">
+        <div class="text-body-small text-medium-emphasis mt-1">
           {{ $t('pos.cart.empty_helper') }}
         </div>
         <kbd class="pos-cart__empty-hint mt-4">⌘K — {{ $t('pos.cart.empty_search_hint') }}</kbd>
@@ -36,7 +36,7 @@
       >
         <div class="d-flex align-start">
           <div class="flex-grow-1">
-            <div class="text-body-2 font-weight-medium">
+            <div class="text-body-medium font-weight-medium">
               {{ item.name }}
               <v-icon
                 v-if="item.notes"
@@ -46,10 +46,10 @@
                 class="ml-1"
               />
             </div>
-            <div v-if="optionsLine(item)" class="text-caption text-medium-emphasis">
+            <div v-if="optionsLine(item)" class="text-body-small text-medium-emphasis">
               {{ optionsLine(item) }}
             </div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ formatMoney(item.unit_price) }}
             </div>
           </div>
@@ -98,7 +98,7 @@
               variant="tonal"
               @click="$emit('update-qty', item.key, item.qty - 1)"
             />
-            <span class="px-2 text-body-2" :class="{ 'text-body-1 font-weight-medium': touch }">
+            <span class="px-2 text-body-medium" :class="{ 'text-body-large font-weight-medium': touch }">
               {{ item.qty }}
             </span>
             <v-btn
@@ -108,7 +108,7 @@
               @click="$emit('update-qty', item.key, item.qty + 1)"
             />
           </div>
-          <span class="text-body-2 font-weight-bold">
+          <span class="text-body-medium font-weight-bold">
             {{ formatMoney(item.unit_price * item.qty) }}
           </span>
         </div>
@@ -117,11 +117,11 @@
 
     <v-divider />
     <div :class="touch ? 'pa-4' : 'pa-3'">
-      <div class="d-flex justify-space-between text-body-1" :class="discountAmount > 0 ? 'mb-1' : 'mb-3'">
+      <div class="d-flex justify-space-between text-body-large" :class="discountAmount > 0 ? 'mb-1' : 'mb-3'">
         <span class="font-weight-medium">{{ $t('pos.cart.subtotal') }}</span>
         <span class="font-weight-bold">{{ formatMoney(subtotal) }}</span>
       </div>
-      <div v-if="discountAmount > 0" class="d-flex justify-space-between text-body-2 mb-3 text-amber-darken-2">
+      <div v-if="discountAmount > 0" class="d-flex justify-space-between text-body-medium mb-3 text-amber-darken-2">
         <span class="d-flex align-center">
           {{ $t('pos.loyalty.discount_line') }}
           <v-btn
@@ -139,13 +139,13 @@
 
       <!-- Payment method — right here, not a separate dialog, so checkout
            is a single tap once a method (and cash amount, if any) is set. -->
-      <div class="text-caption text-medium-emphasis mb-1">
+      <div class="text-body-small text-medium-emphasis mb-1">
         {{ $t('pos.checkout.payment_method') }}
       </div>
       <!-- 2x2 grid, not a single-row toggle — 4 options (the 4th, longer
            "Pay Later" label included) never fit on one line in a ~300-360px
            cart column without clipping down to just "Pay". -->
-      <v-row dense class="mb-3">
+      <v-row density="compact" class="mb-3">
         <v-col v-for="opt in paymentOptions" :key="opt.value" cols="6">
           <v-btn
             block

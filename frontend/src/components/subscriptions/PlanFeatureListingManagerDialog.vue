@@ -28,7 +28,7 @@
           <v-chip size="x-small" class="mr-1">
             {{ $t(`subscription.plan_feature_listings.value_types.${listing.value_type}`) }}
           </v-chip>
-          <span class="text-caption">{{ listing.key }}</span>
+          <span class="text-body-small">{{ listing.key }}</span>
           <v-chip
             v-if="!listing.is_active"
             size="x-small"

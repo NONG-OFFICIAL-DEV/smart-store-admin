@@ -62,8 +62,7 @@
   import { ref, computed } from 'vue'
   import { useSupplierStore } from '@/stores/supplierStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppStatusChip, AppTable } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppStatusChip, AppTable, AppToolbar } from '@nong-official-dev/core'
   import SupplierDialog from '@/components/SupplierDialog.vue'
   import { useI18n } from 'vue-i18n'
   const { t } = useI18n()

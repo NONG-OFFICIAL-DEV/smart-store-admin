@@ -6,7 +6,7 @@
         <v-table density="comfortable">
           <tbody>
             <tr v-for="row in group.rows" :key="row.keys">
-              <td class="text-body-2">{{ row.label }}</td>
+              <td class="text-body-medium">{{ row.label }}</td>
               <td class="text-end">
                 <kbd class="shortcut-key">{{ row.keys }}</kbd>
               </td>

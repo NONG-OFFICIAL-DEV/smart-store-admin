@@ -7,7 +7,7 @@
     :loading="confirming"
   >
         <div class="px-6 pb-4">
-          <div class="text-caption text-medium-emphasis mb-4 ms-10">
+          <div class="text-body-small text-medium-emphasis mb-4 ms-10">
             {{ t('subscription.upgrade_dialog.currently_on') }}
             <v-chip
               size="x-small"
@@ -66,7 +66,7 @@
               </div>
 
               <!-- Plan cards -->
-              <v-row dense>
+              <v-row density="compact">
                 <v-col
                   v-for="plan in enrichedPlans"
                   :key="plan.id"
@@ -128,21 +128,21 @@
                       </div>
 
                       <!-- Name -->
-                      <div class="text-caption font-weight-bold mb-2">{{ plan.name }}</div>
+                      <div class="text-body-small font-weight-bold mb-2">{{ plan.name }}</div>
 
                       <!-- Price -->
                       <template v-if="isFree(plan)">
-                        <div class="text-h6 font-weight-black text-success mb-0">$0</div>
-                        <div class="text-caption text-medium-emphasis mb-3" style="opacity:.8">{{ t('subscription.upgrade_dialog.free_trial') }}</div>
+                        <div class="text-title-large font-weight-black text-success mb-0">$0</div>
+                        <div class="text-body-small text-medium-emphasis mb-3" style="opacity:.8">{{ t('subscription.upgrade_dialog.free_trial') }}</div>
                       </template>
                       <template v-else>
-                        <div class="text-h6 font-weight-black mb-0" :class="`text-${plan.color}`">
+                        <div class="text-title-large font-weight-black mb-0" :class="`text-${plan.color}`">
                           ${{ getPlanPrice(plan) }}
                         </div>
-                        <div class="text-caption text-medium-emphasis mb-0">
+                        <div class="text-body-small text-medium-emphasis mb-0">
                           / {{ planCycle(plan)?.months ?? 1 }} {{ t('tenant_create.month_unit', planCycle(plan)?.months ?? 1) }}
                         </div>
-                        <div class="text-caption text-medium-emphasis mb-3" style="opacity:.65">
+                        <div class="text-body-small text-medium-emphasis mb-3" style="opacity:.65">
                           ${{ getPlanPerMonth(plan) }}{{ t('tenant_create.per_month_suffix') }}
                         </div>
                       </template>
@@ -159,14 +159,14 @@
                           <v-icon color="success" size="11" class="mt-1 flex-shrink-0">
                             mdi-check-circle-outline
                           </v-icon>
-                          <span class="text-caption">{{ line.text }}</span>
+                          <span class="text-body-small">{{ line.text }}</span>
                         </div>
                       </div>
 
                       <!-- Current plan label at bottom (no button) -->
                       <div
                         v-if="isCurrentPlan(plan)"
-                        class="text-center text-caption text-medium-emphasis mt-3"
+                        class="text-center text-body-small text-medium-emphasis mt-3"
                         style="opacity:.6"
                       >
                         {{ t('subscription.upgrade_dialog.current_plan_label') }}
@@ -175,7 +175,7 @@
                       <!-- Blocked free-downgrade explanation -->
                       <div
                         v-if="isFreeDowngradeBlocked(plan)"
-                        class="text-center text-caption text-medium-emphasis mt-3"
+                        class="text-center text-body-small text-medium-emphasis mt-3"
                         style="opacity:.7"
                       >
                         <v-icon size="12" class="me-1">mdi-lock-outline</v-icon>{{ t('subscription.upgrade_dialog.free_downgrade_blocked') }}
@@ -199,24 +199,24 @@
                         <v-icon :icon="selected.icon" size="17" />
                       </v-avatar>
                       <div>
-                        <div class="text-body-2 font-weight-medium d-flex align-center ga-1 flex-wrap">
-                          <span class="text-medium-emphasis text-caption">{{ currentPlan?.name ?? '—' }}</span>
+                        <div class="text-body-medium font-weight-medium d-flex align-center ga-1 flex-wrap">
+                          <span class="text-medium-emphasis text-body-small">{{ currentPlan?.name ?? '—' }}</span>
                           <v-icon size="12" color="medium-emphasis">mdi-arrow-right</v-icon>
-                          <span :class="`text-${selected.color}`" class="text-caption font-weight-bold">{{ selected.name }}</span>
+                          <span :class="`text-${selected.color}`" class="text-body-small font-weight-bold">{{ selected.name }}</span>
                           <v-chip size="x-small" :color="selected.color" variant="tonal" class="ms-1">
                             {{ selectedPlanCycle?.label }}
                           </v-chip>
                         </div>
-                        <div class="text-caption text-medium-emphasis" style="opacity:.7">
+                        <div class="text-body-small text-medium-emphasis" style="opacity:.7">
                           {{ t('subscription.upgrade_dialog.effective_immediately') }}
                         </div>
                       </div>
                     </div>
                     <div class="text-right">
-                      <div class="text-subtitle-1 font-weight-bold" :class="`text-${selected.color}`">
+                      <div class="text-body-large font-weight-bold" :class="`text-${selected.color}`">
                         ${{ getPlanPrice(selected) }}
                       </div>
-                      <div class="text-caption text-medium-emphasis">
+                      <div class="text-body-small text-medium-emphasis">
                         / {{ selectedPlanCycle?.months ?? 1 }} {{ t('tenant_create.month_unit', selectedPlanCycle?.months ?? 1) }}
                       </div>
                     </div>
@@ -229,7 +229,7 @@
           <!-- Billing tab -->
           <v-tabs-window-item value="billing">
             <div class="pa-5">
-              <div class="text-caption text-medium-emphasis font-weight-medium mb-2 text-uppercase" style="letter-spacing:.05em">
+              <div class="text-body-small text-medium-emphasis font-weight-medium mb-2 text-uppercase" style="letter-spacing:.05em">
                 {{ t('subscription.upgrade_dialog.active_subscription') }}
               </div>
               <v-sheet rounded="xl" class="summary-bar pa-4 mb-4">
@@ -239,8 +239,8 @@
                       <v-icon :icon="currentPlanMeta?.icon ?? 'mdi-circle'" size="17" />
                     </v-avatar>
                     <div>
-                      <div class="text-body-2 font-weight-medium">{{ currentPlan?.name ?? t('subscription.upgrade_dialog.no_plan') }}</div>
-                      <div class="text-caption text-medium-emphasis">{{ props.activeBillingCycle?.label ?? '—' }}</div>
+                      <div class="text-body-medium font-weight-medium">{{ currentPlan?.name ?? t('subscription.upgrade_dialog.no_plan') }}</div>
+                      <div class="text-body-small text-medium-emphasis">{{ props.activeBillingCycle?.label ?? '—' }}</div>
                     </div>
                   </div>
                   <v-chip v-if="props.subscription?.status" size="x-small" :color="statusColor" variant="tonal">
@@ -249,7 +249,7 @@
                 </div>
               </v-sheet>
 
-              <div class="text-caption text-medium-emphasis font-weight-medium mb-2 text-uppercase" style="letter-spacing:.05em">
+              <div class="text-body-small text-medium-emphasis font-weight-medium mb-2 text-uppercase" style="letter-spacing:.05em">
                 {{ t('subscription.upgrade_dialog.billing_details') }}
               </div>
               <v-list density="compact" rounded="xl" class="billing-list">
@@ -270,7 +270,7 @@
                 />
               </v-list>
 
-              <div class="d-flex align-center justify-center ga-1 mt-4 text-caption text-medium-emphasis" style="opacity:.6">
+              <div class="d-flex align-center justify-center ga-1 mt-4 text-body-small text-medium-emphasis" style="opacity:.6">
                 <v-icon size="13">mdi-lock-outline</v-icon>
                 {{ t('subscription.upgrade_dialog.payments_secured') }}
               </div>

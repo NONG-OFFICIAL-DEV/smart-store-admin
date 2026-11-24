@@ -27,8 +27,7 @@
 <script setup>
   import { ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppSearch } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppSearch, AppToolbar } from '@nong-official-dev/core'
   import PromotionCardList from '@/components/loyalty/PromotionCardList.vue'
 
   const { t } = useI18n()

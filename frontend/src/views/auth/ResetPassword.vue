@@ -15,18 +15,18 @@
 
     <template v-if="done">
       <v-alert type="success" variant="tonal" density="comfortable" class="mb-6 rounded-lg" border="start">
-        <span class="text-body-2">{{ t('reset_password.success_message') }}</span>
+        <span class="text-body-medium">{{ t('reset_password.success_message') }}</span>
       </v-alert>
-      <router-link :to="{ name: 'Login' }" class="text-primary font-weight-medium text-body-2">
+      <router-link :to="{ name: 'Login' }" class="text-primary font-weight-medium text-body-medium">
         {{ t('forgot_password.back_to_login') }}
       </router-link>
     </template>
 
     <template v-else-if="!token || !email">
       <v-alert type="error" variant="tonal" density="comfortable" class="mb-6 rounded-lg" border="start">
-        <span class="text-body-2">{{ t('reset_password.errors.missing_token') }}</span>
+        <span class="text-body-medium">{{ t('reset_password.errors.missing_token') }}</span>
       </v-alert>
-      <router-link :to="{ name: 'ForgotPassword' }" class="text-primary font-weight-medium text-body-2">
+      <router-link :to="{ name: 'ForgotPassword' }" class="text-primary font-weight-medium text-body-medium">
         {{ t('reset_password.request_new_link') }}
       </router-link>
     </template>
@@ -41,11 +41,11 @@
           class="mb-6 rounded-lg"
           border="start"
         >
-          <span class="text-body-2">{{ errors.general }}</span>
+          <span class="text-body-medium">{{ errors.general }}</span>
         </v-alert>
       </v-slide-y-transition>
 
-      <label class="text-caption ml-1">{{ t('reset_password.new_password') }}</label>
+      <label class="text-body-small ml-1">{{ t('reset_password.new_password') }}</label>
       <v-text-field
         v-model="password"
         :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
@@ -59,7 +59,7 @@
         @click:append-inner="visible = !visible"
       />
 
-      <label class="text-caption ml-1">{{ t('reset_password.confirm_password') }}</label>
+      <label class="text-body-small ml-1">{{ t('reset_password.confirm_password') }}</label>
       <v-text-field
         v-model="passwordConfirmation"
         :type="visible ? 'text' : 'password'"

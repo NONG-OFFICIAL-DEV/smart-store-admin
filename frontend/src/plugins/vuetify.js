@@ -6,8 +6,6 @@ import { km, en } from 'vuetify/locale'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import * as labs from 'vuetify/labs/components'
-import { VDateInput } from 'vuetify/labs/VDateInput'
-import { VColorInput } from 'vuetify/labs/VColorInput'
 import { KhmerDateAdapter } from './khmerDateAdapter'
 
 // Vuetify's own density scale is 'default' (tallest) > 'comfortable' > 'compact'
@@ -70,18 +68,9 @@ const DENSITY_FIELDS = [
 
 const vuetify = createVuetify({
   display: { mobileBreakpoint: 'sm' },
-  components: { VDateInput, VColorInput, ...components, ...labs },
+  components: {...components, ...labs },
   directives,
   defaults: {
-    VDateInput: {
-      density: 'comfortable',
-      variant: 'outlined',
-      color: 'primary',
-      prependIcon: '',
-      appendInnerIcon: '$calendar',
-      inputFormat: 'DD-MM-YYYY',
-      hideActions: true
-    },
     VSelect: { density: 'comfortable', variant: 'outlined', color: 'primary' },
     VTextField: {
       variant: 'outlined',

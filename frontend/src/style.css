@@ -18,19 +18,20 @@ body {
 }
 
 /* Typography override */
-.text-h1,
-.text-h2,
-.text-h3,
-.text-h4,
-.text-h5,
-.text-h6,
-.text-subtitle-1,
-.text-subtitle-2,
-.text-body-1,
-.text-body-2,
-.text-button,
-.text-caption,
-.text-overline {
+.text-display-large,
+.text-display-large,
+.text-display-medium,
+.text-headline-large,
+.text-headline-small,
+.text-title-large,
+.text-body-large,
+.text-title-small,
+.text-body-large,
+.text-body-medium,
+.text-label-large,
+.text-body-small,
+.text-label-medium,
+.text-label-medium {
   /* font-family: "Poppins", sans-serif; */
       font-family: 'Google Sans', 'Noto Sans Khmer', serif;
 }

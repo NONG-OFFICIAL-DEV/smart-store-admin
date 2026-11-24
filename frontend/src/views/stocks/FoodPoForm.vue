@@ -36,11 +36,11 @@
       <!-- ── Order Details ─────────────────────────────────────────────── -->
       <v-card rounded="xl" border elevation="0" class="mb-4">
         <v-card-title class="pa-5 pb-3">
-          <div class="text-body-1 font-weight-bold">{{ t('po.order_details') }}</div>
+          <div class="text-body-large font-weight-bold">{{ t('po.order_details') }}</div>
         </v-card-title>
         <v-divider />
         <v-card-text class="pa-5">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="12" sm="6" lg="3">
               <v-select
                 v-model="form.branch_id"
@@ -91,7 +91,7 @@
       <!-- ── Line Items ────────────────────────────────────────────────── -->
       <v-card rounded="xl" border elevation="0">
         <div class="d-flex align-center justify-space-between pa-5 pb-3">
-          <div class="text-body-1 font-weight-bold">
+          <div class="text-body-large font-weight-bold">
             {{ t('po.order_items') }}
             <v-chip size="x-small" color="primary" variant="tonal" rounded="lg" class="ml-2">
               {{ form.items.length }}
@@ -127,7 +127,7 @@
           />
 
           <div v-for="(item, i) in form.items" :key="i" class="mb-3">
-            <v-row dense align="center">
+            <v-row density="compact" align="center">
               <v-col cols="12" sm="5">
                 <v-autocomplete
                   v-model="item.ingredient_id"
@@ -180,14 +180,14 @@
                 />
               </v-col>
             </v-row>
-            <div class="text-caption text-right text-medium-emphasis mt-1 pr-10">
+            <div class="text-body-small text-right text-medium-emphasis mt-1 pr-10">
               {{ t('common.subtotal') }}: {{ format(item.quantity_ordered * item.unit_price) }}
             </div>
           </div>
 
           <v-divider class="my-3" />
           <div class="d-flex justify-end">
-            <div class="text-body-1 font-weight-bold">
+            <div class="text-body-large font-weight-bold">
               {{ t('common.total') }}: <span class="text-primary">{{ format(totalAmount) }}</span>
             </div>
           </div>

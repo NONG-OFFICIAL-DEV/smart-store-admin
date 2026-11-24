@@ -24,7 +24,7 @@
         <template #item.name="{ item }">
           <div>
             <div class="font-weight-medium">{{ item.name }}</div>
-            <div v-if="item.name_km" class="text-caption text-medium-emphasis">
+            <div v-if="item.name_km" class="text-body-small text-medium-emphasis">
               {{ item.name_km }}
             </div>
           </div>
@@ -52,14 +52,14 @@
                 {{ opt.name }}
               </v-chip>
             </template>
-            <span v-else class="text-caption text-medium-emphasis">
+            <span v-else class="text-body-small text-medium-emphasis">
               {{ t('modifiers.options_tab.no_choices') }}
             </span>
           </div>
         </template>
 
         <template #item.products_count="{ item }">
-          <span class="text-body-2 text-medium-emphasis">{{ usedByText(item) }}</span>
+          <span class="text-body-medium text-medium-emphasis">{{ usedByText(item) }}</span>
         </template>
 
         <template #item.actions="{ item }">
@@ -79,7 +79,7 @@
           <div class="text-center py-10">
             <v-icon icon="mdi-format-list-checks" size="48" color="grey-lighten-1" />
             <p class="text-medium-emphasis mt-3">{{ t('modifiers.options_tab.empty') }}</p>
-            <p class="text-caption text-medium-emphasis">{{ t('modifiers.options_tab.empty_hint') }}</p>
+            <p class="text-body-small text-medium-emphasis">{{ t('modifiers.options_tab.empty_hint') }}</p>
             <v-btn color="primary" variant="tonal" class="mt-3 text-none" prepend-icon="mdi-plus" @click="openCreate">
               {{ t('modifiers.options_tab.add_group') }}
             </v-btn>

@@ -40,7 +40,7 @@
       <v-window v-model="tab" class="py-5">
         <!-- Basic Info -->
         <v-window-item value="basic">
-          <v-row dense>
+          <v-row density="compact">
             <v-col cols="8">
               <v-text-field
                 v-model="form.name"
@@ -155,7 +155,7 @@
 
         <!-- Billing Cycles Tab -->
         <v-window-item value="cycles">
-          <div class="text-caption text-medium-emphasis mb-4">
+          <div class="text-body-small text-medium-emphasis mb-4">
             {{ $t('subscription.plan_dialog.cycles.description') }}
           </div>
 
@@ -164,7 +164,7 @@
             :key="i"
             class="cycle-row mb-3"
           >
-            <v-row dense align="center">
+            <v-row density="compact" align="center">
               <v-col cols="12" sm="4">
                 <v-text-field
                   v-model="cycle.label"
@@ -233,12 +233,12 @@
           </v-btn>
           <div
             v-if="submitted && form.billing_cycles.length === 0"
-            class="text-error text-caption mt-3"
+            class="text-error text-body-small mt-3"
           >
             {{ $t('subscription.plan_dialog.cycles.required_error') }}
           </div>
           <div class="mt-4">
-            <div class="text-caption text-medium-emphasis mb-2">
+            <div class="text-body-small text-medium-emphasis mb-2">
               {{ $t('subscription.plan_dialog.cycles.quick_presets') }}
             </div>
             <div class="d-flex flex-wrap ga-2">
@@ -258,13 +258,13 @@
 
         <!-- Features -->
         <v-window-item value="features">
-          <div class="text-caption text-medium-emphasis mb-4">
+          <div class="text-body-small text-medium-emphasis mb-4">
             {{ $t('subscription.plan_dialog.features.description') }}
           </div>
 
           <p
             v-if="!activeFeatures.length"
-            class="text-caption text-medium-emphasis"
+            class="text-body-small text-medium-emphasis"
           >
             {{ $t('subscription.plan_dialog.features.no_catalog_features') }}
           </p>
@@ -273,10 +273,10 @@
             v-for="listing in activeFeatures"
             :key="listing.id"
             class="mb-1"
-            dense
+            density="compact"
             align="center"
           >
-            <v-col cols="12" sm="4" class="text-body-2">
+            <v-col cols="12" sm="4" class="text-body-medium">
               {{ listing.label.en }}
             </v-col>
             <v-col cols="12" sm="8">
@@ -288,7 +288,7 @@
                 color="primary"
                 @update:model-value="setFeatureValue(listing.key, $event)"
               />
-              <v-row v-else dense>
+              <v-row v-else density="compact">
                 <v-col cols="6">
                   <v-text-field
                     :model-value="featureValue(listing.key, false).en"

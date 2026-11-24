@@ -42,7 +42,7 @@
 
     <v-card elevation="0" rounded="lg" class="overflow-hidden border">
       <div class="d-flex align-center justify-space-between pa-3 border-b">
-        <span class="text-subtitle-2 font-weight-bold">{{ title }}</span>
+        <span class="text-title-small font-weight-bold">{{ title }}</span>
         <v-btn
           v-if="unreadCount > 0"
           variant="text"
@@ -69,16 +69,16 @@
           <template #prepend>
             <v-icon :icon="icon(n)" :color="color(n)" size="20" class="mr-2" />
           </template>
-          <v-list-item-title class="text-body-2 text-wrap" :class="{ 'font-weight-bold': !n.read_at }">
+          <v-list-item-title class="text-body-medium text-wrap" :class="{ 'font-weight-bold': !n.read_at }">
             {{ message(n) }}
           </v-list-item-title>
-          <v-list-item-subtitle class="text-caption">
+          <v-list-item-subtitle class="text-body-small">
             {{ formatDate(n.created_at) }}
           </v-list-item-subtitle>
         </v-list-item>
 
         <v-list-item v-if="!loading && notifications.length === 0">
-          <v-list-item-title class="text-body-2 text-medium-emphasis text-center py-2">
+          <v-list-item-title class="text-body-medium text-medium-emphasis text-center py-2">
             {{ emptyText }}
           </v-list-item-title>
         </v-list-item>
@@ -86,7 +86,7 @@
 
       <v-divider />
       <v-list-item rounded="md" class="ma-1 text-center" density="compact" @click="handleViewAll">
-        <v-list-item-title class="text-body-2 text-primary font-weight-medium">
+        <v-list-item-title class="text-body-medium text-primary font-weight-medium">
           {{ viewAllText }}
         </v-list-item-title>
       </v-list-item>

@@ -51,7 +51,7 @@
     <!-- Admin-only filters — a super admin's list spans every tenant and
          business type at once, so narrowing it down matters here in a way
          it never does for one tenant's own (already homogeneous) list. -->
-    <v-row v-if="adminMode" dense class="mb-2">
+    <v-row v-if="adminMode" density="compact" class="mb-2">
       <v-col cols="12" sm="5" md="4">
         <v-select
           v-model="businessTypeFilter"
@@ -124,7 +124,7 @@
               </div>
               <div
                 v-if="item.name_km"
-                class="text-caption text-medium-emphasis text-truncate"
+                class="text-body-small text-medium-emphasis text-truncate"
               >
                 {{ item.name_km }}
               </div>
@@ -155,7 +155,7 @@
         <template #item.name="{ item }">
           <div :class="isHidden(item) ? 'opacity-60' : ''">
             <div class="font-weight-medium">{{ item.name }}</div>
-            <div v-if="item.name_km" class="text-caption text-medium-emphasis">
+            <div v-if="item.name_km" class="text-body-small text-medium-emphasis">
               {{ item.name_km }}
             </div>
             <div v-if="adminMode" class="d-flex align-center flex-wrap ga-1 mt-1">
@@ -259,7 +259,7 @@
          destination category must be picked first. -->
     <v-dialog v-model="reassignDeleteOpen" max-width="460">
       <v-card rounded="lg">
-        <v-card-title class="text-body-1 font-weight-bold">
+        <v-card-title class="text-body-large font-weight-bold">
           {{ t('categories.tab.delete_title') }}
         </v-card-title>
         <v-card-text>

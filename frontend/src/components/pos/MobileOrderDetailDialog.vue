@@ -12,32 +12,32 @@
           {{ statusMeta.label }}
         </v-chip>
         <v-spacer />
-        <span class="text-caption text-medium-emphasis d-flex align-center ga-1">
+        <span class="text-body-small text-medium-emphasis d-flex align-center ga-1">
           <v-icon icon="mdi-clock-outline" size="14" />
           {{ formatTime(order.created_at) }} · {{ t('kitchen.elapsed_minutes', { n: elapsedMinutes }) }}
         </span>
       </div>
 
-      <div class="text-caption text-medium-emphasis font-weight-bold mb-3 text-uppercase">
+      <div class="text-body-small text-medium-emphasis font-weight-bold mb-3 text-uppercase">
         {{ t('order.items') }}
       </div>
       <div v-for="item in order.items ?? []" :key="item.id" class="d-flex align-center justify-space-between mb-3 ga-2">
         <div>
-          <div class="text-body-2 font-weight-medium">
+          <div class="text-body-medium font-weight-medium">
             {{ item.product_name }}
             <span v-if="item.variant_name" class="text-medium-emphasis">· {{ item.variant_name }}</span>
           </div>
-          <div class="text-caption text-medium-emphasis">
+          <div class="text-body-small text-medium-emphasis">
             {{ formatBase(item.unit_price) }} × {{ item.quantity }}
           </div>
-          <div v-if="item.modifiers?.length" class="text-caption text-medium-emphasis">
+          <div v-if="item.modifiers?.length" class="text-body-small text-medium-emphasis">
             {{ item.modifiers.map(m => m.name).join(', ') }}
           </div>
-          <div v-if="item.notes" class="text-caption text-info">
+          <div v-if="item.notes" class="text-body-small text-info">
             {{ t('order.note_prefix') }} {{ item.notes }}
           </div>
         </div>
-        <div class="text-body-2 font-weight-bold flex-shrink-0">
+        <div class="text-body-medium font-weight-bold flex-shrink-0">
           {{ formatBase(item.total_price) }}
         </div>
       </div>
@@ -45,25 +45,25 @@
       <v-divider class="my-3" />
 
       <div class="d-flex justify-space-between mb-2">
-        <span class="text-body-2 text-medium-emphasis">{{ t('order.subtotal') }}</span>
-        <span class="text-body-2">{{ formatBase(order.subtotal) }}</span>
+        <span class="text-body-medium text-medium-emphasis">{{ t('order.subtotal') }}</span>
+        <span class="text-body-medium">{{ formatBase(order.subtotal) }}</span>
       </div>
       <div v-if="Number(order.discount_amount) > 0" class="d-flex justify-space-between mb-2">
-        <span class="text-body-2 text-medium-emphasis">{{ t('order.discount') }}</span>
-        <span class="text-body-2 text-error">-{{ formatBase(order.discount_amount) }}</span>
+        <span class="text-body-medium text-medium-emphasis">{{ t('order.discount') }}</span>
+        <span class="text-body-medium text-error">-{{ formatBase(order.discount_amount) }}</span>
       </div>
       <div v-if="Number(order.tax_amount) > 0" class="d-flex justify-space-between mb-2">
-        <span class="text-body-2 text-medium-emphasis">{{ t('order.tax') }}</span>
-        <span class="text-body-2">{{ formatBase(order.tax_amount) }}</span>
+        <span class="text-body-medium text-medium-emphasis">{{ t('order.tax') }}</span>
+        <span class="text-body-medium">{{ formatBase(order.tax_amount) }}</span>
       </div>
       <div v-if="Number(order.service_charge_amount) > 0" class="d-flex justify-space-between mb-2">
-        <span class="text-body-2 text-medium-emphasis">{{ t('branches.detail.service_charge') }}</span>
-        <span class="text-body-2">{{ formatBase(order.service_charge_amount) }}</span>
+        <span class="text-body-medium text-medium-emphasis">{{ t('branches.detail.service_charge') }}</span>
+        <span class="text-body-medium">{{ formatBase(order.service_charge_amount) }}</span>
       </div>
       <v-divider class="my-2" />
       <div class="d-flex justify-space-between">
-        <span class="text-body-1 font-weight-bold">{{ t('order.total') }}</span>
-        <span class="text-body-1 font-weight-bold text-primary">{{ formatBase(order.total_amount) }}</span>
+        <span class="text-body-large font-weight-bold">{{ t('order.total') }}</span>
+        <span class="text-body-large font-weight-bold text-primary">{{ formatBase(order.total_amount) }}</span>
       </div>
 
       <v-alert

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
-      <span class="text-h6 font-weight-bold">{{ t('branches.title') }}</span>
+      <span class="text-title-large font-weight-bold">{{ t('branches.title') }}</span>
       <div class="d-flex align-center flex-wrap ga-2">
         <v-text-field
           v-model="search"
@@ -53,7 +53,7 @@
 
             <v-list-item-subtitle>
               <div v-if="b.address_line1" class="text-truncate">{{ b.address_line1 }}</div>
-              <div class="d-flex ga-3 flex-wrap text-caption">
+              <div class="d-flex ga-3 flex-wrap text-body-small">
                 <span v-if="b.phone" class="d-flex align-center ga-1">
                   <v-icon icon="mdi-phone-outline" size="13" />{{ b.phone }}
                 </span>
@@ -118,14 +118,14 @@
       <div v-else class="pa-8 text-center text-medium-emphasis">
         <v-icon icon="mdi-store-search-outline" size="36" class="mb-2" />
         <div>{{ search ? t('branches.no_results') : t('branches.empty') }}</div>
-        <div v-if="!search" class="text-caption">{{ t('branches.empty_sub') }}</div>
+        <div v-if="!search" class="text-body-small">{{ t('branches.empty_sub') }}</div>
       </div>
     </v-card>
 
-    <p class="text-caption text-medium-emphasis mt-3 mb-0">
+    <p class="text-body-small text-medium-emphasis mt-3 mb-0">
       {{ t('branches.status_help') }}
     </p>
-    <p v-if="canSetDefault" class="text-caption text-medium-emphasis mt-1 mb-0">
+    <p v-if="canSetDefault" class="text-body-small text-medium-emphasis mt-1 mb-0">
       {{ t('branches.default_branch_help') }}
     </p>
 

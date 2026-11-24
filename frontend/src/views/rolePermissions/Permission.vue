@@ -20,7 +20,7 @@
     </custom-title>
 
     <!-- ── Filters ────────────────────────────────────────────────────────── -->
-    <v-row dense align="center" class="mb-2">
+    <v-row density="compact" align="center" class="mb-2">
       <v-col cols="12" sm="3">
         <v-select
           v-model="filterGroup"
@@ -66,7 +66,7 @@
         </template>
 
         <template #[`item.description`]="{ item }">
-          <span class="text-body-2 text-medium-emphasis">
+          <span class="text-body-medium text-medium-emphasis">
             {{ item.description || '—' }}
           </span>
         </template>
@@ -102,7 +102,7 @@
       :loading="saving"
     >
       <v-form ref="formRef">
-        <v-row dense>
+        <v-row density="compact">
           <!-- Code -->
           <v-col cols="12">
             <v-text-field
@@ -154,7 +154,7 @@
               elevation="0"
               class="pa-3"
             >
-              <div class="text-caption text-medium-emphasis mb-1">
+              <div class="text-body-small text-medium-emphasis mb-1">
                 {{ $t('permissions.preview') }}
               </div>
               <div class="d-flex align-center gap-2">
@@ -168,7 +168,7 @@
                   {{ form.code }}
                 </v-chip>
                 <v-icon icon="mdi-arrow-right" size="14" color="grey" />
-                <span class="text-body-2 text-medium-emphasis">
+                <span class="text-body-medium text-medium-emphasis">
                   {{ form.description || $t('permissions.no_description') }}
                 </span>
               </div>

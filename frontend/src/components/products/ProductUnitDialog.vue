@@ -6,7 +6,7 @@
     :loading="loading"
   >
     <v-form ref="formRef">
-          <v-row dense>
+          <v-row density="compact">
             <!-- Unit name — combobox from DB + fallback to common -->
             <v-col cols="12" sm="6">
               <v-combobox
@@ -25,10 +25,10 @@
               >
                 <!-- Item row in dropdown -->
                 <template #item="{ item, props: iProps }">
-                  <v-list-item v-bind="iProps" :subtitle="item.raw?.subtitle">
+                  <v-list-item v-bind="iProps" :subtitle="item?.subtitle">
                     <template #append>
                       <v-chip
-                        v-if="item.raw?.source === 'db'"
+                        v-if="item?.source === 'db'"
                         size="x-small"
                         color="primary"
                         variant="tonal"
@@ -52,7 +52,7 @@
                 <!-- When user typed something not in list -->
                 <template #no-data>
                   <v-list-item>
-                    <v-list-item-title class="text-caption">
+                    <v-list-item-title class="text-body-small">
                       {{ t('unit.press_enter_before') }}
                       <kbd>Enter</kbd>
                       {{ t('unit.press_enter_after') }} "

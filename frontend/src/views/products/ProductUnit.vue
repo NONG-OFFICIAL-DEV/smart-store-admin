@@ -52,10 +52,10 @@
         <template #item.unit_name="{ item }">
           <div class="d-flex align-center gap-2">
             <div>
-              <div class="text-body-2 font-weight-bold">
+              <div class="text-body-medium font-weight-bold">
                 {{ item.unit_label || item.unit_name }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.unit_name }}
               </div>
             </div>
@@ -82,16 +82,16 @@
         <template #item.barcode="{ item }">
           <div v-if="item.barcode" class="d-flex align-center gap-1">
             <v-icon icon="mdi-barcode" size="14" />
-            <span class="text-caption font-weight-medium">
+            <span class="text-body-small font-weight-medium">
               {{ item.barcode }}
             </span>
           </div>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Retail price -->
         <template #item.retail_price="{ item }">
-          <span class="font-weight-bold text-body-2">
+          <span class="font-weight-bold text-body-medium">
             {{ format(item.retail_price) }}
           </span>
         </template>
@@ -100,24 +100,24 @@
         <template #item.wholesale_price="{ item }">
           <span
             v-if="item.wholesale_price"
-            class="text-body-2 text-success font-weight-bold"
+            class="text-body-medium text-success font-weight-bold"
           >
             {{ format(item.wholesale_price) }}
           </span>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Margin -->
         <template #item.margin="{ item }">
           <div v-if="item.cost_price">
-            <div class="text-body-2 font-weight-bold text-primary">
+            <div class="text-body-medium font-weight-bold text-primary">
               {{ marginPct(item.retail_price, item.cost_price) }}%
             </div>
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               cost {{ format(item.cost_price) }}
             </div>
           </div>
-          <span v-else class="text-caption text-medium-emphasis">—</span>
+          <span v-else class="text-body-small text-medium-emphasis">—</span>
         </template>
 
         <!-- Active -->
@@ -159,10 +159,10 @@
               color="grey-lighten-1"
               class="mb-3"
             />
-            <div class="text-body-1 font-weight-medium text-grey">
+            <div class="text-body-large font-weight-medium text-grey">
               {{ t('unit.no_data') }}
             </div>
-            <p class="text-caption text-grey mb-4">
+            <p class="text-body-small text-grey mb-4">
               {{ t('unit.no_data_desc') }}
             </p>
             <v-btn

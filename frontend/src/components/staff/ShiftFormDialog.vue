@@ -6,7 +6,7 @@
     :loading="loading"
   >
         <v-form ref="formRef">
-          <v-row dense>
+          <v-row density="compact">
             <!-- Name -->
             <v-col cols="12" sm="7">
               <v-text-field
@@ -53,7 +53,7 @@
                 <template #item="{ props: itemProps, item: opt }">
                   <v-list-item v-bind="itemProps">
                     <template #prepend>
-                      <v-icon icon="mdi-circle" :color="opt.raw.value" />
+                      <v-icon icon="mdi-circle" :color="opt.value" />
                     </template>
                   </v-list-item>
                 </template>
@@ -63,7 +63,7 @@
             <!-- Time Window divider -->
             <v-col cols="12">
               <v-divider class="my-1" />
-              <p class="text-caption text-medium-emphasis mt-2 mb-1">
+              <p class="text-body-small text-medium-emphasis mt-2 mb-1">
                 <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
                 {{ $t('shifts.form.fields.timeWindow') }}
               </p>

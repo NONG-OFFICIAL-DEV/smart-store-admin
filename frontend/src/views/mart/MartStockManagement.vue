@@ -27,7 +27,7 @@
     />
 
     <!-- ── Filters ───────────────────────────────────────────────────────── -->
-    <v-row dense align="center" class="mb-2">
+    <v-row density="compact" align="center" class="mb-2">
       <v-col cols="6" sm="4">
         <v-select
           v-model="stockFilter"
@@ -79,8 +79,8 @@
               />
             </v-avatar>
             <div>
-              <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-medium font-weight-bold">{{ item.name }}</div>
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.sku ?? '—' }}
               </div>
             </div>
@@ -92,10 +92,10 @@
             <div
               v-for="s in stockByUnits(item)"
               :key="s.label"
-              class="text-body-2 font-weight-bold"
+              class="text-body-medium font-weight-bold"
             >
               {{ s.qty }}
-              <span class="text-caption text-medium-emphasis">
+              <span class="text-body-small text-medium-emphasis">
                 {{ s.label }}
               </span>
             </div>
@@ -120,7 +120,7 @@
             </v-chip>
             <span
               v-if="!item.active_units?.length"
-              class="text-caption text-medium-emphasis"
+              class="text-body-small text-medium-emphasis"
             >
               —
             </span>
@@ -165,7 +165,7 @@
               color="grey-lighten-1"
               class="mb-2"
             />
-            <div class="text-body-2 text-grey">{{$t('products.empty')}}</div>
+            <div class="text-body-medium text-grey">{{$t('products.empty')}}</div>
           </div>
         </template>
       </AppTable>
@@ -189,8 +189,7 @@
   import { useBranchStore } from '@/stores/branchStore'
   import { useAuthStore } from '@/stores/authStore'
   import { useAppUtils } from '@/composables/useAppUtils'
-  import { AppTable, AppStatusChip } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { AppTable, AppStatusChip, AppToolbar } from '@nong-official-dev/core'
   import { adjustStockApi } from '@/api/martStockService'
   import StockAdjustDialog from '@/components/mart/StockAdjustDialog.vue'
   import { useI18n } from 'vue-i18n'

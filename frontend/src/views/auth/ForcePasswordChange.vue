@@ -5,8 +5,8 @@
         <v-avatar color="warning" variant="tonal" size="56" class="mb-3">
           <v-icon icon="mdi-key-alert-outline" size="28" />
         </v-avatar>
-        <h2 class="text-h6 font-weight-bold">{{ t('force_password_change.title') }}</h2>
-        <p class="text-caption text-medium-emphasis mt-1">
+        <h2 class="text-title-large font-weight-bold">{{ t('force_password_change.title') }}</h2>
+        <p class="text-body-small text-medium-emphasis mt-1">
           {{ t('force_password_change.subtitle') }}
         </p>
       </div>

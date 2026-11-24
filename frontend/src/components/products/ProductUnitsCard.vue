@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="d-flex align-center justify-space-between px-5 pt-5 pb-3">
       <div>
-        <p class="text-body-1 font-weight-semibold mb-0">
+        <p class="text-body-large font-weight-semibold mb-0">
           {{ $t('unit.title') }}
         </p>
-        <p class="text-caption text-grey mb-0">{{ $t('unit.manage_hint') }}</p>
+        <p class="text-body-small text-grey mb-0">{{ $t('unit.manage_hint') }}</p>
       </div>
       <v-btn
         size="small"
@@ -52,10 +52,10 @@
           color="grey-lighten-1"
           class="mb-3"
         />
-        <div class="text-body-2 font-weight-medium text-grey mb-1">
+        <div class="text-body-medium font-weight-medium text-grey mb-1">
           {{ t('unit.no_data') }}
         </div>
-        <p class="text-caption text-grey mb-4">{{ t('unit.no_data_desc') }}</p>
+        <p class="text-body-small text-grey mb-4">{{ t('unit.no_data_desc') }}</p>
         <v-btn
           color="primary"
           variant="flat"
@@ -89,7 +89,7 @@
             <!-- Name block -->
             <div class="unit-name-block">
               <div class="d-flex align-center" style="gap: 6px">
-                <span class="text-body-2 font-weight-bold">
+                <span class="text-body-medium font-weight-bold">
                   {{ item.unit_label || item.unit_name }}
                 </span>
                 <v-chip
@@ -102,7 +102,7 @@
                   {{ t('unit.base') }}
                 </v-chip>
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ item.unit_name }}
               </div>
             </div>
@@ -125,7 +125,7 @@
               <!-- Retail price -->
               <div class="metric-block">
                 <div class="metric-label">{{ t('unit.headers.retail') }}</div>
-                <div class="text-body-2 font-weight-bold text-primary">
+                <div class="text-body-medium font-weight-bold text-primary">
                   {{ format(item.retail_price) }}
                 </div>
               </div>
@@ -148,7 +148,7 @@
                     {{ marginPct(item.retail_price, item.cost_price) }}%
                   </v-chip>
                 </template>
-                <span v-else class="text-caption text-medium-emphasis">—</span>
+                <span v-else class="text-body-small text-medium-emphasis">—</span>
               </div>
 
               <!-- Active toggle -->
@@ -198,7 +198,7 @@
               <div class="detail-grid pa-3">
                 <div class="detail-cell">
                   <div class="detail-label">{{ t('unit.headers.retail') }}</div>
-                  <div class="text-body-2 font-weight-bold text-primary">
+                  <div class="text-body-medium font-weight-bold text-primary">
                     {{ format(item.retail_price) }}
                   </div>
                 </div>
@@ -208,20 +208,20 @@
                   </div>
                   <div
                     v-if="item.wholesale_price"
-                    class="text-body-2 font-weight-bold text-success"
+                    class="text-body-medium font-weight-bold text-success"
                   >
                     {{ format(item.wholesale_price) }}
                   </div>
-                  <span v-else class="text-caption text-medium-emphasis">
+                  <span v-else class="text-body-small text-medium-emphasis">
                     —
                   </span>
                 </div>
                 <div class="detail-cell">
                   <div class="detail-label">{{ $t('unit.cost_price') }}</div>
-                  <div v-if="item.cost_price" class="text-body-2">
+                  <div v-if="item.cost_price" class="text-body-medium">
                     {{ format(item.cost_price) }}
                   </div>
-                  <span v-else class="text-caption text-medium-emphasis">
+                  <span v-else class="text-body-small text-medium-emphasis">
                     —
                   </span>
                 </div>
@@ -235,11 +235,11 @@
                     style="gap: 4px"
                   >
                     <v-icon icon="mdi-barcode" size="14" />
-                    <span class="text-caption font-weight-medium">
+                    <span class="text-body-small font-weight-medium">
                       {{ item.barcode }}
                     </span>
                   </div>
-                  <span v-else class="text-caption text-medium-emphasis">
+                  <span v-else class="text-body-small text-medium-emphasis">
                     —
                   </span>
                 </div>

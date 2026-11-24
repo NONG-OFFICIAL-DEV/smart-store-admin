@@ -6,7 +6,7 @@
           :key="alert.id"
           :type="alert.type"
           :icon="alert.icon"
-          :dense="alert.dense"
+          :density="compact"="alert.density="compact""
           :prominent="alert.prominent"
           :dismissible="alert.dismissible"
           @input="closeAlert(alert.id)"
@@ -28,7 +28,7 @@
       // Type d'affichage
       outlined: { type: Boolean, required: false, default: true },
       text: { type: Boolean, required: false, default: false },
-      dense: { type: Boolean, required: false, default: false },
+      density="compact": { type: Boolean, required: false, default: false },
       prominent: { type: Boolean, required: false, default: false },
       // Ajout de la possibilité de fermer l'alerte
       dismissible: { type: Boolean, required: false, default: false },
@@ -49,7 +49,7 @@
           type = 'success',
           icon = null,
           timeout = this.defaultTimeout,
-          dense = this.dense,
+          density="compact" = this.density="compact",
           prominent = this.prominent,
           dismissible = this.dismissible,
         }
@@ -62,7 +62,7 @@
           type,
           icon,
           message,
-          dense,
+          density="compact",
           prominent,
           dismissible,
         })

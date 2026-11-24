@@ -71,10 +71,10 @@ const submit = async () => {
     @update:model-value="emit('update:modelValue', $event)"
   >
     <v-form ref="formRef">
-        <p class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-3" style="letter-spacing:.08em">
+        <p class="text-body-small font-weight-bold text-uppercase text-medium-emphasis mb-3" style="letter-spacing:.08em">
           {{ $t('customers.dialog.personal_info') }}
         </p>
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <v-text-field v-model="form.first_name" :label="$t('form.first_name') + ' *'" variant="outlined" rounded="lg" :rules="[rules.required]" maxlength="80" />
           </v-col>
@@ -90,10 +90,10 @@ const submit = async () => {
         </v-row>
 
         <v-divider class="my-4 opacity-30" />
-        <p class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-3" style="letter-spacing:.08em">
+        <p class="text-body-small font-weight-bold text-uppercase text-medium-emphasis mb-3" style="letter-spacing:.08em">
           {{ $t('customers.dialog.preferences_source') }}
         </p>
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <v-select v-model="form.source" :items="sourceOptions" item-title="title" item-value="value"
               :label="$t('customers.field.source')" variant="outlined" rounded="lg" clearable />
@@ -104,7 +104,7 @@ const submit = async () => {
         </v-row>
 
         <v-divider class="my-4 opacity-30" />
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12" sm="6">
             <v-switch v-model="form.is_active"          :label="$t('status.active')"              color="brown-darken-3" inset hide-details />
           </v-col>

@@ -12,7 +12,7 @@
               <v-icon icon="mdi-map-marker-outline" size="13" class="mr-1" />
               {{ $t('ingredients.stock.section_location') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="form.branch_id"
@@ -42,10 +42,10 @@
                   :disabled="isEdit"
                 >
                   <template #item="{ props: p, item }">
-                    <v-list-item v-bind="p" :subtitle="item.raw?.unit ?? ''">
+                    <v-list-item v-bind="p" :subtitle="item?.unit ?? ''">
                       <template #append>
                         <v-chip size="x-small" variant="tonal">
-                          {{ item.raw?.category }}
+                          {{ item?.category }}
                         </v-chip>
                       </template>
                     </v-list-item>
@@ -67,7 +67,7 @@
               />
               {{ $t('ingredients.stock.section_quantities') }}
             </div>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model.number="form.quantity_on_hand"
@@ -120,8 +120,8 @@
                 >
                   <div class="d-flex gap-4 flex-wrap">
                     <div>
-                      <div class="text-caption text-grey">{{ $t('po.unit_cost') }}</div>
-                      <div class="text-body-2 font-weight-medium">
+                      <div class="text-body-small text-grey">{{ $t('po.unit_cost') }}</div>
+                      <div class="text-body-medium font-weight-medium">
                         {{
                           selectedIngredient.unit_cost
                             ? `$${selectedIngredient.unit_cost}`
@@ -130,22 +130,22 @@
                       </div>
                     </div>
                     <div>
-                      <div class="text-caption text-grey">{{ $t('ingredients.field.reorder_point') }}</div>
-                      <div class="text-body-2 font-weight-medium">
+                      <div class="text-body-small text-grey">{{ $t('ingredients.field.reorder_point') }}</div>
+                      <div class="text-body-medium font-weight-medium">
                         {{ selectedIngredient.reorder_point ?? '—' }}
                         {{ selectedIngredient.unit }}
                       </div>
                     </div>
                     <div>
-                      <div class="text-caption text-grey">{{ $t('ingredients.field.reorder_qty') }}</div>
-                      <div class="text-body-2 font-weight-medium">
+                      <div class="text-body-small text-grey">{{ $t('ingredients.field.reorder_qty') }}</div>
+                      <div class="text-body-medium font-weight-medium">
                         {{ selectedIngredient.reorder_quantity ?? '—' }}
                         {{ selectedIngredient.unit }}
                       </div>
                     </div>
                     <div>
-                      <div class="text-caption text-grey">{{ $t('form.supplier') }}</div>
-                      <div class="text-body-2 font-weight-medium">
+                      <div class="text-body-small text-grey">{{ $t('form.supplier') }}</div>
+                      <div class="text-body-medium font-weight-medium">
                         {{ selectedIngredient.preferred_supplier?.name ?? '—' }}
                       </div>
                     </div>

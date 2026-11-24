@@ -6,7 +6,7 @@
     :loading="saving"
   >
     <v-form ref="formRef" @submit.prevent="submit" v-model="isValid">
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <v-text-field
             v-model="form.key"

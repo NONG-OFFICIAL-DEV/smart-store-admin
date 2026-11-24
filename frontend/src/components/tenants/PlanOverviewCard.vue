@@ -9,7 +9,7 @@
           </v-avatar>
           <div>
             <div class="d-flex align-center flex-wrap ga-2">
-              <span class="text-h5 font-weight-bold">
+              <span class="text-headline-small font-weight-bold">
                 {{ plan.name ?? t('subscription.no_active_plan') }}
               </span>
               <AppStatusChip
@@ -18,7 +18,7 @@
                 size="small"
               />
             </div>
-            <div class="text-body-2 text-medium-emphasis mt-1">
+            <div class="text-body-medium text-medium-emphasis mt-1">
               {{ t('subscription.billed') }}
               {{ activeBillingCycle?.label ?? '—' }} • ${{
                 activeBillingCycle ? cyclePrice : (plan.price_usd ?? '—')
@@ -59,21 +59,21 @@
       </div>
 
       <!-- Stats -->
-      <v-row dense class="mt-5">
+      <v-row density="compact" class="mt-5">
         <v-col v-for="stat in planStats" :key="stat.label" cols="6" sm="3">
           <v-sheet rounded="lg" border class="pa-3 h-100">
             <div class="d-flex align-center ga-2 mb-1">
               <v-icon :icon="stat.icon" size="16" color="indigo" />
-              <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
+              <span class="text-body-small text-medium-emphasis">{{ stat.label }}</span>
             </div>
-            <div class="text-body-1 font-weight-bold">{{ stat.value }}</div>
+            <div class="text-body-large font-weight-bold">{{ stat.value }}</div>
           </v-sheet>
         </v-col>
       </v-row>
 
       <!-- Features -->
       <v-divider class="my-6" />
-      <div class="text-subtitle-2 text-medium-emphasis mb-3">
+      <div class="text-title-small text-medium-emphasis mb-3">
         {{ t('subscription.whats_included') }}
       </div>
       <div class="d-flex flex-wrap ga-2">
@@ -91,7 +91,7 @@
 
       <!-- Payment -->
       <v-divider class="my-6" />
-      <div class="text-subtitle-2 text-medium-emphasis mb-3">
+      <div class="text-title-small text-medium-emphasis mb-3">
         {{ t('subscription.make_payment') }}
       </div>
 

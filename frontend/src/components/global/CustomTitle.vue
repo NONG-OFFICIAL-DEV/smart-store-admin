@@ -24,13 +24,13 @@
       </v-avatar>
 
       <div :class="{ 'd-flex flex-column align-center': centeredTitle }">
-        <h2 class="text-h5 font-weight-bold text-high-emphasis mb-0">
+        <h2 class="text-headline-small font-weight-bold text-high-emphasis mb-0">
           <slot>{{ title }}</slot>
         </h2>
 
         <p
           v-if="subtitle || $slots.subtitle"
-          class="text-body-2 text-medium-emphasis mb-0 mt-1"
+          class="text-body-medium text-medium-emphasis mb-0 mt-1"
         >
           <slot name="subtitle">{{ subtitle }}</slot>
         </p>

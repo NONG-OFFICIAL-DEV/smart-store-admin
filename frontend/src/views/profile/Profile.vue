@@ -65,14 +65,14 @@
                 />
                 <span
                   v-else
-                  class="text-h5 font-weight-bold text-indigo-darken-2"
+                  class="text-headline-small font-weight-bold text-indigo-darken-2"
                 >
                   {{ initials }}
                 </span>
               </v-avatar>
 
               <h2
-                class="text-h6 font-weight-bold text-high-emphasis tracking-tight mb-1"
+                class="text-title-large font-weight-bold text-high-emphasis tracking-tight mb-1"
               >
                 {{ displayName }}
               </h2>
@@ -91,21 +91,21 @@
               <!-- Tenant id / joined-since only mean something when a tenant is loaded (not for a super admin) -->
               <div v-if="tenant.tenant?.id" class="w-100 text-start mt-2 pt-4 border-top-dashed">
                 <div class="d-flex justify-space-between mb-2">
-                  <span class="text-caption text-medium-emphasis">
+                  <span class="text-body-small text-medium-emphasis">
                     {{ $t('tenant_profile.identity.tenantId') }}
                   </span>
                   <span
-                    class="text-caption font-mono font-weight-medium bg-neutral-light px-2 py-0.5 rounded"
+                    class="text-body-small font-mono font-weight-medium bg-neutral-light px-2 py-0.5 rounded"
                   >
                     {{ tenant.tenant?.id }}
                   </span>
                 </div>
                 <div class="d-flex justify-space-between">
-                  <span class="text-caption text-medium-emphasis">
+                  <span class="text-body-small text-medium-emphasis">
                     {{ $t('tenant_profile.identity.joinedSince') }}
                   </span>
                   <span
-                    class="text-caption font-weight-medium text-high-emphasis"
+                    class="text-body-small font-weight-medium text-high-emphasis"
                   >
                     {{ formatDate(tenant.tenant.created_at) }}
                   </span>
@@ -116,7 +116,7 @@
 
           <!-- Business Details Card — only meaningful once a tenant has actually loaded (a super admin owns none) -->
           <v-card v-if="tenant.tenant?.id" class="pa-5" rounded="lg">
-            <div class="text-overline tracking-wider text-medium-emphasis mb-4">
+            <div class="text-label-medium tracking-wider text-medium-emphasis mb-4">
               {{ $t('tenant_profile.businessDetails.title') }}
             </div>
 
@@ -125,10 +125,10 @@
                 mdi-domain
               </v-icon>
               <div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ $t('tenant_profile.businessDetails.businessType') }}
                 </div>
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ tenant.tenant?.business_type?.code ?? '—' }}
                 </div>
               </div>
@@ -139,10 +139,10 @@
                 mdi-currency-usd
               </v-icon>
               <div>
-                <div class="text-caption text-medium-emphasis">
+                <div class="text-body-small text-medium-emphasis">
                   {{ $t('tenant_create.field.currency') }}
                 </div>
-                <div class="text-body-2 font-weight-medium">
+                <div class="text-body-medium font-weight-medium">
                   {{ tenant.tenant?.currency ?? 'USD' }}
                 </div>
               </div>
@@ -153,12 +153,12 @@
         <!-- RIGHT COLUMN: Analytics Metrics & Form Data -->
         <v-col cols="12" md="8">
           <!-- Modern Stat KPI Grid Widget (none of this applies to a super admin — no tenant) -->
-          <v-row v-if="kpiStats.length" class="mb-6" dense>
+          <v-row v-if="kpiStats.length" class="mb-6" density="compact">
             <v-col cols="6" sm="3" v-for="(stat, idx) in kpiStats" :key="idx">
               <v-card class="pa-4 text-start" rounded="lg">
                 <div class="d-flex justify-space-between align-center mb-2">
                   <span
-                    class="text-caption text-medium-emphasis font-weight-medium"
+                    class="text-body-small text-medium-emphasis font-weight-medium"
                   >
                     {{ stat.label }}
                   </span>
@@ -167,7 +167,7 @@
                   </v-icon>
                 </div>
                 <div
-                  :class="`text-h5 font-weight-bold ${stat.textColor || 'text-high-emphasis'}`"
+                  :class="`text-headline-small font-weight-bold ${stat.textColor || 'text-high-emphasis'}`"
                 >
                   {{ stat.value }}
                 </div>
@@ -179,10 +179,10 @@
           <v-card class="pa-6" rounded="lg">
             <div class="d-flex align-center justify-space-between mb-6">
               <div>
-                <h3 class="text-subtitle-1 font-weight-bold text-high-emphasis">
+                <h3 class="text-body-large font-weight-bold text-high-emphasis">
                   {{ $t('tenant_profile.registry.title') }}
                 </h3>
-                <p class="text-caption text-medium-emphasis">
+                <p class="text-body-small text-medium-emphasis">
                   {{ $t('tenant_profile.registry.subtitle') }}
                 </p>
               </div>

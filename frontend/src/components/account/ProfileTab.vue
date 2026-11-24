@@ -5,7 +5,7 @@
       <v-card-text class="pa-5">
         <div class="d-flex align-center gap-2 mb-4">
           <v-icon size="18" color="primary">mdi-account-outline</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('account.profile.info_title') }}</span>
+          <span class="text-title-small font-weight-bold">{{ t('account.profile.info_title') }}</span>
         </div>
 
         <AvatarUpload
@@ -77,7 +77,7 @@
       <v-card-text class="pa-5">
         <div class="d-flex align-center gap-2 mb-4">
           <v-icon size="18" color="primary">mdi-lock-outline</v-icon>
-          <span class="text-subtitle-2 font-weight-bold">{{ t('profile.change_password') }}</span>
+          <span class="text-title-small font-weight-bold">{{ t('profile.change_password') }}</span>
         </div>
 
         <v-form ref="passwordFormRef">

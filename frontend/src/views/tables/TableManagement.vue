@@ -38,19 +38,23 @@
       </template>
     </AppToolbar>
 
-    <MobileOrdersCarousel v-if="showMobileOrdersTables" :branch-id="branchId" class="mb-3" />
+    <MobileOrdersCarousel
+      v-if="showMobileOrdersTables"
+      :branch-id="branchId"
+      class="mb-3"
+    />
 
     <div class="d-flex align-center flex-wrap ga-1 mb-2">
-      <span class="text-body-2">
+      <span class="text-body-medium">
         {{ t('tables.summary_count', { count: tableStats.total }) }}
       </span>
-      <span class="text-body-2 text-medium-emphasis">·</span>
-      <span class="text-body-2 text-warning font-weight-medium">
+      <span class="text-body-medium text-medium-emphasis">·</span>
+      <span class="text-body-medium text-warning font-weight-medium">
         {{ t('tables.summary_occupied', { count: tableStats.occupied }) }}
       </span>
       <template v-if="tableStats.occupied">
-        <span class="text-body-2 text-medium-emphasis">·</span>
-        <span class="text-body-2 font-weight-medium">
+        <span class="text-body-medium text-medium-emphasis">·</span>
+        <span class="text-body-medium font-weight-medium">
           {{ formatBase(tableStats.dueTotal) }} {{ t('tables.summary_due') }}
         </span>
       </template>
@@ -111,7 +115,11 @@
         rounded="lg"
         class="mb-3"
       >
-        {{ search ? $t('tables.reorder.clear_search_hint') : $t('tables.reorder.hint') }}
+        {{
+          search
+            ? $t('tables.reorder.clear_search_hint')
+            : $t('tables.reorder.hint')
+        }}
       </v-alert>
 
       <draggable
@@ -124,7 +132,13 @@
         @end="onReorderEnd"
       >
         <template #item="{ element: table }">
-          <div :class="mode === 'order' ? '' : 'v-col v-col-6 v-col-sm-4 v-col-md-3 v-col-lg-2'">
+          <div
+            :class="
+              mode === 'order'
+                ? ''
+                : 'v-col v-col-6 v-col-sm-4 v-col-md-3 v-col-lg-2'
+            "
+          >
             <!-- ── Order mode — compact tap tile, one tap target, no extra buttons ── -->
             <div
               v-if="mode === 'order'"
@@ -134,7 +148,10 @@
             >
               <div class="table-tile__top">
                 <span class="table-tile__number">{{ table.table_number }}</span>
-                <span class="table-tile__dot" :class="`table-tile__dot--${tileState(table)}`" />
+                <span
+                  class="table-tile__dot"
+                  :class="`table-tile__dot--${tileState(table)}`"
+                />
                 <span class="text-truncate">{{ tileStateLabel(table) }}</span>
               </div>
 
@@ -153,7 +170,12 @@
               <div class="table-tile__bottom">
                 <v-icon icon="mdi-account-group-outline" size="14" />
                 <span v-if="table.is_occupied">
-                  {{ t('tables.order.pax_orders', { pax: table.capacity, orders: table.open_session?.order_count ?? 0 }) }}
+                  {{
+                    t('tables.order.pax_orders', {
+                      pax: table.capacity,
+                      orders: table.open_session?.order_count ?? 0
+                    })
+                  }}
                 </span>
                 <span v-else>
                   {{ t('tables.order.seats', { count: table.capacity }) }}
@@ -178,10 +200,12 @@
               />
 
               <div class="pa-3 d-flex flex-column align-center text-center">
-                <div class="text-body-2 font-weight-medium mt-2">
+                <div class="text-body-medium font-weight-medium mt-2">
                   {{ $t('tables.table_prefix') }} {{ table.table_number }}
                 </div>
-                <div class="text-caption text-grey d-flex align-center ga-1 mb-2">
+                <div
+                  class="text-body-small text-grey d-flex align-center ga-1 mb-2"
+                >
                   <v-icon icon="mdi-account-group-outline" size="14" />
                   {{ table.capacity }}
                 </div>
@@ -243,7 +267,7 @@
         $t('tables.status_dialog_title', { number: statusTarget?.table_number })
       "
     >
-      <v-row dense>
+      <v-row density="compact">
         <v-col v-for="s in statusOptions" :key="s.value" cols="6">
           <v-btn
             block
@@ -302,8 +326,7 @@
   import TableQRDialog from '@/components/tables/TableQRDialog.vue'
   import BillDrawer from '@/components/tables/BillDrawer.vue'
   import PaymentDialog from '@/components/tables/PaymentDialog.vue'
-  import { useAppUtils, AppDialog } from '@nong-official-dev/core'
-  import AppToolbar from '@/components/common/AppToolbar.vue'
+  import { useAppUtils, AppDialog, AppToolbar } from '@nong-official-dev/core'
   import MobileOrdersCarousel from '@/components/pos/MobileOrdersCarousel.vue'
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   const { confirm, notif } = useAppUtils()
@@ -327,8 +350,12 @@
   // — tables are branch-scoped data (one branch_id per table), so this page
   // must follow the sidebar's active branch like everything else, not load
   // every branch's tables merged together.
-  const branchId = computed(() => authStore.activeBranchId || authStore.branch_id)
-  const showMobileOrdersTables = computed(() => authStore.posSettings?.show_mobile_menu_orders_tables !== false)
+  const branchId = computed(
+    () => authStore.activeBranchId || authStore.branch_id
+  )
+  const showMobileOrdersTables = computed(
+    () => authStore.posSettings?.show_mobile_menu_orders_tables !== false
+  )
 
   // Order mode — tap a table to either view its active order (occupied) or
   // jump into Food POS with the table preselected (available). Manage mode
@@ -373,12 +400,16 @@
     // watch() below to notice, and the Manage tab's chip silently never
     // re-rendered despite the store having the correct new status.
     let list = [...tableStore.tables]
-    if (statusFilter.value === 'occupied') list = list.filter(table => table.is_occupied)
-    else if (statusFilter.value === 'free') list = list.filter(table => !table.is_occupied)
+    if (statusFilter.value === 'occupied')
+      list = list.filter(table => table.is_occupied)
+    else if (statusFilter.value === 'free')
+      list = list.filter(table => !table.is_occupied)
 
     const q = search.value?.trim().toLowerCase()
     if (!q) return list
-    return list.filter(table => String(table.table_number).toLowerCase().includes(q))
+    return list.filter(table =>
+      String(table.table_number).toLowerCase().includes(q)
+    )
   })
 
   // Header summary line + filter tab counts — always computed off every
@@ -389,7 +420,10 @@
       total: tableStore.tables.length,
       occupied: occupiedTables.length,
       free: tableStore.tables.length - occupiedTables.length,
-      dueTotal: occupiedTables.reduce((sum, table) => sum + Number(table.open_session?.total ?? 0), 0)
+      dueTotal: occupiedTables.reduce(
+        (sum, table) => sum + Number(table.open_session?.total ?? 0),
+        0
+      )
     }
   })
 
@@ -416,7 +450,13 @@
   // with filteredTables (status changes, pay/paid refreshes, etc.) whenever
   // it's not actively being dragged.
   const manageTables = ref([])
-  watch(filteredTables, val => { manageTables.value = [...val] }, { immediate: true })
+  watch(
+    filteredTables,
+    val => {
+      manageTables.value = [...val]
+    },
+    { immediate: true }
+  )
 
   const reordering = ref(false)
 
@@ -703,7 +743,9 @@
     cursor: pointer;
     border: 1.5px solid rgba(var(--v-border-color), var(--v-border-opacity));
     background: rgb(var(--v-theme-surface));
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
   .table-tile:hover {
     transform: translateY(-2px);

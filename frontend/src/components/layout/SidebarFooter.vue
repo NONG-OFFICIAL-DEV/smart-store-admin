@@ -92,7 +92,7 @@
                 <template #prepend>
                   <img :src="opt.flag" width="20" height="14" class="flag me-3" alt="" />
                 </template>
-                <v-list-item-title class="text-body-2">{{ opt.label }}</v-list-item-title>
+                <v-list-item-title class="text-body-medium">{{ opt.label }}</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -135,7 +135,7 @@
                 <template #prepend>
                   <img :src="opt.flag" width="20" height="14" class="flag me-3" alt="" />
                 </template>
-                <v-list-item-title class="text-body-2">{{ opt.label }}</v-list-item-title>
+                <v-list-item-title class="text-body-medium">{{ opt.label }}</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>

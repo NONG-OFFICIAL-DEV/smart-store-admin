@@ -41,11 +41,11 @@
         <!-- ── OVERVIEW ── -->
         <v-tabs-window-item value="overview">
           <div class="pa-4">
-            <v-row dense class="mb-4">
+            <v-row density="compact" class="mb-4">
               <v-col cols="6" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('ingredient_inventory_report.summary.total_ingredients') }}
                     </span>
                     <v-avatar size="30" color="primary" variant="tonal" rounded="lg">
@@ -58,7 +58,7 @@
               <v-col cols="6" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('ingredient_inventory_report.summary.low_stock') }}
                     </span>
                     <v-avatar size="30" color="warning" variant="tonal" rounded="lg">
@@ -71,7 +71,7 @@
               <v-col cols="12" md="4">
                 <v-card rounded="xl" border elevation="0" class="kpi-card pa-4">
                   <div class="kpi-header">
-                    <span class="text-caption text-medium-emphasis font-weight-medium">
+                    <span class="text-body-small text-medium-emphasis font-weight-medium">
                       {{ t('ingredient_inventory_report.summary.out_of_stock') }}
                     </span>
                     <v-avatar size="30" color="error" variant="tonal" rounded="lg">
@@ -87,7 +87,7 @@
               <div class="card-header">
                 <div class="title-wrap">
                   <v-icon icon="mdi-alert-circle" color="warning" size="18" />
-                  <span class="text-body-2 font-weight-bold">
+                  <span class="text-body-medium font-weight-bold">
                     {{ t('ingredient_inventory_report.overview.needs_attention') }}
                   </span>
                   <v-chip size="x-small" color="warning" variant="tonal" rounded="pill">
@@ -126,7 +126,7 @@
               </div>
               <div v-else class="all-good">
                 <v-icon icon="mdi-check-circle" size="16" color="success" />
-                <span class="text-caption font-weight-medium text-success">
+                <span class="text-body-small font-weight-medium text-success">
                   {{ t('ingredient_inventory_report.overview.all_stocked') }}
                 </span>
               </div>
@@ -154,7 +154,7 @@
               <template #no-data>
                 <div class="d-flex flex-column align-center justify-center pa-10" style="gap: 8px">
                   <v-icon icon="mdi-check-circle-outline" size="44" color="grey-lighten-1" />
-                  <div class="text-body-2 text-medium-emphasis">
+                  <div class="text-body-medium text-medium-emphasis">
                     {{ t('ingredient_inventory_report.overview.all_stocked') }}
                   </div>
                 </div>
@@ -167,18 +167,18 @@
         <v-tabs-window-item value="movements">
           <div class="pa-4">
             <v-card rounded="xl" border elevation="0" class="pa-5">
-              <div class="text-body-1 font-weight-bold mb-4">
+              <div class="text-body-large font-weight-bold mb-4">
                 {{ t('ingredient_inventory_report.movement.title') }}
               </div>
               <div v-if="movementEntries.length" class="movement-list">
                 <div v-for="m in movementEntries" :key="m.type" class="movement-row">
-                  <span class="text-body-2">{{ m.type }}</span>
+                  <span class="text-body-medium">{{ m.type }}</span>
                   <span class="font-weight-bold">{{ m.quantity }}</span>
                 </div>
               </div>
               <div v-else class="d-flex flex-column align-center justify-center pa-10" style="gap: 8px">
                 <v-icon icon="mdi-swap-vertical" size="44" color="grey-lighten-1" />
-                <div class="text-body-2 text-medium-emphasis">
+                <div class="text-body-medium text-medium-emphasis">
                   {{ t('ingredient_inventory_report.movement.select_range') }}
                 </div>
               </div>

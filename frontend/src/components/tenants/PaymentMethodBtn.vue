@@ -22,7 +22,7 @@
         />
         <span
           v-else
-          class="text-caption font-weight-black"
+          class="text-body-small font-weight-black"
           :style="{ color: config.color }"
         >
           {{ config.short }}
