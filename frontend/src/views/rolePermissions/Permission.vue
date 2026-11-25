@@ -1,11 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-key"
+    <AppToolbar
       :title="$t('permissions.title')"
       :subtitle="$t('permissions.subtitle')"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           color="primary"
           variant="flat"
@@ -17,7 +16,7 @@
           {{ $t('permissions.new') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <!-- ── Filters ────────────────────────────────────────────────────────── -->
     <v-row density="compact" align="center" class="mb-2">
@@ -199,7 +198,7 @@
   import { useI18n } from 'vue-i18n'
   import { usePermissionStore } from '@/stores/permissionStore'
   import { getAllPermissionsApi } from '@/api/permissionService'
-  import { useAppUtils, AppTable, AppDialog } from '@nong-official-dev/core'
+  import { useAppUtils, AppTable, AppDialog, AppToolbar } from '@nong-official-dev/core'
   const { confirm, notif } = useAppUtils()
   const { t } = useI18n()
   const store = usePermissionStore()

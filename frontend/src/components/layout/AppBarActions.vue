@@ -74,7 +74,7 @@
             <span class="account-name">{{ user?.first_name }} {{ user?.last_name }}</span>
             <span v-if="roleName" class="account-role">{{ roleName }}</span>
           </span>
-          <v-icon icon="mdi-chevron-down" size="14" class="bar-chevron d-none d-md-inline-flex" />
+          <v-icon icon="mdi-unfold-more-horizontal" size="18" class="bar-chevron d-none d-md-inline-flex" />
         </button>
       </template>
 
@@ -390,13 +390,25 @@
   }
 
   /* ── Account ───────────────────────────────────────────────────────── */
+  /* Same chrome as the branch switcher trigger (ShopSwitcher.vue): bordered,
+     12px radius, surface background, 52px tall. */
   .account-btn {
-    padding: 4px 10px 4px 4px;
+    gap: 10px;
+    min-height: 52px;
+    height: auto;
+    padding: 8px 10px;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border-radius: 12px;
+    background: rgb(var(--v-theme-surface));
+    text-align: start;
+  }
+  .account-btn:hover {
+    background: rgba(var(--v-theme-on-surface), 0.04);
   }
   .account-avatar {
     position: relative;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 999px;
     flex: none;
     display: flex;
@@ -437,7 +449,7 @@
     min-width: 0;
   }
   .account-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     max-width: 140px;
     white-space: nowrap;

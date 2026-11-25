@@ -1,8 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title>
-      {{ $t('notification.title') }}
-      <template #right>
+    <AppToolbar :title="$t('notification.title')">
+      <template #actions>
         <v-btn
           variant="tonal"
           class="text-none me-3"
@@ -20,17 +19,14 @@
           {{ $t('notification.mark_all_read') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <NotificationPreferencesDialog
       v-model="preferencesOpen"
       @changed="authStore.fetchMe"
     />
 
-    <v-card
-      v-if="notifications.length > 0"
-      variant="flat"
-    >
+    <v-card v-if="notifications.length > 0" variant="flat">
       <v-list lines="two" class="py-0">
         <v-list-item
           v-for="item in notifications"
@@ -39,7 +35,11 @@
           :class="!item.read_at ? 'unread' : ''"
         >
           <template #prepend>
-            <v-avatar size="44" :color="notificationColor(item.type)" variant="tonal">
+            <v-avatar
+              size="44"
+              :color="notificationColor(item.type)"
+              variant="tonal"
+            >
               <v-icon :icon="notificationIcon(item.type)" />
             </v-avatar>
           </template>
@@ -66,7 +66,10 @@
                   />
                 </template>
                 <v-list density="compact">
-                  <v-list-item v-if="!item.read_at" @click="makeAsRead(item.id)">
+                  <v-list-item
+                    v-if="!item.read_at"
+                    @click="makeAsRead(item.id)"
+                  >
                     <v-list-item-title>
                       {{ $t('notification.mark_as_read') }}
                     </v-list-item-title>
@@ -110,6 +113,7 @@
   import { useNotificationStore } from '@/stores/notificationStore'
   import { useDate } from '@/composables/useDate'
   import NotificationPreferencesDialog from '@/components/notifications/NotificationPreferencesDialog.vue'
+  import { AppToolbar } from '@nong-official-dev/core'
 
   const authStore = useAuthStore()
   const notificationStore = useNotificationStore()
@@ -124,10 +128,10 @@
 
   // ── Notification type -> icon/color ─────────────────────────────────────────
   const TYPE_STYLES = {
-    low_stock:      { icon: 'mdi-alert-outline',        color: 'warning' },
-    new_order:      { icon: 'mdi-receipt-text-outline',  color: 'primary' },
-    shift_reminder: { icon: 'mdi-clock-outline',         color: 'info' },
-    payment_failed: { icon: 'mdi-credit-card-off-outline', color: 'error' },
+    low_stock: { icon: 'mdi-alert-outline', color: 'warning' },
+    new_order: { icon: 'mdi-receipt-text-outline', color: 'primary' },
+    shift_reminder: { icon: 'mdi-clock-outline', color: 'info' },
+    payment_failed: { icon: 'mdi-credit-card-off-outline', color: 'error' }
   }
   const notificationIcon = type => TYPE_STYLES[type]?.icon ?? 'mdi-bell-outline'
   const notificationColor = type => TYPE_STYLES[type]?.color ?? 'primary'

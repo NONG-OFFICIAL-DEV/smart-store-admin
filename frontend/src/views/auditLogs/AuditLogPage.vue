@@ -1,12 +1,11 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- Title & Buttons -->
-    <custom-title
-      icon="mdi-timeline-clock-outline"
+    <AppToolbar
       :title="$t('audit_log.system_audit_trail')"
       :subtitle="$t('audit_log.subtitle')"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           color="green"
           prepend-icon="mdi-download"
@@ -15,7 +14,7 @@
           {{ $t('btn.export') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <!-- EXPORT FORM -->
     <v-card class="mb-4 pa-4" elevation="0" v-show="showExportForm">
@@ -111,7 +110,7 @@
   import { useDate } from '@/composables/useDate'
   import { useAuditLogStore } from '@/stores/auditLogStore'
   import auditLogApi from '@/api/auditLog'
-  import { AppTable, AppDatePicker } from '@nong-official-dev/core'
+  import { AppTable, AppDatePicker, AppToolbar } from '@nong-official-dev/core'
 
   const router = useRouter()
   const { t } = useI18n()

@@ -13,9 +13,17 @@
 
     <!-- Single breadcrumb row: parents are links, the page title is the
          last (current) crumb. -->
-    <v-breadcrumbs :items="crumbs" density="compact" class="page-header__crumbs">
+    <v-breadcrumbs
+      :items="crumbs"
+      density="compact"
+      class="page-header__crumbs"
+    >
       <template #divider>
-        <v-icon icon="mdi-chevron-right" size="16" class="text-medium-emphasis" />
+        <v-icon
+          icon="mdi-chevron-right"
+          size="16"
+          class="text-medium-emphasis"
+        />
       </template>
       <template #item="{ item }">
         <v-breadcrumbs-item
@@ -51,10 +59,26 @@
   })
 
   // Parents + the current page title as the final, non-clickable crumb.
-  const crumbs = computed(() => [
-    ...props.breadcrumbs.map(c => ({ ...c, current: false })),
-    { title: props.title, disabled: true, current: true }
-  ])
+  const crumbs = computed(() => {
+    const parents = props.breadcrumbs.map(c => ({
+      ...c,
+      current: false
+    }))
+
+    // Prevent duplicate current page title
+    if (parents.at(-1)?.title === props.title) {
+      parents.pop()
+    }
+
+    return [
+      ...parents,
+      {
+        title: props.title,
+        disabled: true,
+        current: true
+      }
+    ]
+  })
 
   const onBack = () => {
     if (props.backTo) router.push(props.backTo)
@@ -86,17 +110,10 @@
   .page-header__crumb {
     padding: 0 !important;
     min-height: 0;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 500;
   }
 
   /* Current page: stronger, never greyed out */
   .page-header__crumb--current {
-    font-size: 1.125rem;
-    line-height: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
     opacity: 1 !important;
     color: rgb(var(--v-theme-on-surface)) !important;
     overflow: hidden;

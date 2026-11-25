@@ -69,12 +69,6 @@ const routes = [
         meta: { requiresAuth: true, transition: 'slide', superAdminAccessible: true }
       },
       {
-        path: '/profile',
-        name: 'profile',
-        component: () => import('@/views/profile/Profile.vue'),
-        meta: { requiresAuth: true, transition: 'fade', superAdminAccessible: true }
-      },
-      {
         path: '/account',
         name: 'account',
         component: () => import('@/views/account/Account.vue'),

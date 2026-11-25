@@ -4,7 +4,7 @@
       <!-- User info -->
       <div class="px-4 pt-4 pb-3">
         <div class="d-flex align-center gap-3">
-          <v-avatar :color="avatarColor" size="48" rounded="lg">
+          <v-avatar :color="avatarColor" size="48" rounded="lg" class="me-2">
             <v-img v-if="user?.avatar_url" :src="user.avatar_url" cover />
             <span v-else class="text-body-medium font-weight-black text-white">
               {{ initials }}

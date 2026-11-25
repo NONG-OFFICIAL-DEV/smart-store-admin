@@ -1,13 +1,11 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between mb-4">
-      <custom-title
-        icon="mdi-view-dashboard-outline"
-        :title="$t('admin_dashboard.title')"
-        :subtitle="`${today} · ${$t('admin_dashboard.subtitle_suffix')}`"
-      />
-      <div class="d-flex align-center gap-3">
+    <AppToolbar
+      :title="$t('admin_dashboard.title')"
+      :subtitle="`${today} · ${$t('admin_dashboard.subtitle_suffix')}`"
+    >
+      <template #actions>
         <v-select
           v-model="selectedPeriod"
           :items="periods"
@@ -28,8 +26,8 @@
         >
           {{ $t('btn.refresh') }}
         </v-btn>
-      </div>
-    </div>
+      </template>
+    </AppToolbar>
 
     <!-- ── KPI Row — 5 cards, equal width, no trailing gap ───────────────── -->
     <div class="kpi-grid mb-5">
@@ -505,6 +503,7 @@
   import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useAdminDashboardStore } from '@/stores/adminDashboardStore'
+  import { AppToolbar } from '@nong-official-dev/core'
   const { t } = useI18n()
 
   import {

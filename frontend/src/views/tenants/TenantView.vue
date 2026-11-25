@@ -1,11 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-office-building-marker"
+    <AppToolbar
       :title="$t('menu.tenant')"
       :subtitle="$t('tenant_details.list.subtitle')"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           variant="tonal"
           prepend-icon="mdi-briefcase-outline"
@@ -25,7 +24,7 @@
           {{ $t('tenant_details.list.add') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <BusinessTypeManagerDialog
       v-model="manageBusinessTypesDialog"
@@ -310,7 +309,7 @@
   import { useAuthStore } from '@/stores/authStore'
   import { usePlanStore } from '../../stores/planStore'
   import { storeToRefs } from 'pinia'
-  import { AppTable, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, useAppUtils, AppToolbar } from '@nong-official-dev/core'
   import { getAllTenantsApi } from '@/api/tenantService'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'

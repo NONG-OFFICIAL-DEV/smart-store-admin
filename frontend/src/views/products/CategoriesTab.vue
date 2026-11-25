@@ -1,13 +1,12 @@
 <template>
   <div>
-    <custom-title
+    <AppToolbar
       v-if="adminMode"
-      icon="mdi-tag-multiple-outline"
       :title="t('categories.tab.admin_title')"
       :subtitle="t('categories.tab.admin_subtitle')"
       class="mb-4"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           color="primary"
           variant="flat"
@@ -19,7 +18,7 @@
           {{ t('categories.tab.add_category') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <div v-else class="d-flex align-center justify-end flex-wrap ga-2 mb-4">
       <v-btn
@@ -306,7 +305,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { AppTable, useAppUtils } from '@nong-official-dev/core'
+  import { AppTable, useAppUtils, AppToolbar } from '@nong-official-dev/core'
   import draggable from 'vuedraggable'
   import { useCategoryStore } from '@/stores/categoryStore'
   import { useBusinessTypeStore } from '@/stores/businessTypeStore'

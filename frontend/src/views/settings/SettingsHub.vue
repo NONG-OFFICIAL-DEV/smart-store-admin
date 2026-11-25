@@ -1727,7 +1727,7 @@
         loyaltyOriginal.value = { ...loyaltyForm.value }
       }
 
-      notif(t('settings_hub.saved'), { type: 'success' })
+      notif(t('settings_hub.saved'), { type: 'success',width:410 })
     } catch (err) {
       notif(err?.response?.data?.message || t('settings_hub.save_failed'), {
         type: 'error'
@@ -1790,7 +1790,7 @@
       if (val === oldVal || oldVal == null) return
       if (dirty.value) {
         discardAll()
-        notif(t('settings_hub.branch_switch_discarded'), { type: 'warning' })
+        notif(t('settings_hub.branch_switch_discarded'), { type: 'warning',width: 600 })
       }
     }
   )

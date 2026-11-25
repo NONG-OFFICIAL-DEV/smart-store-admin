@@ -42,12 +42,12 @@
   })
 
   const triggerRef = ref(null)
-  const panelWidth = ref(300)
+  const panelWidth = ref(240)
   function onMenuToggle(open) {
     if (!open) return
     search.value = ''
     const el = triggerRef.value
-    if (el) panelWidth.value = Math.max(300, el.offsetWidth)
+    if (el) panelWidth.value = Math.max(240, el.offsetWidth)
   }
 
   function initial(name) {
@@ -123,6 +123,7 @@
           type="button"
           class="switcher-trigger"
           v-bind="menuProps"
+          :title="authStore.bu_name"
           :aria-label="t('shop_switcher.switch_branch')"
         >
           <span class="switcher-logo">
@@ -226,11 +227,19 @@
 
 <style scoped>
   /* ── Trigger ───────────────────────────────────────────────────────── */
+  /* In the sidebar the parent already fixes the width. In the app bar the
+     parent is shrink-to-fit, so `width: 100%` just grew to the full text
+     and never truncated — cap it so long names get an ellipsis there too. */
+  .shop-switcher {
+    min-width: 0;
+    max-width: 100%;
+  }
   .switcher-trigger {
     display: flex;
     align-items: center;
     gap: 10px;
     width: 100%;
+    max-width: 250px;
     min-height: 52px;
     padding: 8px 10px;
     border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
@@ -255,6 +264,7 @@
     background: rgb(var(--v-theme-surface));
   }
   .switcher-trigger--rail {
+    max-width: none;
     justify-content: center;
     min-height: 48px;
     padding: 0;
@@ -339,7 +349,7 @@
 
   /* ── Menu panel ────────────────────────────────────────────────────── */
   .switcher-panel {
-    min-width: 300px;
+    min-width: 100px;
     border-radius: 14px;
     border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     background: rgb(var(--v-theme-surface));

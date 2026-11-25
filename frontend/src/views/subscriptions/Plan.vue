@@ -1,11 +1,10 @@
 <template>
   <v-container fluid class="pa-0">
-    <custom-title
-      icon="mdi-crown-outline"
+    <AppToolbar
       :title="$t('subscription.plan.title')"
       :subtitle="$t('subscription.plan.subtitle')"
     >
-      <template #right>
+      <template #actions>
         <v-btn
           variant="tonal"
           rounded="lg"
@@ -25,7 +24,7 @@
           {{ $t('subscription.plan.new') }}
         </v-btn>
       </template>
-    </custom-title>
+    </AppToolbar>
 
     <v-card rounded="lg" border elevation="0">
       <v-data-table
@@ -122,7 +121,7 @@
   import { usePlanStore } from '@/stores/planStore'
   import PlanDialog from '../../components/subscriptions/PlanDialog.vue'
   import PlanFeatureListingManagerDialog from '../../components/subscriptions/PlanFeatureListingManagerDialog.vue'
-  import { useAppUtils, AppStatusChip } from '@nong-official-dev/core'
+  import { useAppUtils, AppStatusChip, AppToolbar } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { confirm, notif } = useAppUtils()

@@ -17,6 +17,8 @@ npm config set @nong-official-dev:registry https://npm.pkg.github.com
 npm config set //npm.pkg.github.com/:_authToken YOUR_GITHUB_TOKEN
 
 npm install @nong-official-dev/core
+## install lates version
+npm i @nong-official-dev/core@latest 
 
 VITE_API_URL=http://localhost:8000/api
 

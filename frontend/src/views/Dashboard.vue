@@ -1,13 +1,11 @@
 <template>
   <v-container fluid class="pa-0 dashboard">
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between mb-0">
-      <custom-title
-        icon="mdi-view-dashboard-outline"
-        :title="`Good ${greeting}, ${userName}`"
-        :subtitle="`${today} · ${$t('dashboard.branches_network', { count: branches.length })}`"
-      ></custom-title>
-      <div class="d-flex align-center gap-3">
+    <AppToolbar
+      :title="`Good ${greeting}, ${userName}`"
+      :subtitle="`${today} · ${$t('dashboard.branches_network', { count: branches.length })}`"
+    >
+      <template #actions>
         <v-select
           v-model="selectedPeriod"
           :items="periods"
@@ -18,9 +16,8 @@
           rounded="lg"
           @update:model-value="onPeriodChange"
         />
-      </div>
-    </div>
-
+      </template>
+    </AppToolbar>
     <!-- ── KPI Row ────────────────────────────────────────────────────────── -->
     <v-row density="compact" class="mb-5">
       <v-col v-for="(kpi, i) in kpis" :key="kpi.label" cols="6" sm="3">
@@ -295,8 +292,17 @@
               >
                 <template #prepend>
                   <v-avatar size="38" rounded="lg" color="grey-lighten-3">
-                    <v-img v-if="product.image_url" :src="product.image_url" cover />
-                    <v-icon v-else icon="mdi-package-variant" size="18" color="grey" />
+                    <v-img
+                      v-if="product.image_url"
+                      :src="product.image_url"
+                      cover
+                    />
+                    <v-icon
+                      v-else
+                      icon="mdi-package-variant"
+                      size="18"
+                      color="grey"
+                    />
                   </v-avatar>
                 </template>
                 <v-list-item-title class="text-body-medium font-weight-medium">
@@ -306,7 +312,9 @@
                   {{ t('dashboard.units_sold', { count: product.sold }) }}
                 </v-list-item-subtitle>
                 <template #append>
-                  <span class="text-body-medium font-weight-bold">{{ format(product.revenue) }}</span>
+                  <span class="text-body-medium font-weight-bold">
+                    {{ format(product.revenue) }}
+                  </span>
                 </template>
               </v-list-item>
               <div
@@ -328,7 +336,10 @@
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <v-skeleton-loader v-if="store.loading.stats" type="list-item-two-line" />
+            <v-skeleton-loader
+              v-if="store.loading.stats"
+              type="list-item-two-line"
+            />
             <template v-else-if="paymentBreakdown.length">
               <div
                 v-for="(row, idx) in paymentBreakdown"
@@ -336,7 +347,9 @@
                 class="mb-3"
               >
                 <div class="d-flex justify-space-between text-body-medium mb-1">
-                  <span class="text-capitalize">{{ row.method?.replace('_', ' ') }}</span>
+                  <span class="text-capitalize">
+                    {{ row.method?.replace('_', ' ') }}
+                  </span>
                   <span class="font-weight-bold">{{ format(row.amount) }}</span>
                 </div>
                 <v-progress-linear
@@ -348,7 +361,10 @@
                 />
               </div>
             </template>
-            <div v-else class="text-center py-4 text-medium-emphasis text-body-medium">
+            <div
+              v-else
+              class="text-center py-4 text-medium-emphasis text-body-medium"
+            >
               {{ $t('dashboard.no_payments') }}
             </div>
           </v-card-text>
@@ -363,10 +379,12 @@
   import { useDashboardStore } from '@/stores/dashboardStore'
   import { useAuthStore } from '@/stores/authStore'
   import RevenueChart from '@/components/dashboard/RevenueChart.vue'
-  const store = useDashboardStore()
-  const authStore = useAuthStore()
   import { useCurrency } from '@/composables/useCurrency_v2.js'
   import { useI18n } from 'vue-i18n'
+  import { AppToolbar } from '@nong-official-dev/core'
+
+  const store = useDashboardStore()
+  const authStore = useAuthStore()
   const { format } = useCurrency()
   const { t } = useI18n()
   // ── Period ─────────────────────────────────────────────────────────────────────
@@ -410,7 +428,10 @@
   const paymentBreakdown = computed(() => {
     const rows = store.stats?.payment_breakdown ?? []
     const max = Math.max(...rows.map(r => r.amount), 1)
-    return rows.map(r => ({ ...r, percent: Math.round((r.amount / max) * 100) }))
+    return rows.map(r => ({
+      ...r,
+      percent: Math.round((r.amount / max) * 100)
+    }))
   })
 
   const branchColors = [

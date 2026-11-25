@@ -222,30 +222,34 @@
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
+  // Read a field from an object by key (string) or resolver (function).
+  function pick(obj, keyOrFn) {
+    return typeof keyOrFn === 'function' ? keyOrFn(obj) : obj?.[keyOrFn]
+  }
+
+  // Vuetify 3 passes a wrapper in slots ({ title, value, raw }); Vuetify 4
+  // passes the original item itself. This returns the original item in both.
+  function unwrap(item) {
+    return item?.raw !== undefined ? item.raw : item
+  }
+
   function getItemTitle(item) {
-    // item here is the slot's item object (already resolved by Vuetify)
-    if (item?.title !== undefined) return item.title
-    if (item?.raw !== undefined) {
-      const raw = item.raw
-      if (typeof raw === 'object' && raw !== null) {
-        return raw[resolvedItemTitle.value] ?? String(raw)
-      }
-      return String(raw)
+    const raw = unwrap(item)
+    if (typeof raw === 'object' && raw !== null) {
+      return pick(raw, resolvedItemTitle.value) ?? ''
     }
-    return String(item ?? '')
+    return String(raw ?? '')
   }
 
   function removeItem(item) {
     if (!Array.isArray(props.modelValue)) return
     const valueKey = resolvedItemValue.value
-    const rawValue = item?.raw !== undefined ? item.raw : item
+    const raw = unwrap(item)
     const itemVal =
-      typeof rawValue === 'object' && rawValue !== null
-        ? rawValue[valueKey]
-        : rawValue
+      typeof raw === 'object' && raw !== null ? pick(raw, valueKey) : raw
 
     const updated = props.modelValue.filter(v => {
-      const vVal = typeof v === 'object' && v !== null ? v[valueKey] : v
+      const vVal = typeof v === 'object' && v !== null ? pick(v, valueKey) : v
       return vVal !== itemVal
     })
     emit('update:modelValue', updated)
