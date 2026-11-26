@@ -2890,6 +2890,10 @@
         "qr": "QR",
         "pay_later": "Pay Later"
       },
+      "order_actions": {
+        "on_hold": "Hold Order",
+        "resume": "Resume Order"
+      },
       "cash_tendered": "Cash tendered",
       "change": "Change due",
       "dialog_title": "Confirm Payment",

@@ -17,14 +17,17 @@ use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Table;
+use App\Services\CashDrawerService;
 use App\Services\TableSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CoffeePOSorderController extends Controller
 {
-    public function __construct(private TableSessionService $tableSessions)
-    {
+    public function __construct(
+        private TableSessionService $tableSessions,
+        private CashDrawerService $cashDrawers
+    ) {
     }
 
     // ── POST /api/v1/coffee/pos/orders ────────────────────────────────────
@@ -195,6 +198,21 @@ class CoffeePOSorderController extends Controller
                 ], 422));
             }
 
+            // ── Cash requires an open register — checked BEFORE any order/
+            // payment row is created, so a rejected cash sale never leaves a
+            // partial write behind. Card/QR/transfer/pay_later are
+            // unaffected — only cash is tied to the physical cash drawer.
+            $openCashDrawer = null;
+            if ($request->payment_method === 'cash') {
+                $openCashDrawer = $this->cashDrawers->findOpenForBranch($branch->id);
+                if (! $openCashDrawer) {
+                    abort(response()->json([
+                        'success' => false,
+                        'message' => 'No cash register is open for this branch — open a shift before taking cash payments.',
+                    ], 422));
+                }
+            }
+
             $payLater = $request->payment_method === 'pay_later';
 
             // Joins the table's running tab (opening one if none is open
@@ -270,15 +288,16 @@ class CoffeePOSorderController extends Controller
                     : null;
 
                 $payment = Payment::create([
-                    'order_id'       => $order->id,
-                    'branch_id'      => $branch->id,
-                    'staff_id'       => $staff?->id,
-                    'payment_method' => $paymentMethodMap[$request->payment_method] ?? 'cash',
-                    'amount'         => $totalAmount,
-                    'change_given'   => $changeGiven,
-                    'currency'       => $branch->tenant->currency ?? 'USD',
-                    'status'         => 'completed',
-                    'paid_at'        => now(),
+                    'order_id'        => $order->id,
+                    'branch_id'       => $branch->id,
+                    'staff_id'        => $staff?->id,
+                    'cash_drawer_id'  => $openCashDrawer?->id,
+                    'payment_method'  => $paymentMethodMap[$request->payment_method] ?? 'cash',
+                    'amount'          => $totalAmount,
+                    'change_given'    => $changeGiven,
+                    'currency'        => $branch->tenant->currency ?? 'USD',
+                    'status'          => 'completed',
+                    'paid_at'         => now(),
                 ]);
             }
 

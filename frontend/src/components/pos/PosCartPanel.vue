@@ -173,7 +173,7 @@
         @click="onCheckout"
       >
         <v-icon icon="mdi-check-circle-outline" class="me-2" />
-        <span class="flex-grow-1 text-start">{{ checkoutLabel }}</span>
+        <span class="flex-grow-1 text-start me-2">{{ checkoutLabel }}</span>
         <span v-if="items.length" class="font-weight-black">{{ formatMoney(payableTotal) }}</span>
       </v-btn>
     </div>

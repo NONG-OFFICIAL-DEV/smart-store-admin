@@ -156,4 +156,36 @@ class RefundServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         $service->create($payment, ['amount' => 30, 'reason' => 'Second refund exceeds remaining', 'staff_id' => $staff->id]);
     }
+
+    public function test_a_cash_refund_is_rejected_when_no_register_is_open(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $branch = $this->makeBranch($tenantA, 'Branch A');
+        $staff = $this->makeStaff($tenantA, $branch, 'StaffCashNoDrawer');
+        [, $payment] = $this->makePaidOrder($branch, 'ORD-A-4', 50);
+
+        $service = $this->app->make(RefundService::class);
+
+        $this->expectException(ValidationException::class);
+        $service->create($payment, ['amount' => 50, 'reason' => 'Cash refund', 'method' => 'cash', 'staff_id' => $staff->id]);
+    }
+
+    public function test_a_cash_refund_attributes_to_the_currently_open_drawer(): void
+    {
+        [$tenantA, $ownerA] = $this->makeTenantWithOwner('TenantA');
+        Auth::login($ownerA);
+        $branch = $this->makeBranch($tenantA, 'Branch A');
+        $staff = $this->makeStaff($tenantA, $branch, 'StaffCashDrawer');
+        [, $payment] = $this->makePaidOrder($branch, 'ORD-A-5', 50);
+
+        $drawer = $this->app->make(\App\Services\CashDrawerService::class)->open([
+            'branch_id' => $branch->id, 'staff_id' => $staff->id, 'opening_float' => 100,
+        ]);
+
+        $service = $this->app->make(RefundService::class);
+        $refund = $service->create($payment, ['amount' => 50, 'reason' => 'Cash refund', 'method' => 'cash', 'staff_id' => $staff->id]);
+
+        $this->assertSame($drawer->id, $refund->cash_drawer_id);
+    }
 }

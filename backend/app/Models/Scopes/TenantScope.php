@@ -114,6 +114,14 @@ class TenantScope implements Scope
                 ->where('tenant_id', $tenantId)
                 ->pluck('id');
             $builder->whereHas('payment', fn($q) => $q->whereIn('branch_id', $branchIds));
+        } elseif ($table === 'cash_transactions') {
+            // Same shape as refunds -> payments above: cash_transactions has
+            // neither tenant_id nor branch_id, only cash_drawer_id ->
+            // cash_drawers.branch_id (which itself has no tenant_id column).
+            $branchIds = Branch::withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->pluck('id');
+            $builder->whereHas('cashDrawer', fn($q) => $q->whereIn('branch_id', $branchIds));
         } elseif (in_array('tenant_id', $columns)) {
             // tenant_id is nullable on a few tables (e.g. `roles.is_system`
             // templates) to mean "shared across every tenant" — a bare

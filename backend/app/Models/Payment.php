@@ -14,7 +14,7 @@ class Payment extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'order_id', 'table_session_id', 'branch_id', 'staff_id', 'payment_method',
+        'order_id', 'table_session_id', 'branch_id', 'staff_id', 'cash_drawer_id', 'payment_method',
         'amount', 'change_given', 'currency', 'exchange_rate',
         'status', 'gateway', 'gateway_transaction_id',
         'gateway_response', 'receipt_number', 'paid_at',
@@ -52,5 +52,10 @@ class Payment extends BaseModel
     public function refunds()
     {
         return $this->hasMany(Refund::class);
+    }
+
+    public function cashDrawer()
+    {
+        return $this->belongsTo(CashDrawer::class);
     }
 }

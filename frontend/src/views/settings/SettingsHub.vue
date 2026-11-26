@@ -421,10 +421,10 @@
             <thead>
               <tr>
                 <th>{{ t('settings_hub.payment_table.method') }}</th>
-                <th class="text-center">
+                <th class="text-left">
                   {{ t('settings_hub.payment_table.quick_sale') }}
                 </th>
-                <th class="text-center">
+                <th class="text-left">
                   {{ t('settings_hub.payment_table.table_bill') }}
                 </th>
               </tr>

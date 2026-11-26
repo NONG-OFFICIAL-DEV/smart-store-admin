@@ -12,6 +12,7 @@ class CashDrawerResource extends JsonResource
         return [
             'id' => $this->id,
             'branch_id' => $this->branch_id,
+            'cash_register_id' => $this->cash_register_id,
             'staff_id' => $this->staff_id,
             'opening_float' => $this->opening_float,
             'expected_cash' => $this->expected_cash,

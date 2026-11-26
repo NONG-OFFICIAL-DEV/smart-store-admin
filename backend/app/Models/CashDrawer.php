@@ -13,7 +13,7 @@ class CashDrawer extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'branch_id', 'staff_id', 'opening_float',
+        'branch_id', 'cash_register_id', 'staff_id', 'opening_float',
         'expected_cash', 'actual_cash', 'variance', 'notes', 'opened_at', 'closed_at',
     ];
 
@@ -35,5 +35,15 @@ class CashDrawer extends BaseModel
     public function staff()
     {
         return $this->belongsTo(Staff::class);
+    }
+
+    public function cashRegister()
+    {
+        return $this->belongsTo(CashRegister::class);
+    }
+
+    public function cashTransactions()
+    {
+        return $this->hasMany(CashTransaction::class);
     }
 }

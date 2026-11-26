@@ -42,6 +42,8 @@ use App\Http\Controllers\Api\KitchenDisplayTicketController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RefundController;
 use App\Http\Controllers\Api\CashDrawerController;
+use App\Http\Controllers\Api\CashRegisterController;
+use App\Http\Controllers\Api\CashTransactionController;
 
 // ── Inventory ──────────────────────────────────────────────────────────────
 use App\Http\Controllers\Api\SupplierController;
@@ -461,13 +463,27 @@ Route::prefix('v1')->middleware(['jwt.auth', 'password.changed', 'subscription.a
         Route::apiResource('payments', PaymentController::class);
         Route::post('payments/{payment}/refund', [RefundController::class, 'store']);
         Route::apiResource('refunds', RefundController::class)->only(['index', 'show']);
+    });
 
-        // ── Cash Drawers ──────────────────────────────────────────────────────
+    // ── Cash Registers & Cash Drawers (shifts) ──────────────────────────────────
+    // Accepts EITHER permission — cash_drawers.manage was seeded long ago but
+    // never actually enforced (everything here used to live under
+    // payments.manage only); this keeps every staff member who already had
+    // payments.manage working unchanged while finally making the dedicated
+    // permission do something.
+    Route::middleware('permission:payments.manage,cash_drawers.manage')->group(function () {
+        Route::apiResource('cash-registers', CashRegisterController::class);
+
         Route::apiResource('cash-drawers', CashDrawerController::class);
         Route::prefix('cash-drawers')->group(function () {
-            Route::post('open',           [CashDrawerController::class, 'open']);
-            Route::patch('{drawer}/close', [CashDrawerController::class, 'close']);
+            Route::post('open',             [CashDrawerController::class, 'open']);
+            Route::patch('{drawer}/close',   [CashDrawerController::class, 'close']);
+            Route::get('{drawer}/status',    [CashDrawerController::class, 'status']);
+            Route::post('{drawer}/cash-in',  [CashDrawerController::class, 'cashIn']);
+            Route::post('{drawer}/cash-out', [CashDrawerController::class, 'cashOut']);
         });
+
+        Route::get('cash-transactions', [CashTransactionController::class, 'index']);
     });
 
     // ── Suppliers ─────────────────────────────────────────────────────────────

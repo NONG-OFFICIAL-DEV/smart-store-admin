@@ -65,9 +65,11 @@ class AutoServeStaleKitchenTicketsTest extends TestCase
             'base_price' => 4.5,
         ], $tenant->id);
 
+        // pay_later — this test is about kitchen-ticket auto-serve, not
+        // payment; avoids needing an open cash register for a 'cash' sale.
         $request = Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
-            'payment_method' => 'cash',
+            'payment_method' => 'pay_later',
             'items' => [
                 ['product_id' => $product->id, 'quantity' => 1],
             ],

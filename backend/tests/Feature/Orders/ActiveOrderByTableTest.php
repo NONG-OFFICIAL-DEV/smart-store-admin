@@ -66,6 +66,28 @@ class ActiveOrderByTableTest extends TestCase
         ], $tenantId);
     }
 
+    // Cash payments now require an open cash register.
+    private function ensureOpenCashDrawer(Branch $branch): void
+    {
+        if ($this->app->make(\App\Services\CashDrawerService::class)->findOpenForBranch($branch->id)) {
+            return;
+        }
+
+        $role = \App\Models\Role::create(['tenant_id' => $branch->tenant_id, 'name' => 'Cashier Role (fixture)']);
+        $user = User::create([
+            'email' => 'drawer-'.substr((string) \Illuminate\Support\Str::uuid(), 0, 8).'@example.test',
+            'first_name' => 'Drawer', 'last_name' => 'Staff',
+        ]);
+        $staff = \App\Models\Staff::create([
+            'tenant_id' => $branch->tenant_id, 'branch_id' => $branch->id,
+            'user_id' => $user->id, 'role_id' => $role->id,
+        ]);
+
+        $this->app->make(\App\Services\CashDrawerService::class)->open([
+            'branch_id' => $branch->id, 'staff_id' => $staff->id, 'opening_float' => 0,
+        ]);
+    }
+
     public function test_a_completed_coffee_pos_sale_is_still_found_as_the_table_active_order(): void
     {
         [$tenant, $owner] = $this->makeTenantWithOwner('TenantA');
@@ -73,6 +95,7 @@ class ActiveOrderByTableTest extends TestCase
         $branch = $this->makeBranch($tenant);
         $product = $this->makeProduct($tenant->id);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $this->ensureOpenCashDrawer($branch);
 
         $request = Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
@@ -161,6 +184,7 @@ class ActiveOrderByTableTest extends TestCase
         $branch = $this->makeBranch($tenant);
         $product = $this->makeProduct($tenant->id);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $this->ensureOpenCashDrawer($branch);
 
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
@@ -258,6 +282,7 @@ class ActiveOrderByTableTest extends TestCase
         $branch = $this->makeBranch($tenant);
         $product = $this->makeProduct($tenant->id);
         $table = Table::create(['branch_id' => $branch->id, 'table_number' => 'A1']);
+        $this->ensureOpenCashDrawer($branch);
 
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,

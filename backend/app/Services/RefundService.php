@@ -11,8 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class RefundService extends BaseService
 {
-    public function __construct(RefundRepositoryInterface $repository)
-    {
+    public function __construct(
+        RefundRepositoryInterface $repository,
+        private CashDrawerService $cashDrawers
+    ) {
         parent::__construct($repository);
     }
 
@@ -45,6 +47,25 @@ class RefundService extends BaseService
         $data['payment_id'] = $payment->id;
         $data['order_id'] = $payment->order_id;
         $data['status'] = 'completed';
+
+        // A cash refund physically comes out of whichever drawer is open
+        // RIGHT NOW on the payment's branch — not necessarily the one open
+        // at the time of the original sale. No open drawer means there's
+        // nowhere to record the cash leaving from, so reject rather than
+        // silently losing it from reconciliation (cash_drawer_id would stay
+        // null and CashDrawerService's expected-cash math would never see
+        // this refund at all).
+        if (($data['method'] ?? 'original_method') === 'cash') {
+            $openDrawer = $this->cashDrawers->findOpenForBranch($payment->branch_id);
+
+            if (! $openDrawer) {
+                throw ValidationException::withMessages([
+                    'method' => ['No cash register is open for this branch — open a shift before refunding in cash.'],
+                ]);
+            }
+
+            $data['cash_drawer_id'] = $openDrawer->id;
+        }
 
         $refund = $this->repository->create($data);
 

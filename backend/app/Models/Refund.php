@@ -11,7 +11,7 @@ class Refund extends BaseModel
     public $timestamps = false;
 
     protected $fillable = [
-        'payment_id', 'order_id', 'staff_id',
+        'payment_id', 'order_id', 'staff_id', 'cash_drawer_id',
         'amount', 'reason', 'method', 'status', 'gateway_refund_id',
     ];
 
@@ -32,5 +32,10 @@ class Refund extends BaseModel
     public function staff()
     {
         return $this->belongsTo(Staff::class);
+    }
+
+    public function cashDrawer()
+    {
+        return $this->belongsTo(CashDrawer::class);
     }
 }

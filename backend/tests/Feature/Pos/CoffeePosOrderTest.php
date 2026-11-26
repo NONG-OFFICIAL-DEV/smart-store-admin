@@ -73,8 +73,42 @@ class CoffeePosOrderTest extends TestCase
         ], $tenantId);
     }
 
+    // Cash payments now require an open cash register — every test here
+    // defaults to payment_method 'cash', so submit() opens one the first
+    // time it sees a given branch_id (idempotent per test, since each test
+    // method creates its own fresh tenant/branch).
+    private array $openedDrawerBranches = [];
+
+    private function ensureOpenCashDrawer(string $branchId): void
+    {
+        if (in_array($branchId, $this->openedDrawerBranches, true)) {
+            return;
+        }
+
+        $branch = Branch::find($branchId);
+        $role = \App\Models\Role::create(['tenant_id' => $branch->tenant_id, 'name' => 'Cashier Role (fixture)']);
+        $user = User::create([
+            'email' => 'drawer-'.substr((string) \Illuminate\Support\Str::uuid(), 0, 8).'@example.test',
+            'first_name' => 'Drawer', 'last_name' => 'Staff',
+        ]);
+        $staff = \App\Models\Staff::create([
+            'tenant_id' => $branch->tenant_id, 'branch_id' => $branchId,
+            'user_id' => $user->id, 'role_id' => $role->id,
+        ]);
+
+        $this->app->make(\App\Services\CashDrawerService::class)->open([
+            'branch_id' => $branchId, 'staff_id' => $staff->id, 'opening_float' => 0,
+        ]);
+
+        $this->openedDrawerBranches[] = $branchId;
+    }
+
     private function submit(array $overrides = []): \Illuminate\Http\JsonResponse
     {
+        if (! empty($overrides['branch_id'])) {
+            $this->ensureOpenCashDrawer($overrides['branch_id']);
+        }
+
         $request = Request::create('/coffee/pos/orders', 'POST', array_merge([
             'payment_method' => 'cash',
         ], $overrides));

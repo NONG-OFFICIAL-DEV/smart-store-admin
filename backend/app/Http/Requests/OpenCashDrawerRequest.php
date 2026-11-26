@@ -21,6 +21,7 @@ class OpenCashDrawerRequest extends FormRequest
         return [
             'branch_id' => ['required', 'uuid'],
             'staff_id' => ['required', 'uuid', 'exists:staff,id'],
+            'cash_register_id' => ['nullable', 'uuid'],
             'opening_float' => ['nullable', 'numeric', 'min:0'],
         ];
     }

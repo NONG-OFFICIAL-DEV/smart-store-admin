@@ -64,6 +64,22 @@ class ServeOrderTest extends TestCase
             'base_price' => 4.5,
         ], $tenant->id);
 
+        // Cash payments now require an open cash register.
+        if (! $this->app->make(\App\Services\CashDrawerService::class)->findOpenForBranch($branch->id)) {
+            $role = \App\Models\Role::create(['tenant_id' => $tenant->id, 'name' => 'Cashier Role (fixture)']);
+            $user = User::create([
+                'email' => 'drawer-'.substr((string) \Illuminate\Support\Str::uuid(), 0, 8).'@example.test',
+                'first_name' => 'Drawer', 'last_name' => 'Staff',
+            ]);
+            $staff = \App\Models\Staff::create([
+                'tenant_id' => $tenant->id, 'branch_id' => $branch->id,
+                'user_id' => $user->id, 'role_id' => $role->id,
+            ]);
+            $this->app->make(\App\Services\CashDrawerService::class)->open([
+                'branch_id' => $branch->id, 'staff_id' => $staff->id, 'opening_float' => 0,
+            ]);
+        }
+
         $request = Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
             'payment_method' => 'cash',

@@ -9,6 +9,8 @@ use App\Repositories\Contracts\BranchProductOverrideRepositoryInterface;
 use App\Repositories\Contracts\BranchRepositoryInterface;
 use App\Repositories\Contracts\BusinessTypeRepositoryInterface;
 use App\Repositories\Contracts\CashDrawerRepositoryInterface;
+use App\Repositories\Contracts\CashRegisterRepositoryInterface;
+use App\Repositories\Contracts\CashTransactionRepositoryInterface;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\CouponRepositoryInterface;
 use App\Repositories\Contracts\CustomerAddressRepositoryInterface;
@@ -52,6 +54,8 @@ use App\Repositories\Eloquent\BranchProductOverrideRepository;
 use App\Repositories\Eloquent\BranchRepository;
 use App\Repositories\Eloquent\BusinessTypeRepository;
 use App\Repositories\Eloquent\CashDrawerRepository;
+use App\Repositories\Eloquent\CashRegisterRepository;
+use App\Repositories\Eloquent\CashTransactionRepository;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\CouponRepository;
 use App\Repositories\Eloquent\CustomerAddressRepository;
@@ -129,6 +133,8 @@ class RepositoryServiceProvider extends ServiceProvider
         ActivityLogRepositoryInterface::class => ActivityLogRepository::class,
         CustomerAddressRepositoryInterface::class => CustomerAddressRepository::class,
         CashDrawerRepositoryInterface::class => CashDrawerRepository::class,
+        CashRegisterRepositoryInterface::class => CashRegisterRepository::class,
+        CashTransactionRepositoryInterface::class => CashTransactionRepository::class,
         InventoryStockRepositoryInterface::class => InventoryStockRepository::class,
         InventoryTransactionRepositoryInterface::class => InventoryTransactionRepository::class,
         KitchenDisplayTicketRepositoryInterface::class => KitchenDisplayTicketRepository::class,

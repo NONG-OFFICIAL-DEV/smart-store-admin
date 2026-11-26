@@ -304,6 +304,17 @@ class LoyaltyMiniAppControllerTest extends TestCase
         $this->postJson("/api/v1/public/loyalty/{$tenant->slug}/join", ['phone' => '012345678'], $headers)->assertOk();
         $customer = Customer::where('telegram_chat_id', '111222333')->firstOrFail();
 
+        // Cash payments now require an open cash register.
+        $role = \App\Models\Role::create(['tenant_id' => $tenant->id, 'name' => 'Cashier Role (fixture)']);
+        $staffUser = User::create(['email' => 'drawer-history@example.test', 'first_name' => 'Drawer', 'last_name' => 'Staff']);
+        $staff = \App\Models\Staff::create([
+            'tenant_id' => $tenant->id, 'branch_id' => $branch->id,
+            'user_id' => $staffUser->id, 'role_id' => $role->id,
+        ]);
+        $this->app->make(\App\Services\CashDrawerService::class)->open([
+            'branch_id' => $branch->id, 'staff_id' => $staff->id, 'opening_float' => 0,
+        ]);
+
         $this->app->make(CoffeePOSorderController::class)->coffeeOrders(Request::create('/coffee/pos/orders', 'POST', [
             'branch_id' => $branch->id,
             'customer_id' => $customer->id,
