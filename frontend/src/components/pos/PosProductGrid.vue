@@ -70,7 +70,7 @@
               <v-skeleton-loader type="image" class="pos-card__skeleton-fill" />
             </div>
             <div class="pos-card__body">
-              <v-skeleton-loader type="text" class="mb-1" />
+              <v-skeleton-loader type="text" />
               <v-skeleton-loader type="text" width="60%" />
             </div>
           </div>
@@ -301,23 +301,28 @@
     -webkit-overflow-scrolling: touch;
   }
   /* ── Card ──────────────────────────────────────────────────────────────── */
-  .pos-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-radius: 14px;
-    border: 1px solid var(--pos-card-border);
-    background: rgb(var(--v-theme-surface));
-    overflow: hidden;
-    cursor: pointer;
-    outline: none;
-    transition:
-      border-color 0.15s,
-      transform 0.1s;
-  }
-  .pos-card:hover {
-    border-color: var(--pos-card-border-hover);
-  }
+.pos-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;                       /* NEW: gives the inset image look */
+  border-radius: 16px;
+  border: 1px solid var(--pos-card-border);
+  background: rgb(var(--v-theme-surface));
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);   /* NEW: soft shadow */
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+}
+.pos-card:hover {
+  border-color: var(--pos-card-border-hover);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.1);
+}
+
   .pos-card:active {
     transform: scale(0.98);
   }
@@ -341,6 +346,7 @@
     aspect-ratio: 4 / 3;
     width: 100%;
     overflow: hidden;
+    border-radius: 12px;    
     background: var(--pos-card-image-bg);
     flex-shrink: 0;
   }
@@ -405,12 +411,12 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 10px 12px 12px;
+    padding: 12px 2px 2px;  
     flex-grow: 1;
   }
   .pos-card__name {
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 20px;
     min-height: 40px;
     display: -webkit-box;
