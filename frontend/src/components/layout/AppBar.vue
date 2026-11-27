@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar scroll-behavior="inverted" elevation="0" border flat>
+  <v-app-bar scroll-behavior="inverted" elevation="0" class="border-b" flat>
     <!-- Classic/Icon-rail: mobile-only, since the floating collapse handle
          replaces this at lgAndUp (the sidebar is a permanent drawer there).
          POS-focus: always shown — its sidebar is never permanent. -->

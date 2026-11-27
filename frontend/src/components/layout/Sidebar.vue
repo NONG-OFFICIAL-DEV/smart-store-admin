@@ -7,7 +7,10 @@
   import { SIDEBAR_MENU } from '@/config/sidebarMenu'
   import { LOGOS } from '@/config/branding'
   import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
-  import { SIDEBAR_RAIL_WIDTH, SIDEBAR_EXPANDED_WIDTH } from '@/config/sidebarLayout'
+  import {
+    SIDEBAR_RAIL_WIDTH,
+    SIDEBAR_EXPANDED_WIDTH
+  } from '@/config/sidebarLayout'
   import SidebarFooter from './SidebarFooter.vue'
   import ShopBranchSwitcher from './ShopBranchSwitcher.vue'
 
@@ -39,7 +42,11 @@
   const theme = useTheme()
   const { t } = useI18n()
   const variantRef = computed(() => props.variant)
-  const { isTemporary, isCollapsed: isRail, toggleCollapse } = useSidebarCollapse(variantRef)
+  const {
+    isTemporary,
+    isCollapsed: isRail,
+    toggleCollapse
+  } = useSidebarCollapse(variantRef)
 
   const isDark = computed(() => theme.global.current.value.dark)
   // Logo shows in the sidebar for ALL layouts (it no longer lives in the AppBar)
@@ -107,7 +114,11 @@
 
   function onKeydown(e) {
     if (e.key === 'Escape') hideFlyout()
-    if (!isTemporary.value && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+    if (
+      !isTemporary.value &&
+      (e.ctrlKey || e.metaKey) &&
+      e.key.toLowerCase() === 'b'
+    ) {
       e.preventDefault()
       toggleCollapse()
     }
@@ -155,7 +166,10 @@
     <div
       v-if="showBrand"
       class="sidebar-brand"
-      :class="{ 'sidebar-brand--rail': isRail, 'sidebar-brand--pos-focus': isPosFocus }"
+      :class="{
+        'sidebar-brand--rail': isRail,
+        'sidebar-brand--pos-focus': isPosFocus
+      }"
     >
       <button
         type="button"
@@ -181,7 +195,7 @@
         <v-icon icon="mdi-close" size="18" />
       </button>
     </div>
-
+    <v-divider class="mx-2" />
     <!-- Branch switcher: Sidebar-only only (Classic/Icon-rail/POS-focus all
          show it in the AppBar instead) -->
     <div
@@ -191,7 +205,7 @@
     >
       <ShopBranchSwitcher :rail="isRail" />
     </div>
-
+    <v-divider v-if="showChrome && buName" class="mx-2" />
     <!-- MENU: RAIL — plain HTML full-width rows, Vuetify only for the
          tooltip and the flyout it opens (see Teleport block below) -->
     <nav v-if="isRail" class="rail-nav" aria-label="Primary">
@@ -242,9 +256,7 @@
                 'rail-row--pos': link.emphasize
               }"
               :aria-label="link.title"
-              :aria-expanded="
-                flyout.visible && flyout.group?.key === link.key
-              "
+              :aria-expanded="flyout.visible && flyout.group?.key === link.key"
               aria-haspopup="menu"
               @click="showFlyout(link, $event)"
             >
@@ -390,12 +402,10 @@
 <style scoped>
   /* ── Brand header ── */
   .sidebar-brand {
-    height: 64px; /* same height as the AppBar */
+    height: 64px;
     display: flex;
     align-items: center;
     padding: 0 16px;
-    border-bottom: 1px solid
-      rgba(var(--v-border-color), var(--v-border-opacity));
   }
   .sidebar-brand--rail {
     justify-content: center;
@@ -455,7 +465,6 @@
   /* ── Branch switcher (Sidebar-only / POS-focus) ── */
   .sidebar-branch {
     padding: 8px;
-    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   }
   .sidebar-branch--rail {
     padding: 0;
@@ -522,11 +531,7 @@
     font-weight: 700;
   }
 
-  /* ── Rail: plain-HTML full-width rows ──────────────────────────────────
-     Not Vuetify <v-list-item> — a bare CSS grid component whose "content"
-     area is still rendered (just empty) and keeps claiming width as a 1fr
-     track no matter what CSS is thrown at it, which is what made icons look
-     off-center before. Plain buttons/links sidestep that entirely. */
+  /* ── Rail: plain-HTML full-width rows  */
   .rail-nav {
     display: flex;
     flex-direction: column;
@@ -547,7 +552,9 @@
     color: rgba(var(--v-theme-on-surface), 0.7);
     cursor: pointer;
     text-decoration: none;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
   .rail-row:hover {
     background: rgba(var(--v-theme-on-surface), 0.05);
