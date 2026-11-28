@@ -20,7 +20,9 @@ class OpenCashDrawerRequest extends FormRequest
     {
         return [
             'branch_id' => ['required', 'uuid'],
-            'staff_id' => ['required', 'uuid', 'exists:staff,id'],
+            // staff_id is resolved server-side from the authenticated user
+            // in the controller (null for an owner) — never trusted from
+            // the request body.
             'cash_register_id' => ['nullable', 'uuid'],
             'opening_float' => ['nullable', 'numeric', 'min:0'],
         ];

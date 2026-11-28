@@ -321,14 +321,19 @@ export const SIDEBAR_MENU = [
         visible: ctx => !ctx.isSuperAdmin
       },
       {
+        key: 'cash-registers',
+        titleKey: 'cash_registers.title',
+        icon: 'mdi-cash-register',
+        path: '/settings/cash-registers',
+        permission: ['payments.manage', 'cash_drawers.manage'],
+        visible: ctx => !ctx.isSuperAdmin
+      },
+      {
         key: 'billing',
         titleKey: 'billing.title',
         icon: 'mdi-credit-card-outline',
         path: '/tenants-billing',
-        // Moved here from the profile dropdown — it's tenant/business
-        // configuration, not a personal account action. Same visibility
-        // rule as before (no owner-only restriction — the route itself
-        // has none either, preserved as-is rather than tightened here).
+ 
         visible: ctx => !ctx.isSuperAdmin
       },
       {
@@ -351,11 +356,6 @@ export const SIDEBAR_MENU = [
         icon: 'mdi-shield-account-outline',
         path: '/roles-management',
         permission: 'roles.manage',
-        // Tenant owners (and any staff explicitly granted roles.manage) can
-        // now create/edit roles for their own tenant — super admin's
-        // permission bypass would otherwise still show this (see router's
-        // superAdminAccessible); the raw permission-catalog page below
-        // stays super-admin-only, it's shared system-wide reference data.
         visible: ctx => !ctx.isSuperAdmin
       },
       {

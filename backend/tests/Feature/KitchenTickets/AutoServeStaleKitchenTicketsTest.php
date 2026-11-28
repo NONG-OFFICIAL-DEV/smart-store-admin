@@ -129,7 +129,10 @@ class AutoServeStaleKitchenTicketsTest extends TestCase
 
         Artisan::call('kitchen:auto-serve-stale');
 
-        $this->assertSame('completed', $order->fresh()->status);
+        // pay_later orders start 'pending' (see makeOrderWithTicket) — this
+        // assertion is about the command leaving the order UNCHANGED, not
+        // about any particular status value.
+        $this->assertSame('pending', $order->fresh()->status);
     }
 
     public function test_a_branch_configured_with_a_shorter_threshold_auto_serves_sooner(): void
@@ -157,7 +160,10 @@ class AutoServeStaleKitchenTicketsTest extends TestCase
 
         Artisan::call('kitchen:auto-serve-stale');
 
-        $this->assertSame('completed', $order->fresh()->status);
+        // pay_later orders start 'pending' (see makeOrderWithTicket) — this
+        // assertion is about the command leaving the order UNCHANGED, not
+        // about any particular status value.
+        $this->assertSame('pending', $order->fresh()->status);
     }
 
     public function test_the_hours_option_overrides_the_default_threshold(): void

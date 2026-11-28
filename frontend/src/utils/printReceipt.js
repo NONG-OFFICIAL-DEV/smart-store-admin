@@ -39,6 +39,16 @@ const CHAR_WIDTH = 48
 // ─────────────────────────────────────────────────────────────────────────────
 const LF = '\x0A'
 
+// ESC p 0 25 250 — the standard "kick drawer pin 0" pulse command most
+// thermal printers with an RJ11/RJ12 cash-drawer port support: pulse ON for
+// 25*2=50ms, OFF for 250*2=500ms (conventional default timings; printers
+// that need different timings for their specific drawer solenoid are rare
+// enough that this isn't exposed as a setting). Byte form for WebUSB,
+// string form (same bytes, as JS escape sequences) for QZ Tray's raw
+// 'command' format — both MUST stay in sync if ever changed.
+const DRAWER_KICK_BYTES = [0x1b, 0x70, 0x00, 0x19, 0xfa]
+const DRAWER_KICK_COMMAND = '\x1B\x70\x00\x19\xFA'
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Order type / payment labels (Khmer + English)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1252,6 +1262,67 @@ export function useReceipt() {
     return true
   }
 
+  // ── Kick the cash drawer via WebUSB ───────────────────────────────────────
+  // Same reconnect/retry shape as printUsb()/printUsbTicket() — the drawer
+  // kick is 5 bytes, well under the 64-byte chunk size, but the chunking
+  // loop is kept anyway so this stays correct if the command ever grows.
+  async function printUsbDrawerKick(_retry = false) {
+    if (!usbConnected.value || !usbDevice.value) {
+      const reconnected = await autoConnectUsb({ usbDevice, usbConnected, printMethod })
+      if (!reconnected) return false
+    }
+    const bytes = new Uint8Array(DRAWER_KICK_BYTES)
+    const CHUNK = 64
+    try {
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        await usbDevice.value.dev.transferOut(usbDevice.value.endpoint.endpointNumber, bytes.slice(i, i + CHUNK))
+      }
+      return true
+    } catch (e) {
+      usbConnected.value = false
+      usbDevice.value = null
+      if (!_retry) {
+        console.warn('[useReceipt] USB error (drawer kick), retrying once...', e.message)
+        await new Promise(r => setTimeout(r, 600))
+        return printUsbDrawerKick(true)
+      }
+      return false
+    }
+  }
+
+  // ── Kick the cash drawer via QZ Tray ──────────────────────────────────────
+  // Sent as a genuine raw ESC/POS command (not rendered as an image like the
+  // receipt/ticket content) — QZ Tray's raw 'command' format passes the
+  // string's bytes straight through to the printer.
+  async function printQzDrawerKick(printerName) {
+    const qz = await getQz()
+    if (!qz) throw new Error('QZ Tray not loaded. Make sure qz-tray is installed.')
+    if (!qz.websocket.isActive()) await qz.websocket.connect()
+    const printer = await qz.printers.find(printerName)
+    const config = qz.configs.create(printer)
+    await qz.print(config, [{ type: 'raw', format: 'command', data: DRAWER_KICK_COMMAND }])
+    return true
+  }
+
+  // ── Auto-detect and kick the cash drawer ──────────────────────────────────
+  // Same USB→QZ auto-detect as print()/printTicket(), but deliberately kept
+  // separate from `printing`/`error` state — this is a fire-and-forget
+  // hardware side-effect alongside a cash payment, not a document print the
+  // UI needs to react to. Never throws: returns false (no drawer kicked)
+  // whenever no transport is available, rather than surfacing an error the
+  // caller would have to handle — per the "handle devices without cash
+  // drawer support gracefully" requirement.
+  async function openDrawer(printerName) {
+    try {
+      if (usbSupported && (await printUsbDrawerKick())) return true
+      if (isAndroid() || !printerName) return false
+      return await printQzDrawerKick(printerName)
+    } catch (e) {
+      console.warn('[useReceipt] openDrawer failed:', e.message)
+      return false
+    }
+  }
+
   // ── Auto-detect and print a kitchen/barista ticket ────────────────────────
   // Same USB→QZ auto-detect as print(), kept separate since a ticket (no
   // prices/payment) is a different document from the customer receipt.
@@ -1397,6 +1468,7 @@ export function useReceipt() {
     usbSupported,
     print,
     printTicket,
+    openDrawer,
     checkConnection,
     connectUsb,
     disconnectUsb,

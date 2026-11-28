@@ -77,6 +77,10 @@ class Tenant extends BaseModel
         // receipt; these control whether each document prints at all).
         'print_customer_receipt' => true,
         'print_kitchen_ticket' => false,
+        // Whether cash payments/refunds require an open cash-register
+        // shift at all — some tenants don't use this feature; off means
+        // checkout/refunds behave as if it never existed.
+        'cash_register_enabled' => true,
     ];
 
     // ─── Store ────────────────────────────────────────────────────────────────

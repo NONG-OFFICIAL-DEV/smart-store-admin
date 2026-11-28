@@ -150,6 +150,12 @@ const routes = [
         meta: { requiresAuth: true, transition: 'fade', permission: 'suppliers.manage' }
       },
       {
+        path: '/settings/cash-registers',
+        name: 'cash-registers',
+        component: () => import('@/views/settings/CashRegisterManagement.vue'),
+        meta: { requiresAuth: true, transition: 'fade', permission: ['payments.manage', 'cash_drawers.manage'] }
+      },
+      {
         path: '/customers-hub',
         redirect: '/customers'
       },
@@ -527,8 +533,14 @@ router.beforeEach(async (to, from) => {
   }
 
   // ── 5. Route requires a specific permission ────────────────────────────
-  if (to.meta.permission && !authStore.can(to.meta.permission)) {
-    return { name: resolveHome(authStore) }
+  // meta.permission may be a single code or an array (OR-matched, any one
+  // suffices) — same convention useSidebarMenu.js already uses for nav
+  // visibility, extended here so the two stay consistent.
+  if (to.meta.permission) {
+    const codes = Array.isArray(to.meta.permission) ? to.meta.permission : [to.meta.permission]
+    if (!authStore.canAny(...codes)) {
+      return { name: resolveHome(authStore) }
+    }
   }
 
   // ── 6. Route is admin-only ─────────────────────────────────────────────

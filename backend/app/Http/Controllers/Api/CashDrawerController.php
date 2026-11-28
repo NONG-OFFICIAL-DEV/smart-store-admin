@@ -48,7 +48,16 @@ class CashDrawerController extends Controller
 
     public function open(OpenCashDrawerRequest $request): JsonResponse
     {
-        $drawer = $this->cashDrawers->open($request->validated());
+        // Resolved server-side from the authenticated user (null for an
+        // owner, who has no Staff row) rather than trusted from the request
+        // body — same reasoning as CoffeePOSorderController/MartPosController
+        // resolving $cashier->staff for orders, and closes a minor
+        // spoofing concern (a client claiming to be a different staff
+        // member when opening a shift).
+        $data = $request->validated();
+        $data['staff_id'] = auth()->user()->staff?->id;
+
+        $drawer = $this->cashDrawers->open($data);
 
         return $this->created(new CashDrawerResource($drawer), 'Cash drawer opened successfully.');
     }
@@ -82,10 +91,9 @@ class CashDrawerController extends Controller
 
     public function cashIn(CashInRequest $request, CashDrawer $drawer): JsonResponse
     {
+        // null for an owner recording their own cash movement — owners
+        // have no Staff row at all, same as open()/cashOut() below.
         $staff = auth()->user()->staff;
-        if (! $staff) {
-            return $this->error('Only staff members can record a cash movement.', 422);
-        }
 
         $transaction = $this->cashDrawers->cashIn($drawer, (float) $request->validated('amount'), $request->validated('reason'), $staff);
 
@@ -95,9 +103,6 @@ class CashDrawerController extends Controller
     public function cashOut(CashOutRequest $request, CashDrawer $drawer): JsonResponse
     {
         $staff = auth()->user()->staff;
-        if (! $staff) {
-            return $this->error('Only staff members can record a cash movement.', 422);
-        }
 
         $transaction = $this->cashDrawers->cashOut($drawer, (float) $request->validated('amount'), $request->validated('reason'), $staff);
 

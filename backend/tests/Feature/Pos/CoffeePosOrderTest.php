@@ -426,4 +426,46 @@ class CoffeePosOrderTest extends TestCase
 
         $this->assertSame(0, KitchenDisplayTicket::where('order_id', $orderId)->count());
     }
+
+    // Regression guard: cash_register_enabled defaults true, so the
+    // mandatory-open-shift behavior for cash payments must stay unchanged
+    // for every tenant that hasn't explicitly turned the feature off.
+    public function test_a_cash_payment_is_rejected_with_no_open_register_by_default(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantCashGateOn');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $request = Request::create('/coffee/pos/orders', 'POST', [
+            'payment_method' => 'cash',
+            'branch_id' => $branch->id,
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ]);
+
+        $this->expectException(HttpResponseException::class);
+        $this->app->make(CoffeePOSorderController::class)->coffeeOrders($request);
+    }
+
+    public function test_a_cash_payment_succeeds_with_no_open_register_when_the_feature_is_disabled(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantCashGateOff');
+        $tenant->update(['pos_settings' => array_merge($tenant->fresh()->pos_settings, ['cash_register_enabled' => false])]);
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant);
+        $product = $this->makeProduct($tenant->id);
+
+        $request = Request::create('/coffee/pos/orders', 'POST', [
+            'payment_method' => 'cash',
+            'branch_id' => $branch->id,
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ]);
+
+        $response = $this->app->make(CoffeePOSorderController::class)->coffeeOrders($request);
+        $orderId = $response->getData(true)['data']['id'];
+
+        $payment = \App\Models\Payment::where('order_id', $orderId)->first();
+        $this->assertNotNull($payment);
+        $this->assertNull($payment->cash_drawer_id);
+    }
 }

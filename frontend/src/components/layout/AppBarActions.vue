@@ -6,10 +6,18 @@
       {{ t('app_bar.offline_message') }}
     </div>
 
-    <!-- Register status — only meaningful for staff (owners have no Staff
-         row of their own, so there's nothing personal to open/close) -->
+    <!-- Register status — shown for staff AND owners (an owner running
+         their own shop has no Staff row, but must still be able to open/
+         manage their own register — staff_id is simply null for them, same
+         as Order.cashier_id/Payment.staff_id already tolerate) — also
+         gated by permission now (cash_drawers.manage was seeded but never
+         actually checked here before). -->
     <v-chip
-      v-if="authStore.staff_id"
+      v-if="
+        (authStore.staff_id || authStore.isOwner) &&
+        canAny('payments.manage', 'cash_drawers.manage') &&
+        authStore.posSettings?.cash_register_enabled !== false
+      "
       size="small"
       variant="tonal"
       :color="registerOpen ? 'success' : 'default'"
@@ -91,31 +99,152 @@
     <AppDialog
       v-model="registerDialog"
       :title="t('cash_register.panel_title')"
-      :max-width="380"
+      :max-width="registerOpen && panelView === 'closing' ? 460 : 380"
       :loading="registerBusy"
     >
-      <div v-if="registerOpen && !closing">
-        <div class="d-flex justify-space-between text-body-medium mb-2">
+      <!-- ── Active Shift Info ─────────────────────────────────────────── -->
+      <div v-if="registerOpen && panelView === 'info'">
+        <div class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.cashier') }}</span>
+          <span class="font-weight-bold">{{ cashierName }}</span>
+        </div>
+        <div v-if="currentDrawer?.cash_register_id" class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.register') }}</span>
+          <span class="font-weight-bold">{{ registerName(currentDrawer.cash_register_id) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-medium mb-1">
           <span class="text-medium-emphasis">{{ t('cash_register.opening_float') }}</span>
           <span class="font-weight-bold">{{ formatMoney(currentDrawer?.opening_float) }}</span>
         </div>
-        <div class="d-flex justify-space-between text-body-medium mb-4">
+        <div class="d-flex justify-space-between text-body-medium mb-3">
           <span class="text-medium-emphasis">{{ t('cash_register.opened_at') }}</span>
           <span class="font-weight-bold">{{ formatDateTime(currentDrawer?.opened_at) }}</span>
         </div>
+
+        <v-divider class="mb-3" />
+
+        <div class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.cash_sales') }}</span>
+          <span class="font-weight-medium">{{ formatMoney(status?.cash_sales) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.non_cash_sales') }}</span>
+          <span class="font-weight-medium">{{ formatMoney(status?.non_cash_sales) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.cash_in') }}</span>
+          <span class="font-weight-medium text-success">+{{ formatMoney(status?.cash_in) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-medium mb-1">
+          <span class="text-medium-emphasis">{{ t('cash_register.cash_out') }}</span>
+          <span class="font-weight-medium text-error">-{{ formatMoney(status?.cash_out) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-medium mb-3">
+          <span class="text-medium-emphasis">{{ t('cash_register.cash_refunds') }}</span>
+          <span class="font-weight-medium text-error">-{{ formatMoney(status?.cash_refunds) }}</span>
+        </div>
+        <div class="d-flex justify-space-between text-body-large mb-4">
+          <span class="font-weight-bold">{{ t('cash_register.expected_cash') }}</span>
+          <span class="font-weight-bold">{{ formatMoney(status?.expected_cash) }}</span>
+        </div>
+
+        <div class="d-flex gap-2 mb-2">
+          <v-btn variant="tonal" rounded="lg" class="flex-1-1" prepend-icon="mdi-cash-plus" @click="panelView = 'cash_in'">
+            {{ t('cash_register.cash_in') }}
+          </v-btn>
+          <v-btn variant="tonal" rounded="lg" class="flex-1-1" prepend-icon="mdi-cash-minus" @click="panelView = 'cash_out'">
+            {{ t('cash_register.cash_out') }}
+          </v-btn>
+        </div>
+        <v-btn
+          variant="text"
+          rounded="lg"
+          block
+          class="mb-2"
+          prepend-icon="mdi-cash-register"
+          @click="handleOpenDrawer"
+        >
+          {{ t('cash_register.open_drawer') }}
+        </v-btn>
         <v-btn
           color="error"
           variant="tonal"
           block
           rounded="lg"
           prepend-icon="mdi-lock-outline"
-          @click="closing = true"
+          @click="panelView = 'closing'"
         >
           {{ t('cash_register.close_register') }}
         </v-btn>
       </div>
 
-      <div v-else-if="registerOpen && closing">
+      <!-- ── Cash In / Cash Out ───────────────────────────────────────── -->
+      <div v-else-if="registerOpen && (panelView === 'cash_in' || panelView === 'cash_out')">
+        <v-text-field
+          v-model.number="movementAmount"
+          type="number"
+          min="0.01"
+          step="0.01"
+          :label="t('cash_register.amount')"
+          variant="outlined"
+          rounded="lg"
+          :error-messages="movementError"
+        />
+        <v-textarea
+          v-model="movementReason"
+          :label="t('cash_register.reason') + ' *'"
+          variant="outlined"
+          rounded="lg"
+          rows="2"
+        />
+        <div class="d-flex gap-2">
+          <v-btn variant="tonal" rounded="lg" class="flex-1-1" @click="panelView = 'info'">
+            {{ t('btn.cancel') }}
+          </v-btn>
+          <v-btn
+            :color="panelView === 'cash_in' ? 'success' : 'error'"
+            variant="flat"
+            rounded="lg"
+            class="flex-1-1"
+            :disabled="!movementAmount || !movementReason"
+            @click="confirmMovement"
+          >
+            {{ t('btn.confirm') }}
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- ── Close Shift & Reconciliation ─────────────────────────────── -->
+      <div v-else-if="registerOpen && panelView === 'closing'">
+        <v-table density="compact" class="mb-3">
+          <tbody>
+            <tr>
+              <td class="text-medium-emphasis">{{ t('cash_register.opening_float') }}</td>
+              <td class="text-right font-weight-medium">{{ formatMoney(status?.opening_float) }}</td>
+            </tr>
+            <tr>
+              <td class="text-medium-emphasis">{{ t('cash_register.cash_sales') }}</td>
+              <td class="text-right font-weight-medium">{{ formatMoney(status?.cash_sales) }}</td>
+            </tr>
+            <tr>
+              <td class="text-medium-emphasis">{{ t('cash_register.cash_in') }}</td>
+              <td class="text-right font-weight-medium">{{ formatMoney(status?.cash_in) }}</td>
+            </tr>
+            <tr>
+              <td class="text-medium-emphasis">{{ t('cash_register.cash_out') }}</td>
+              <td class="text-right font-weight-medium">-{{ formatMoney(status?.cash_out) }}</td>
+            </tr>
+            <tr>
+              <td class="text-medium-emphasis">{{ t('cash_register.cash_refunds') }}</td>
+              <td class="text-right font-weight-medium">-{{ formatMoney(status?.cash_refunds) }}</td>
+            </tr>
+            <tr>
+              <td class="font-weight-bold">{{ t('cash_register.expected_cash') }}</td>
+              <td class="text-right font-weight-bold">{{ formatMoney(status?.expected_cash) }}</td>
+            </tr>
+          </tbody>
+        </v-table>
+
         <v-text-field
           v-model.number="actualCash"
           type="number"
@@ -125,6 +254,12 @@
           variant="outlined"
           rounded="lg"
         />
+
+        <div v-if="actualCash !== null && actualCash !== ''" class="d-flex justify-space-between align-center mb-3 pa-3 rounded-lg" :class="differenceBg">
+          <span class="font-weight-medium">{{ differenceLabel }}</span>
+          <span class="font-weight-bold">{{ formatMoney(Math.abs(difference)) }}</span>
+        </div>
+
         <v-textarea
           v-model="closeNotes"
           :label="t('cash_register.notes_optional')"
@@ -133,7 +268,7 @@
           rows="2"
         />
         <div class="d-flex gap-2">
-          <v-btn variant="tonal" rounded="lg" class="flex-1-1" @click="closing = false">
+          <v-btn variant="tonal" rounded="lg" class="flex-1-1" @click="panelView = 'info'">
             {{ t('btn.cancel') }}
           </v-btn>
           <v-btn
@@ -149,8 +284,20 @@
         </div>
       </div>
 
+      <!-- ── Open Shift ────────────────────────────────────────────────── -->
       <div v-else>
         <p class="text-body-medium text-medium-emphasis mb-3">{{ t('cash_register.open_prompt') }}</p>
+        <v-select
+          v-if="activeRegisters.length"
+          v-model="selectedRegisterId"
+          :items="activeRegisters"
+          item-title="name"
+          item-value="id"
+          :label="t('cash_register.register')"
+          variant="outlined"
+          rounded="lg"
+          clearable
+        />
         <v-text-field
           v-model.number="openingFloat"
           type="number"
@@ -189,11 +336,17 @@
   import { useLanguage } from '@/composables/useLanguage'
   import { useLogout } from '@/composables/useLogout'
   import { useCashDrawerStore } from '@/stores/cashDrawerStore'
+  import { useCashRegisterStore } from '@/stores/cashRegisterStore'
+  import { useBranchStore } from '@/stores/branchStore'
+  import { usePermission } from '@/composables/usePermission'
+  import { useReceipt } from '@/utils/printReceipt'
   import { useAppUtils, AppDialog } from '@nong-official-dev/core'
 
   const { t } = useI18n()
   const { notif } = useAppUtils()
   const theme = useTheme()
+  const { canAny } = usePermission()
+  const { openDrawer } = useReceipt()
   const { getInitials, getAvatarColor } = useAvatar()
   const { isOnline } = useOnlineStatus()
   const bell = useNotificationBell()
@@ -203,6 +356,8 @@
 
   const authStore = useAuthStore()
   const cashDrawerStore = useCashDrawerStore()
+  const cashRegisterStore = useCashRegisterStore()
+  const branchStore = useBranchStore()
 
   const props = defineProps({
     user: Object,
@@ -240,44 +395,99 @@
   const currentDrawer = ref(null)
   const registerDialog = ref(false)
   const registerBusy = ref(false)
-  const closing = ref(false)
+  // 'info' (active shift) | 'cash_in' | 'cash_out' | 'closing' | fallback 'open'
+  const panelView = ref('info')
   const actualCash = ref(null)
   const closeNotes = ref('')
   const openingFloat = ref(0)
+  const selectedRegisterId = ref(null)
+  const movementAmount = ref(null)
+  const movementReason = ref('')
+  const movementError = ref('')
+
+  const status = computed(() => cashDrawerStore.status)
+
+  const activeRegisters = computed(() =>
+    cashRegisterStore.cashRegisters.data?.filter(
+      r => r.is_active && r.branch_id === authStore.activeBranchId
+    ) ?? []
+  )
+
+  function registerName(id) {
+    return cashRegisterStore.cashRegisters.data?.find(r => r.id === id)?.name ?? '—'
+  }
+
+  const cashierName = computed(() =>
+    [authStore.user?.first_name, authStore.user?.last_name].filter(Boolean).join(' ') || '—'
+  )
+
+  const difference = computed(() => {
+    if (actualCash.value === null || actualCash.value === '' || !status.value) return 0
+    return Number(actualCash.value) - Number(status.value.expected_cash ?? 0)
+  })
+
+  const differenceLabel = computed(() => {
+    if (difference.value > 0) return t('cash_register.overage')
+    if (difference.value < 0) return t('cash_register.shortage')
+    return t('cash_register.balanced')
+  })
+
+  const differenceBg = computed(() => {
+    if (difference.value > 0) return 'bg-info-lighten-4 text-info'
+    if (difference.value < 0) return 'bg-error-lighten-4 text-error'
+    return 'bg-success-lighten-4 text-success'
+  })
 
   async function loadRegisterState() {
-    if (!authStore.staff_id) return
+    if (!authStore.staff_id && !authStore.isOwner) return
+    // branch_id, not staff_id — the real invariant is one open drawer per
+    // BRANCH (see CashDrawerService::findOpenForBranch), and an owner has
+    // no staff_id to filter by at all.
     await cashDrawerStore.fetchCashDrawers({
-      staff_id: authStore.staff_id,
+      branch_id: authStore.activeBranchId,
       is_open: true,
       perPage: 1
     })
     const drawer = cashDrawerStore.cashDrawers[0] ?? null
     currentDrawer.value = drawer
     registerOpen.value = !!drawer
+    if (drawer) await cashDrawerStore.fetchCashDrawerStatus(drawer.id)
   }
 
-  function openRegisterPanel() {
-    closing.value = false
+  async function openRegisterPanel() {
+    panelView.value = registerOpen.value ? 'info' : 'open'
     actualCash.value = null
     closeNotes.value = ''
     openingFloat.value = 0
+    movementAmount.value = null
+    movementReason.value = ''
+    movementError.value = ''
+    selectedRegisterId.value = null
     registerDialog.value = true
+
+    if (!cashRegisterStore.cashRegisters.data?.length) {
+      await cashRegisterStore.fetchCashRegisters({ perPage: -1, branch_id: authStore.activeBranchId })
+    }
+    if (registerOpen.value && currentDrawer.value) {
+      await cashDrawerStore.fetchCashDrawerStatus(currentDrawer.value.id)
+    }
   }
 
   async function confirmOpen() {
     registerBusy.value = true
     try {
       await cashDrawerStore.openCashDrawer({
-        branch_id: authStore.branch_id,
-        staff_id: authStore.staff_id,
+        branch_id: authStore.activeBranchId,
+        // staff_id is resolved server-side from the authenticated user now
+        // (null for an owner) — no longer sent from the client.
+        cash_register_id: selectedRegisterId.value || undefined,
         opening_float: openingFloat.value || 0
       })
       await loadRegisterState()
       notif(t('cash_register.opened_success'), { type: 'success' })
-      registerDialog.value = false
-    } catch {
-      notif(t('cash_register.action_failed'), { type: 'error' })
+      panelView.value = 'info'
+    } catch (e) {
+      notif(e?.response?.data?.message ?? t('cash_register.action_failed'), { type: 'error' })
     } finally {
       registerBusy.value = false
     }
@@ -294,11 +504,45 @@
       await loadRegisterState()
       notif(t('cash_register.closed_success'), { type: 'success' })
       registerDialog.value = false
-    } catch {
-      notif(t('cash_register.action_failed'), { type: 'error' })
+    } catch (e) {
+      notif(e?.response?.data?.message ?? t('cash_register.action_failed'), { type: 'error' })
     } finally {
       registerBusy.value = false
     }
+  }
+
+  async function confirmMovement() {
+    if (!currentDrawer.value) return
+    registerBusy.value = true
+    movementError.value = ''
+    try {
+      if (panelView.value === 'cash_in') {
+        await cashDrawerStore.cashIn(currentDrawer.value.id, {
+          amount: movementAmount.value,
+          reason: movementReason.value
+        })
+        notif(t('cash_register.cash_in_recorded'), { type: 'success' })
+      } else {
+        await cashDrawerStore.cashOut(currentDrawer.value.id, {
+          amount: movementAmount.value,
+          reason: movementReason.value
+        })
+        notif(t('cash_register.cash_out_recorded'), { type: 'success' })
+      }
+      panelView.value = 'info'
+    } catch (e) {
+      movementError.value = e?.response?.data?.errors?.amount?.[0] ?? e?.response?.data?.message ?? t('cash_register.action_failed')
+    } finally {
+      registerBusy.value = false
+    }
+  }
+
+  // Manual drawer-kick — gracefully no-ops if no USB/QZ Tray printer is
+  // connected/configured (openDrawer() never throws, see printReceipt.js).
+  async function handleOpenDrawer() {
+    const printerName = branchStore.branches.find(b => b.id === authStore.activeBranchId)?.printer_name ?? null
+    const ok = await openDrawer(printerName)
+    if (!ok) notif(t('cash_register.no_drawer_hardware'), { type: 'warning' })
   }
 
   function formatMoney(value) {
@@ -306,6 +550,10 @@
       style: 'currency',
       currency: 'USD'
     }).format(value ?? 0)
+  }
+
+  function formatDateTime(value) {
+    return value ? new Date(value).toLocaleString() : '—'
   }
 
   // Avatar
@@ -327,7 +575,15 @@
 
   onMounted(() => {
     loadRegisterState()
+    if (!branchStore.branches.length) branchStore.fetchBranches({ perPage: -1 })
   })
+
+  // Shift state is per-branch — switching the active branch (sidebar
+  // switcher) without re-checking left the chip showing stale state from
+  // whichever branch was active before, even though confirmOpen() itself
+  // always reads the CURRENT activeBranchId and so correctly rejects an
+  // open attempt against a branch that already has a shift running.
+  watch(() => authStore.activeBranchId, loadRegisterState)
 
   // Logout
   const handleLogout = () => {

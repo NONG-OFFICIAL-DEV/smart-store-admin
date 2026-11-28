@@ -52,7 +52,10 @@ class CashDrawerService extends BaseService
         return $this->repository->create([
             'branch_id' => $branchId,
             'cash_register_id' => $data['cash_register_id'] ?? null,
-            'staff_id' => $data['staff_id'],
+            // null for an owner opening their own register — owners have no
+            // Staff row at all (see Order.cashier_id/Payment.staff_id for
+            // the same established nullable-for-owner pattern).
+            'staff_id' => $data['staff_id'] ?? null,
             'opening_float' => $data['opening_float'] ?? 0,
             'opened_at' => now(),
         ]);
@@ -141,7 +144,7 @@ class CashDrawerService extends BaseService
         ]);
     }
 
-    public function cashIn(CashDrawer $drawer, float $amount, string $reason, Staff $staff): CashTransaction
+    public function cashIn(CashDrawer $drawer, float $amount, string $reason, ?Staff $staff): CashTransaction
     {
         return DB::transaction(function () use ($drawer, $amount, $reason, $staff) {
             $locked = CashDrawer::where('id', $drawer->id)->lockForUpdate()->firstOrFail();
@@ -154,7 +157,9 @@ class CashDrawerService extends BaseService
 
             return CashTransaction::create([
                 'cash_drawer_id' => $locked->id,
-                'staff_id' => $staff->id,
+                // null for an owner recording their own cash movement — see
+                // open() above for the same nullable-for-owner reasoning.
+                'staff_id' => $staff?->id,
                 'type' => 'cash_in',
                 'amount' => $amount,
                 'reason' => $reason,
@@ -162,7 +167,7 @@ class CashDrawerService extends BaseService
         });
     }
 
-    public function cashOut(CashDrawer $drawer, float $amount, string $reason, Staff $staff): CashTransaction
+    public function cashOut(CashDrawer $drawer, float $amount, string $reason, ?Staff $staff): CashTransaction
     {
         return DB::transaction(function () use ($drawer, $amount, $reason, $staff) {
             // Locked for the duration of the balance check + insert so two
@@ -185,7 +190,7 @@ class CashDrawerService extends BaseService
 
             return CashTransaction::create([
                 'cash_drawer_id' => $locked->id,
-                'staff_id' => $staff->id,
+                'staff_id' => $staff?->id,
                 'type' => 'cash_out',
                 'amount' => $amount,
                 'reason' => $reason,

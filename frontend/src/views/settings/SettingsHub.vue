@@ -704,6 +704,31 @@
           </v-row>
         </v-card>
 
+        <!-- ── Cash Register ─────────────────────────────────────────── -->
+        <v-card v-else-if="section === 'cash_register'" rounded="lg" class="pa-6">
+          <div class="text-body-medium text-medium-emphasis mb-5">
+            {{ t('settings_hub.cash_register.helper') }}
+          </div>
+          <div class="d-flex align-start justify-space-between ga-3">
+            <div class="flex-grow-1" style="min-width: 0">
+              <div class="text-body-medium font-weight-medium">
+                {{ t('settings_hub.cash_register.enabled_label') }}
+              </div>
+              <div class="text-body-small text-medium-emphasis">
+                {{ t('settings_hub.cash_register.enabled_hint') }}
+              </div>
+            </div>
+            <v-switch
+              v-model="form.pos_settings.cash_register_enabled"
+              :disabled="!canEdit || saving"
+              color="primary"
+              hide-details
+              density="compact"
+              class="flex-shrink-0 mt-1"
+            />
+          </div>
+        </v-card>
+
         <!-- ── Kitchen ticket workflow (per branch) ───────────────────── -->
         <v-card v-else-if="section === 'kitchen'" rounded="lg" class="pa-6">
           <v-alert
@@ -1164,6 +1189,7 @@
       { key: 'pos', icon: 'mdi-point-of-sale' },
       { key: 'printer', icon: 'mdi-printer-outline' },
       { key: 'receipt_content', icon: 'mdi-receipt-text-outline' },
+      { key: 'cash_register', icon: 'mdi-cash-register' },
       authStore.isFood ? { key: 'kitchen', icon: 'mdi-chef-hat' } : null,
       { key: 'customer_display', icon: 'mdi-monitor-share' }
     ].filter(Boolean)
@@ -1213,7 +1239,8 @@
       show_cashier_name: true,
       show_order_type: true,
       print_customer_receipt: true,
-      print_kitchen_ticket: false
+      print_kitchen_ticket: false,
+      cash_register_enabled: true
     }
   }
 
@@ -1605,7 +1632,8 @@
         show_cashier_name: tenant.pos_settings?.show_cashier_name !== false,
         show_order_type: tenant.pos_settings?.show_order_type !== false,
         print_customer_receipt: tenant.pos_settings?.print_customer_receipt !== false,
-        print_kitchen_ticket: tenant.pos_settings?.print_kitchen_ticket === true
+        print_kitchen_ticket: tenant.pos_settings?.print_kitchen_ticket === true,
+        cash_register_enabled: tenant.pos_settings?.cash_register_enabled !== false
       }
     })
   }

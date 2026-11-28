@@ -247,4 +247,41 @@ class CashDrawerServiceTest extends TestCase
         $this->assertSame('330.00', $closed->expected_cash);
         $this->assertSame('0.00', $closed->variance);
     }
+
+    public function test_an_owner_with_no_staff_row_can_open_cash_in_out_and_close_a_shift(): void
+    {
+        [$tenant, $owner] = $this->makeTenantWithOwner('TenantJ');
+        Auth::login($owner);
+        $branch = $this->makeBranch($tenant, 'Branch J');
+
+        $service = $this->app->make(CashDrawerService::class);
+
+        // No staff_id at all — this is exactly what CashDrawerController::open()
+        // now resolves to for an owner (auth()->user()->staff?->id is null).
+        $drawer = $service->open(['branch_id' => $branch->id, 'staff_id' => null, 'opening_float' => 100]);
+        $this->assertNull($drawer->staff_id);
+        $this->assertNull($drawer->closed_at);
+
+        // Mirrors CashDrawerController::cashIn/cashOut passing auth()->user()->staff
+        // (null for an owner) straight through.
+        $service->cashIn($drawer, 20, 'Change float top-up', null);
+        $service->cashOut($drawer, 30, 'Petty cash for supplies', null);
+
+        $status = $service->status($drawer);
+        $this->assertSame(20.0, $status['cash_in']);
+        $this->assertSame(30.0, $status['cash_out']);
+        // 100 + 0 (no sales) + 20 - 30 - 0 = 90
+        $this->assertSame(90.0, $status['expected_cash']);
+
+        $closed = $service->close($drawer, 90, 'Owner closed it themselves');
+        $this->assertSame('90.00', $closed->expected_cash);
+        $this->assertSame('0.00', $closed->variance);
+        $this->assertNotNull($closed->closed_at);
+
+        $this->assertDatabaseHas('cash_transactions', [
+            'cash_drawer_id' => $drawer->id,
+            'staff_id' => null,
+            'type' => 'cash_in',
+        ]);
+    }
 }

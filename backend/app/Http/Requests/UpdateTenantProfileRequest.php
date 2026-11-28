@@ -90,6 +90,7 @@ class UpdateTenantProfileRequest extends FormRequest
             // Which document(s) print after Food POS checkout.
             'pos_settings.print_customer_receipt' => 'boolean',
             'pos_settings.print_kitchen_ticket' => 'boolean',
+            'pos_settings.cash_register_enabled' => 'boolean',
         ];
     }
 

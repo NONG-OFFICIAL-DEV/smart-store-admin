@@ -176,9 +176,13 @@ class MartPosController extends Controller
             // ── Cash requires an open register — checked BEFORE any order/
             // payment row is created, so a rejected cash sale never leaves a
             // partial write (or decremented stock) behind. Card/QR/transfer/
-            // pay_later are unaffected.
+            // pay_later are unaffected. Some tenants don't use this feature
+            // at all (pos_settings.cash_register_enabled === false) — for
+            // them, cash payments behave exactly as if cash registers never
+            // existed.
+            $cashRegisterEnabled = ($branch->tenant->pos_settings['cash_register_enabled'] ?? true) !== false;
             $openCashDrawer = null;
-            if ($request->payment_method === 'cash') {
+            if ($request->payment_method === 'cash' && $cashRegisterEnabled) {
                 $openCashDrawer = $this->cashDrawers->findOpenForBranch($branch->id);
                 if (! $openCashDrawer) {
                     abort(response()->json([

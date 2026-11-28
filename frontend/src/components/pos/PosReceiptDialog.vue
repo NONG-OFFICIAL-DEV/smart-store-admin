@@ -26,7 +26,7 @@
   import { useReceipt, printReceiptBrowser } from '@/utils/printReceipt'
   import PosReceiptContent from './PosReceiptContent.vue'
 
-  const { print: printThermal } = useReceipt()
+  const { print: printThermal, openDrawer } = useReceipt()
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -54,15 +54,29 @@
   // window.print() on the main page, which would print this still-open
   // AppDialog's own overlay along with the receipt). The receipt here is
   // always already paid (checkout completed before this dialog opens).
+  // Fire-and-forget — only for cash, since that's the only payment method
+  // where physical cash actually needs to come out of the drawer. Never
+  // awaited: a missing/unsupported drawer must never delay or block the
+  // dialog closing after a successful print (openDrawer() itself never
+  // throws, but this stays non-blocking regardless).
+  function maybeOpenDrawer() {
+    if (props.receipt?.payment_method !== 'cash') return
+    openDrawer(props.printerName)
+  }
+
   async function print() {
     if (props.printerName) {
       const ok = await printThermal(props.receipt, props.printerName)
       if (ok) {
+        maybeOpenDrawer()
         emit('close')
         return
       }
     }
     const printed = await printReceiptBrowser(props.receipt, 'receipt')
-    if (printed) emit('close')
+    if (printed) {
+      maybeOpenDrawer()
+      emit('close')
+    }
   }
 </script>

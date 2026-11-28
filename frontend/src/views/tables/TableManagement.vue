@@ -575,8 +575,15 @@
         notif(t('tables.messages.created'), { type: 'success' })
       }
       dialog.value = false
-    } catch {
-      notif(t('tables.messages.save_failed'), { type: 'error' })
+    } catch (e) {
+      // Backend validation text is always English — map the one
+      // known/expected case to a localized string (same pattern as
+      // ProductFormPage.vue's duplicate-field handling) rather than
+      // showing raw, unlocalized backend text to a Khmer-locale user.
+      const message = e?.response?.data?.errors?.table_number
+        ? t('tables.messages.table_number_taken')
+        : t('tables.messages.save_failed')
+      notif(message, { type: 'error' })
     } finally {
       saving.value = false
     }

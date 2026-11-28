@@ -15,6 +15,13 @@ class CashDrawerRepository extends BaseRepository implements CashDrawerRepositor
         parent::__construct($model);
     }
 
+    // Shift History / Active Shift panel need cashier + register NAMES, not
+    // just ids — eager-load here (not N+1'd per-row in the Resource).
+    public function query(): Builder
+    {
+        return parent::query()->with(['staff.user', 'cashRegister', 'branch']);
+    }
+
     protected function applyFilters(Builder $query, array $filters): void
     {
         if (! empty($filters['branch_id'])) {

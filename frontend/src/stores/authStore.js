@@ -48,7 +48,8 @@ export const useAuthStore = defineStore('auth', {
       show_cashier_name: true,
       show_order_type: true,
       print_customer_receipt: true,
-      print_kitchen_ticket: false
+      print_kitchen_ticket: false,
+      cash_register_enabled: true
     },
 
     branch_id:   null,

@@ -54,8 +54,12 @@ class RefundService extends BaseService
         // nowhere to record the cash leaving from, so reject rather than
         // silently losing it from reconciliation (cash_drawer_id would stay
         // null and CashDrawerService's expected-cash math would never see
-        // this refund at all).
-        if (($data['method'] ?? 'original_method') === 'cash') {
+        // this refund at all). Tenants with the whole feature turned off
+        // (pos_settings.cash_register_enabled === false) skip this
+        // requirement entirely — refunds work as if it never existed.
+        $cashRegisterEnabled = ($payment->branch->tenant->pos_settings['cash_register_enabled'] ?? true) !== false;
+
+        if (($data['method'] ?? 'original_method') === 'cash' && $cashRegisterEnabled) {
             $openDrawer = $this->cashDrawers->findOpenForBranch($payment->branch_id);
 
             if (! $openDrawer) {

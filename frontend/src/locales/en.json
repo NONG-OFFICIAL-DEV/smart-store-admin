@@ -412,7 +412,70 @@
     "open_register": "Open Register",
     "opened_success": "Register opened.",
     "closed_success": "Register closed.",
-    "action_failed": "Something went wrong. Please try again."
+    "action_failed": "Something went wrong. Please try again.",
+    "cashier": "Cashier",
+    "register": "Register",
+    "cash_sales": "Cash Sales",
+    "non_cash_sales": "Non-Cash Sales",
+    "cash_in": "Cash In",
+    "cash_out": "Cash Out",
+    "cash_refunds": "Cash Refunds",
+    "expected_cash": "Expected Cash",
+    "amount": "Amount",
+    "reason": "Reason",
+    "cash_in_recorded": "Cash in recorded.",
+    "cash_out_recorded": "Cash out recorded.",
+    "open_drawer": "Open Drawer",
+    "no_drawer_hardware": "No connected cash drawer or printer found.",
+    "overage": "Cash Overage",
+    "shortage": "Cash Shortage",
+    "balanced": "Balanced"
+  },
+  "cash_registers": {
+    "title": "Cash Registers",
+    "subtitle": "Manage registers and review past shifts",
+    "add": "Add Register",
+    "view_history": "Shift History",
+    "tabs": {
+      "registers": "Registers"
+    },
+    "updated": "Cash register updated.",
+    "added": "Cash register added.",
+    "deleted": "Cash register deleted.",
+    "delete_title": "Delete Cash Register",
+    "delete_message": "This action cannot be undone.",
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "table": {
+      "name": "Name",
+      "branch": "Branch",
+      "status": "Status",
+      "shift": "Shift"
+    },
+    "form": {
+      "branch": "Branch",
+      "name": "Register Name",
+      "description": "Description",
+      "active_hint": "Available for staff to open a shift against"
+    },
+    "dialog": {
+      "title_add": "Add Cash Register",
+      "title_edit": "Edit Cash Register"
+    },
+    "history": {
+      "title": "Shift History",
+      "cashier": "Cashier",
+      "register": "Register",
+      "opened_at": "Opened At",
+      "closed_at": "Closed At",
+      "opening_float": "Opening Cash",
+      "expected_cash": "Expected Cash",
+      "actual_cash": "Actual Cash",
+      "variance": "Difference",
+      "status": "Status"
+    }
   },
   "shortcuts": {
     "title": "Keyboard",
@@ -1834,6 +1897,10 @@
       "receipt_content": {
         "title": "Receipt content",
         "subtitle": "What prints on the receipt"
+      },
+      "cash_register": {
+        "title": "Cash Register",
+        "subtitle": "Turn the cash register feature on or off"
       }
     },
     "section_select_label": "Section",
@@ -1974,6 +2041,11 @@
       "helper": "Choose what prints after checkout, and what appears on the printed receipt. These apply to all print methods (USB, network printer, browser print).",
       "printing_heading": "Printing",
       "fields_heading": "Receipt fields"
+    },
+    "cash_register": {
+      "helper": "The cash register feature lets cashiers open/close a shift, track cash in/out, and reconcile the drawer at the end of the day.",
+      "enabled_label": "Enable Cash Register",
+      "enabled_hint": "Require cashiers to open a shift before taking cash payments. Turn this off if you don't use cash registers."
     },
     "pos_print_customer_receipt": "Customer receipt",
     "pos_print_customer_receipt_hint": "Print a customer-facing receipt after checkout",
@@ -3581,6 +3653,7 @@
       "updated": "Table updated",
       "created": "Table created",
       "save_failed": "Failed to save",
+      "table_number_taken": "This table number is already in use.",
       "table_paid": "Table {number} paid"
     },
     "confirm_delete": {
