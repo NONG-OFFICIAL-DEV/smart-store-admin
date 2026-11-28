@@ -260,15 +260,19 @@
   const paymentMethod = ref(props.defaultPaymentMethod)
 
   // Fixed display order regardless of how the tenant's list is stored.
-  const ALL_PAYMENT_METHODS = [
+  // Labels are resolved INSIDE this computed (not baked into a plain array
+  // via t() at setup time) so they re-translate immediately on a language
+  // switch instead of staying frozen in whichever locale was active when
+  // the component first mounted.
+  const ALL_PAYMENT_METHODS = computed(() => [
     { value: 'cash', icon: 'mdi-cash', label: t('pos.checkout.methods.cash') },
     { value: 'card', icon: 'mdi-credit-card-outline', label: t('pos.checkout.methods.card') },
     { value: 'qr', icon: 'mdi-qrcode', label: t('pos.checkout.methods.qr') },
     { value: 'pay_later', icon: 'mdi-clock-outline', label: t('pos.checkout.methods.pay_later') }
-  ]
+  ])
 
   const paymentOptions = computed(() =>
-    ALL_PAYMENT_METHODS.filter(opt => props.paymentMethods.includes(opt.value))
+    ALL_PAYMENT_METHODS.value.filter(opt => props.paymentMethods.includes(opt.value))
   )
 
   // The tenant can change which methods are enabled (Settings > POS) after

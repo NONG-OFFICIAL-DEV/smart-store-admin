@@ -2948,7 +2948,7 @@
       "note_added": "Note added",
       "note_placeholder": "Note for this order (optional)",
       "view_order": "View Order",
-      "place_order": "Place Order"
+      "place_order": "Hold Order"
     },
     "checkout": {
       "title": "Checkout",
@@ -2960,7 +2960,7 @@
         "cash": "Cash",
         "card": "Card",
         "qr": "QR",
-        "pay_later": "Pay Later"
+        "pay_later": "Hold Order"
       },
       "order_actions": {
         "on_hold": "Hold Order",

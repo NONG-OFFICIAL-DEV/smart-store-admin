@@ -2,12 +2,14 @@
   import { ref, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import FooterNotificationsMenu from './FooterNotificationsMenu.vue'
+  import CashRegisterWidget from './CashRegisterWidget.vue'
   import { useNotificationBell } from '@/composables/useNotificationBell'
   import { useUserMenu } from '@/composables/useUserMenu'
   import { useLanguage } from '@/composables/useLanguage'
   import { useAvatar } from '@/composables/useAvatar'
   import { useOnlineStatus } from '@/composables/useOnlineStatus'
   import { useLogout } from '@/composables/useLogout'
+  import { useCashRegisterAccess } from '@/composables/useCashRegisterAccess'
 
   const props = defineProps({
     user: Object,
@@ -24,6 +26,7 @@
   const { goToAccount } = useUserMenu()
   const { options, currentLanguage, select } = useLanguage()
   const { logout } = useLogout()
+  const { hasCashRegisterAccess } = useCashRegisterAccess()
 
   const langMenu = ref(false)
 
@@ -69,6 +72,15 @@
           >
             <v-icon icon="mdi-logout" size="18" />
           </button>
+        </div>
+
+        <!-- Own full-width row below the profile — a squeezed 3rd grid
+             column next to language/notifications didn't leave room for
+             longer translated status text. Gated the same as the widget's
+             own internal v-if, or a disabled/no-access tenant gets an empty
+             bordered row with nothing inside it. -->
+        <div v-if="hasCashRegisterAccess" class="register-row-wrap">
+          <CashRegisterWidget block />
         </div>
 
         <div class="bottom">
@@ -148,6 +160,8 @@
             @view-all="bell.goToNotifications"
             @read="bell.refreshUnreadCount"
           />
+
+          <CashRegisterWidget rail />
 
           <span class="rail-divider" />
 
@@ -297,6 +311,11 @@
   .icon-btn:focus-visible {
     outline: 2px solid rgb(var(--v-theme-primary));
     outline-offset: 2px;
+  }
+
+  /* ── Register row ────────────────────────────────────────────────────── */
+  .register-row-wrap {
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   }
 
   /* ── Bottom row ──────────────────────────────────────────────────────── */
